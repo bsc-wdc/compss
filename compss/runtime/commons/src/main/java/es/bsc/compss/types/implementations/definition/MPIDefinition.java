@@ -55,16 +55,16 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
     /**
      * Creates a new MPIImplementation instance from the given parameters.
      *
-     * @param binary     MPI binary path.
+     * @param binary MPI binary path.
      * @param workingDir Binary working directory.
-     * @param mpiRunner  Path to the MPI command.
-     * @param ppn        Process per node.
-     * @param scaleByCU  Scale by computing units property.
-     * @param params     params string to be appended to the end of the command.
-     * @param failByEV   Flag to enable failure with EV.
+     * @param mpiRunner Path to the MPI command.
+     * @param ppn Process per node.
+     * @param scaleByCU Scale by computing units property.
+     * @param params params string to be appended to the end of the command.
+     * @param failByEV Flag to enable failure with EV.
      */
     public MPIDefinition(String binary, String workingDir, String mpiRunner, int ppn, String mpiFlags,
-                         boolean scaleByCU, String params, boolean failByEV) {
+        boolean scaleByCU, String params, boolean failByEV) {
         super(workingDir, mpiRunner, ppn, mpiFlags, scaleByCU, failByEV);
         this.binary = binary;
         this.params = params;
@@ -74,10 +74,20 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
      * Creates a new Definition from string array.
      *
      * @param implTypeArgs String array.
-     * @param offset       Element from the beginning of the string array.
-     * @param container    String array for container description.
+     * @param offset Element from the beginning of the string array.
      */
-    public MPIDefinition(String[] implTypeArgs, int offset, String[] container) {
+    public MPIDefinition(String[] implTypeArgs, int offset) {
+        this(implTypeArgs, offset, null);
+    }
+
+    /**
+     * Creates a new Definition from string array.
+     *
+     * @param implTypeArgs String array.
+     * @param offset Element from the beginning of the string array.
+     * @param container Container description.
+     */
+    public MPIDefinition(String[] implTypeArgs, int offset, ContainerDescription container) {
         this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
@@ -86,14 +96,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 5]);
         this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
-
-        if (container[0] != null && !container[0].isEmpty() && !container[0].equals(Constants.UNASSIGNED)) {
-            String engineStr = container[0].toUpperCase();
-            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
-            this.container = new ContainerDescription(engine, container[1], container[2]);
-        } else {
-            this.container = null;
-        }
+        this.container = container;
 
         checkArguments();
     }

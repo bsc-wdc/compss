@@ -52,7 +52,6 @@ import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
-import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -65,6 +64,7 @@ import es.bsc.compss.types.data.params.ObjectData;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.impl.BasicTypeParameter;
 import es.bsc.compss.types.parameter.impl.BindingObjectParameter;
@@ -661,23 +661,31 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.debug("Registere MRD:");
         LOGGER.debug(mrd.toString());
         boolean isImplIO = Boolean.parseBoolean(implIO);
-        boolean isLocalImpl = Boolean.parseBoolean(implLocal);
-
         if (isImplIO) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
             }
             mrd.setIOResources();
         }
+        boolean isLocalImpl = Boolean.parseBoolean(implLocal);
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);
 
         ExecType pro = new ExecType(ExecutionOrder.PROLOG, prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
         ExecType epi = new ExecType(ExecutionOrder.EPILOG, epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+        ContainerDescription cont;
+        if (container != null && container.length > 0 && container[0] != null && !container[0].isEmpty()
+            && !container[0].equals(Constants.UNASSIGNED)) {
+            String engineStr = container[0].toUpperCase();
+            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
+            cont = new ContainerDescription(engine, container[1], container[2]);
+        } else {
+            cont = null;
+        }
 
         ImplementationDescription<?, ?> implDef = ImplementationDescription.defineImplementation(implType,
-            implSignature, isLocalImpl, mrd, pro, epi, container, implTypeArgs);
+            implSignature, isLocalImpl, mrd, pro, epi, cont, implTypeArgs);
         ced.addImplementation(implDef);
 
         td.registerNewCoreElement(ced);

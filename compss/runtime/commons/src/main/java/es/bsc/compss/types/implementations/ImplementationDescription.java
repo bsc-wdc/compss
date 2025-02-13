@@ -16,10 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
+import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
 import es.bsc.compss.types.implementations.definition.HTTPDefinition;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
@@ -74,6 +76,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
      * @param implSignature Implementation signature.
      * @param localProcessing Implementation must run on the local computing devices.
      * @param implConstraints Implementation constraints.
+     * @param container Container description.
      * @param implTypeArgs Implementation specific arguments.
      * @return A new implementation definition from the given parameters.
      * @throws IllegalArgumentException If the number of specific parameters does not match the required number of
@@ -82,11 +85,10 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     @SuppressWarnings("unchecked")
     public static final <T extends WorkerResourceDescription, D extends ImplementationDefinition>
         ImplementationDescription<T, D> defineImplementation(String implType, String implSignature,
-            boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog, String[] container,
-            String... implTypeArgs) throws IllegalArgumentException {
+            boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog,
+            ContainerDescription container, String... implTypeArgs) throws IllegalArgumentException {
 
         ImplementationDescription<T, D> id = null;
-
         if (implType.toUpperCase().compareTo(TaskType.HTTP.toString()) == 0) {
             if (implTypeArgs.length != HTTPDefinition.NUM_PARAMS) {
                 throw new IllegalArgumentException("Incorrect parameters for type HTTP on " + implSignature);

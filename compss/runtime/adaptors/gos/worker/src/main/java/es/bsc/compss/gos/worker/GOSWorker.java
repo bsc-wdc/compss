@@ -343,8 +343,7 @@ public class GOSWorker implements InvocationContext {
                     argPosition + BinaryDefinition.NUM_PARAMS, lang);
             // why there is no MPMD MPI case?
             case MPI:
-                String[] container = new String[3];
-                return genImplemenationDefinition(new MPIDefinition(args, argPosition, container), debug, args,
+                return genImplemenationDefinition(new MPIDefinition(args, argPosition), debug, args,
                     argPosition + MPIDefinition.NUM_PARAMS, lang);
             case COMPSs:
                 return genImplemenationDefinition(new COMPSsDefinition(args, argPosition), debug, args,

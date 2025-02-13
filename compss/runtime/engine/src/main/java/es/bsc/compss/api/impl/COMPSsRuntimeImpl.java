@@ -62,7 +62,6 @@ import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.data.params.ObjectData;
 import es.bsc.compss.types.implementations.ExecType;
-import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
@@ -623,13 +622,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String... implTypeArgs) {
 
         LOGGER.info("Registering CoreElement " + coreElementSignature);
-        if (prolog.length != ExecType.ARRAY_LENGTH) {
-            throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
-        }
-
-        if (epilog.length != ExecType.ARRAY_LENGTH) {
-            throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
-        }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("\t - Implementation: " + implSignature);
@@ -658,8 +650,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
-        LOGGER.debug("Registere MRD:");
-        LOGGER.debug(mrd.toString());
         boolean isImplIO = Boolean.parseBoolean(implIO);
         if (isImplIO) {
             if (LOGGER.isDebugEnabled()) {
@@ -667,13 +657,28 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
             mrd.setIOResources();
         }
-        boolean isLocalImpl = Boolean.parseBoolean(implLocal);
+        boolean isLocalImpl;
+        isLocalImpl = Boolean.parseBoolean(implLocal);
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);
 
-        ExecType pro = new ExecType(ExecutionOrder.PROLOG, prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
-        ExecType epi = new ExecType(ExecutionOrder.EPILOG, epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+        ExecType pro = null;
+        if (prolog != null && prolog.length > 0) {
+            if (prolog.length != ExecType.ARRAY_LENGTH) {
+                throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
+            }
+            pro = new ExecType(prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
+        }
+
+        ExecType epi = null;
+        if (epilog != null && epilog.length > 0) {
+            if (epilog.length != ExecType.ARRAY_LENGTH) {
+                throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
+            }
+            epi = new ExecType(epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+        }
+
         ContainerDescription cont;
         if (container != null && container.length > 0 && container[0] != null && !container[0].isEmpty()
             && !container[0].equals(Constants.UNASSIGNED)) {
@@ -832,7 +837,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             } catch (CommException e) {
                 LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
             }
-
         }
         return false;
     }

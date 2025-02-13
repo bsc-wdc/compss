@@ -47,7 +47,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.implementations.ExecType;
-import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
@@ -456,13 +455,13 @@ public class ITFParser {
         ExecType prolog = null;
         if (m.isAnnotationPresent(Prolog.class)) {
             Prolog pAnnot = m.getAnnotation(Prolog.class);
-            prolog = new ExecType(ExecutionOrder.PROLOG, pAnnot.binary(), pAnnot.params(), pAnnot.failByExitValue());
+            prolog = new ExecType(pAnnot.binary(), pAnnot.params(), pAnnot.failByExitValue());
         }
 
         ExecType epilog = null;
         if (m.isAnnotationPresent(Epilog.class)) {
             Epilog eAnnot = m.getAnnotation(Epilog.class);
-            epilog = new ExecType(ExecutionOrder.EPILOG, eAnnot.binary(), eAnnot.params(), eAnnot.failByExitValue());
+            epilog = new ExecType(eAnnot.binary(), eAnnot.params(), eAnnot.failByExitValue());
         }
 
         // so far container within other decorators is only supported with Python @mpi and @mpmd_mpi. this is the case

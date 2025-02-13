@@ -387,8 +387,12 @@ public class NIOTask implements Externalizable, Invocation {
         sb.append("\"parallelism_source\":")
             .append(this.parallelismSource == null ? "null" : "\"" + this.parallelismSource + "\"").append(",");
         sb.append("\"params\":[");
-        for (NIOParam param : this.arguments) {
-            sb.append(param);
+        Iterator<NIOParam> argsItr = this.arguments.iterator();
+        if (argsItr.hasNext()) {
+            sb.append(argsItr.next());
+        }
+        if (argsItr.hasNext()) {
+            sb.append(",").append(argsItr.next());
         }
         sb.append(" ],\"target\":");
         if (target != null) {
@@ -397,8 +401,12 @@ public class NIOTask implements Externalizable, Invocation {
             sb.append("null");
         }
         sb.append(",\"results\":[");
-        for (NIOParam param : this.results) {
-            sb.append(param);
+        Iterator<NIOParam> resItr = this.arguments.iterator();
+        if (resItr.hasNext()) {
+            sb.append(resItr.next());
+        }
+        if (resItr.hasNext()) {
+            sb.append(",").append(resItr.next());
         }
         sb.append("],");
 

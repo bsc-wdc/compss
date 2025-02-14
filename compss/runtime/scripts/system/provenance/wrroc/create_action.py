@@ -323,7 +323,7 @@ def wrroc_create_action(
     # If times are found in dataprovenance.log, they replace the ones obtained at the beginning of provenance generation
     # and obtained with sacct
     dp_log = log_dir / "dataprovenance.log"
-    with open(dp_log , "r", encoding="UTF-8") as dp_file:
+    with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
             if i == 3:
@@ -342,19 +342,31 @@ def wrroc_create_action(
                     if job_id:
                         # sacct may fail if the run is done from a container
                         try:
-                            sacct_command = ["sacct", "-j", str(job_id), "--format=Start", "--noheader"]
+                            sacct_command = [
+                                "sacct",
+                                "-j",
+                                str(job_id),
+                                "--format=Start",
+                                "--noheader",
+                            ]
                             head_command = ["head", "-n", "1"]
-                            sacct_process = subprocess.Popen(sacct_command, stdout=subprocess.PIPE)
+                            sacct_process = subprocess.Popen(
+                                sacct_command, stdout=subprocess.PIPE
+                            )
                             head_process = subprocess.Popen(
-                                head_command, stdin=sacct_process.stdout, stdout=subprocess.PIPE
+                                head_command,
+                                stdin=sacct_process.stdout,
+                                stdout=subprocess.PIPE,
                             )
                             output, _ = head_process.communicate()
                             start_time_str = output.decode("utf-8").strip()
                             # Convert start time to datetime object
-                            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
-                            create_action_properties["startTime"] = start_time.astimezone(
-                                timezone.utc
-                            ).isoformat()
+                            start_time = datetime.strptime(
+                                start_time_str, "%Y-%m-%dT%H:%M:%S"
+                            )
+                            create_action_properties["startTime"] = (
+                                start_time.astimezone(timezone.utc).isoformat()
+                            )
                         except Exception as e:
                             print(
                                 f"PROVENANCE | WARNING: 'sacct' command not available"
@@ -429,25 +441,46 @@ def wrroc_create_action(
 
     # Add Paraver trace files if they have been generated in PRV_DIR/ folder
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    if "trace_persistence" in compss_wf_info and compss_wf_info["trace_persistence"] is True:
-        prv_dir = log_dir / "trace/"
-        if prv_dir.exists() and prv_dir.is_dir():
-            print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
-            for file in prv_dir.iterdir():
-                if file.is_file():
-                    file_properties = {}
-                    file_properties["name"] = file.name
-                    file_properties["contentSize"] = file.stat().st_size
-                    file_properties["description"] = (
-                    "PARAVER trace files"
-                    )
-                    file_properties["encodingFormat"] = "text/plain"
-                    file_properties["about"] = create_action_id
-                    crate_path = "trace/" + file.name
-                    compss_crate.add_file(source=file.resolve(), dest_path=crate_path, properties=file_properties)
-        else:
-            print(f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True")
+    if (
+        "trace_persistence" in compss_wf_info
+        and compss_wf_info["trace_persistence"] is True
+    ):
+        prv_persist = True
     else:
-        print(f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)")
+        prv_persist = False
+    prv_dir = log_dir / "trace/"
+    if prv_dir.exists() and prv_dir.is_dir():
+        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
+        if not prv_persist:
+            print(
+                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
+            )
+        for file in prv_dir.iterdir():
+            if file.is_file():
+                file_properties = {}
+                file_properties["name"] = file.name
+                file_properties["contentSize"] = file.stat().st_size
+                file_properties["description"] = "PARAVER trace files"
+                file_properties["encodingFormat"] = "text/plain"
+                file_properties["about"] = create_action_id
+                if prv_persist:
+                    crate_path = "trace/" + file.name
+                    compss_crate.add_file(
+                        source=file.resolve(),
+                        dest_path=crate_path,
+                        properties=file_properties,
+                    )
+                else:
+                    file_url = "file://" + socket.gethostname() + str(file.resolve())
+                    compss_crate.add_file(
+                        source=file_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        properties=file_properties,
+                    )
+    elif prv_persist:
+        print(
+            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
+        )
 
     return run_uuid

@@ -195,8 +195,7 @@ gen_traces() {
   endCode=$?
   # cleaning
   rm -rf "${mpits}" "${output_dir}/TRACE.sym"
-  cd "${output_dir}"
-  rm -rf set-*
+  rm -rf ${output_dir}/set-*
 }
 
 #-------------------------------------

@@ -222,7 +222,7 @@ if __name__ == "__main__":
         INFO_YAML = sys.argv[1]
         DP_LOG = sys.argv[2]
         STATS_PATH = Path(sys.argv[3])
-        path_dplog = Path(sys.argv[2])
+        path_dplog = Path(DP_LOG)
         COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
         # STATS_PATH = path_dplog.parent / "stats"
         ENERGY_PATH = path_dplog.parent / "energy"

@@ -19,16 +19,17 @@ import time
 import socket
 
 from urllib.parse import urlsplit
+from pathlib import Path
 
 
-def process_accessed_files(dp_log: str) -> typing.Tuple[list, list]:
+def process_accessed_files(dp_log: Path) -> typing.Tuple[list, list]:
     """
     Process all the files the COMPSs workflow has accessed. They will be the overall inputs needed and outputs
     generated of the whole workflow.
     - If a task that is an INPUT, was previously an OUTPUT, it means it is an intermediate file, therefore we discard it
     - Works fine with COLLECTION_FILE_IN, COLLECTION_FILE_OUT and COLLECTION_FILE_INOUT
 
-    :param dp_log: Full path to the dataprovenance.log file
+    :param dp_log: Path object to the dataprovenance.log file
 
     :returns: List of Inputs and Outputs of the COMPSs workflow
     """

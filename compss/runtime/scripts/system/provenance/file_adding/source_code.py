@@ -38,7 +38,7 @@ def add_file_to_crate(
     main_entity: str,
     out_profile: str,
     in_sources_dir: str,
-    complete_graph: str,
+    complete_graph: Path,
     info_yaml: str,
 ) -> str:
     """
@@ -52,7 +52,7 @@ def add_file_to_crate(
     :param out_profile: COMPSs application profile output
     :param in_sources_dir: Path to the defined sources_dir. May be passed empty, so there is no sub-folder structure
         to be respected
-    :param complete_graph: Full path to the file containing the workflow diagram
+    :param complete_graph: Path object to the file containing the workflow diagram
     :param info_yaml: Name of the YAML file specified by the user
 
     :returns: Path where the file has been stored in the crate

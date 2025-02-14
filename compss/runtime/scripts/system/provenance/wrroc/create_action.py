@@ -429,9 +429,10 @@ def wrroc_create_action(
             compss_crate.add_file(file_properties["name"], properties=file_properties)
 
     # Add Paraver trace files if they have been generated in PRV_DIR/ folder
-    # TODO: if the directory is larger than XXXX size, do not add the trace
+    # TODO: add flag trace_persitence: True or False
     prv_dir = log_dir / "trace/"
     if prv_dir.exists() and prv_dir.is_dir():
+        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
         for file in prv_dir.iterdir():
             if file.is_file():
                 file_properties = {}

@@ -172,7 +172,7 @@ def main():
         fixed_outs,
         yaml_content,
         INFO_YAML,
-        DP_LOG,
+        path_log,
         datetime.fromisoformat(end_time),
     )
 
@@ -208,8 +208,8 @@ if __name__ == "__main__":
         sys.exit()
     else:
         INFO_YAML = sys.argv[1]
-        DP_LOG = sys.argv[2] + "/dataprovenance.log"
-        path_dplog = Path(sys.argv[2])
-        PRV_DIR = sys.argv[2] + "/trace/"
-        COMPLETE_GRAPH = sys.argv[2] "/monitor/complete_graph.svg"
+        path_log = Path(sys.argv[2])
+        DP_LOG = str(path_log / "dataprovenance.log")
+        COMPLETE_GRAPH = str(path_log / "monitor/complete_graph.svg")
+
     main()

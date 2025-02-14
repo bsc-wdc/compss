@@ -203,12 +203,13 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print(
             "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py "
-            "/path_to/your_info.yaml /path_to/dataprovenance.log"
+            "/path_to/your_info.yaml /path_to/log_dir"
         )
         sys.exit()
     else:
         INFO_YAML = sys.argv[1]
-        DP_LOG = sys.argv[2]
+        DP_LOG = sys.argv[2] + "/dataprovenance.log"
         path_dplog = Path(sys.argv[2])
-        COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
+        PRV_DIR = sys.argv[2] + "/trace/"
+        COMPLETE_GRAPH = sys.argv[2] "/monitor/complete_graph.svg"
     main()

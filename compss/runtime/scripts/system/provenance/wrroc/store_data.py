@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import os
 from pathlib import Path
 
 # import pymongo
@@ -121,13 +120,14 @@ def store_data(compss_path: str, stats_path: Path):
                     id_stat = e.id.replace("#", "").split(".")
                     node = id_stat[0]
                     nodes.append(node)
-                    # function_name = id_stat[1] + "." + id_stat[2]
-                    function_name = id_stat[1]
-                    stat = id_stat[2]
-                    # stat = id_stat[3]
+                    if len(id_stat) > 3:
+                        function_name = id_stat[1] + "." + id_stat[2]
+                        stat = id_stat[3]
+                    else:
+                        function_name = id_stat[1]
+                        stat = id_stat[2]
 
                     if entry_name == "executionTime":
-                        application_name = function_name.split(".")[0]
                         final_dict["AppName"] = function_name
                     elif entry_name == "maxTime":
                         # Initialize every time it reads maxTime because the stats of a new node will be read

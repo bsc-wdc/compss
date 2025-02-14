@@ -77,15 +77,11 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
         for idx, row in enumerate(data_provenance.readlines()):
             if idx == 1:
                 application_name = row.rstrip()
-                continue
-            elif idx < 3:
-                continue
-
-            parameter_list = list(filter(None, row.strip().split(" ")))
-            len_row = len(parameter_list)
-            if len_row >= 4:
-                data_list.append(parameter_list)
-
+            elif idx >= 3:
+                parameter_list = list(filter(None, row.strip().split(" ")))
+                len_row = len(parameter_list)
+                if len_row >= 4:
+                    data_list.append(parameter_list)
         try:
             start_time = start_time.timestamp()
             end_time = end_time.timestamp()
@@ -390,20 +386,20 @@ def wrroc_create_action(
                     metric = relative_path.split('/')[-1].split('.png')[0]
 
                     # Add the CreateAction entity
-                    action = compss_crate.add(Entity(compss_crate, unique_id, properties={
-                        '@type': 'CreateAction',
-                        'instrument': {
-                            '@id': resolved_main_entity
-                        },
-                        'name': f'Profiling plot of {metric}',
-                        'description': description_plots[metric],
-                    }))
+                    # action = compss_crate.add(Entity(compss_crate, unique_id, properties={
+                    #     '@type': 'CreateAction',
+                    #     'instrument': {
+                    #         '@id': resolved_main_entity
+                    #     },
+                    #     'name': f'Profiling plot of {metric}',
+                    # }))
 
                     # Add the trace file with a unique ID and file path
                     trace_file = compss_crate.add_file(full_path, dest_path=relative_path, properties={
                         '@id': relative_path,  # Unique ID for the file
-                        '@type': ['File', 'Visualization'],
+                        '@type': ['File', 'ImageObject'],
                         'name': relative_path.split('/')[-1],
+                        'description': description_plots[metric],
                         'contentSize': os.stat(full_path).st_size,
                         'encodingFormat': [
                             'image/png',
@@ -411,7 +407,7 @@ def wrroc_create_action(
                                 '@id': 'https://www.nationalarchives.gov.uk/PRONOM/fmt/11'
                             }
                         ],
-                        'about': action.id
+                        'about': resolved_main_entity
                     })
     else:
         print('Plots folder does not exist')

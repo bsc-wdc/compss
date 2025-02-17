@@ -27,10 +27,45 @@ from pycompss_cli.core.cmd_helpers import command_runner
 # GLOBAL VARIABLES #
 # ################ #
 
+pointers = ["├── ", "└── "]
+follow_prefix = "│   "
+empty_prefix = "    "
+
+METRICS_UNITS = {
+    'maxTime': 'ms',
+    'minTime': 'ms',
+    'avgTime': 'ms',
+    'executionTime': 'ms',
+    'cpuAvg': '%',
+    'cpuMax': '%',
+    'memAvg': '%',
+    'memMax': '%',
+    'memMin': '%',
+    'byteSent': 'bytes',
+    'byteRecv': 'bytes',
+}
+
 # ############# #
 # API FUNCTIONS #
 # ############# #
 
+def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False, isfirst=True):
+    if isinstance(jsonData, dict):
+        if not isfirst:
+            print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
+        prefix += empty_prefix if last else follow_prefix
+        length = len(jsonData)
+        for i, key in enumerate(jsonData.keys()):
+            last = i == (length - 1)
+            resources_tree(jsonData[key], key, file, prefix, last, isfirst=False)
+    else:
+        unit = METRICS_UNITS[name] if name in METRICS_UNITS.keys() else ''
+        try:
+            int_value = int(jsonData)
+            name = name + f' = {int_value:,} {unit}'
+        except ValueError:
+            name = name + f' = {jsonData} {unit}'
+        print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
 
 def local_deploy_compss(working_dir: str = "") -> None:
     """Starts the main COMPSs image in Docker.
@@ -162,16 +197,13 @@ def local_inspect(ro_crate_list: list):
             print(f"Error loading the RO-Crate from {ro_crate_zip_or_dir} : {e}")
             continue
 
-        pointers = ["├── ", "└── "]
-        follow_prefix = "│   "
-        empty_prefix = "    "
-
         print(f"{ro_crate_zip_or_dir}")
 
         prefix = follow_prefix
         profiles = []
         e_create_action = None
         i_pointer = 0
+        application_main_file = None
 
         for e in crate.get_entities():
             if e.id == "./":
@@ -265,6 +297,7 @@ def local_inspect(ro_crate_list: list):
                     email_str = ""
                 print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
             if "instrument" in e_create_action:
+                application_main_file = e_create_action.get('instrument')['@id'].split("/")[-1].split(".")[0]
                 print(f"{empty_prefix}{pointers[0]}Application's main file")
                 print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
             # Parse 'name' for hostname and JOB_ID
@@ -279,8 +312,9 @@ def local_inspect(ro_crate_list: list):
                 print(f"{prefix}{pointers[1]}{exec_info[7]}")
 
             # Environment
+            master_node_name = None
             if "description" in e_create_action:
-                print(f"{empty_prefix}{pointers[0]}Description (machine details)")
+                print(f"{empty_prefix}{pointers[0]}Description (submission command line)")
                 print(f"{prefix}{pointers[1]}{e_create_action.get('description', '')}")
             environment = e_create_action.get("environment")
             env_list = []
@@ -291,16 +325,55 @@ def local_inspect(ro_crate_list: list):
                 for i, env_item in enumerate(env_list):
                     i_pointer = 1 if i == (len(env_list) - 1) else 0
                     print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
+                    if env_item[0].strip() == "COMPSS_MASTER_NODE":
+                        master_node_name = env_item[1]
 
+            # Resource Usage
             usage_e = e_create_action.get("resourceUsage")
             usage_list = []
             if usage_e:
                 for usage in usage_e:
                     usage_list.append((usage.get("@id", ""), usage.get("value", "")))
                 print(f"{empty_prefix}{pointers[0]}Resource Usage")
+
+                final_list = []
+
                 for i, ru_item in enumerate(usage_list):
-                    i_pointer = 1 if i == (len(usage_list) - 1) else 0
-                    print(f"{prefix}{pointers[i_pointer]}{ru_item[0]} = {ru_item[1]}")
+                    ru_list = ru_item[0].split(".")
+                    ru_list[0] = ru_list[0][1:]
+                    ru_list.append(ru_item[1])
+                    final_list.append(ru_list)
+
+                overall_list = []
+                for entry in final_list:
+                    entry[0] = entry[0].split("-")[0] if '-' in entry[0] else entry[0]
+                    entry[0] = f"{entry[0]}-MASTER" if master_node_name == entry[0] else entry[0]
+                    if entry[0] == 'overall':
+                        if entry[-2] == 'executionTime':
+                            if entry[-3] != application_main_file:
+                                del entry[-3]
+                        overall_list.append(entry)
+
+                final_list = [x for x in final_list if x not in overall_list]
+
+                result = {}
+                for row in final_list:
+                    current_level = result
+                    for i, key in enumerate(row[:-2]):
+                        if key not in current_level:
+                            current_level[key] = {}
+                        current_level = current_level[key]
+                    current_level[row[-2]] = row[-1]
+
+                for row in overall_list:
+                    current_level = result
+                    for i, key in enumerate(row[:-2]):
+                        if key not in current_level:
+                            current_level[key] = {}
+                        current_level = current_level[key]
+                    current_level[row[-2]] = row[-1]
+
+                resources_tree(result)
 
             # Times
             e_start_time = e_create_action.get("startTime")

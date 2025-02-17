@@ -164,6 +164,7 @@ def main():
     # Register execution details using WRROC profile
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # Can update Agent details from online search
+    part_time = time.time()
     run_uuid = wrroc_create_action(
         compss_crate,
         main_entity,
@@ -172,8 +173,12 @@ def main():
         fixed_outs,
         yaml_content,
         INFO_YAML,
-        DP_LOG,
+        path_log,
         datetime.fromisoformat(end_time),
+    )
+    print(
+        f"PROVENANCE | RO-Crate adding CreateAction TIME: "
+        f"{time.time() - part_time} s"
     )
 
     # Set RO-Crate conformance to profiles
@@ -203,12 +208,13 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print(
             "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py "
-            "/path_to/your_info.yaml /path_to/dataprovenance.log"
+            "/path_to/your_info.yaml /path_to/log_dir"
         )
         sys.exit()
     else:
         INFO_YAML = sys.argv[1]
-        DP_LOG = sys.argv[2]
-        path_dplog = Path(sys.argv[2])
-        COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
+        path_log = Path(sys.argv[2])
+        DP_LOG = path_log / "dataprovenance.log"
+        COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
+
     main()

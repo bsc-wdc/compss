@@ -261,7 +261,7 @@ def root_entity(
 
 
 def get_main_entities(
-    wf_info: dict, info_yaml: str, dp_log: str
+    wf_info: dict, info_yaml: str, dp_log: Path
 ) -> typing.Tuple[str, str, str, dict]:
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
@@ -271,7 +271,7 @@ def get_main_entities(
 
     :param wf_info: YAML dict to extract info form the application, as specified by the user
     :param info_yaml: Name of the YAML file specified by the user
-    :param dp_log: Full path to the dataprovenance.log file
+    :param dp_log: Path object to the dataprovenance.log file
 
     :returns: COMPSs version, main COMPSs file name, COMPSs profile file name, updated wf_info
     """

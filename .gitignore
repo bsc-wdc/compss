@@ -200,3 +200,6 @@ compss/programming_model/bindings/python/src/pycompss/util/translators
 # Generated source files
 compss/programming_model/bindings/bindings-common/src/data_type.h
 compss/programming_model/bindings/python/src/pycompss/api/commons/data_type.py
+
+# Image creation output files
+out_*.txt

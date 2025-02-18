@@ -248,6 +248,7 @@ def local_inspect(ro_crate_list: list):
                 print(f"{pointers[0]}COMPSs Runtime version")
                 print(f"{prefix}{pointers[1]}{e.get('version', '')}")
             elif "ComputationalWorkflow" in e.type:
+                application_main_file = e.id
                 if "softwareRequirements" in e:
                     print(f"{pointers[0]}Software Dependencies")
                     software_requirements = e.get("softwareRequirements")
@@ -297,10 +298,20 @@ def local_inspect(ro_crate_list: list):
                     email_str = ""
                 print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
             if "instrument" in e_create_action:
-                application_main_file = e_create_action.get('instrument')['@id'].split("/")[-1].split(".")[0]
                 print(f"{empty_prefix}{pointers[0]}Application's main file")
-                print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
-            # Parse 'name' for hostname and JOB_ID
+                print(f"{prefix}{pointers[1]}{application_main_file}")
+
+                num_aux_files = len(e_create_action["instrument"])
+                if isinstance(e_create_action["instrument"], list):
+                    print(f"{empty_prefix}{pointers[0]}Auxilirary files:")
+                    for entry, index in zip(e_create_action["instrument"], range(num_aux_files)):
+                        application_auxiliary_file = entry["@id"].split("/")[-1].split(".")[0]
+                        if application_auxiliary_file in application_main_file:
+                            continue
+                        current_pointer = 1 if index == num_aux_files-1 else 0
+                        print(f"{prefix}{pointers[current_pointer]}{entry['@id']}")
+
+        # Parse 'name' for hostname and JOB_ID
             # "COMPSs cch_matmul_test.py execution at bsc_nvidia with JOB_ID 1930225"
             exec_info = e_create_action.get("name").split(" ")
             # Hostname included from COMPSs 3.2 version

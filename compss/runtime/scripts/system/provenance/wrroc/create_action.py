@@ -57,6 +57,9 @@ description_plots = {
     'cpu': 'Plot of the percentage of cpu used during the execution',
     'mem': 'Plot of the amount of memory used during the execution',
     'disk_usage': 'Plot of the cumulative amount of data read and written on the disk during the execution',
+    'network_usage': 'Plot of the cumulative amount of data sent and received during the execution',
+    'cpu_nodes': 'Plot of the percentage of cpu used during the execution of all nodes used',
+    'mem_nodes': 'Plot of the percentage of memory used during the execution of all nodes used',
 }
 
 LANGUAGES_EXTENSION = (".java", ".py")

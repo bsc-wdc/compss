@@ -331,7 +331,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
      * 
      * @return JSON representation
      */
-    public String toJSON() {
+    public final String toJSON() {
         return "{" + "\"signature\":\"" + this.signature + "\"," + "\"local\":" + this.isLocal + ","
             + "\"constraints\":" + this.constraints + "," + "\"definition\":" + this.implDefinition.toJSON() + ","
             + "\"prolog\":" + this.prolog + "," + "\"epilog\":" + this.epilog + "}";

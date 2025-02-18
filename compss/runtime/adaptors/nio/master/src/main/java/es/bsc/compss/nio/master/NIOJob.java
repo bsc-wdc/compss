@@ -119,14 +119,12 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
 
         // Compute the task parameters
         LinkedList<NIOParam> params = addParams();
-        int numParams = params.size() - this.taskParams.getNumReturns();
         String parallelismSource = this.taskParams.getParallelismSource();
         // Create NIOTask
         NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, parallelismSource,
-            this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
-            absMethodImpl.getRequirements(), this.slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(),
-            this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut(), this.getPredecessors(),
-            this.getNumSuccessors());
+            this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, this.slaveWorkersNodeNames,
+            this.taskId, this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut(),
+            this.getPredecessors(), this.getNumSuccessors());
 
         return nt;
     }

@@ -56,11 +56,8 @@ public class CommTask extends NIOTask {
      * @param hasTarget Whether the task has a target object or not.
      * @param params List of task parameters.
      * @param numReturns Number of returns.
-     * @param numParams Number of parameters.
-     * @param reqs Requirements.
      * @param slaveWorkersNodeNames Slave node names.
      * @param taskId Task Id.
-     * @param taskType Task type.
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
@@ -69,11 +66,11 @@ public class CommTask extends NIOTask {
      * @param orchestrator CommResource that will be notified at the end of the task
      */
     public CommTask(Lang lang, boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
-        String parallelismSource, boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams,
-        MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId,
-        JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, CommResource orchestrator) {
-        super(lang, workerDebug, impl, parallelismSource, hasTarget, numReturns, params, numParams, reqs,
-            slaveWorkersNodeNames, taskId, taskType, jobId, hist, transferGroupId, onFailure, timeOut, null, null);
+        String parallelismSource, boolean hasTarget, int numReturns, LinkedList<NIOParam> params,
+        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
+        OnFailure onFailure, long timeOut, CommResource orchestrator) {
+        super(lang, workerDebug, impl, parallelismSource, hasTarget, numReturns, params, slaveWorkersNodeNames, taskId,
+            jobId, hist, transferGroupId, onFailure, timeOut, null, null);
 
         this.orchestrator = orchestrator;
         this.ceSignature = ceSignature;
@@ -133,6 +130,26 @@ public class CommTask extends NIOTask {
 
         out.writeObject(this.orchestrator);
         out.writeUTF(ceSignature);
+    }
+
+    @Override
+    protected void dumpContent(StringBuilder sb) {
+        super.dumpContent(sb);
+        sb.append(",\"orchestrator\":").append(orchestrator);
+        sb.append(",\"ce_signature\":");
+        if (this.ceSignature == null) {
+            sb.append("null");
+        } else {
+            sb.append("\"").append(this.ceSignature).append("\"");
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
+        sb.append("}");
+        return sb.toString();
     }
 
 }

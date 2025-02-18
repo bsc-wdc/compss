@@ -72,15 +72,15 @@
     
     description_got=$(grep "Finished sending New Task" "${runtime_log}" | cut -c 105- | awk '{for(i=1; i<=NF-3; i++) printf $i" ";}')
 
-    processorGot=$(echo ${description_got} | jq -rc '.requirements.processors')
-    generalGot=$(echo ${description_got} | jq -rc '.requirements.general_counts')
-    memoryGot=$(echo ${description_got} | jq -rc '.requirements.memory')
-    storageGot=$(echo ${description_got} | jq -rc '.requirements.storage')
-    osGot=$(echo ${description_got} | jq -rc '.requirements.operating_system')
-    softwareGot=$(echo ${description_got} | jq -rc '.requirements.software')
-    queuesGot=$(echo ${description_got} | jq -rc '.requirements.host_queues')
-    pricesGot=$(echo ${description_got} | jq -rc '.requirements.price')
-    wallclockGot=$(echo ${description_got} | jq -rc '.requirements.wallclock')
+    processorGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.processors')
+    generalGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.general_counts')
+    memoryGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.memory')
+    storageGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.storage')
+    osGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.operating_system')
+    softwareGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.software')
+    queuesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.host_queues')
+    pricesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.price')
+    wallclockGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.wallclock')
 
     if [ "${processorGot}" != "${processorExpected}" ]; then
       echo "ERROR: Processor constraints do not match" | tee -a "${output_file}"

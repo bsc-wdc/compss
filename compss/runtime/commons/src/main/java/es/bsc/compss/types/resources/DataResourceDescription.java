@@ -228,12 +228,12 @@ public class DataResourceDescription extends ResourceDescription {
 
     @Override
     public String toString() {
-        return "[DATANODE " + "HOST=" + this.host + " " + "PATH=" + this.path + " " + "]";
+        return "{" + "\"host\":\"" + this.host + "\"" + "\"path\":\"" + this.path + "\"" + "}";
     }
 
     @Override
     public String getDynamicDescription() {
-        return "";
+        return "{}";
     }
 
     @Override

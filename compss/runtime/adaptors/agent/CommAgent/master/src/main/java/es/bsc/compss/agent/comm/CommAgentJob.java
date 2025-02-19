@@ -119,9 +119,8 @@ class CommAgentJob extends NIOJob {
         String ceSignature = ce.getSignature();
         CommTask nt = new CommTask(this.getLang(), DEBUG, ceSignature, absMethodImpl,
             this.taskParams.getParallelismSource(), this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(),
-            params, numParams, absMethodImpl.getRequirements(), slaveWorkersNodeNames, this.taskId,
-            this.impl.getTaskType(), this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut(),
-            CommAgentAdaptor.LOCAL_RESOURCE);
+            params, slaveWorkersNodeNames, this.taskId, this.jobId, this.history, this.transferId, this.getOnFailure(),
+            this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
 
         return nt;
     }

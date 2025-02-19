@@ -113,6 +113,11 @@ public abstract class Implementation implements Externalizable {
         return implDescription;
     }
 
+    public String toJSON() {
+        return "{" + "\"core_id\":" + this.coreId + ",\"impl_id\":" + this.implementationId + ",\"description\":"
+            + (this.implDescription != null ? this.implDescription.toJSON() : "null") + "}";
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Implementation ").append(this.implementationId);

@@ -40,6 +40,11 @@ public class FakeImplDefinition implements ImplementationDefinition {
     }
 
     @Override
+    public String toJSON() {
+        return "{\"signature\":\"" + this.signature + "\"}";
+    }
+
+    @Override
     public String toShortFormat() {
         return "Fake " + this.signature;
     }

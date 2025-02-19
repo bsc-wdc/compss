@@ -17,7 +17,9 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.types.implementations.ImplementationDescription;
+import es.bsc.compss.types.resources.components.Processor;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -76,4 +78,27 @@ public class CoreElementDefinition implements Comparable<CoreElementDefinition> 
         return this.ceSignature.compareTo(ced.ceSignature);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        if (this.ceSignature == null) {
+            sb.append("\"ce_signature\":null,");
+        } else {
+            sb.append("\"ce_signature\":\"").append(this.ceSignature).append("\",");
+        }
+        sb.append("\"implementations\":[");
+        Iterator<ImplementationDescription<?, ?>> implsItr = this.implementations.iterator();
+        ImplementationDescription<?, ?> impl;
+        if (implsItr.hasNext()) {
+            impl = implsItr.next();
+            sb.append(impl.toJSON());
+        }
+        while (implsItr.hasNext()) {
+            sb.append(",");
+            impl = implsItr.next();
+            sb.append(impl.toJSON());
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
 }

@@ -25,6 +25,8 @@ public interface ImplementationDefinition extends Externalizable {
 
     public TaskType getTaskType();
 
+    public String toJSON();
+
     public String toShortFormat();
 
 }

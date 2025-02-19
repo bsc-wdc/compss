@@ -54,7 +54,7 @@
   fi
   
   io_task_check=$(grep "\"method_name\":\"io_task\"" ${worker_log})
-  if [[ $io_task_check != *"TOTAL_CPUs=0"* ]];then
+  if [[ $io_task_check != *"\"total_cpus\":0"* ]];then
       echo "ERROR: UNIT TEST RAISED AN ERROR. IO task has nonzero CPUs: ${io_test_check}" | tee -a "${output_file}"
       exit 1      
   fi

@@ -46,10 +46,8 @@ public class NIOTask implements Externalizable, Invocation {
     private LinkedList<NIOParam> arguments;
     private NIOParam target;
     private LinkedList<NIOParam> results;
-    private MethodResourceDescription reqs;
     private List<String> slaveWorkersNodeNames;
     private int taskId;
-    private TaskType taskType;
     private int jobId;
     private JobHistory history;
     private int transferGroupId;
@@ -82,20 +80,17 @@ public class NIOTask implements Externalizable, Invocation {
      * @param hasTarget Whether the task has a target object or not.
      * @param params List of task parameters.
      * @param numReturns Number of returns.
-     * @param numParams Number of parameters.
-     * @param reqs Requirements.
      * @param slaveWorkersNodeNames Slave node names.
      * @param taskId Task Id.
-     * @param taskType Task type.
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
      * @param timeOut Task timeout.
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
-        boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
-        List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
-        int transferGroupId, OnFailure onFailure, long timeOut, List<Integer> predecessors, Integer numSuccessors) {
+        boolean hasTarget, int numReturns, LinkedList<NIOParam> params, List<String> slaveWorkersNodeNames, int taskId,
+        int jobId, JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, List<Integer> predecessors,
+        Integer numSuccessors) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -124,9 +119,7 @@ public class NIOTask implements Externalizable, Invocation {
             this.arguments.addFirst(p);
         }
 
-        this.reqs = reqs;
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
-        this.taskType = taskType;
         this.taskId = taskId;
         this.jobId = jobId;
         this.history = hist;
@@ -160,6 +153,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
+        this.parallelismSource = parallelismSource;
 
         this.arguments = arguments;
         this.target = target;
@@ -167,9 +161,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.onFailure = onFailure;
         this.timeOut = timeOut;
 
-        this.reqs = impl.getRequirements();
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
-        this.taskType = impl.getTaskType();
         this.taskId = taskId;
         this.jobId = jobId;
         this.history = hist;
@@ -233,7 +225,7 @@ public class NIOTask implements Externalizable, Invocation {
 
     @Override
     public TaskType getTaskType() {
-        return this.taskType;
+        return this.impl.getTaskType();
     }
 
     @Override
@@ -257,7 +249,7 @@ public class NIOTask implements Externalizable, Invocation {
 
     @Override
     public MethodResourceDescription getRequirements() {
-        return this.reqs;
+        return this.impl.getRequirements();
     }
 
     @Override
@@ -335,9 +327,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.arguments = (LinkedList<NIOParam>) in.readObject();
         this.target = (NIOParam) in.readObject();
         this.results = (LinkedList<NIOParam>) in.readObject();
-        this.reqs = (MethodResourceDescription) in.readObject();
         this.slaveWorkersNodeNames = (List<String>) in.readObject();
-        this.taskType = TaskType.values()[in.readInt()];
         this.taskId = in.readInt();
         this.jobId = in.readInt();
         this.history = (JobHistory) in.readObject();
@@ -362,9 +352,7 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeObject(this.arguments);
         out.writeObject(this.target);
         out.writeObject(this.results);
-        out.writeObject(this.reqs);
         out.writeObject(this.slaveWorkersNodeNames);
-        out.writeInt(this.taskType.ordinal());
         out.writeInt(this.taskId);
         out.writeInt(this.jobId);
         out.writeObject(this.history);
@@ -375,20 +363,21 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeObject(this.numSuccessors);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("{");
+    protected void dumpContent(StringBuilder sb) {
         sb.append("\"lang\":\"").append(this.lang).append("\",");
-        sb.append("\"task_type\":\"").append(this.taskType).append("\",");
         sb.append("\"task_id\":").append(this.taskId).append(",");
         sb.append("\"job_id\":").append(this.jobId).append(",");
         sb.append("\"history\":\"").append(this.history).append("\",");
-        sb.append("\"implementation\":").append(this.impl.getMethodDefinition()).append(",");
+        sb.append("\"implementation\":").append(this.impl.toJSON()).append(",");
         sb.append("\"parallelism_source\":")
             .append(this.parallelismSource == null ? "null" : "\"" + this.parallelismSource + "\"").append(",");
         sb.append("\"params\":[");
-        for (NIOParam param : this.arguments) {
-            sb.append(param);
+        Iterator<NIOParam> argsItr = this.arguments.iterator();
+        if (argsItr.hasNext()) {
+            sb.append(argsItr.next());
+        }
+        while (argsItr.hasNext()) {
+            sb.append(",").append(argsItr.next());
         }
         sb.append(" ],\"target\":");
         if (target != null) {
@@ -397,12 +386,14 @@ public class NIOTask implements Externalizable, Invocation {
             sb.append("null");
         }
         sb.append(",\"results\":[");
-        for (NIOParam param : this.results) {
-            sb.append(param);
+        Iterator<NIOParam> resItr = this.arguments.iterator();
+        if (resItr.hasNext()) {
+            sb.append(resItr.next());
+        }
+        while (resItr.hasNext()) {
+            sb.append(",").append(resItr.next());
         }
         sb.append("],");
-
-        sb.append("\"requirements\":{").append(this.reqs).append("},");
 
         sb.append("\"slave_workers_node_names\":[");
         for (String name : this.slaveWorkersNodeNames) {
@@ -410,6 +401,12 @@ public class NIOTask implements Externalizable, Invocation {
         }
         sb.append("]");
 
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
         sb.append("}");
         return sb.toString();
     }

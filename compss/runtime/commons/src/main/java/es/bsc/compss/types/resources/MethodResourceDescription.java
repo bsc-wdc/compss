@@ -32,6 +32,7 @@ import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -2101,100 +2102,125 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * ************************************************************************************************************
      * LOGGERS
      ************************************************************************************************************/
+
+    protected void dumpContent(StringBuilder sb) {
+        sb.append("\"processors\":");
+        dumpProcessors(sb);
+        sb.append(",");
+
+        sb.append("\"memory\":{");
+        sb.append("\"size\":").append(this.memorySize).append(",");
+        sb.append("\"type\":\"").append(this.memoryType).append("\"");
+        sb.append("},");
+
+        sb.append("\"storage\":{");
+        sb.append("\"size\":").append(this.storageSize).append(",");
+        sb.append("\"type\":\"").append(this.storageType).append("\",");
+        sb.append("\"bandwidth\":").append(this.storageBW);
+        sb.append("},");
+
+        sb.append("\"operating_system\":{");
+        sb.append("\"type\":\"").append(this.operatingSystemType).append("\",");
+        sb.append("\"distribution\":\"").append(this.operatingSystemDistribution).append("\",");
+        sb.append("\"version\":\"").append(this.operatingSystemVersion).append("\"");
+        sb.append("},");
+
+        sb.append("\"software\":[");
+        Iterator<String> swItr = this.appSoftware.iterator();
+        if (swItr.hasNext()) {
+            sb.append("\"").append(swItr.next()).append("\"");
+        }
+        while (swItr.hasNext()) {
+            sb.append(",\"").append(swItr.next()).append("\"");
+        }
+        sb.append("],");
+
+        sb.append("\"host_queues\":[");
+        Iterator<String> queuesItr = this.hostQueues.iterator();
+        if (queuesItr.hasNext()) {
+            sb.append("\"").append(queuesItr.next()).append("\"");
+        }
+        while (queuesItr.hasNext()) {
+            sb.append(",\"").append(queuesItr.next()).append("\"");
+        }
+        sb.append("],");
+
+        sb.append("\"price\":{");
+        sb.append("\"time_unit\":").append(this.priceTimeUnit).append(",");
+        sb.append("\"price_per_unit\":").append(this.pricePerUnit);
+        sb.append("},");
+
+        sb.append("\"wallclock\":").append(this.wallClockLimit);
+
+    }
+
+    private void dumpProcessors(StringBuilder sb) {
+        sb.append("[");
+        Iterator<Processor> procItr = this.processors.iterator();
+        Processor p;
+        if (procItr.hasNext()) {
+            p = procItr.next();
+            sb.append(p.toString());
+        }
+        while (procItr.hasNext()) {
+            sb.append(",");
+            p = procItr.next();
+            sb.append(p.toString());
+        }
+        sb.append("],");
+        sb.append("\"general_counts\":{");
+        sb.append("\"total_cpus\":").append(this.totalCPUs).append(",");
+        sb.append("\"total_cpu_cu\":").append(this.totalCPUComputingUnits).append(",");
+        sb.append("\"total_gpus\":").append(this.totalGPUs).append(",");
+        sb.append("\"total_gpu_cu\":").append(this.totalGPUComputingUnits).append(",");
+        sb.append("\"total_fpgas\":").append(this.totalFPGAs).append(",");
+        sb.append("\"total_fpga_cu\":").append(this.totalFPGAComputingUnits).append(",");
+        sb.append("\"total_others\":").append(this.totalOthers).append(",");
+        sb.append("\"total_other_cu\":").append(this.totalOtherComputingUnits);
+        sb.append("}");
+    }
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[DESCRIPTION");
-
-        for (Processor p : this.processors) {
-            sb.append(" [PROCESSOR ").append(p.getName());
-            sb.append(" TYPE=").append(p.getType().toString());
-            sb.append(" COMPUTING_UNITS=").append(p.getComputingUnits());
-            sb.append(" SPEED=").append(p.getSpeed());
-            sb.append(" INTERNAL_MEMORY=").append(p.getInternalMemory());
-            sb.append(" ARCHITECTURE=").append(p.getArchitecture());
-            sb.append(" PROP_NAME=").append(p.getPropName());
-            sb.append(" PROP_VALUE=").append(p.getPropValue());
-            sb.append("]");
-        }
-
-        sb.append("[GENERAL_COUNTS");
-        sb.append(" TOTAL_CPUs=").append(this.totalCPUs);
-        sb.append(" TOTAL_CPU_CU=").append(this.totalCPUComputingUnits);
-        sb.append(" TOTAL_GPUs=").append(this.totalGPUs);
-        sb.append(" TOTAL_GPU_CU=").append(this.totalGPUComputingUnits);
-        sb.append(" TOTAL_FPGAs=").append(this.totalFPGAs);
-        sb.append(" TOTAL_FPGA_CU=").append(this.totalFPGAComputingUnits);
-        sb.append(" TOTAL_OTHERs=").append(this.totalOthers);
-        sb.append(" TOTAL_OTHER_CU=").append(this.totalOtherComputingUnits);
-        sb.append("]");
-
-        sb.append(" [MEMORY");
-        sb.append(" SIZE=").append(this.memorySize);
-        sb.append(" TYPE=").append(this.memoryType);
-        sb.append("]");
-
-        sb.append(" [STORAGE");
-        sb.append(" SIZE=").append(this.storageSize);
-        sb.append(" TYPE=").append(this.storageType);
-        sb.append(" BANDWIDTH=").append(this.storageBW);
-        sb.append("]");
-
-        sb.append(" [OPERATING_SYSTEM");
-        sb.append(" TYPE=").append(this.operatingSystemType);
-        sb.append(" DISTRIBUTION=").append(this.operatingSystemDistribution);
-        sb.append(" VERSION=").append(this.operatingSystemVersion);
-        sb.append("]");
-
-        sb.append(" [SOFTWARE ");
-        for (String app : this.appSoftware) {
-            sb.append(app).append(", ");
-        }
-        sb.append("]");
-
-        sb.append(" [HOST_QUEUES ");
-        for (String queue : this.hostQueues) {
-            sb.append(queue).append(", ");
-        }
-        sb.append("]");
-
-        sb.append(" [PRICE");
-        sb.append(" TIME_UNIT=").append(this.priceTimeUnit);
-        sb.append(" PRICE_PER_TIME=").append(this.pricePerUnit);
-        sb.append("]");
-
-        sb.append(" [WALLCLOCK=").append(this.wallClockLimit).append("]");
-
-        // End DESCRIPTION
-        sb.append("]");
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
+        sb.append("}");
 
         return sb.toString();
     }
 
     @Override
     public String getDynamicDescription() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" Processor: ");
-        // Processor
-
-        for (Processor pThis : this.processors) {
-            sb.append(pThis.getComputingUnits() + " " + pThis.getArchitecture() + " cores");
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"processors\":[");
+        // Processors
+        Iterator<Processor> procItr = this.processors.iterator();
+        Processor p;
+        if (procItr.hasNext()) {
+            p = procItr.next();
+            sb.append("{\"computing_units\":").append(p.getComputingUnits()).append(",");
+            sb.append("\"architecture\":\"").append(p.getArchitecture()).append("\"}");
+        }
+        while (procItr.hasNext()) {
+            p = procItr.next();
+            sb.append(",{\"computing_units\":").append(p.getComputingUnits()).append(",");
+            sb.append("\"architecture\":\"").append(p.getArchitecture()).append("\"}");
         }
 
         // Memory
-        sb.append(" Memory: ");
+        sb.append(",\"memory\":");
         if (this.memorySize != UNASSIGNED_FLOAT) {
             sb.append(this.memorySize);
         } else {
-            sb.append("Unassigned");
+            sb.append("\"Unassigned\"");
         }
 
         // Storage Bandwidth
-        sb.append(" Storage Bandwidth: ");
+        sb.append(",\"storage_bandwidth\":");
         if (this.storageBW != UNASSIGNED_INT) {
             sb.append(this.storageBW);
         } else {
-            sb.append("Unassigned");
+            sb.append("\"Unassigned\"");
         }
         return sb.toString();
     }

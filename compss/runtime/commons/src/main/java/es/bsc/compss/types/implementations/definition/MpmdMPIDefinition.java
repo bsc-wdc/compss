@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
-import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
+import static es.bsc.compss.types.implementations.definition.ContainerDescription.ContainerEngine.SINGULARITY;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsPaths;
@@ -24,7 +24,6 @@ import es.bsc.compss.types.MPIProgram;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.BufferedWriter;
@@ -102,9 +101,9 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      *
      * @param implTypeArgs String array.
      * @param offset Element from the beginning of the string array.
-     * @param container String array for container description.
+     * @param container Container description.
      */
-    public MpmdMPIDefinition(String[] implTypeArgs, int offset, String[] container) {
+    public MpmdMPIDefinition(String[] implTypeArgs, int offset, ContainerDescription container) {
         this.mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.ppn = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]));
@@ -122,13 +121,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             this.programs[i] = new MPIProgram(binary, params, procs);
         }
 
-        if (container[0] != null && !container[0].isEmpty() && !container[0].equals(Constants.UNASSIGNED)) {
-            String engineStr = container[0].toUpperCase();
-            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
-            this.container = new ContainerDescription(engine, container[1], container[2]);
-        } else {
-            this.container = null;
-        }
+        this.container = container;
 
         checkArguments();
     }
@@ -192,7 +185,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         sb.append("\"working_dir\":\"").append(this.workingDir).append("\",");
         sb.append("\"mpi_ppn\":").append(this.ppn).append(",");
         sb.append("\"fail_by_ev\":").append(this.failByEV).append(",");
-        sb.append("\"container\":").append(this.container).append(",");
+        sb.append("\"container\":").append(this.container == null ? null : this.container.toJSON()).append(",");
         sb.append("\"programs\":[");
         for (MPIProgram program : this.getPrograms()) {
             sb.append("\"").append(program.toString()).append("\",");

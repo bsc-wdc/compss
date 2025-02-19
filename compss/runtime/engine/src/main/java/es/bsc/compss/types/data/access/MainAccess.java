@@ -115,7 +115,7 @@ public abstract class MainAccess<V extends Object, D extends DataParams, P exten
             }
         } else {
             if (DEBUG) {
-                LOGGER.debug("Registered main access {" + "\"source\":{" + "\"app\":" + this.app.getId() + "," + "},"
+                LOGGER.debug("Registered main access {" + "\"source\":{" + "\"app\":" + this.app.getId() + "},"
                     + "\"access\":" + accessId.toDebugString() + "}");
             }
 

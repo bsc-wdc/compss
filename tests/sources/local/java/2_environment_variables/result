@@ -51,25 +51,28 @@
   #          execute the task
   exit_value=0
   if [ "${comm}" == "es.bsc.compss.nio.master.NIOAdaptor" ]; then
-    processorExpected="PROCESSOR MainProcessor TYPE=CPU COMPUTING_UNITS=2 SPEED=2.4 INTERNAL_MEMORY=-1.0 ARCHITECTURE=amd64 PROP_NAME=ThreadAffinity PROP_VALUE=Big"
-    generalExpected="GENERAL_COUNTS TOTAL_CPUs=1 TOTAL_CPU_CU=2 TOTAL_GPUs=0 TOTAL_GPU_CU=0 TOTAL_FPGAs=0 TOTAL_FPGA_CU=0 TOTAL_OTHERs=0 TOTAL_OTHER_CU=0"
-    memoryExpected="MEMORY SIZE=8.0 TYPE=Volatile"
-    storageExpected="STORAGE SIZE=240.0 TYPE=SSD BANDWIDTH=100"
-    osExpected="OPERATING_SYSTEM TYPE=Linux DISTRIBUTION=OpenSUSE VERSION=13.2"
-    softwareExpected="SOFTWARE JAVA, PYTHON, COMPSS, "
-    queuesExpected="HOST_QUEUES SEQUENTIAL, DEBUG, BSC, "
-    pricesExpected="PRICE TIME_UNIT=-1 PRICE_PER_TIME=-1.0"
-    wallclockExpected="WALLCLOCK=10"
+    processorExpected='[{"type":"CPU","computing_units":2,"speed":2.4,"internal_memory":-1,"architecture":"amd64","prop_name":"ThreadAffinity","prop_value":"Big"}]'
+    generalExpected='{"total_cpus":1,"total_cpu_cu":2,"total_gpus":0,"total_gpu_cu":0,"total_fpgas":0,"total_fpga_cu":0,"total_others":0,"total_other_cu":0}'
+    memoryExpected='{"size":8,"type":"Volatile"}'
+    storageExpected='{"size":240,"type":"SSD","bandwidth":100}'
+    osExpected='{"type":"Linux","distribution":"OpenSUSE","version":"13.2"}'
+    softwareExpected='["JAVA","PYTHON","COMPSS"]'
+    queuesExpected='["SEQUENTIAL","DEBUG","BSC"]'
+    pricesExpected='{"time_unit":-1,"price_per_unit":-1}'
+    wallclockExpected="10"
     
-    processorGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 10 | head -n 1 | tr "]" "\\n" | head -n 1)
-    generalGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 9 | head -n 1 | tr "]" "\\n" | head -n 1)
-    memoryGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 8 | head -n 1 | tr "]" "\\n" | head -n 1)
-    storageGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 7 | head -n 1 | tr "]" "\\n" | head -n 1)
-    osGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 6 | head -n 1 | tr "]" "\\n" | head -n 1)
-    softwareGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 5 | head -n 1 | tr "]" "\\n" | head -n 1)
-    queuesGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 4 | head -n 1 | tr "]" "\\n" | head -n 1) 
-    pricesGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 3 | head -n 1 | tr "]" "\\n" | head -n 1)
-    wallclockGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 2 | head -n 1 | tr "]" "\\n" | head -n 1) 
+    description_got=$(grep "Finished sending New Task" "${runtime_log}" | cut -c 105- | awk '{for(i=1; i<=NF-3; i++) printf $i" ";}')
+
+    processorGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.processors')
+    generalGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.general_counts')
+    memoryGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.memory')
+    storageGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.storage')
+    osGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.operating_system')
+    softwareGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.software')
+    queuesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.host_queues')
+    pricesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.price')
+    wallclockGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.wallclock')
+    
 
     if [ "${processorGot}" != "${processorExpected}" ]; then
       echo "ERROR: Processor constraints do not match" | tee -a "${output_file}"

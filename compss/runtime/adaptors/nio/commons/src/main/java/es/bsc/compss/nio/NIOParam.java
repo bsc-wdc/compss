@@ -312,7 +312,22 @@ public class NIOParam implements Externalizable, InvocationParam {
         sb.append("\"preserve_source_data\":").append(this.preserveSourceData).append(",");
         sb.append("\"write_final_value\":").append(this.writeFinalValue).append(",");
         sb.append("\"original_name\":\"").append(this.originalName).append("\",");
-        sb.append("\"value\":").append(this.value).append(",");
+        sb.append("\"value\":");
+        switch (this.type) {
+            case STRING_T:
+            case STRING_64_T:
+            case FILE_T:
+            case OBJECT_T:
+            case PSCO_T:
+            case WSTRING_T:
+            case BINDING_OBJECT_T:
+            case DICT_COLLECTION_T:
+                sb.append("\"").append(this.value).append("\"");
+                break;
+            default:
+                sb.append(this.value);
+        }
+        sb.append(",");
         sb.append("\"data\":").append(this.source).append(",");
         sb.append("\"stored_path\":").append(this.targetPath);
     }

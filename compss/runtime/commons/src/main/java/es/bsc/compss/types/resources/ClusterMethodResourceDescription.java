@@ -16,6 +16,11 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.types.resources.components.Processor;
+
+import java.util.Iterator;
+
+
 public class ClusterMethodResourceDescription extends MethodResourceDescription {
 
     private int limitOfTasks;
@@ -41,5 +46,23 @@ public class ClusterMethodResourceDescription extends MethodResourceDescription 
 
     public int getLimitOfTasks() {
         return this.limitOfTasks;
+    }
+
+    protected void dumpContent(StringBuilder sb) {
+        super.dumpContent(sb);
+        sb.append(",");
+        sb.append("\"cluster\":{");
+        sb.append("\"num_clusters\":").append(this.numClusters).append(",");
+        sb.append("\"limit_of_tasks\":").append(this.limitOfTasks);
+        sb.append("}");
+
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
+        sb.append("}");
+        return sb.toString();
     }
 }

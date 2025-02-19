@@ -21,6 +21,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -251,15 +252,31 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     }
 
     @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder(super.toString());
-        sb.append("[CLOUD");
-        sb.append(" IMAGE=").append((this.image == null) ? "NULL" : this.image.getImageName());
-        sb.append(" TYPE_COMPOSITION=[");
-        for (Entry<CloudInstanceTypeDescription, int[]> entry : this.typeComposition.entrySet()) {
-            sb.append(" ").append(entry.getKey().getName()).append("=").append(entry.getValue()[0]);
+    protected void dumpContent(StringBuilder sb) {
+        super.dumpContent(sb);
+        sb.append("\"cloud\":{");
+        sb.append("\"image\":").append((this.image == null) ? "NULL" : "\"" + this.image.getImageName() + "\"")
+            .append(",");
+        sb.append("\"type_composition\":{");
+        Iterator<Entry<CloudInstanceTypeDescription, int[]>> entries = this.typeComposition.entrySet().iterator();
+        Entry<CloudInstanceTypeDescription, int[]> entry;
+        if (entries.hasNext()) {
+            entry = entries.next();
+            sb.append("\"").append(entry.getKey().getName()).append("\":").append(entry.getValue()[0]);
         }
-        sb.append("]]");
+        while (entries.hasNext()) {
+            sb.append(",");
+            entry = entries.next();
+            sb.append("\"").append(entry.getKey().getName()).append("\":").append(entry.getValue()[0]);
+        }
+        sb.append("}}");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
+        sb.append("}");
 
         return sb.toString();
     }

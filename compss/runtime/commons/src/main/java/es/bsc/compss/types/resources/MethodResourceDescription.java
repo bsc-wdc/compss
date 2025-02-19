@@ -2206,6 +2206,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             sb.append(",{\"computing_units\":").append(p.getComputingUnits()).append(",");
             sb.append("\"architecture\":\"").append(p.getArchitecture()).append("\"}");
         }
+        sb.append("]");
 
         // Memory
         sb.append(",\"memory\":");
@@ -2222,6 +2223,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         } else {
             sb.append("\"Unassigned\"");
         }
+        sb.append("}");
         return sb.toString();
     }
 

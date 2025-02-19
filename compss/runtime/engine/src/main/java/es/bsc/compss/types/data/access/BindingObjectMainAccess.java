@@ -72,26 +72,26 @@ public class BindingObjectMainAccess
      */
     @Override
     public BindingObject fetch(EngineDataAccessId daId) {
-        LOGGER.debug("[AccessProcessor] Obtaining " + this.getParameters().getDataDescription());
+        LOGGER_API.debug("[AccessProcessor] Obtaining " + this.getParameters().getDataDescription());
 
         // Get target information
         ReadingDataAccessId raId = (ReadingDataAccessId) daId;
         EngineDataInstanceId diId = raId.getReadDataInstance();
         String targetName = diId.getRenaming();
 
-        if (DEBUG) {
-            LOGGER.debug("[DataInfoProvider] Requesting getting object " + targetName);
+        if (API_DEBUG) {
+            LOGGER_API.debug("[DataInfoProvider] Requesting getting object " + targetName);
         }
         LogicalData srcData = diId.getData();
-        if (DEBUG) {
-            LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcData);
+        if (API_DEBUG) {
+            LOGGER_API.debug("[DataInfoProvider] Logical data for binding object is:" + srcData);
         }
         if (srcData == null) {
             ErrorManager.error("Unregistered data " + targetName);
             return null;
         }
-        if (DEBUG) {
-            LOGGER.debug("Requesting tranfers binding object " + targetName + " to " + Comm.getAppHost().getName());
+        if (API_DEBUG) {
+            LOGGER_API.debug("Requesting tranfers binding object " + targetName + " to " + Comm.getAppHost().getName());
         }
 
         BindingObject srcBO = BindingObject.generate(srcData.getURIs().get(0).getPath());
@@ -101,8 +101,8 @@ public class BindingObjectMainAccess
         BindingObjectTransferable transfer = new BindingObjectTransferable();
         Semaphore sem = new Semaphore(0);
         Comm.getAppHost().getData(srcData, targetLocation, tgtLd, transfer, new OneOpWithSemListener(sem));
-        if (DEBUG) {
-            LOGGER.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
+        if (API_DEBUG) {
+            LOGGER_API.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
         }
         sem.acquireUninterruptibly();
 

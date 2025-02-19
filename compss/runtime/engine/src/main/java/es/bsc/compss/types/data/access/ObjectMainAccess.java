@@ -39,8 +39,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Handling of an access from the main code to an object.
  */
-public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends ObjectAccessParams<V, D>>
-    extends MainAccess<V, D, P> {
+public class ObjectMainAccess<V, D extends ObjectData, P extends ObjectAccessParams<V, D>> extends MainAccess<V, D, P> {
 
     private static final String ERROR_OBJECT_LOAD = "ERROR: Cannot load object from storage (file or PSCO)";
 
@@ -54,7 +53,7 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
      * @param code Hashcode of the associated object.
      * @return new ObjectAccessParams instance
      */
-    public static final <T extends Object> ObjectMainAccess<T, ObjectData, ObjectAccessParams<T, ObjectData>>
+    public static final <T> ObjectMainAccess<T, ObjectData, ObjectAccessParams<T, ObjectData>>
         constructOMA(Application app, Direction dir, T value, int code) {
         ObjectAccessParams<T, ObjectData> oap = ObjectAccessParams.constructObjectAP(app, dir, value, code);
         return new ObjectMainAccess<>(app, oap);
@@ -76,13 +75,13 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
 
     @Override
     public V fetch(EngineDataAccessId daId) {
-        if (DEBUG) {
-            LOGGER.debug("Request object transfer " + daId.getDataId());
+        if (API_DEBUG) {
+            LOGGER_API.debug("Request object transfer " + daId.getDataId());
         }
         EngineDataInstanceId diId = ((ReadingDataAccessId) daId).getReadDataInstance();
         String sourceName = diId.getRenaming();
-        if (DEBUG) {
-            LOGGER.debug("Requesting getting object " + sourceName);
+        if (API_DEBUG) {
+            LOGGER_API.debug("Requesting getting object " + sourceName);
         }
 
         V newValue = null;
@@ -95,12 +94,12 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
         } else {
             try {
                 newValue = fetchObject(ld, daId, sourceName);
-                if (DEBUG) {
-                    LOGGER.debug("Object retrieved. Set new version to: " + wRename);
+                if (API_DEBUG) {
+                    LOGGER_API.debug("Object retrieved. Set new version to: " + wRename);
                 }
             } catch (Exception e) {
                 String errMsg = ERROR_OBJECT_LOAD + ": " + ld.getName();
-                LOGGER.fatal(errMsg, e);
+                LOGGER_API.fatal(errMsg, e);
                 ErrorManager.fatal(errMsg, e);
             }
         }
@@ -120,8 +119,8 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
                 }
             }
         } else {
-            if (DEBUG) {
-                LOGGER.debug(
+            if (API_DEBUG) {
+                LOGGER_API.debug(
                     "Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
             }
             DataLocation targetLocation = null;

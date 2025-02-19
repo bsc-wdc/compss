@@ -449,7 +449,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     @Override
     public void endTask(MethodResourceDescription consumption) {
         if (DEBUG) {
-            LOGGER.debug("End task received. Releasing resource " + getName());
+            LOGGER.debug(
+                "End task received. Releasing resource " + consumption.getDynamicDescription() + " on " + getName());
         }
         if (consumption.containsCPU()) {
             this.decreaseUsedCPUTaskCount();
@@ -470,7 +471,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public MethodResourceDescription runTask(MethodResourceDescription consumption) {
         MethodResourceDescription reserved = super.runTask(consumption);
         if (DEBUG) {
-            LOGGER.debug("Run task received. Reserving resource " + consumption + " on " + getName());
+            LOGGER.debug(
+                "Run task received. Reserving resource " + consumption.getDynamicDescription() + " on " + getName());
         }
         if (reserved != null) {
             // Consumption can be hosted

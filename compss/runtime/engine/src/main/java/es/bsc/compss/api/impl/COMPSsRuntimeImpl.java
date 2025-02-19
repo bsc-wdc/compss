@@ -669,6 +669,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
             }
             pro = new ExecType(prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
+            if (!pro.isAssigned()) {
+                pro = null;
+            }
         }
 
         ExecType epi = null;
@@ -677,6 +680,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
             }
             epi = new ExecType(epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+            if (!epi.isAssigned()) {
+                epi = null;
+            }
         }
 
         ContainerDescription cont;

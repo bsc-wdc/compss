@@ -39,11 +39,13 @@ import org.apache.logging.log4j.Logger;
 /**
  * Handling of an access from the main code to a data.
  */
-public abstract class MainAccess<V extends Object, D extends DataParams, P extends AccessParams<D>> {
+public abstract class MainAccess<V, D extends DataParams, P extends AccessParams<D>> {
 
     // Component logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.API);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final Logger LOGGER_API = LogManager.getLogger(Loggers.API);
+    protected static final boolean API_DEBUG = LOGGER_API.isDebugEnabled();
+    protected static final Logger LOGGER_TD = LogManager.getLogger(Loggers.TD_COMP);
+    protected static final boolean DEBUG_TD = LOGGER_TD.isDebugEnabled();
 
     private final Application app;
     private final P parameters;
@@ -101,22 +103,22 @@ public abstract class MainAccess<V extends Object, D extends DataParams, P exten
      * @return The registered access Id.
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public EngineDataAccessId register(RegisterDataAccessRequest rdar) throws ValueUnawareRuntimeException {
-        AccessParams accessParams = this.parameters;
-        if (DEBUG) {
+    public EngineDataAccessId register(RegisterDataAccessRequest<V, D, P> rdar) throws ValueUnawareRuntimeException {
+        AccessParams<D> accessParams = this.parameters;
+        if (DEBUG_TD) {
             Long appId = this.getApp().getId();
-            LOGGER.debug("Registering access " + accessParams.toString() + " from App " + appId + "'s main code");
+            LOGGER_TD.debug("Registering access " + accessParams.toString() + " from App " + appId + "'s main code");
         }
         accessParams.checkAccessValidity();
         EngineDataAccessId accessId = accessParams.register();
         if (accessId == null) {
-            if (DEBUG) {
-                LOGGER.debug("Accessing a canceled data from main code. Returning null");
+            if (DEBUG_TD) {
+                LOGGER_TD.debug("Accessing a canceled data from main code. Returning null");
             }
         } else {
-            if (DEBUG) {
-                LOGGER.debug("Registered main access {" + "\"source\":{" + "\"app\":" + this.app.getId() + "},"
-                    + "\"access\":" + accessId.toDebugString() + "}");
+            if (DEBUG_TD) {
+                LOGGER_TD.debug("Registered main access {\"source\":{\"app\":{}},\"access\":{}}", this.app.getId(),
+                    accessId.toDebugString());
             }
 
             if (accessId.isRead()) {
@@ -161,7 +163,7 @@ public abstract class MainAccess<V extends Object, D extends DataParams, P exten
         }
         EngineDataAccessId daid = this.parameters.getLastRegisteredAccess();
         if (daid == null) {
-            LOGGER.warn(this.parameters.getDataDescription() + " has not been accessed before");
+            LOGGER_TD.warn("{} has not been accessed before", this.parameters.getDataDescription());
             return;
         }
         daid.commit();

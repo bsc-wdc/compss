@@ -50,16 +50,16 @@ unit_dict = {
 }
 
 description_plots = {
-    'bytes_read': 'Plot of the amount of data read from the disk during the execution',
-    'bytes_written': 'Plot of the amount of data written from the disk during the execution',
-    'bytes_sent': 'Plot of the amount of data sent across the network during the execution',
-    'bytes_received': 'Plot of the amount of data received across the network during the execution',
-    'cpu': 'Plot of the percentage of cpu used during the execution',
-    'mem': 'Plot of the amount of memory used during the execution',
-    'disk_usage': 'Plot of the cumulative amount of data read and written on the disk during the execution',
-    'network_usage': 'Plot of the cumulative amount of data sent and received during the execution',
-    'cpu_nodes': 'Plot of the percentage of cpu used during the execution of all nodes used',
-    'mem_nodes': 'Plot of the percentage of memory used during the execution of all nodes used',
+    "bytes_read": "Plot of the amount of data read from the disk during the execution",
+    "bytes_written": "Plot of the amount of data written from the disk during the execution",
+    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
+    "bytes_received": "Plot of the amount of data received across the network during the execution",
+    "cpu": "Plot of the percentage of cpu used during the execution",
+    "mem": "Plot of the amount of memory used during the execution",
+    "disk_usage": "Plot of the cumulative amount of data read and written on the disk during the execution",
+    "network_usage": "Plot of the cumulative amount of data sent and received during the execution",
+    "cpu_nodes": "Plot of the percentage of cpu used during the execution of all nodes used",
+    "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
 }
 
 LANGUAGES_EXTENSION = (".java", ".py")
@@ -89,7 +89,7 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
             start_time = start_time.timestamp()
             end_time = end_time.timestamp()
             execution_time = int((end_time - start_time) * 1000)
-            app_name = application_name.split('.')[0]
+            app_name = application_name.split(".")[0]
             data_list.append(
                 ["overall", app_name, "executionTime", str(execution_time)]
             )
@@ -126,7 +126,7 @@ def get_properties(id_name: str, stat: str, value: int) -> dict:
 
 
 def get_resource_usage_dataset(
-        dp_path: str, start_time: datetime, end_time: datetime
+    dp_path: str, start_time: datetime, end_time: datetime
 ) -> list:
     """
     Function that provides a list of the statistical data recorded
@@ -263,19 +263,19 @@ def get_resource_information(resource_file):
 
 
 def wrroc_create_action(
-        compss_crate: ROCrate,
-        main_entity: str,
-        author_list: list,
-        ins: list,
-        outs: list,
-        yaml_content: dict,
-        info_yaml: str,
-        dp_log: str,
-        energy_path: str,
-        stats_path: str,
-        plots_path: str,
-        end_time: datetime,
-        auxiliary_file_list : list,
+    compss_crate: ROCrate,
+    main_entity: str,
+    author_list: list,
+    ins: list,
+    outs: list,
+    yaml_content: dict,
+    info_yaml: str,
+    dp_log: str,
+    energy_path: str,
+    stats_path: str,
+    plots_path: str,
+    end_time: datetime,
+    auxiliary_file_list: list,
 ) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
@@ -312,22 +312,22 @@ def wrroc_create_action(
 
     if job_id is None:
         name_property = (
-                "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+            "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         )
         userportal_url = None
         create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
     else:
         name_property = (
-                "COMPSs "
-                + main_entity_pathobj.name
-                + " execution at "
-                + host_name
-                + " with JOB_ID "
-                + job_id
+            "COMPSs "
+            + main_entity_pathobj.name
+            + " execution at "
+            + host_name
+            + " with JOB_ID "
+            + job_id
         )
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id = (
-                "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+            "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
         )
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
@@ -341,8 +341,8 @@ def wrroc_create_action(
         with open(".compss_submission_command_line", "r") as file:
             description_property = file.read()[:-1]  # Remove final '\n'
     elif os.path.exists("compss_submission_command_line.txt"):
-        with open("compss_submission_command_line.txt", 'r') as file:
-            description_property = file.read().replace('\n', ' ')
+        with open("compss_submission_command_line.txt", "r") as file:
+            description_property = file.read().replace("\n", " ")
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
@@ -350,8 +350,8 @@ def wrroc_create_action(
     environment_property = []
     for name, value in os.environ.items():
         if (
-                name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
-                and name != "SLURM_JOBID"
+            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
+            and name != "SLURM_JOBID"
         ):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}
@@ -365,7 +365,7 @@ def wrroc_create_action(
                     compss_crate,
                     "#" + name.lower(),
                     properties=env_var,
-                    )
+                )
             )
             environment_property.append({"@id": "#" + name.lower()})
 
@@ -379,14 +379,18 @@ def wrroc_create_action(
     if os.path.exists(plots_path):
         for root, _, files in os.walk(plots_path):
             for file in files:
-                if file.endswith('.png'):
+                if file.endswith(".png"):
                     full_path = os.path.join(root, file)
-                    relative_path = 'profiling' + full_path.split('/plots')[1]
+                    relative_path = "profiling" + full_path.split("/plots")[1]
 
                     # Generate a unique ID and path for the file
-                    unique_id = '#'+full_path.split('plots/')[1].split('.png')[0].replace('/', '.')  # Replace '/' with '_'
+                    unique_id = "#" + full_path.split("plots/")[1].split(".png")[
+                        0
+                    ].replace(
+                        "/", "."
+                    )  # Replace '/' with '_'
 
-                    metric = relative_path.split('/')[-1].split('.png')[0]
+                    metric = relative_path.split("/")[-1].split(".png")[0]
 
                     # Add the CreateAction entity
                     # action = compss_crate.add(Entity(compss_crate, unique_id, properties={
@@ -398,22 +402,26 @@ def wrroc_create_action(
                     # }))
 
                     # Add the trace file with a unique ID and file path
-                    trace_file = compss_crate.add_file(full_path, dest_path=relative_path, properties={
-                        '@id': relative_path,  # Unique ID for the file
-                        '@type': ['File', 'ImageObject'],
-                        'name': relative_path.split('/')[-1],
-                        'description': description_plots[metric],
-                        'contentSize': os.stat(full_path).st_size,
-                        'encodingFormat': [
-                            'image/png',
-                            {
-                                '@id': 'https://www.nationalarchives.gov.uk/PRONOM/fmt/11'
-                            }
-                        ],
-                        'about': resolved_main_entity
-                    })
+                    trace_file = compss_crate.add_file(
+                        full_path,
+                        dest_path=relative_path,
+                        properties={
+                            "@id": relative_path,  # Unique ID for the file
+                            "@type": ["File", "ImageObject"],
+                            "name": relative_path.split("/")[-1],
+                            "description": description_plots[metric],
+                            "contentSize": os.stat(full_path).st_size,
+                            "encodingFormat": [
+                                "image/png",
+                                {
+                                    "@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/11"
+                                },
+                            ],
+                            "about": resolved_main_entity,
+                        },
+                    )
     else:
-        print('Plots folder does not exist')
+        print("Plots folder does not exist")
 
     # Register user submitting the workflow
     agent_added = False
@@ -459,7 +467,7 @@ def wrroc_create_action(
             print(f"PROVENANCE | WARNING: 'Submitter' in {info_yaml} wrongly defined")
 
     if (
-            "Agent" not in yaml_content and "Submitter" not in yaml_content
+        "Agent" not in yaml_content and "Submitter" not in yaml_content
     ) or not agent_added:
         # Choose first author, to avoid leaving it empty. May be true most of the times
         if author_list:
@@ -712,7 +720,7 @@ def wrroc_create_action(
             file_properties["name"] = "compss-" + job_id + f_suffix
             file_properties["contentSize"] = os.path.getsize(file_properties["name"])
             file_properties["description"] = (
-                    "COMPSs console standard " + f_msg + " log file"
+                "COMPSs console standard " + f_msg + " log file"
             )
             file_properties["encodingFormat"] = "text/plain"
             file_properties["about"] = create_action_id

@@ -657,8 +657,9 @@ get_args() {
             ;;
           provenance=*)
             # Enable provenance, YAML file specified as parameter
-            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+            provenance_yaml=${OPTARG//provenance=/}
             echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
+            provenance=${DEFAULT_PROVENANCE_ENABLED}
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"

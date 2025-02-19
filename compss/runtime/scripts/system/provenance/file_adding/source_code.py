@@ -32,17 +32,18 @@ from provenance.processing.entities import get_manually_defined_software_require
 
 LANGUAGES_EXTENSION = (".java", ".py")
 
+
 def add_file_to_crate(
-        compss_crate: ROCrate,
-        wf_info: dict,
-        file_name: str,
-        compss_ver: str,
-        main_entity: str,
-        out_profile: str,
-        in_sources_dir: str,
-        complete_graph: str,
-        info_yaml: str,
-        auxiliary_file_list: list,
+    compss_crate: ROCrate,
+    wf_info: dict,
+    file_name: str,
+    compss_ver: str,
+    main_entity: str,
+    out_profile: str,
+    in_sources_dir: str,
+    complete_graph: str,
+    info_yaml: str,
+    auxiliary_file_list: list,
 ) -> str:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
@@ -182,9 +183,9 @@ def add_file_to_crate(
         path_in_crate = "application_sources/" + file_path.name
 
     if file_name != main_entity:
-        if not any(part.startswith('.') for part in Path(file_path).parts):
-        # Or check if the file is an executable (.py or .java)
-        # if file_name.endswith(".py") or file_name.endswith(".java")
+        if not any(part.startswith(".") for part in Path(file_path).parts):
+            # Or check if the file is an executable (.py or .java)
+            # if file_name.endswith(".py") or file_name.endswith(".java")
             auxiliary_file_list.append(path_in_crate)
         if __debug__:
             print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
@@ -265,7 +266,7 @@ def add_file_to_crate(
 
             # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
             with open(complete_graph) as file, mmap(
-                    file.fileno(), 0, access=ACCESS_READ
+                file.fileno(), 0, access=ACCESS_READ
             ) as file:
                 file_properties["sha256"] = sha256(file).hexdigest()
 
@@ -304,7 +305,7 @@ def add_file_to_crate(
 
             # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
             with open(out_profile) as file, mmap(
-                    file.fileno(), 0, access=ACCESS_READ
+                file.fileno(), 0, access=ACCESS_READ
             ) as file:
                 file_properties["sha256"] = sha256(file).hexdigest()
 
@@ -363,7 +364,7 @@ def add_file_to_crate(
         )
 
         with open(info_yaml) as file, mmap(
-                file.fileno(), 0, access=ACCESS_READ
+            file.fileno(), 0, access=ACCESS_READ
         ) as file:
             file_properties["sha256"] = sha256(file).hexdigest()
 
@@ -377,14 +378,14 @@ def add_file_to_crate(
 
 
 def add_application_source_files(
-        compss_crate: ROCrate,
-        compss_wf_info: dict,
-        compss_ver: str,
-        main_entity: str,
-        out_profile: str,
-        info_yaml: str,
-        complete_graph: str,
-        auxiliary_file_list: list,
+    compss_crate: ROCrate,
+    compss_wf_info: dict,
+    compss_ver: str,
+    main_entity: str,
+    out_profile: str,
+    info_yaml: str,
+    complete_graph: str,
+    auxiliary_file_list: list,
 ) -> None:
     """
     Add all application source files as part of the crate. This means, to include them physically in the resulting
@@ -463,7 +464,7 @@ def add_application_source_files(
                 # Can't continue, we need to traverse the parent directory. Luckily, files won't be added twice
             added_dirs.append(resolved_source)
             for root, dirs, files in os.walk(
-                    resolved_source, topdown=True, followlinks=True
+                resolved_source, topdown=True, followlinks=True
             ):
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
@@ -579,7 +580,7 @@ def add_application_source_files(
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
     # Not working well when an application has several versions (ex: Java matmul files, objects, arrays)
     for e in compss_crate.data_entities:
-        if 'ComputationalWorkflow' in e.type:
+        if "ComputationalWorkflow" in e.type:
             for file in auxiliary_file_list:
                 e.append_to("hasPart", {"@id": file})
 

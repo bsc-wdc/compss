@@ -131,8 +131,8 @@ def main():
     list_common_paths = []
     part_time = time.time()
     if (
-            "data_persistence" in compss_wf_info
-            and compss_wf_info["data_persistence"] is True
+        "data_persistence" in compss_wf_info
+        and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)

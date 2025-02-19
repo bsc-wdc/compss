@@ -78,7 +78,7 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
         String targetName = tgtDiId.getRenaming();
 
         String dataDesc = this.getParameters().getDataDescription();
-        LOGGER.debug("Openning file " + targetName);
+        LOGGER_API.debug("Openning file " + targetName);
 
         DataLocation tgtLocation = this.getParameters().getLocation();
         if (daId.isRead()) {
@@ -92,25 +92,25 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
 
         if (daId.isWrite()) {
             // Mode contains W
-            LOGGER.debug("Access to " + dataDesc + " mode contains W, register new writer");
+            LOGGER_API.debug("Access to " + dataDesc + " mode contains W, register new writer");
             String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
             tgtLocation = createExpectedLocalLocation(targetPath);
             Comm.registerLocation(targetName, tgtLocation);
         }
-        if (DEBUG) {
-            LOGGER.debug(dataDesc + " located on " + (tgtLocation != null ? tgtLocation.toString() : "null"));
+        if (API_DEBUG) {
+            LOGGER_API.debug(dataDesc + " located on " + (tgtLocation != null ? tgtLocation.toString() : "null"));
         }
         return tgtLocation;
     }
 
     private DataLocation fetchPSCO(String pscoId, String targetName) {
-        LOGGER.debug("Auto-release");
+        LOGGER_API.debug("Auto-release");
         // Create location
         DataLocation targetLocation;
         targetLocation = createPSCOLocation(pscoId);
         Comm.registerLocation(targetName, targetLocation);
         // Register target location
-        LOGGER.debug("Setting target location to " + targetLocation);
+        LOGGER_API.debug("Setting target location to " + targetLocation);
         return targetLocation;
     }
 
@@ -120,7 +120,7 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
     }
 
     protected DataLocation fetchData(EngineDataAccessId daId, String targetName) {
-        LOGGER.debug("Asking for transfer");
+        LOGGER_API.debug("Asking for transfer");
         ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
         LogicalData srcData = rdaId.getReadDataInstance().getData();
         Semaphore sem = new Semaphore(0);

@@ -22,15 +22,18 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.access.MainAccess;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
+import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
 
-public class RegisterDataAccessRequest implements APRequest, TaskListener {
+public class RegisterDataAccessRequest<V, D extends DataParams, P extends AccessParams<D>>
+    implements APRequest, TaskListener {
 
-    private final MainAccess access;
+    private final MainAccess<V, D, P> access;
     private EngineDataAccessId accessId;
 
     private int pendingOperation = 0;
@@ -44,7 +47,7 @@ public class RegisterDataAccessRequest implements APRequest, TaskListener {
      *
      * @param access description of the access done by the main
      */
-    public RegisterDataAccessRequest(MainAccess access) {
+    public RegisterDataAccessRequest(MainAccess<V, D, P> access) {
         this.access = access;
         this.sem = new Semaphore(0);
     }
@@ -54,7 +57,7 @@ public class RegisterDataAccessRequest implements APRequest, TaskListener {
      *
      * @return The associated access parameters.
      */
-    public MainAccess getAccess() {
+    public MainAccess<V, D, P> getAccess() {
         return this.access;
     }
 

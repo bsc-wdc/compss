@@ -14,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import time
 import typing
 import os
 import uuid
@@ -27,14 +26,7 @@ from hashlib import sha256
 from pathlib import Path
 from datetime import timezone
 from datetime import datetime
-
-try:
-    import pandas as pd
-except:
-    print(
-        "Error: pandas is not installed. Please install it using 'pip install pandas'."
-    )
-    exit(1)
+import pandas as pd
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
@@ -58,43 +50,19 @@ unit_dict = {
 }
 
 description_plots = {
+    "bytes_read": "Plot of the amount of data read from the disk during the execution",
+    "bytes_written": "Plot of the amount of data written from the disk during the execution",
+    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
+    "bytes_received": "Plot of the amount of data received across the network during the execution",
     "cpu": "Plot of the percentage of cpu used during the execution",
     "mem": "Plot of the amount of memory used during the execution",
     "disk_usage": "Plot of the cumulative amount of data read and written on the disk during the execution",
     "network_usage": "Plot of the cumulative amount of data sent and received during the execution",
     "cpu_nodes": "Plot of the percentage of cpu used during the execution of all nodes used",
     "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
-    # The following plots represent bursts over time and are currently unused
-    "bytes_read": "Plot of the amount of data read from the disk during the execution",
-    "bytes_written": "Plot of the amount of data written from the disk during the execution",
-    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
-    "bytes_received": "Plot of the amount of data received across the network during the execution",
 }
 
-LANGUAGES_EXTENSION = (".java", ".py", ".sh")
-
-
-def process_log(dp_path: str, data_list: list) -> tuple:
-    """
-    Reads and processes the dataprovenance.log efficiently.
-
-    :param dp_path: pathname of the dataprovenance.log
-    :param data_list: list of data to fill with data parsed from dataprovenance.log
-    :return: Parsed statistical data
-    """
-    application_name = None
-
-    with open(dp_path, "r") as data_provenance:
-        for idx, row in enumerate(data_provenance):
-            row = row.strip()
-            if idx == 1:
-                application_name = row
-            elif idx >= 4 and row:
-                parameter_list = row.split()
-                if len(parameter_list) >= 4:
-                    data_list.append(parameter_list)
-
-    return application_name
+LANGUAGES_EXTENSION = (".java", ".py")
 
 
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
@@ -108,22 +76,25 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
     :return data_list: list of data parsed from dataprovenance.log
     """
     data_list = []
-    try:
-        init_process_log = time.time()
-        application_name = process_log(dp_path, data_list)
-        elapsed_process_log = init_process_log - time.time()
-        if __debug__:
-            print(
-                f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds"
+    with open(dp_path, "r") as data_provenance:
+        for idx, row in enumerate(data_provenance.readlines()):
+            if idx == 1:
+                application_name = row.rstrip()
+            elif idx >= 3:
+                parameter_list = list(filter(None, row.strip().split(" ")))
+                len_row = len(parameter_list)
+                if len_row >= 4:
+                    data_list.append(parameter_list)
+        try:
+            start_time = start_time.timestamp()
+            end_time = end_time.timestamp()
+            execution_time = int((end_time - start_time) * 1000)
+            app_name = application_name.split(".")[0]
+            data_list.append(
+                ["overall", app_name, "executionTime", str(execution_time)]
             )
-
-        start_time = start_time.timestamp()
-        end_time = end_time.timestamp()
-        execution_time = int((end_time - start_time) * 1000)
-        app_name = application_name.split(".")[0]
-        data_list.append(["overall", app_name, "executionTime", str(execution_time)])
-    except TypeError:
-        print("PROVENANCE | WARNING: could not retrieve execution time")
+        except TypeError:
+            print("PROVENANCE | WARNING: could not retrieve execution time")
 
     return data_list
 
@@ -182,14 +153,7 @@ def get_resource_usage_dataset(
     return resource_dataset
 
 
-def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> dict:
-    """
-    Build the dictionary of ear property
-
-    :param measure_name: name of metric
-    :param value: value of the metric
-    :return: dictionary containing the ear property
-    """
+def build_info_dict_ear(measure_name, property, value):
     properties_item = {
         "@type": "PropertyValue",
         "name": measure_name,
@@ -207,16 +171,8 @@ def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> d
     return properties_item
 
 
-def build_info_dict_resource_usage(
-    measure_name: str, value: typing.Union[float, int]
-) -> dict:
-    """
-    Build the dictionary of resource property
+def build_info_dict_resource_usage(measure_name, value):
 
-    :param measure_name: name of metric
-    :param value: value of the metric
-    :return: dictionary containing the new resource property
-    """
     properties_item = {
         "@type": "PropertyValue",
         "name": measure_name,
@@ -232,14 +188,7 @@ def build_info_dict_resource_usage(
     return properties_item
 
 
-def get_energy_usage_for_node(energy_file: str, info_list: list, node: str):
-    """
-    Build the list containing the energy usage of a node
-
-    :param energy_file: csv file containing the energy data
-    :param info_list: list where to add the data containing the energy usage of the node
-    :param node: name of the node
-    """
+def get_energy_usage_for_node(energy_file, info_list, node):
     df = pd.read_csv(energy_file, sep=";")
     df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
 
@@ -279,14 +228,10 @@ def get_energy_usage_for_node(energy_file: str, info_list: list, node: str):
                 build_info_dict_ear(node, id, column, getattr(row, column))
             )
 
+    return info_list
 
-def check_resource(path: str):
-    """
-    Get the list of the csv files contained in the folder
 
-    :param path: pathname of the directory containing the csv files
-    :return: list containing the filenames
-    """
+def check_resource(path):
     list_of_files = []
     for file in os.listdir(path):
         filename = os.fsdecode(file)
@@ -295,13 +240,7 @@ def check_resource(path: str):
     return list_of_files
 
 
-def get_resource_information(resource_file: Path) -> dict:
-    """
-    Get the resource summary data contained in the file
-
-    :param resource_file: csv file containing the data of the node
-    :return: dictionary containing the summary data of the node
-    """
+def get_resource_information(resource_file):
     resource_df = pd.read_csv(resource_file)
     cpu_avg = round(sum(resource_df["CPU"]) / len(resource_df), 2)
     cpu_max = max(resource_df["CPU"])
@@ -346,18 +285,18 @@ def wrroc_create_action(
     :param outs: List of output files of the workflow
     :param yaml_content: Content of the YAML file specified by the user
     :param info_yaml: Name of the YAML file specified by the user
-    :param log_dir: Path object to the directory where dataprovenance.log file, profiling and trace files can be found
+    :param energy_path: path of the energy stats
+    :param dp_log: Full path to the dataprovenance.log file
+    :param stats_path: path of the statistics folder
     :param end_time: Time where the COMPSs application execution ended
     :param auxiliary_file_list: list of the auxiliary file contained in the instruments
 
     :returns: UUID generated for this run
     """
-    # Define useful pathnames of file/directory in log directory
-    energy_path = log_dir / "energy/"
-    stats_path = log_dir / "stats/"
-    plots_path = log_dir / "stats/plots/"
-    dp_log = log_dir / "dataprovenance.log"
 
+    energy_path = log_dir / "energy"
+    stats_path = log_dir / "stats"
+    plots_path = log_dir / "stats/plots"
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # marenostrum4, nord3, ... BSC_MACHINE would also work
     host_name = os.getenv("SLURM_CLUSTER_NAME")
@@ -393,14 +332,17 @@ def wrroc_create_action(
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
-    # uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
-    # uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
+    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
+    uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
-    description_property = ""
+    description_property = uname_out
 
-    if os.path.exists(".compss_submission_command_line.txt"):
-        with open(".compss_submission_command_line.txt", "r") as file:
-            description_property = file.read()[:-1].strip()
+    if os.path.exists(".compss_submission_command_line"):
+        with open(".compss_submission_command_line", "r") as file:
+            description_property = file.read()[:-1]  # Remove final '\n'
+    elif os.path.exists("compss_submission_command_line.txt"):
+        with open("compss_submission_command_line.txt", "r") as file:
+            description_property = file.read().replace("\n", " ")
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
@@ -416,8 +358,8 @@ def wrroc_create_action(
             env_var["@type"] = "PropertyValue"
             env_var["name"] = name
             env_var["value"] = value
-            # if "COMPSS_PROFILING_INTERVAL" == name:
-            #     env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
+            if "COMPSS_PROFILING_INTERVAL" == name:
+                env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
             compss_crate.add(
                 ContextEntity(
                     compss_crate,
@@ -561,6 +503,27 @@ def wrroc_create_action(
     if len(environment_property) > 0:
         create_action_properties["environment"] = environment_property
 
+    if job_id:
+        # sacct may fail if the run is done from a container
+        try:
+            sacct_command = ["sacct", "-j", str(job_id), "--format=Start", "--noheader"]
+            head_command = ["head", "-n", "1"]
+            sacct_process = subprocess.Popen(sacct_command, stdout=subprocess.PIPE)
+            head_process = subprocess.Popen(
+                head_command, stdin=sacct_process.stdout, stdout=subprocess.PIPE
+            )
+            output, _ = head_process.communicate()
+            start_time_str = output.decode("utf-8").strip()
+            # Convert start time to datetime object
+            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
+            create_action_properties["startTime"] = start_time.astimezone(
+                timezone.utc
+            ).isoformat()
+        except Exception as e:
+            print(
+                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
+            )
+
     # Take startTime and endTime from dataprovenance.log when no queuing system is involved
     # The string generated by the runtime is already in UTC
     # If times are found in dataprovenance.log, they replace the ones obtained at the beginning of provenance generation
@@ -568,7 +531,7 @@ def wrroc_create_action(
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
-            if i == 3:
+            if i == 2:
                 try:
                     clean_time = line.strip().replace('Z', '+0000')[:26] + '+0000'
                     start_time = datetime.strptime(
@@ -582,38 +545,6 @@ def wrroc_create_action(
                         f"PROVENANCE | WARNING: No 'startTime' found in dataprovenance.log. SLURM's job start time "
                         f"will be used, if available"
                     )
-                    if job_id:
-                        # sacct may fail if the run is done from a container
-                        try:
-                            sacct_command = [
-                                "sacct",
-                                "-j",
-                                str(job_id),
-                                "--format=Start",
-                                "--noheader",
-                            ]
-                            head_command = ["head", "-n", "1"]
-                            sacct_process = subprocess.Popen(
-                                sacct_command, stdout=subprocess.PIPE
-                            )
-                            head_process = subprocess.Popen(
-                                head_command,
-                                stdin=sacct_process.stdout,
-                                stdout=subprocess.PIPE,
-                            )
-                            output, _ = head_process.communicate()
-                            start_time_str = output.decode("utf-8").strip()
-                            # Convert start time to datetime object
-                            start_time = datetime.strptime(
-                                start_time_str, "%Y-%m-%dT%H:%M:%S"
-                            )
-                            create_action_properties["startTime"] = (
-                                start_time.astimezone(timezone.utc).isoformat()
-                            )
-                        except Exception as e:
-                            print(
-                                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
-                            )
             else:
                 last_line = line.strip()
         try:
@@ -670,7 +601,7 @@ def wrroc_create_action(
                     id_measure_list.append({"@id": measure_id})
 
         id_name_list.extend(id_measure_list)
-        print(f"PROVENANCE | Added resource profiling information ")
+        print(f"PROVENANCE | RO-Crate added resource profiling information ")
 
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
@@ -796,49 +727,5 @@ def wrroc_create_action(
             file_properties["encodingFormat"] = "text/plain"
             file_properties["about"] = create_action_id
             compss_crate.add_file(file_properties["name"], properties=file_properties)
-
-    # Add Paraver trace files if they have been generated in PRV_DIR/ folder
-    compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    if (
-        "trace_persistence" in compss_wf_info
-        and compss_wf_info["trace_persistence"] is True
-    ):
-        prv_persist = True
-    else:
-        prv_persist = False
-    prv_dir = log_dir / "trace/"
-    if prv_dir.exists() and prv_dir.is_dir():
-        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
-        if not prv_persist:
-            print(
-                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
-            )
-        for file in prv_dir.iterdir():
-            if file.is_file():
-                file_properties = {}
-                file_properties["name"] = file.name
-                file_properties["contentSize"] = file.stat().st_size
-                file_properties["description"] = "PARAVER trace files"
-                file_properties["encodingFormat"] = "text/plain"
-                file_properties["about"] = create_action_id
-                if prv_persist:
-                    crate_path = "trace/" + file.name
-                    compss_crate.add_file(
-                        source=file.resolve(),
-                        dest_path=crate_path,
-                        properties=file_properties,
-                    )
-                else:
-                    file_url = "file://" + socket.gethostname() + str(file.resolve())
-                    compss_crate.add_file(
-                        source=file_url,
-                        fetch_remote=False,
-                        validate_url=False,
-                        properties=file_properties,
-                    )
-    elif prv_persist:
-        print(
-            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
-        )
 
     return run_uuid

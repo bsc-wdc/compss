@@ -23,6 +23,8 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CodeConverter;
@@ -312,6 +314,23 @@ public final class ITAppModifier {
         appClass.addMethod(m);
 
         /*
+         * Overloaded method to retrieve the runtime instead of instantiating a new one passing both SR and OR objects
+         * instead of the loader
+         */
+        methodBody = new StringBuilder();
+        methodBody.append("public static void setCOMPSsVariables( ").append(LoaderConstants.CLASS_COMPSSRUNTIME_API)
+            .append(" runtime" + ", ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append(" streamRegistry" + ", ")
+            .append(LoaderConstants.CLASS_OBJECT_REGISTRY).append(" objectRegistry" + ", ")
+            .append(LoaderConstants.CLASS_APP_ID).append(" appId" + ") {");
+        methodBody.append(itApiVar).append("= runtime;");
+        methodBody.append(itSRVar).append("= streamRegistry;");
+        methodBody.append(itORVar).append("= objectRegistry;");
+        methodBody.append(itAppIdVar).append("= appId;");
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        /*
          * Insert method to start runtime - Creation of the COMPSsRuntimeImpl - Creation of the stream registry to keep
          * track of streams (with error handling) - Setting of the COMPSsRuntime interface variable - Start of the
          * COMPSsRuntimeImpl
@@ -335,6 +354,39 @@ public final class ITAppModifier {
             methodBody.append(itApiVar).append(".setWallClockLimit(").append(instrumentationAppId).append(",")
                 .append(WALL_CLOCK_LIMIT).append("L, true);");
         }
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        /*
+         * Insert getter methods
+         */
+        methodBody = new StringBuilder();
+        methodBody.append("public static ").append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" getRuntime() {");
+        methodBody.append("return ").append(itApiVar).append(";");
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        methodBody = new StringBuilder();
+        methodBody.append("public static ").append(LoaderConstants.CLASS_STREAM_REGISTRY)
+            .append(" getStreamRegistry() {");
+        methodBody.append("return ").append(itSRVar).append(";");
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        methodBody = new StringBuilder();
+        methodBody.append("public static ").append(LoaderConstants.CLASS_OBJECT_REGISTRY)
+            .append(" getObjectRegistry() {");
+        methodBody.append("return ").append(itORVar).append(";");
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        methodBody = new StringBuilder();
+        methodBody.append("public static ").append(LoaderConstants.CLASS_APP_ID).append(" getAppId() {");
+        methodBody.append("return ").append(itAppIdVar).append(";");
         methodBody.append("}");
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);

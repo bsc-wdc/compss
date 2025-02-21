@@ -279,7 +279,7 @@ def local_inspect(ro_crate_list: list):
             if "agent" in e_create_action:
                 print(f"{empty_prefix}{pointers[0]}Agent")
                 agent_e = e_create_action.get("agent")
-                agent_str = agent_e["name"] if "name" in agent_e else agent_e["@id"]
+                agent_str = agent_e["name"] if "name" in agent_e else str(agent_e)
                 affiliation_e = agent_e["affiliation"] if "affiliation" in agent_e else None
                 if isinstance(affiliation_e, ContextEntity):
                     affiliation_str = (

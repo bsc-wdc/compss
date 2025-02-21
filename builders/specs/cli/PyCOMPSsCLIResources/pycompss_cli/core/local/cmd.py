@@ -231,7 +231,7 @@ def local_inspect(ro_crate_list: list):
                         email_e = c["contactPoint"] if "contactPoint" in c else None
                         if email_e:
                             email_str = (
-                                email_e["email"] if "email" in email_e else email_e["@id"]
+                                email_e["email"] if "email" in email_e else str(email_e)
                             )
                         else:
                             email_str = ""
@@ -293,7 +293,7 @@ def local_inspect(ro_crate_list: list):
                     affiliation_str = ""
                 email_e = agent_e["contactPoint"] if "contactPoint" in agent_e else None
                 if email_e:
-                    email_str = email_e["email"] if "email" in email_e else email_e["@id"]
+                    email_str = email_e["email"] if "email" in email_e else str(email_e)
                 else:
                     email_str = ""
                 print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")

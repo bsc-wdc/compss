@@ -231,7 +231,7 @@ def local_inspect(ro_crate_list: list):
                         email_e = c["contactPoint"] if "contactPoint" in c else None
                         if email_e:
                             email_str = (
-                                email_e["email"] if "email" in email_e else email_e["@id"]
+                                email_e["email"] if "email" in email_e else str(email_e)
                             )
                         else:
                             email_str = ""

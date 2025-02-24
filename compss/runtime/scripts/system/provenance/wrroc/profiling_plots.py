@@ -185,6 +185,9 @@ def plot_results(folder_pathname) -> str:
     list_of_cpus = {}
     list_of_mems = {}
 
+    len_lists = 0
+    final_timestamp = []
+
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
         master_node = not "static_" in csv_resources
@@ -200,7 +203,7 @@ def plot_results(folder_pathname) -> str:
             machine_name += "-MASTER"
 
         df = pd.read_csv(csv_resources)
-        df_lenght = len(df)
+        df_length = len(df)
 
         cpu_usage = df["CPU"]
         mem_usage = df["MEM"]
@@ -211,6 +214,10 @@ def plot_results(folder_pathname) -> str:
         time_read_disk = df["TIME_READ_DISK"]
         time_write_disk = df["TIME_WRITE_DISK"]
         timestamps = df["TIME"]
+
+        if df_length > len_lists:
+            len_lists = df_length
+            final_timestamp = timestamps
 
         list_of_cpus[machine_name] = list(cpu_usage)
         list_of_mems[machine_name] = list(mem_usage)
@@ -224,7 +231,7 @@ def plot_results(folder_pathname) -> str:
             cpu_usage,
             name_dataset="CPU",
             measure="CPU %",
-            num_entries=df_lenght,
+            num_entries=df_length,
         )
         plt.savefig(output_path + "/cpu.png")
         plt.close()
@@ -235,7 +242,7 @@ def plot_results(folder_pathname) -> str:
             mem_usage,
             name_dataset="MEM",
             measure="Memory %",
-            num_entries=df_lenght,
+            num_entries=df_length,
         )
         plt.savefig(output_path + "/mem.png")
         plt.close()
@@ -246,7 +253,7 @@ def plot_results(folder_pathname) -> str:
             first_df_name="Bytes sent",
             second_df=byte_recv,
             second_df_name="Bytes received",
-            num_entries=df_lenght,
+            num_entries=df_length,
             title="Network usage",
         )
         plt.savefig(output_path + "/network_usage.png")
@@ -258,7 +265,7 @@ def plot_results(folder_pathname) -> str:
             byte_sent,
             name_dataset="BYTE_SENT",
             measure="Byte (B)",
-            num_entries=df_lenght,
+            num_entries=df_length,
         )
         plt.savefig(output_path + "/bytes_sent.png")
         plt.close()
@@ -269,7 +276,7 @@ def plot_results(folder_pathname) -> str:
             byte_recv,
             name_dataset="BYTE_RECV",
             measure="Byte (B)",
-            num_entries=df_lenght,
+            num_entries=df_length,
         )
         plt.savefig(output_path + "/bytes_received.png")
         plt.close()
@@ -280,7 +287,7 @@ def plot_results(folder_pathname) -> str:
             first_df_name="Bytes written",
             second_df=byte_read_disk,
             second_df_name="Bytes read",
-            num_entries=df_lenght,
+            num_entries=df_length,
             title="Disk usage",
         )
         plt.savefig(output_path + "/disk_usage.png")
@@ -292,7 +299,7 @@ def plot_results(folder_pathname) -> str:
             byte_write_disk,
             name_dataset="BYTE_WRITE_DISK",
             measure="Byte (B)",
-            num_entries=df_lenght,
+            num_entries=df_length,
         )
         plt.savefig(output_path + "/bytes_written.png")
         plt.close()
@@ -303,20 +310,16 @@ def plot_results(folder_pathname) -> str:
             byte_read_disk,
             name_dataset="BYTE_READ_DISK",
             measure="Byte (B)",
-            num_entries=df_lenght,
+            num_entries=df_length,
         )
         plt.savefig(output_path + "/bytes_read.png")
         plt.close()
-
-    len_lists = len(cpu_usage)
-    for _, l in list_of_cpus.items():
-        len_lists = len(l) if len(l) < len_lists else len_lists
 
     colors = list(mcolors.TABLEAU_COLORS.values())
     plt.style.use("ggplot")
 
     build_plot_nodes(
-        list(timestamps[:len_lists]),
+        final_timestamp,
         df_list=list_of_cpus,
         num_entries=len_lists,
         colors=colors,
@@ -326,7 +329,7 @@ def plot_results(folder_pathname) -> str:
     plt.close()
 
     build_plot_nodes(
-        list(timestamps[:len_lists]),
+        final_timestamp,
         df_list=list_of_mems,
         num_entries=len_lists,
         colors=colors,

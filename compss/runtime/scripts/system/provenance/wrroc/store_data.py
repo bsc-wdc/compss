@@ -89,13 +89,13 @@ def store_data(compss_path: str, stats_path: Path):
 
     crate = ROCrate(compss_path)
 
-    command_launched = 'not found'
+    command_launched = "not found"
     for e in crate.contextual_entities:
         if "#COMPSs_Workflow_Run" in str(e):
-            command_launched = str(e.properties().get('description'))
+            command_launched = str(e.properties().get("description"))
             break
 
-    final_dict['Command'] = command_launched
+    final_dict["Command"] = command_launched
 
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):
@@ -114,6 +114,8 @@ def store_data(compss_path: str, stats_path: Path):
                     node_list = final_dict.keys()
                     for n in node_list:
                         if id_stat[0] in n:
+                            if n not in final_dict:
+                                final_dict[n] = {}
                             final_dict[n][id_stat[1]] = e.get("value")
 
                 elif entry_name in execution_stats:
@@ -140,7 +142,9 @@ def store_data(compss_path: str, stats_path: Path):
 
                     stat_dict[stat] = value
                     funct_dict[function_name] = stat_dict
-                    final_dict[node] = funct_dict
+                    if node not in final_dict:
+                        final_dict[node] = {}
+                    final_dict[node].update(funct_dict)
                 else:
                     final_dict[e.get("name")] = e.get("value")
             elif e.type == "CrateAction":

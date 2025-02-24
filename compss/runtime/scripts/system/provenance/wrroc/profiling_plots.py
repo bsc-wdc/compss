@@ -42,9 +42,11 @@ def timestamp_axis(num_entries, time_list):
     :return:
     """
     step = int(num_entries / 60) + 1
-    labels = [f"{time_list[i]}" for i in range(0, len(time_list), step)]
-    time_list = [i for i in range(0, len(time_list), step)]
-    plt.xticks(time_list, labels=labels, rotation=80)
+    selected_times = time_list[::step]
+    labels = [str(time) for time in selected_times]
+    time_indices = range(0, len(time_list), step)
+
+    plt.xticks(time_indices, labels=labels, rotation=80)
     plt.subplots_adjust(top=0.95, bottom=0.25)
 
 def build_plot(title, time_list, value_list, name_dataset, measure, num_entries):
@@ -74,14 +76,7 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
     if avg_perc < 100:
         plt.axhline(avg_perc, color="b", linestyle="--", label=f"Average = {avg_perc}%")
 
-    # step = int(num_entries / 60) + 1
-    # labels = [f"{time_list[i]}" for i in range(0, len(time_list), step)]
-    # time_list = [i for i in range(0, len(time_list), step)]
-
-    # plt.xticks(time_list, labels=labels, rotation=80)
-    # plt.subplots_adjust(top=0.95, bottom=0.25)
-
-    ax.set_title(title, fontsize=20)
+    ax.set_title(title)
     ax.set_xlabel("Timestamp")
     ax.set_ylabel(measure)
     ax.grid(True)
@@ -123,42 +118,47 @@ def plot_bytes(
 
     timestamp_axis(num_entries, time_list)
 
-    ax.set_title(title, fontsize=20)
+    ax.set_title(title)
     ax.set_xlabel("Timestamp")
     ax.set_ylabel("Megabyte (MB)")
     ax.grid(True)
     ax.legend()
 
 
-def build_plot_nodes(time_list, df_list, num_entries, colors, metric_name):
+def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     """
     Function to generate the plots of CPU and memory usage of all nodes
 
-    :param time_list: list containing the timestamps
-    :param df_list: list containing the list of data of all nodes
-    :param num_entries: length of timestamp_list
-    :param colors: list of colors to use
-    :param metric_name: name of the metric
+    :param resampled_dfs: list containing the dataframe of all nodes
+    :param name_plot: name of the file to save
+    :param metric: label used to select the metric in the dataframe
+    :param name_metric: name of the metric to show in the plot
+    :param colors: list of colors to use in the plots
     :return:
     """
     plt.figure(figsize=(12, 8))
+    i = 0
+    for label, resampled_df in resampled_dfs.items():
+        plt.plot(resampled_df.index, resampled_df[metric], label=label, color=colors[i % len(colors)], marker=".", linestyle="-")
+        i += 1
 
-    for (label, values), i in zip(df_list.items(), range(len(df_list))):
-        index = i % len(colors)
-        plt.plot(
-            values[:num_entries],
-            label=label,
-            color=colors[index],
-            marker=".",
-            linestyle="-",
-        )
+    all_times = pd.concat(resampled_dfs.values()).index.unique().sort_values()
+    num_entries = len(all_times)
+    step = int(num_entries / 60) + 1
+    selected_times = all_times[::step]
+    labels = [time.strftime('%Y-%m-%d %H:%M:%S') for time in selected_times]
 
-    timestamp_axis(num_entries, time_list)
+    plt.xticks(selected_times, labels=labels, rotation=80)
+    plt.subplots_adjust(top=0.95, bottom=0.25)
 
+    plt.xlabel('Timestamp')
+    plt.ylabel(f'{name_metric} usage (%)')
+    plt.title(f'{name_metric} usage among the nodes')
     plt.legend()
-    plt.xlabel("Timestamp")
-    plt.ylabel("Percentage")
-    plt.title(f"Percentage of {metric_name} for each node")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(name_plot)
+    plt.close()
 
 
 def plot_results(folder_pathname) -> str:
@@ -185,8 +185,8 @@ def plot_results(folder_pathname) -> str:
     list_of_cpus = {}
     list_of_mems = {}
 
-    len_lists = 0
-    final_timestamp = []
+    df_list = []
+    name_list = []
 
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
@@ -202,7 +202,10 @@ def plot_results(folder_pathname) -> str:
         if master_node:
             machine_name += "-MASTER"
 
+        name_list.append(machine_name)
+
         df = pd.read_csv(csv_resources)
+        df_list.append(df)
         df_length = len(df)
 
         cpu_usage = df["CPU"]
@@ -214,10 +217,6 @@ def plot_results(folder_pathname) -> str:
         time_read_disk = df["TIME_READ_DISK"]
         time_write_disk = df["TIME_WRITE_DISK"]
         timestamps = df["TIME"]
-
-        if df_length > len_lists:
-            len_lists = df_length
-            final_timestamp = timestamps
 
         list_of_cpus[machine_name] = list(cpu_usage)
         list_of_mems[machine_name] = list(mem_usage)
@@ -315,28 +314,17 @@ def plot_results(folder_pathname) -> str:
         plt.savefig(output_path + "/bytes_read.png")
         plt.close()
 
+    plt.style.use('ggplot')
     colors = list(mcolors.TABLEAU_COLORS.values())
-    plt.style.use("ggplot")
+    resampled_dfs = {}
+    for df, label in zip(df_list, name_list):
+        df['TIME'] = pd.to_datetime(df['TIME'])
+        df.set_index('TIME', inplace=True)
+        resampled_df = df.resample('s').mean().interpolate(method='linear')
+        resampled_dfs[label] = resampled_df
 
-    build_plot_nodes(
-        final_timestamp,
-        df_list=list_of_cpus,
-        num_entries=len_lists,
-        colors=colors,
-        metric_name="CPU",
-    )
-    plt.savefig(plots_pathname + "cpu_nodes.png")
-    plt.close()
-
-    build_plot_nodes(
-        final_timestamp,
-        df_list=list_of_mems,
-        num_entries=len_lists,
-        colors=colors,
-        metric_name="memory",
-    )
-    plt.savefig(plots_pathname + "mem_nodes.png")
-    plt.close()
+    build_plot_nodes(resampled_dfs, plots_pathname + "cpu_nodes.png", "CPU", "CPU", colors)
+    build_plot_nodes(resampled_dfs, plots_pathname + "mem_nodes.png", "MEM", "Memory", colors)
 
     return plots_pathname
 

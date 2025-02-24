@@ -30,7 +30,7 @@ from rocrate.model.contextentity import ContextEntity
 from provenance.processing.entities import get_manually_defined_software_requirements
 
 
-LANGUAGES_EXTENSION = (".java", ".py")
+LANGUAGE_EXTENSIONS = (".java", ".py", ".sh")
 
 
 def add_file_to_crate(
@@ -116,7 +116,7 @@ def add_file_to_crate(
     else:
         # Any other extra file needed
         file_properties["description"] = "Auxiliary File"
-        if file_path.suffix in (".py", ".java"):
+        if file_path.suffix in LANGUAGE_EXTENSIONS:
             file_properties["encodingFormat"] = "text/plain"
             file_properties["@type"] = ["File", "SoftwareSourceCode"]
         elif file_path.suffix == ".json":

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2023 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -118,21 +118,21 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
 
     final_dict["Command"] = command_launched
 
+    command_launched = "not found"
+    for e in crate.contextual_entities:
+        if "#COMPSs_Workflow_Run" in str(e):
+            command_launched = str(e.properties().get("description"))
+            break
+
+    final_dict["Command"] = command_launched
+
     command_launched = 'not found'
     for e in crate.contextual_entities:
         if "#COMPSs_Workflow_Run" in str(e):
             command_launched = str(e.properties().get('description'))
             break
 
-    final_dict['command'] = command_launched
-
-    command_launched = 'not found'
-    for e in crate.contextual_entities:
-        if "#COMPSs_Workflow_Run" in str(e):
-            command_launched = str(e.properties().get('description'))
-            break
-
-    final_dict['command'] = command_launched
+    final_dict['Command'] = command_launched
 
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):

@@ -190,17 +190,21 @@ def plot_results(folder_pathname) -> str:
 
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
-        master_node = not "static_" in csv_resources
-
         csv_resources = os.path.join(folder_pathname, csv_resources)
         if not csv_resources.endswith(".csv") or os.path.isdir(csv_resources):
             continue
 
         machine_name = csv_resources.split(".csv")[0].split("_")[-1]
-        # if machine_name.strip().upper() == master_node:
-        #     machine_name += '(MASTER)'
-        if master_node:
+        is_master_node = "static_" not in csv_resources
+
+        if is_master_node:
             machine_name += "-MASTER"
+        else:
+            # Check if the machine name (without -MASTER) is already in name_list
+            if any(name.split('-MASTER')[0] == machine_name for name in name_list):
+                print(csv_resources)
+                os.remove(csv_resources)
+                continue
 
         name_list.append(machine_name)
 

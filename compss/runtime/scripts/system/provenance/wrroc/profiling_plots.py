@@ -226,7 +226,7 @@ def plot_results(folder_pathname) -> str:
         os.makedirs(output_path, exist_ok=True)
 
         build_plot(
-            "CPU usage",
+            f"CPU usage of {machine_name}",
             timestamps,
             cpu_usage,
             name_dataset="CPU",
@@ -237,7 +237,7 @@ def plot_results(folder_pathname) -> str:
         plt.close()
 
         build_plot(
-            "Memory usage",
+            f"Memory usage of {machine_name}",
             timestamps,
             mem_usage,
             name_dataset="MEM",
@@ -254,13 +254,13 @@ def plot_results(folder_pathname) -> str:
             second_df=byte_recv,
             second_df_name="Bytes received",
             num_entries=df_length,
-            title="Network usage",
+            title=f"Network usage of {machine_name}",
         )
         plt.savefig(output_path + "/network_usage.png")
         plt.close()
 
         build_plot(
-            "Data transferred: bytes sent",
+            f"Data transferred of {machine_name}: bytes sent",
             timestamps,
             byte_sent,
             name_dataset="BYTE_SENT",
@@ -271,7 +271,7 @@ def plot_results(folder_pathname) -> str:
         plt.close()
 
         build_plot(
-            "Data transferred: bytes received",
+            f"Data transferred of {machine_name}: bytes received",
             timestamps,
             byte_recv,
             name_dataset="BYTE_RECV",
@@ -288,13 +288,13 @@ def plot_results(folder_pathname) -> str:
             second_df=byte_read_disk,
             second_df_name="Bytes read",
             num_entries=df_length,
-            title="Disk usage",
+            title=f"Disk usage of {machine_name}",
         )
         plt.savefig(output_path + "/disk_usage.png")
         plt.close()
 
         build_plot(
-            "Disk usage: bytes written",
+            f"Disk usage of {machine_name}: bytes written",
             timestamps,
             byte_write_disk,
             name_dataset="BYTE_WRITE_DISK",
@@ -305,7 +305,7 @@ def plot_results(folder_pathname) -> str:
         plt.close()
 
         build_plot(
-            "Disk usage: bytes read",
+            f"Disk usage of {machine_name}: bytes read",
             timestamps,
             byte_read_disk,
             name_dataset="BYTE_READ_DISK",

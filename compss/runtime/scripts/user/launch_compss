@@ -889,7 +889,7 @@ init_het_xml_files() {
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
   if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML Resources.xml: ${RESOURCES_FILE}"
+    echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
   fi
   # Setup resources variables and scripts
   xml_resources_setup
@@ -964,7 +964,7 @@ fini_het_xml_files() {
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
   if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
+     echo "[LAUNCH_COMPSS] HT-XML - Project.xml: ${PROJECT_FILE}"
   fi
 
   # Setup project variables and scripts
@@ -990,7 +990,7 @@ fini_het_xml_files() {
   # LOG
   if [ "${log_level}" != "off" ]; then
      # LOG
-     echo "[LAUNCH_COMPSS] HT-XML -Generation of project and resources files finished"
+     echo "[LAUNCH_COMPSS] HT-XML - Generation of project and resources files finished"
   fi
 }
 
@@ -2473,6 +2473,7 @@ wait_for_completion() {
   # Wait for Master and Workers to finish
   echo "[LAUNCH_COMPSS] Waiting for application completion"
   wait
+  echo "[LAUNCH_COMPSS] Finished all processes"
 }
 
 ###############################################

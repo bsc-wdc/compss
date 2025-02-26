@@ -120,11 +120,11 @@ get_args() {
             display_version 0
             ;;
           heterogeneous)
-	    heter=1
-	    ;;
-	  sc_cfg=*)
-	    sc_cfg=${OPTARG//sc_cfg=/}
-	    ;;
+            heter=1
+            ;;
+          sc_cfg=*)
+            sc_cfg=${OPTARG//sc_cfg=/}
+            ;;
           master_node=*)
             # Master node is automatically selected. Remove it from COMPSs flags
             echo "WARNING: master_node is automatically selected. Omitting parameter"

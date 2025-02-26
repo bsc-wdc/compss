@@ -154,7 +154,7 @@ EOT
   if [ -z "${DISABLE_QARG_CPUS_PER_TASK}" ] || [ "${DISABLE_QARG_CPUS_PER_TASK}" == "false" ]; then
     cat <<EOT
     --forward_cpus_per_node=<true|false>    Flag to indicate if number to cpus per node must be forwarded to the worker process.
-					    The number of forwarded cpus will be equal to the cpus_per_node in a worker node and
+                                            The number of forwarded cpus will be equal to the cpus_per_node in a worker node and
                                             equal to the worker_in_master_cpus in a master node.
                                             Default: ${DEFAULT_FORWARD_CPUS_PER_NODE}
 EOT
@@ -168,9 +168,9 @@ EOT
     cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
-    --forward_time_limit=<true|false>	    Forward the queue system time limit to the runtime.
-					    It will stop the application in a controlled way.
-					    Default: ${DEFAULT_FORWARD_TIME_LIMIT}
+    --forward_time_limit=<true|false>       Forward the queue system time limit to the runtime.
+                                            It will stop the application in a controlled way.
+                                            Default: ${DEFAULT_FORWARD_TIME_LIMIT}
     --storage_home=<string>                 Root installation dir of the storage implementation.
                                             Can be defined with the ${STORAGE_HOME_ENV_VAR} environment variable.
                                             Default: ${DEFAULT_STORAGE_HOME}
@@ -515,8 +515,8 @@ get_args() {
             wcl=${OPTARG//wall_clock_limit=/}
             args_pass="$args_pass --$OPTARG"
             ;;
-	  master_port=*)
-	    master_port=${OPTARG//master_port=/}
+          master_port=*)
+            master_port=${OPTARG//master_port=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           pre_env_script=*)

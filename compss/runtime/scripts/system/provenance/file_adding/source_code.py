@@ -454,8 +454,8 @@ def add_application_source_files(
             for root, dirs, files in os.walk(
                 resolved_source, topdown=True, followlinks=True
             ):
-                if "__pycache__" in root:
-                    continue  # We skip __pycache__ subdirectories
+                if root.endswith("__pycache__") or root.endswith(".git"):
+                    continue  # We skip __pycache__ and .git subdirectories
                 for f_name in files:
                     if f_name.startswith("*"):
                         # Avoid dealing with symlinks with wildcards

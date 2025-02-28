@@ -214,7 +214,7 @@ if __name__ == "__main__":
     else:
         INFO_YAML = sys.argv[1]
         path_log = Path(sys.argv[2])
-        DEST_FOLDER = Path(sys.argv[3])
+        DEST_FOLDER = sys.argv[3]
         DP_LOG = path_log / "dataprovenance.log"
         COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
 

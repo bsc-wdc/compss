@@ -190,30 +190,31 @@ def main():
 
     # Dump to file
     part_time = time.time()
-    folder = "COMPSs_RO-Crate_" + run_uuid + "/"
+    # folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     sys.stdout.flush()  # All pending stdout to the log file
-    compss_crate.write(folder)
+    compss_crate.write(DEST_FOLDER)
     print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
     print(
         f"PROVENANCE | Workflow Provenance generation TOTAL EXECUTION TIME: {time.time() - exec_time} s"
     )
     print(
-        f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{folder}"
+        f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
     )
 
 
 if __name__ == "__main__":
 
-    # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log
-    if len(sys.argv) != 3:
+    # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log /dest/folder/
+    if len(sys.argv) != 4:
         print(
             "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py "
-            "/path_to/your_info.yaml /path_to/log_dir"
+            "/path_to/your_info.yaml /path_to/log_dir/dataprovenance.log /path_to/result_folder/"
         )
         sys.exit()
     else:
         INFO_YAML = sys.argv[1]
         path_log = Path(sys.argv[2])
+        DEST_FOLDER = Path(sys.argv[3])
         DP_LOG = path_log / "dataprovenance.log"
         COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
 

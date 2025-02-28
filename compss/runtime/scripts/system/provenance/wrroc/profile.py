@@ -40,21 +40,7 @@ def set_profile_details(compss_crate: ROCrate) -> None:
 
     #  Code from runcrate https://github.com/ResearchObject/runcrate/blob/411c70da556b60ee2373fea0928c91eb78dd9789/src/runcrate/convert.py#L270
     profiles = []
-    for proc in "process", "workflow", "provenance":
-        id_ = f"{PROFILES_BASE}/{proc}/{WRROC_PROFILES_VERSION}"
-        profiles.append(
-            compss_crate.add(
-                ContextEntity(
-                    compss_crate,
-                    id_,
-                    properties={
-                        "@type": "CreativeWork",
-                        "name": f"{proc.title()} Run Crate",
-                        "version": WRROC_PROFILES_VERSION,
-                    },
-                )
-            )
-        )
+
     # In the future, this could go out of sync with the wroc
     # profile added by ro-crate-py to the metadata descriptor
     wroc_profile_id = (
@@ -73,6 +59,23 @@ def set_profile_details(compss_crate: ROCrate) -> None:
             )
         )
     )
+
+    for proc in "process", "workflow", "provenance":
+        id_ = f"{PROFILES_BASE}/{proc}/{WRROC_PROFILES_VERSION}"
+        profiles.append(
+            compss_crate.add(
+                ContextEntity(
+                    compss_crate,
+                    id_,
+                    properties={
+                        "@type": "CreativeWork",
+                        "name": f"{proc.title()} Run Crate",
+                        "version": WRROC_PROFILES_VERSION,
+                    },
+                )
+            )
+        )
+
     compss_crate.root_dataset["conformsTo"] = profiles
 
     # Add Checksum algorithm and "environment" to context

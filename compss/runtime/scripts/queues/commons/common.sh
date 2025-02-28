@@ -414,6 +414,10 @@ get_args() {
             cpus_per_node=${OPTARG//cpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
             ;;
+          worker_in_master_cpus=*)
+            worker_in_master_cpuse=${OPTARG//worker_in_master_cpus=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
           io_executors=*)
             io_executors=${OPTARG//io_executors=/}
             args_pass="$args_pass --$OPTARG"
@@ -648,6 +652,10 @@ check_args() {
 
   if [ "${cpus_per_node}" -lt "${MINIMUM_CPUS_PER_NODE}" ]; then
     display_error "${ERROR_NUM_CPUS}"
+  fi
+
+  if [ -z "${worker_in_master_cpus}" ]; then
+    worker_in_master_cpus=${DEFAULT_WORKER_IN_MASTER_CPUS}
   fi
 
   if [ -z "${io_executors}" ]; then
@@ -1116,18 +1124,23 @@ add_launch(){
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
 storage_master_node="\${COMPSS_MASTER_NODE}"
+if [ "${worker_in_master_cpus}" -gt "0" ]; then
+  storage_worker_nodes="\${COMPSS_WORKER_NODES} \${COMPSS_MASTER_NODE}"
+else
+  storage_worker_nodes="\${COMPSS_WORKER_NODES}"
+fi
 
 # The storage_init.sh can put environment variables in the temporary file which will be sourced afterwards
 variables_to_be_sourced=\$(mktemp -p \$PWD .storage_env_XXXXXXXX)
 
-${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${COMPSS_WORKER_NODES}" "${network}" "${storage_props}" "\${variables_to_be_sourced}" "${storage_container_image}" "${storage_cpu_affinity}"
+${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${storage_worker_nodes}" "${network}" "${storage_props}" "\${variables_to_be_sourced}" "${storage_container_image}" "${storage_cpu_affinity}"
 ${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${COMPSS_MASTER_NODE}" --worker_nodes="\${COMPSS_WORKER_NODES}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} --env_script=\${variables_to_be_sourced} ${args_pass}
 
 if [ -f "\${variables_to_be_sourced}" ]; then
      rm "\${variables_to_be_sourced}"
 fi
 
-${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${COMPSS_WORKER_NODES}" ${network} ${storage_props}
+${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${storage_worker_nodes}" ${network} ${storage_props}
 
 EOT
   else

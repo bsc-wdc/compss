@@ -874,7 +874,7 @@ init_het_xml_files() {
   add_master_node "0" "0" "0" "NULL" "${shared_disks_info}"
   # Add workers
   if [ -n "${master_node}" ]; then
-  	xml_project_add_worker_in_master
+    xml_project_add_worker_in_master
   fi
   xml_project_add_workers
   # Add elasticity
@@ -898,7 +898,9 @@ init_het_xml_files() {
   # Add shared disks (from generate_resources.sh)
   add_shared_disks "${shared_disks_names}"
   # Add workers
-  xml_resources_add_worker_in_master
+  if [ -n "${master_node}" ]; then
+    xml_resources_add_worker_in_master
+  fi
   xml_resources_add_workers
   # Add elasticity
   if [ -n "${elasticity}" ]; then
@@ -969,6 +971,8 @@ fini_het_xml_files() {
 
   # Setup project variables and scripts
   xml_project_setup
+  # Add worker in master if necessary
+  xml_project_add_worker_in_master
   # Close project (from generate_project.sh)
   add_footer
 
@@ -984,6 +988,8 @@ fini_het_xml_files() {
 
   # Setup resources variables and scripts
   xml_resources_setup
+  # Add workers in master if necessary
+  xml_resources_add_worker_in_master
   # Close resources (from generate_resources.sh)
   add_footer
 

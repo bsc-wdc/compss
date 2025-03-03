@@ -80,7 +80,7 @@
     fi
 
     # Check validity of the RO-Crate with rocrate-validator
-    prov_dir=$(cat "${output_log}" | grep "COMPSs_RO-Crate_" | sed -e 's/^[ \t]*//')
+    prov_dir=$(cat "${output_log}" | grep "Destination folder" | sed -E 's/^.*: //')
     python3 ${base_app_dir}/src/validate.py ${prov_dir}
     validator_exit_value=$?
 

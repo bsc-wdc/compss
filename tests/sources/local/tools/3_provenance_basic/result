@@ -57,7 +57,7 @@
   # Message "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED" is cached by previous block
   # Check that provenance directory has been generated
 
-  prov_dir=$(cat "${output_file}" | grep "COMPSs_RO-Crate_" | sed -e 's/^[ \t]*//')
+  prov_dir=$(cat "${output_file}" | grep "Destination folder" | sed -E 's/^.*: //')
   # echo "DIRECTORY OF GENERATED PROVENANCE IS: ${prov_dir}" | tee -a "${output_file}"
 
   if [ -d "${prov_dir}" ]; then

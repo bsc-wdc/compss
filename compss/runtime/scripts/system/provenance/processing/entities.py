@@ -232,13 +232,14 @@ def root_entity(
             if "ror" in author and author["ror"] not in org_list:
                 org_list.append(author["ror"])
 
-    # Generate 'creator' and 'publisher' terms
+    # Generate 'author', 'creator' and 'publisher' terms
     crate_author_list = []
     crate_org_list = []
     for author_orcid in author_list:
         crate_author_list.append({"@id": author_orcid})
     if crate_author_list:
-        compss_crate.creator = crate_author_list
+        compss_crate.root_dataset["author"] = crate_author_list  # As specified in RO-Crate 1.1
+        compss_crate.creator = crate_author_list  # Also needed, either for WFHub or rocrate-inveniordm
     for org_ror in org_list:
         crate_org_list.append({"@id": org_ror})
 

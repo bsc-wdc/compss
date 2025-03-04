@@ -40,10 +40,19 @@ def write_data_db(data, name_coll):
 
 
 def write_data_local_db(data, application_name):
+    """
+    Write the local data in the local file which store all the past execution data of the application
+
+    :param data: new data to store in the local file
+    :param application_name: name of the application (to use in the local file)
+    :return:
+    """
+    local_file = "" # Pathname of local file
+
     try:
         with open(
-                f"/home/ngiacomi/Documents/applications-test/ProvenanceStats/{application_name}.json",
-                "r",
+            local_file,
+            "r",
         ) as json_object:
             content = json.load(json_object)
     except FileNotFoundError:
@@ -52,13 +61,20 @@ def write_data_local_db(data, application_name):
     content.append(data)
 
     with open(
-            f"/home/ngiacomi/Documents/applications-test/ProvenanceStats/{application_name}.json",
-            "w",
+        local_file,
+        "w",
     ) as json_object:
         json.dump(content, json_object, indent=4)
 
 
 def store_data(compss_path: str, stats_path: Path):
+    """
+    Store the data in the stats.json file
+
+    :param compss_path: path of the compss folder containing the new provenance generated
+    :param stats_path: path of the stats folder in the log directory
+    :return:
+    """
     forbidden_types = [
         "Dataset",
         "CreativeWork",

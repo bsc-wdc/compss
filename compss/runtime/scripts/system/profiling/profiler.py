@@ -1,51 +1,78 @@
-import subprocess, psutil, os, sys
+import subprocess, os, sys
 import socket
-import xml.etree.ElementTree as ET
 from datetime import datetime
 
+try:
+    import psutil
+except ImportError:
+    print("psutil is not installed. Install it, if you want to monitor the resources status during the execution.")
+    exit(1)
 
-def get_status_profiling(prof_status):
-    try:
-        with open(prof_status, "r") as prof:
-            return "true" in prof.readline()
-    except:
-        return False
+def get_cpu_top() -> list:
+    """
+    Execute the command to get the values of cpu and memory usage, by calling a bash command
+
+    :return: list containing the as first value the cpu percentage and second value the memory percentage
+    """
+    COMMAND = "export LC_NUMERIC=C && top -b -n 1 | awk '/^%Cpu/ { cpu_usage = 100 - $8; cpu_usage = cpu_usage * 2; cpu_usage = (cpu_usage > 100) ? 100.0 : cpu_usage } /^MiB Mem/ { mem_usage = ($8 / $4) * 100 } END { printf \"%.2f,%.2f,\", cpu_usage, mem_usage }'"
+
+    result = subprocess.check_output(COMMAND, shell=True, text=True).strip().split(",")
+    return result
 
 def profiling_function(
-        interval,
-        computing_units,
-        byte_read,
-        byte_write,
-        time_read,
-        time_write,
-        prev_bytes_sent,
-        prev_bytes_recv,
-):
+        interval: int,
+        computing_units: int,
+        byte_read: int,
+        byte_write: int,
+        time_read: int,
+        time_write: int,
+        prev_bytes_sent: int,
+        prev_bytes_recv: int,
+) -> tuple:
+    """
+    Function to profile and monitor system resource usage, including CPU, memory, and network I/O.
+
+    :param interval: The time interval (in seconds) over which to calculate CPU usage.
+    :param computing_units: The number of computing units (e.g., CPU cores) to consider for CPU usage calculation. If None, all available cores are used.
+    :param byte_read: The total number of bytes read during the profiling period.
+    :param byte_write: The total number of bytes written during the profiling period.
+    :param time_read: The time taken (in seconds) for read operations.
+    :param time_write: The time taken (in seconds) for write operations.
+    :param prev_bytes_sent: The total number of bytes sent before this profiling period.
+    :param prev_bytes_recv: The total number of bytes received before this profiling period.
+
+    :return: A tuple containing three elements:
+        - A formatted string with the following comma-separated values:
+            * CPU usage (average percentage)
+            * Memory usage (percentage)
+            * Bytes sent during the interval
+            * Bytes received during the interval
+            * Bytes read during the interval
+            * Bytes written during the interval
+            * Time taken for read operations
+            * Time taken for write operations
+            * Timestamp of the profiling event
+        - The updated total number of bytes sent.
+        - The updated total number of bytes received.
+    """
     logical_processors = psutil.cpu_count(logical=True)
     physical_cores = psutil.cpu_count(logical=False)
     multiplication_factor = float(round(logical_processors / physical_cores, 2))
-    cpu_avg = psutil.cpu_percent(interval=interval) * multiplication_factor
-    cpu_avg = cpu_avg if cpu_avg < 100 else 100
-    # cpus = psutil.cpu_percent(interval=interval, percpu=True)
-    # if computing_units is None:
-    #     computing_units = len(cpus)
-    # cpu_avg = round(sum(cpus[:computing_units]) / computing_units, 2)
-    mem = psutil.virtual_memory().percent
+    cpu_mem = get_cpu_top()
+    cpu = cpu_mem[0]
+    mem = cpu_mem[1]
 
     net = psutil.net_io_counters()
     byte_sent = net.bytes_sent - prev_bytes_sent
     byte_recv = net.bytes_recv - prev_bytes_recv
 
-    new_entry = f"{cpu_avg},{mem},{byte_sent},{byte_recv},{byte_read},{byte_write},{time_read},{time_write},{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    new_entry = f"{cpu},{mem},{byte_sent},{byte_recv},{byte_read},{byte_write},{time_read},{time_write},{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
     return new_entry, net.bytes_sent, net.bytes_recv
 
 
 def main():
     log_dir = sys.argv[1]
     print(f"LOG DIRECTORY RECEIVED: {log_dir}")
-    # profiling_status_file = sys.argv[1]
-    # log_dir = sys.argv[2]
-    # config_file = sys.argv[3]
 
     profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL"))
     compss_home = os.getenv("COMPSS_HOME")
@@ -55,22 +82,6 @@ def main():
 
     is_local = os.getenv("IS_LOCAL")
     hostname = "localhost" if is_local else socket.gethostname()
-
-    # is_bsc = os.getenv('BSC_MACHINE')
-    # hostname = hostname if is_bsc else 'localhost'
-    # if hostname == 'localhost':
-    #     to_parse = True
-    #     while to_parse:
-    #         try:
-    #             root = ET.parse(config_file)
-    #             computing_units = int(root.find('.//ComputingUnits').text)
-    #             hostname = "localhost"
-    #             print("ComputingUnits: "+str(computing_units))
-    #             to_parse = False
-    #         except:
-    #             print(f'Wrong file {config_file}, using the default configuration.')
-    #             config_file = compss_home + "/Runtime/configuration/xml/resources/default_resources.xml"
-    #             to_parse = True
 
     to_write = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
 
@@ -121,49 +132,6 @@ def main():
 
             resource.write(new_entry)
             resource.flush()
-
-        # write_processors += str(psutil.cpu_percent(interval=None, percpu=True)) + "\n"
-
-        # check = get_status_profiling(profiling_status_file)
-
-    # ----------------------------------------------------------------
-
-    # to_write += new_entry
-
-    # while check:
-    #     io_current = psutil.disk_io_counters()
-    #     byte_read = io_current.read_bytes - ref_read
-    #     byte_write = io_current.write_bytes - ref_write
-    #     time_read = io_current.read_time - ref_time_read
-    #     time_write = io_current.write_time - ref_time_write
-
-    #     # Update references
-    #     ref_read, ref_write, ref_time_read, ref_time_write = (
-    #         io_current.read_bytes,
-    #         io_current.write_bytes,
-    #         io_current.read_time,
-    #         io_current.write_time,
-    #     )
-
-    #     new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-    #         5,
-    #         computing_units,
-    #         byte_read,
-    #         byte_write,
-    #         time_read,
-    #         time_write,
-    #         ref_byte_sent,
-    #         ref_byte_recv,
-    #     )
-    #     to_write += new_entry
-
-    #     check = get_status_profiling(profiling_status_file)
-
-    # stats_path = f"{log_dir}/stats"
-    # os.makedirs(stats_path, exist_ok=True)
-    # with open(f"{stats_path}/resource_profiling_{hostname}.csv", "w") as f:
-    #     f.write(to_write)
-
 
 if __name__ == "__main__":
     main()

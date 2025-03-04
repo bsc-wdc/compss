@@ -62,7 +62,7 @@ description_plots = {
     "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
 }
 
-LANGUAGES_EXTENSION = (".java", ".py")
+LANGUAGES_EXTENSION = (".java", ".py", ".sh")
 
 
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
@@ -153,7 +153,14 @@ def get_resource_usage_dataset(
     return resource_dataset
 
 
-def build_info_dict_ear(measure_name, property, value):
+def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> dict:
+    """
+    Build the dictionary of ear property
+
+    :param measure_name: name of metric
+    :param value: value of the metric
+    :return: dictionary containing the ear property
+    """
     properties_item = {
         "@type": "PropertyValue",
         "name": measure_name,
@@ -171,8 +178,14 @@ def build_info_dict_ear(measure_name, property, value):
     return properties_item
 
 
-def build_info_dict_resource_usage(measure_name, value):
+def build_info_dict_resource_usage(measure_name: str, value: Union[float, int]) -> dict:
+    """
+    Build the dictionary of resource property
 
+    :param measure_name: name of metric
+    :param value: value of the metric
+    :return: dictionary containing the new resource property
+    """
     properties_item = {
         "@type": "PropertyValue",
         "name": measure_name,
@@ -188,7 +201,14 @@ def build_info_dict_resource_usage(measure_name, value):
     return properties_item
 
 
-def get_energy_usage_for_node(energy_file, info_list, node):
+def get_energy_usage_for_node(energy_file: str, info_list: list, node: str):
+    """
+    Build the list containing the energy usage of a node
+
+    :param energy_file: csv file containing the energy data
+    :param info_list: list where to add the data containing the energy usage of the node
+    :param node: name of the node
+    """
     df = pd.read_csv(energy_file, sep=";")
     df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
 
@@ -228,10 +248,14 @@ def get_energy_usage_for_node(energy_file, info_list, node):
                 build_info_dict_ear(node, id, column, getattr(row, column))
             )
 
-    return info_list
 
+def check_resource(path: str):
+    """
+    Get the list of the csv files contained in the folder
 
-def check_resource(path):
+    :param path: pathname of the directory containing the csv files
+    :return: list containing the filenames
+    """
     list_of_files = []
     for file in os.listdir(path):
         filename = os.fsdecode(file)
@@ -240,7 +264,13 @@ def check_resource(path):
     return list_of_files
 
 
-def get_resource_information(resource_file):
+def get_resource_information(resource_file: Path) -> dict:
+    """
+    Get the resource summary data contained in the file
+
+    :param resource_file: csv file containing the data of the node
+    :return: dictionary containing the summary data of the node
+    """
     resource_df = pd.read_csv(resource_file)
     cpu_avg = round(sum(resource_df["CPU"]) / len(resource_df), 2)
     cpu_max = max(resource_df["CPU"])

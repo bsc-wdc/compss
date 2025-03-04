@@ -61,7 +61,7 @@ add_master_node() {
   local memory=${4}
   shift 4
   local shared_disks="${*}"
-  
+
   # Check parameters
   :
     cat >> "${PROJECT_FILE}" << EOT
@@ -91,7 +91,7 @@ EOT
     </SharedDisks>
 EOT
   fi
-    
+
     cat >> "${PROJECT_FILE}" << EOT
   </MasterNode>
 
@@ -126,8 +126,58 @@ EOT
   # Close compute node
   cat >> "${PROJECT_FILE}" << EOT
   </ComputeNode>
- 
+
 EOT
+}
+
+add_compute_node_on_top() {
+  # Retrieve parameters
+  local node_name=${1:-$DEFAULT_NODE_NAME}
+  shift 1
+  local args_to_pass=$*
+
+  # Check parameters
+  if [ -z "${node_name}" ]; then
+    echo "[ERROR] Cannot add compute node because node_name is empty"
+    exit 1
+  fi
+
+  # Dump information to file
+
+  # Open compute node
+  cat >> "${PROJECT_FILE}" << EOT
+  <ComputeNode Name="${node_name}">
+EOT
+
+  # Fill compute node information
+  # shellcheck disable=SC2086
+  _fill_compute_node_info ${args_to_pass}
+
+  # Close compute node
+  cat >> "${PROJECT_FILE}" << EOT
+  </ComputeNode>
+
+EOT
+
+  # Now add the worker in master on top of the project xml file
+  FIRST_CN_OPEN=$(grep -n "ComputeNode" ${PROJECT_FILE} | cut -d ":" -f 1 | head -n 1)
+  LAST_CN_OPEN=$(grep -n "ComputeNode" ${PROJECT_FILE} | cut -d ":" -f 1 | tail -n 2 | head -n 1)
+  LAST_CN_CLOSE=$(grep -n "ComputeNode" ${PROJECT_FILE} | cut -d ":" -f 1 | tail -n 1)
+  # Get the worker in master block
+  WORKER_IN_MASTER_BLOCK=$(sed -n "${LAST_CN_OPEN},${LAST_CN_CLOSE}p" ${PROJECT_FILE})
+  # Remove the worker in master block
+  sed -i "${LAST_CN_OPEN},${LAST_CN_CLOSE}d" ${PROJECT_FILE}
+  # Get header
+  header=$(head -n $((FIRST_CN_OPEN-1)) ${PROJECT_FILE})
+  # Get footer
+  total_lines=$(wc -l < ${PROJECT_FILE})
+  footer=$(tail -n $((total_lines-FIRST_CN_OPEN+1)) ${PROJECT_FILE})
+
+  echo "${header}" > ${PROJECT_FILE}.tmp
+  echo "${WORKER_IN_MASTER_BLOCK}" >> ${PROJECT_FILE}.tmp
+  echo "${footer}" >> ${PROJECT_FILE}.tmp
+
+  mv ${PROJECT_FILE}.tmp ${PROJECT_FILE}
 }
 
 add_cloud() {
@@ -315,7 +365,7 @@ _fill_compute_node_info() {
     echo "[ERROR] Cannot add compute node because worker_working_dir is empty"
     exit 1
   fi
-  
+
   # Dump information to file
 
   # Open compute node
@@ -436,4 +486,3 @@ if [ $# -ne 0 ]; then
       echo "Sourcing generate_project.sh"
   fi
 fi
-

@@ -8,16 +8,16 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Jorge
-    family-names: Ejarque
-    email: jorgq.ejarque@bsc.es
-    affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0000-0003-4725-5097'
   - given-names: Francesc
     family-names: Lordan
     email: francesc.lordan@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0002-9845-8890'
+  - given-names: Javier
+    family-names: Conejero
+    email: javier.conejero@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0001-6401-6229'
   - given-names: Rosa Maria
     family-names: Badia
     email: rosa.m.badia@bsc.es
@@ -43,6 +43,71 @@ authors:
     email: cristian.tatu@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0009-0003-8848-9436'
+  - given-names: Nicolo
+    family-names:
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Edu
+    family-names:
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Roc
+    family-names:
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Jorge
+    family-names: Ejarque
+    email:
+    affiliation: Seqera
+    orcid: 'https://orcid.org/0000-0003-4725-5097'
+  - given-names: Enric
+    family-names: Tejedor
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Cristian Ramon-Cortes
+    family-names:
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Pol
+    family-names: Alvarez
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Sergio
+    family-names: Martinez
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Marta
+    family-names: Bertran
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Pere
+    family-names: Verges
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Ramon
+    family-names: Amela
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Clement
+    family-names: Foyer
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
+  - given-names: Archit
+    family-names: Dabral
+    email:
+    affiliation:
+    orcid: 'https://orcid.org/'
   - given-names: Gabriel
     family-names: Puigdemunt
     email: gabriel.puigdemunt@bsc.es
@@ -69,7 +134,7 @@ keywords:
   - workflows
   - distributed computing
 license: Apache-2.0
-version: '3.2'
+version: '3.3'
 preferred-citation:
   type: article
   authors:

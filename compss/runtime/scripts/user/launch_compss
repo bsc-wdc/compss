@@ -544,7 +544,17 @@ xml_project_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
+      # Normal submission
+      add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+    else
+      # Heterogeneous submission
+      if [ "${xmls_phase}" == "fini" ]; then
+        add_compute_node_on_top "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+      else
+        add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+      fi
+    fi
   fi
 }
 
@@ -721,7 +731,17 @@ xml_resources_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
+      # Normal submission
+      add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    else
+      # Heterogeneous submission
+      if [ "${xmls_phase}" == "fini" ]; then
+        add_compute_node_on_top "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+      else
+        add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+      fi
+    fi
   fi
 }
 
@@ -874,7 +894,7 @@ init_het_xml_files() {
   add_master_node "0" "0" "0" "NULL" "${shared_disks_info}"
   # Add workers
   if [ -n "${master_node}" ]; then
-  	xml_project_add_worker_in_master
+    xml_project_add_worker_in_master
   fi
   xml_project_add_workers
   # Add elasticity
@@ -889,7 +909,7 @@ init_het_xml_files() {
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
   if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML Resources.xml: ${RESOURCES_FILE}"
+    echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
   fi
   # Setup resources variables and scripts
   xml_resources_setup
@@ -898,7 +918,9 @@ init_het_xml_files() {
   # Add shared disks (from generate_resources.sh)
   add_shared_disks "${shared_disks_names}"
   # Add workers
-  xml_resources_add_worker_in_master
+  if [ -n "${master_node}" ]; then
+    xml_resources_add_worker_in_master
+  fi
   xml_resources_add_workers
   # Add elasticity
   if [ -n "${elasticity}" ]; then
@@ -964,11 +986,13 @@ fini_het_xml_files() {
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
   if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
+     echo "[LAUNCH_COMPSS] HT-XML - Project.xml: ${PROJECT_FILE}"
   fi
 
   # Setup project variables and scripts
   xml_project_setup
+  # Add worker in master if necessary
+  xml_project_add_worker_in_master
   # Close project (from generate_project.sh)
   add_footer
 
@@ -984,13 +1008,15 @@ fini_het_xml_files() {
 
   # Setup resources variables and scripts
   xml_resources_setup
+  # Add workers in master if necessary
+  xml_resources_add_worker_in_master
   # Close resources (from generate_resources.sh)
   add_footer
 
   # LOG
   if [ "${log_level}" != "off" ]; then
      # LOG
-     echo "[LAUNCH_COMPSS] HT-XML -Generation of project and resources files finished"
+     echo "[LAUNCH_COMPSS] HT-XML - Generation of project and resources files finished"
   fi
 }
 
@@ -2473,6 +2499,7 @@ wait_for_completion() {
   # Wait for Master and Workers to finish
   echo "[LAUNCH_COMPSS] Waiting for application completion"
   wait
+  echo "[LAUNCH_COMPSS] Finished all processes"
 }
 
 ###############################################

@@ -178,7 +178,7 @@ def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> d
     return properties_item
 
 
-def build_info_dict_resource_usage(measure_name: str, value: Union[float, int]) -> dict:
+def build_info_dict_resource_usage(measure_name: str, value: typing.Union[float, int]) -> dict:
     """
     Build the dictionary of resource property
 

@@ -112,6 +112,56 @@ EOT
 EOT
 }
 
+add_compute_node_on_top() {
+  # Retrieve parameters
+  local node_name=${1:-$DEFAULT_NODE_NAME}
+  shift 1
+
+  # Check parameters
+  if [ -z "${node_name}" ]; then
+    echo "[ERROR] Cannot add compute node because node_name is empty"
+    exit 1
+  fi
+
+  # Dump information to file
+
+  # Open compute node tag
+  cat >> "${RESOURCES_FILE}" << EOT
+  <ComputeNode Name="${node_name}">
+EOT
+
+  _fill_hw "${@:1:5}"
+  shift 5
+
+  _fill_sw "$@"
+
+  # Close compute node tag
+  cat >> "${RESOURCES_FILE}" << EOT
+  </ComputeNode>
+
+EOT
+
+  # Now add the worker in master on top of the resources xml file
+  FIRST_CN_OPEN=$(grep -n "ComputeNode" ${RESOURCES_FILE} | cut -d ":" -f 1 | head -n 1)
+  LAST_CN_OPEN=$(grep -n "ComputeNode" ${RESOURCES_FILE} | cut -d ":" -f 1 | tail -n 2 | head -n 1)
+  LAST_CN_CLOSE=$(grep -n "ComputeNode" ${RESOURCES_FILE} | cut -d ":" -f 1 | tail -n 1)
+  # Get the worker in master block
+  WORKER_IN_MASTER_BLOCK=$(sed -n "${LAST_CN_OPEN},${LAST_CN_CLOSE}p" ${RESOURCES_FILE})
+  # Remove the worker in master block
+  sed -i "${LAST_CN_OPEN},${LAST_CN_CLOSE}d" ${RESOURCES_FILE}
+  # Get header
+  header=$(head -n $((FIRST_CN_OPEN-1)) ${RESOURCES_FILE})
+  # Get footer
+  total_lines=$(wc -l < ${RESOURCES_FILE})
+  footer=$(tail -n $((total_lines-FIRST_CN_OPEN+1)) ${RESOURCES_FILE})
+
+  echo "${header}" > ${RESOURCES_FILE}.tmp
+  echo "${WORKER_IN_MASTER_BLOCK}" >> ${RESOURCES_FILE}.tmp
+  echo "${footer}" >> ${RESOURCES_FILE}.tmp
+
+  mv ${RESOURCES_FILE}.tmp ${RESOURCES_FILE}
+}
+
 add_cloud() {
   # Retrieve parameters
   local cp_name=${1:-$DEFAULT_CLOUD_PROVIDER_NAME}
@@ -136,7 +186,7 @@ add_cloud() {
       echo "[ERROR] Cannot add cloud node because connector_jar is empty"
       exit 1
   fi
-  
+
   if [ -z "${connector_class}" ]; then
     echo "[ERROR] Cannot add cloud node because connector_class is empty"
     exit 1
@@ -200,7 +250,7 @@ EOT
     local it_memory=${it_fields[4]:-$DEFAULT_MEMORY}
     local it_time=${it_fields[5]:-$DEFAULT_IT_TIME}
     local it_price=${it_fields[6]:-$DEFAULT_IT_PRICE}
-    
+
     if [ -z "${it_name}" ]; then
       echo "[ERROR] Cannot add cloud node because it_name is empty"
       exit 1

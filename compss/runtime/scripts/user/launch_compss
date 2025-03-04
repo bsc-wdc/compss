@@ -544,7 +544,17 @@ xml_project_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
+      # Normal submission
+      add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+    else
+      # Heterogeneous submission
+      if [ "${xmls_phase}" == "fini" ]; then
+        add_compute_node_on_top "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+      else
+        add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+      fi
+    fi
   fi
 }
 
@@ -721,7 +731,17 @@ xml_resources_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
+      # Normal submission
+      add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    else
+      # Heterogeneous submission
+      if [ "${xmls_phase}" == "fini" ]; then
+        add_compute_node_on_top "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+      else
+        add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+      fi
+    fi
   fi
 }
 

@@ -84,7 +84,7 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
 
 
 def plot_bytes(
-    time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
+        time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
 ):
     """
     Function to generate the plots for metrics which use bytes
@@ -160,6 +160,29 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     plt.savefig(name_plot)
     plt.close()
 
+def filter_files(directory):
+    """
+    Function which delete the duplicated csv files generated when the master executes the application
+
+    :param directory: stats folder which contains the csv files
+    :return:
+    """
+    files = [f for f in os.listdir(directory) if f.endswith('.csv')]
+    node_code_dict = {}
+
+    for file in files:
+        node_code = file.split('_')[-1]
+
+        if node_code in node_code_dict:
+            if 'static' in file:
+                os.remove(os.path.join(directory, file))
+                break
+            else:
+                if 'static' in node_code_dict[node_code]:
+                    os.remove(os.path.join(directory, node_code_dict[node_code]))
+                    break
+        else:
+            node_code_dict[node_code] = file
 
 def plot_results(folder_pathname) -> str:
     """
@@ -188,6 +211,8 @@ def plot_results(folder_pathname) -> str:
     df_list = []
     name_list = []
 
+    filter_files(folder_pathname)
+
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
         csv_resources = os.path.join(folder_pathname, csv_resources)
@@ -199,12 +224,6 @@ def plot_results(folder_pathname) -> str:
 
         if is_master_node:
             machine_name += "-MASTER"
-        else:
-            # Check if the machine name (without -MASTER) is already in name_list
-            if any(name.split('-MASTER')[0] == machine_name for name in name_list):
-                print(csv_resources)
-                os.remove(csv_resources)
-                continue
 
         name_list.append(machine_name)
 
@@ -218,8 +237,8 @@ def plot_results(folder_pathname) -> str:
         byte_recv = df["BYTE_RECV"]
         byte_read_disk = df["BYTE_READ_DISK"]
         byte_write_disk = df["BYTE_WRITE_DISK"]
-        time_read_disk = df["TIME_READ_DISK"]
-        time_write_disk = df["TIME_WRITE_DISK"]
+        # time_read_disk = df["TIME_READ_DISK"]
+        # time_write_disk = df["TIME_WRITE_DISK"]
         timestamps = df["TIME"]
 
         list_of_cpus[machine_name] = list(cpu_usage)
@@ -262,28 +281,6 @@ def plot_results(folder_pathname) -> str:
         plt.savefig(output_path + "/network_usage.png")
         plt.close()
 
-        build_plot(
-            f"Data transferred of {machine_name}: bytes sent",
-            timestamps,
-            byte_sent,
-            name_dataset="BYTE_SENT",
-            measure="Byte (B)",
-            num_entries=df_length,
-        )
-        plt.savefig(output_path + "/bytes_sent.png")
-        plt.close()
-
-        build_plot(
-            f"Data transferred of {machine_name}: bytes received",
-            timestamps,
-            byte_recv,
-            name_dataset="BYTE_RECV",
-            measure="Byte (B)",
-            num_entries=df_length,
-        )
-        plt.savefig(output_path + "/bytes_received.png")
-        plt.close()
-
         plot_bytes(
             time_list=timestamps,
             first_df=byte_write_disk,
@@ -296,30 +293,9 @@ def plot_results(folder_pathname) -> str:
         plt.savefig(output_path + "/disk_usage.png")
         plt.close()
 
-        build_plot(
-            f"Disk usage of {machine_name}: bytes written",
-            timestamps,
-            byte_write_disk,
-            name_dataset="BYTE_WRITE_DISK",
-            measure="Byte (B)",
-            num_entries=df_length,
-        )
-        plt.savefig(output_path + "/bytes_written.png")
-        plt.close()
-
-        build_plot(
-            f"Disk usage of {machine_name}: bytes read",
-            timestamps,
-            byte_read_disk,
-            name_dataset="BYTE_READ_DISK",
-            measure="Byte (B)",
-            num_entries=df_length,
-        )
-        plt.savefig(output_path + "/bytes_read.png")
-        plt.close()
+    colors = list(mcolors.TABLEAU_COLORS.values())
 
     plt.style.use('ggplot')
-    colors = list(mcolors.TABLEAU_COLORS.values())
     resampled_dfs = {}
     for df, label in zip(df_list, name_list):
         df['TIME'] = pd.to_datetime(df['TIME'])

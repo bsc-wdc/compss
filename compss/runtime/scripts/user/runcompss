@@ -778,12 +778,11 @@ else
   export IS_LOCAL=false
 fi
 
+# Start the profiling process
 start_profiling
 
 # Real runtime execution
 start_compss_app
-
-# stop_profiling
 
 if [ ${provenance} ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
@@ -791,6 +790,8 @@ if [ ${provenance} ]; then
   else
     echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
+
+  # Stop profiling process
   kill $PROFILING_PID
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;

@@ -12,3 +12,6 @@
 [submodule "dependencies/threadpoolctl"]
 	path = dependencies/threadpoolctl
 	url = https://github.com/joblib/threadpoolctl.git
+[submodule "compss/programming_model/bindings/RCOMPSs"]
+	path = compss/programming_model/bindings/RCOMPSs
+	url = https://github.com/stsds/RCOMPSs

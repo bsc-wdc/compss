@@ -18,7 +18,7 @@ start_profiling() {
     echo "PROFILING STATUS FILE ${working_directory}"
 
     # launch the profiling script
-    python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler_top.py" "${working_directory}" &
+    python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
 
     PROFILING_PID=$!
     echo $PROFILING_PID

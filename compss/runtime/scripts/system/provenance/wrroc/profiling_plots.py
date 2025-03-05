@@ -14,20 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import typing
-import time
 import os
-import json
-import sys
-
-from pathlib import Path
-from hashlib import sha256
-from mmap import mmap, ACCESS_READ
-
-from rocrate.rocrate import ROCrate
-from rocrate.model.contextentity import ContextEntity
-
-from provenance.processing.entities import get_manually_defined_software_requirements
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import pandas as pd
@@ -143,6 +130,7 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
         i += 1
 
     all_times = pd.concat(resampled_dfs.values()).index.unique().sort_values()
+    # all_times = pd.concat([df for df in resampled_dfs.values() if not df.empty]).index.unique().sort_values()
     num_entries = len(all_times)
     step = int(num_entries / 60) + 1
     selected_times = all_times[::step]
@@ -169,20 +157,24 @@ def filter_files(directory):
     """
     files = [f for f in os.listdir(directory) if f.endswith('.csv')]
     node_code_dict = {}
+    num_files = len(files)
 
-    for file in files:
-        node_code = file.split('_')[-1]
+    if num_files > 1:
+        for file in files:
+            node_code = file.split('_')[-1]
 
-        if node_code in node_code_dict:
-            if 'static' in file:
-                os.remove(os.path.join(directory, file))
-                break
-            else:
-                if 'static' in node_code_dict[node_code]:
-                    os.remove(os.path.join(directory, node_code_dict[node_code]))
+            if node_code in node_code_dict:
+                if 'static' in file:
+                    os.remove(os.path.join(directory, file))
                     break
-        else:
-            node_code_dict[node_code] = file
+                else:
+                    if 'static' in node_code_dict[node_code]:
+                        os.remove(os.path.join(directory, node_code_dict[node_code]))
+                        break
+            else:
+                node_code_dict[node_code] = file
+
+    return num_files
 
 def plot_results(folder_pathname) -> str:
     """
@@ -211,7 +203,7 @@ def plot_results(folder_pathname) -> str:
     df_list = []
     name_list = []
 
-    filter_files(folder_pathname)
+    num_files = filter_files(folder_pathname)
 
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
@@ -293,18 +285,19 @@ def plot_results(folder_pathname) -> str:
         plt.savefig(output_path + "/disk_usage.png")
         plt.close()
 
-    colors = list(mcolors.TABLEAU_COLORS.values())
+    if num_files > 1:
+        colors = list(mcolors.TABLEAU_COLORS.values())
 
-    plt.style.use('ggplot')
-    resampled_dfs = {}
-    for df, label in zip(df_list, name_list):
-        df['TIME'] = pd.to_datetime(df['TIME'])
-        df.set_index('TIME', inplace=True)
-        resampled_df = df.resample('s').mean().interpolate(method='linear')
-        resampled_dfs[label] = resampled_df
+        plt.style.use('ggplot')
+        resampled_dfs = {}
+        for df, label in zip(df_list, name_list):
+            df['TIME'] = pd.to_datetime(df['TIME'])
+            df.set_index('TIME', inplace=True)
+            resampled_df = df.resample('s').mean().interpolate(method='linear')
+            resampled_dfs[label] = resampled_df
 
-    build_plot_nodes(resampled_dfs, plots_pathname + "cpu_nodes.png", "CPU", "CPU", colors)
-    build_plot_nodes(resampled_dfs, plots_pathname + "mem_nodes.png", "MEM", "Memory", colors)
+        build_plot_nodes(resampled_dfs, plots_pathname + "cpu_nodes.png", "CPU", "CPU", colors)
+        build_plot_nodes(resampled_dfs, plots_pathname + "mem_nodes.png", "MEM", "Memory", colors)
 
     return plots_pathname
 

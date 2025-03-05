@@ -1,4 +1,21 @@
+#!/usr/bin/env python3
+#
+#  Copyright 2002-2024 Barcelona Supercomputing Center (www.bsc.es)
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 import subprocess, os, sys
+import time
 import socket
 from datetime import datetime
 
@@ -20,8 +37,6 @@ def get_cpu_top() -> list:
     return result
 
 def profiling_function(
-        interval: int,
-        computing_units: int,
         byte_read: int,
         byte_write: int,
         time_read: int,
@@ -32,8 +47,6 @@ def profiling_function(
     """
     Function to profile and monitor system resource usage, including CPU, memory, and network I/O.
 
-    :param interval: The time interval (in seconds) over which to calculate CPU usage.
-    :param computing_units: The number of computing units (e.g., CPU cores) to consider for CPU usage calculation. If None, all available cores are used.
     :param byte_read: The total number of bytes read during the profiling period.
     :param byte_write: The total number of bytes written during the profiling period.
     :param time_read: The time taken (in seconds) for read operations.
@@ -55,9 +68,6 @@ def profiling_function(
         - The updated total number of bytes sent.
         - The updated total number of bytes received.
     """
-    logical_processors = psutil.cpu_count(logical=True)
-    physical_cores = psutil.cpu_count(logical=False)
-    multiplication_factor = float(round(logical_processors / physical_cores, 2))
     cpu_mem = get_cpu_top()
     cpu = cpu_mem[0]
     mem = cpu_mem[1]
@@ -96,7 +106,7 @@ def main():
     ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
 
     new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-        1, computing_units, 0, 0, 0, 0, ref_byte_sent, ref_byte_recv
+        0, 0, 0, 0, ref_byte_sent, ref_byte_recv
     )
     to_write += new_entry
 
@@ -105,6 +115,7 @@ def main():
         resource.flush()
 
         while True:
+            time.sleep(profiling_interval)
             io_current = psutil.disk_io_counters()
             byte_read = io_current.read_bytes - ref_read
             byte_write = io_current.write_bytes - ref_write
@@ -120,8 +131,6 @@ def main():
             )
 
             new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                profiling_interval,
-                computing_units,
                 byte_read,
                 byte_write,
                 time_read,

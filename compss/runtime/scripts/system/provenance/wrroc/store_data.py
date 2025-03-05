@@ -22,6 +22,13 @@ from rocrate.rocrate import ROCrate
 
 
 def write_data_db(data, name_coll):
+    """
+    Store the data in the database
+
+    :param data: data to store in the database
+    :param name_coll: name of application which define the collection where to store in the database
+    :return:
+    """
     client = pymongo.MongoClient("mongodb://localhost:27017/")
 
     db = client["compss-stats"]
@@ -105,13 +112,13 @@ def store_data(compss_path: str, stats_path: Path):
 
     crate = ROCrate(compss_path)
 
-    command_launched = "not found"
+    command_launched = 'not found'
     for e in crate.contextual_entities:
         if "#COMPSs_Workflow_Run" in str(e):
-            command_launched = str(e.properties().get("description"))
+            command_launched = str(e.properties().get('description'))
             break
 
-    final_dict["Command"] = command_launched
+    final_dict['Command'] = command_launched
 
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):
@@ -173,31 +180,34 @@ def store_data(compss_path: str, stats_path: Path):
     for stat in profiling_stats:
         if "avg" in stat.lower():
             sum_value = 0
+            count = 0
             for n in nodes:
-                sum_value += float(final_dict[n][stat])
-            final_dict["overall"][stat] = str(round(sum_value / num_nodes, 2))
+                if stat in final_dict.get(n, {}):  # Check if the key exists
+                    sum_value += float(final_dict[n][stat])
+                    count += 1
+            if count > 0:  # Avoid division by zero
+                final_dict["overall"][stat] = str(round(sum_value / count, 2))
+            else:
+                final_dict["overall"][stat] = None  # or some default value
         elif "min" in stat.lower():
             min_value = float("inf")
             for n in nodes:
-                min_value = (
-                    final_dict[n][stat]
-                    if float(final_dict[n][stat]) < float(min_value)
-                    else min_value
-                )
-            final_dict["overall"][stat] = min_value
+                if stat in final_dict.get(n, {}):  # Check if the key exists
+                    current_value = float(final_dict[n][stat])
+                    min_value = current_value if current_value < min_value else min_value
+            final_dict["overall"][stat] = min_value if min_value != float("inf") else None  # or some default value
         elif "max" in stat.lower():
             max_value = float("-inf")
             for n in nodes:
-                max_value = (
-                    final_dict[n][stat]
-                    if float(final_dict[n][stat]) > float(max_value)
-                    else max_value
-                )
-            final_dict["overall"][stat] = max_value
+                if stat in final_dict.get(n, {}):  # Check if the key exists
+                    current_value = float(final_dict[n][stat])
+                    max_value = current_value if current_value > max_value else max_value
+            final_dict["overall"][stat] = max_value if max_value != float("-inf") else None  # or some default value
         else:
             total = 0
             for n in nodes:
-                total += int(final_dict[n][stat])
+                if stat in final_dict.get(n, {}):  # Check if the key exists
+                    total += int(final_dict[n][stat])
             final_dict["overall"][stat] = str(total)
 
     # NOT necessary anymore

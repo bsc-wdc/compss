@@ -1,6 +1,3 @@
-# This CITATION.cff file was generated with cffinit.
-# Visit https://bit.ly/cffinit to generate yours today!
-
 cff-version: 1.2.0
 title: COMPSs
 message: >-
@@ -18,12 +15,12 @@ authors:
     email: javier.conejero@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0001-6401-6229'
-  - given-names: Rosa Maria
+  - given-names: Rosa M
     family-names: Badia
     email: rosa.m.badia@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0003-2941-5499'
-  - given-names: Raul
+  - given-names: Ra\xFCl
     family-names: Sirvent
     email: raul.sirvent@bsc.es
     affiliation: Barcelona Supercomputing Center
@@ -34,90 +31,68 @@ authors:
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0001-5081-7244'
   - given-names: Fernando
-    family-names: Vazquez
+    family-names: V\xE1zquez Novoa
     email: fernando.vazquez@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0001-5634-509X'
-  - given-names: Cristian
+  - given-names: Cristian C\u0103t\u0103lin
     family-names: Tatu
     email: cristian.tatu@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0009-0003-8848-9436'
-  - given-names: Nicolo
-    family-names:
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
-  - given-names: Edu
-    family-names:
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+  - given-names: Nicol\xF2
+    family-names: Giacomini
+    email: nicolo.giacomini@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0005-2797-8177'
+  - given-names: Eduardo
+    family-names: Iraola de Acevedo
+    email: eduardo.iraola@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0002-0837-7086'
   - given-names: Roc
-    family-names:
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+    family-names: Cutal Gendrau
+    email: roc.cutal@bsc.es
+    affiliation: Barcelona Supercomputing Center
+  - given-names: Pere
+    family-names: Verg\xE9s
+    email: pere.verges@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0002-4109-1071'
   - given-names: Jorge
     family-names: Ejarque
-    email:
-    affiliation: Seqera
     orcid: 'https://orcid.org/0000-0003-4725-5097'
   - given-names: Enric
     family-names: Tejedor
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
-  - given-names: Cristian Ramon-Cortes
-    family-names:
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+  - given-names: Cristian
+    family-names: Ramon-Cortes Vilarrodona
+    orcid: 'https://orcid.org/0000-0003-4170-818X'
   - given-names: Pol
-    family-names: Alvarez
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+    family-names: \xC1lvarez Vecino
+    orcid: 'https://orcid.org/0000-0002-9147-9621'
   - given-names: Sergio
-    family-names: Martinez
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+    family-names: Rodriguez Guasch
+  - given-names: Sergio
+    family-names: Mart\xEDnez
   - given-names: Marta
     family-names: Bertran
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
-  - given-names: Pere
-    family-names: Verges
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+    orcid: 'https://orcid.org/0000-0002-6226-1172'
   - given-names: Ramon
-    family-names: Amela
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
-  - given-names: Clement
+    family-names: Amela Milian
+    orcid: 'https://orcid.org/0000-0001-5943-5824'
+  - given-names: Cl\xE9ment
     family-names: Foyer
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+    orcid: 'https://orcid.org/0000-0003-0471-1275'
   - given-names: Archit
     family-names: Dabral
-    email:
-    affiliation:
-    orcid: 'https://orcid.org/'
+    affiliation: Indian Institute of Technology BHU
+    orcid: 'https://orcid.org/0009-0009-6701-3547'
   - given-names: Gabriel
-    family-names: Puigdemunt
-    email: gabriel.puigdemunt@bsc.es
-    affiliation: Barcelona Supercomputing Center
+    family-names: Puigdemunt-Schmolling
     orcid: 'https://orcid.org/0000-0002-5576-9912'
-  - email: nihad.mammadli@bsc.es
-    given-names: Nihad
-    affiliation: Barcelona Supercomputing Center
+  - given-names: Nihad
     family-names: Mammadli
-    orcid: 'https://orcid.org/0000-0001-8089-921X'
+    orcid: 'https://orcid.org/0000-0003-1638-7572'
 identifiers:
   - type: doi
     value: 10.5281/zenodo.6362594

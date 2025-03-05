@@ -30,6 +30,10 @@ import sys
 from rocrate.rocrate import ROCrate
 from rocrate.utils import iso_now
 
+from provenance.wrroc.provenance_run.control_action import add_control_action
+from provenance.wrroc.provenance_run.create_action import add_create_action_for_task
+from provenance.wrroc.provenance_run.how_to_step import add_how_to_step, update_main_entity_with_steps
+from provenance.wrroc.provenance_run.organize_action import add_organize_action
 from provenance.utils.url_fixes import fix_in_files_at_out_dirs
 from provenance.utils.common_paths import get_common_paths
 from provenance.utils.yaml_template import get_yaml_template
@@ -40,7 +44,7 @@ from provenance.file_adding.datasets import (
     add_dataset_file_to_crate,
     add_manual_datasets,
 )
-from provenance.wrroc.create_action import wrroc_create_action
+from provenance.wrroc.workflow_run.create_action import wrroc_create_action
 from provenance.wrroc.profile import set_profile_details
 
 
@@ -93,7 +97,7 @@ def main():
 
     # Process set of accessed files, as reported by COMPSs runtime.
     # This must be done before adding the Workflow to the RO-Crate
-    ins, outs = process_accessed_files(DP_LOG)
+    ins, outs, tasks = process_accessed_files(DP_LOG)
 
     # Add application source files to the RO-Crate, that will also be physically in the crate
     add_application_source_files(
@@ -125,8 +129,8 @@ def main():
     list_common_paths = []
     part_time = time.time()
     if (
-        "data_persistence" in compss_wf_info
-        and compss_wf_info["data_persistence"] is True
+            "data_persistence" in compss_wf_info
+            and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
@@ -165,7 +169,7 @@ def main():
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # Can update Agent details from online search
     part_time = time.time()
-    run_uuid = wrroc_create_action(
+    main_create_action = wrroc_create_action(
         compss_crate,
         main_entity,
         author_list,
@@ -180,6 +184,32 @@ def main():
         f"PROVENANCE | RO-Crate adding CreateAction TIME: "
         f"{time.time() - part_time} s"
     )
+
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    steps = []
+    step_control_actions = []
+    for task in tasks:
+        step = add_how_to_step(compss_crate, task["name"], task["id"])
+        create_action = add_create_action_for_task(
+            compss_crate,
+            task=task,
+        )
+        control_action = add_control_action(compss_crate, step, create_action)
+
+        steps.append(step)
+        step_control_actions.append(control_action)
+
+    # Add HowTo to @type and add 'steps'
+    update_main_entity_with_steps(compss_crate, steps)
+
+    add_organize_action(
+        compss_crate,
+        step_control_actions,
+        main_create_action
+    )
+
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     # Set RO-Crate conformance to profiles
     set_profile_details(compss_crate)

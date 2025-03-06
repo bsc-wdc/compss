@@ -51,6 +51,7 @@ class Args(object):
         """
         # Parse DOT file path
         import os
+
         if dot_file_path.endswith(".dot"):
             self.dot_file_path = os.path.abspath(dot_file_path)
         else:
@@ -59,7 +60,9 @@ class Args(object):
         # Parse PDF file path
         if output_file_path is None:
             # PDF file with same name than DOT file but changing extension
-            self.output_file_path = self.dot_file_path[:-4] + Args._DEFAULT_OUTPUT_EXTENSION
+            self.output_file_path = (
+                self.dot_file_path[:-4] + Args._DEFAULT_OUTPUT_EXTENSION
+            )
         else:
             self.output_file_path = os.path.abspath(output_file_path)
 
@@ -117,14 +120,18 @@ class Graph(object):
         # Add nodes and edges from DOT file
         with open(dot_file_path) as f:
             for line in f:
-                if ("shape" in line) and ("fillcolor" in line) and ("fontcolor" in line):
+                if (
+                    ("shape" in line)
+                    and ("fillcolor" in line)
+                    and ("fontcolor" in line)
+                ):
                     if "label" in line:
                         # Line defines a sync
                         l2 = line.split(",")
 
                         s_index = l2[0].index("[")
                         node_name = l2[0][:s_index]
-                        shape = l2[1][len("shape=") + 1:]
+                        shape = l2[1][len("shape=") + 1 :]
                         self.nodes[node_name] = (shape, "#ff0000", "#FFFFFF")
                     else:
                         # print("Adding node " + line)
@@ -133,11 +140,11 @@ class Graph(object):
 
                         s_index = l2[0].index("[")
                         node_name = l2[0][:s_index]
-                        shape = l2[0][s_index + 7:]
+                        shape = l2[0][s_index + 7 :]
 
                         l3 = l2[1].split()
-                        fillcolor = l3[1][len("fillcolor=\""):-1]
-                        fontcolor = l3[2][len("fontcolor=\""):-3]
+                        fillcolor = l3[1][len('fillcolor="') : -1]
+                        fontcolor = l3[2][len('fontcolor="') : -3]
 
                         self.nodes[node_name] = (shape, fillcolor, fontcolor)
                 elif "->" in line:
@@ -147,11 +154,11 @@ class Graph(object):
                     if "[" in line:
                         s_index = line.index("[")
                         e_index = line.index("]")
-                        node_to = line[f_index + 2:s_index].strip()
-                        label = line[s_index + 9:e_index - 2]
+                        node_to = line[f_index + 2 : s_index].strip()
+                        label = line[s_index + 9 : e_index - 2]
                     else:
                         s_index = line.index(";")
-                        node_to = line[f_index + 2:s_index].strip()
+                        node_to = line[f_index + 2 : s_index].strip()
                         label = ""
 
                     self.edges[(node_from, node_to)] = (label,)
@@ -199,7 +206,9 @@ class Graph(object):
 
         # Compute depths
         depth_per_node = {}
-        self._compute_depths(current_node="Synchro0", current_depth=0, depths=depth_per_node)
+        self._compute_depths(
+            current_node="Synchro0", current_depth=0, depths=depth_per_node
+        )
         # if __debug__:
         #     print("Depth per node:")
         #     print(depth_per_node)
@@ -211,26 +220,27 @@ class Graph(object):
         #     print(nodes_per_depth)
 
         # Create layout
-        pos = Graph._compute_layout(nodes_per_depth=nodes_per_depth,
-                                    width=1.0,
-                                    vert_gap=0.2,
-                                    vert_loc=0.0)
+        pos = Graph._compute_layout(
+            nodes_per_depth=nodes_per_depth, width=1.0, vert_gap=0.2, vert_loc=0.0
+        )
         # if __debug__:
         #     print("Layout:")
         #     print(pos)
 
         # Draw
         import matplotlib.pyplot as plt
-        nx.draw(self.g,
-                pos=pos,  # Node position
-                arrows=True,  # Draw edge arrows
-                arrowsize=2,  # Edge arrows size
-                width=0.3,  # Edge size
-                node_size=20,  # Node size
-                node_color=color_map,  # Node color
-                with_labels=True,  # Node labels
-                font_size=1,  # Node labels font size
-                )
+
+        nx.draw(
+            self.g,
+            pos=pos,  # Node position
+            arrows=True,  # Draw edge arrows
+            arrowsize=2,  # Edge arrows size
+            width=0.3,  # Edge size
+            node_size=20,  # Node size
+            node_color=color_map,  # Node color
+            with_labels=True,  # Node labels
+            font_size=1,  # Node labels font size
+        )
         plt.savefig(output_file_path)
 
     def _compute_depths(self, current_node=None, current_depth=0, depths=None):
@@ -318,6 +328,7 @@ class Graph(object):
 # HELPER METHODS
 ############################################
 
+
 def parse_arguments(cmd_args):
     """
     Parses command line arguments and returns an object containing the application information
@@ -369,6 +380,7 @@ def render_graph(graph, args):
 ############################################
 # MAIN
 ############################################
+
 
 def main():
     print("Starting Graph rendering...")

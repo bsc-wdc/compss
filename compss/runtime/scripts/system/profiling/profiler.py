@@ -22,8 +22,11 @@ from datetime import datetime
 try:
     import psutil
 except ImportError:
-    print("psutil is not installed. Install it, if you want to monitor the resources status during the execution.")
+    print(
+        "psutil is not installed. Install it, if you want to monitor the resources status during the execution."
+    )
     exit(1)
+
 
 def get_cpu_top() -> list:
     """
@@ -36,13 +39,14 @@ def get_cpu_top() -> list:
     result = subprocess.check_output(COMMAND, shell=True, text=True).strip().split(",")
     return result
 
+
 def profiling_function(
-        byte_read: int,
-        byte_write: int,
-        time_read: int,
-        time_write: int,
-        prev_bytes_sent: int,
-        prev_bytes_recv: int,
+    byte_read: int,
+    byte_write: int,
+    time_read: int,
+    time_write: int,
+    prev_bytes_sent: int,
+    prev_bytes_recv: int,
 ) -> tuple:
     """
     Function to profile and monitor system resource usage, including CPU, memory, and network I/O.
@@ -141,6 +145,7 @@ def main():
 
             resource.write(new_entry)
             resource.flush()
+
 
 if __name__ == "__main__":
     main()

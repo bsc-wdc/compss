@@ -54,7 +54,7 @@ def write_data_local_db(data, application_name):
     :param application_name: name of the application (to use in the local file)
     :return:
     """
-    local_file = "" # Pathname of local file
+    local_file = ""  # Pathname of local file
 
     try:
         with open(
@@ -112,13 +112,13 @@ def store_data(compss_path: str, stats_path: Path):
 
     crate = ROCrate(compss_path)
 
-    command_launched = 'not found'
+    command_launched = "not found"
     for e in crate.contextual_entities:
         if "#COMPSs_Workflow_Run" in str(e):
-            command_launched = str(e.properties().get('description'))
+            command_launched = str(e.properties().get("description"))
             break
 
-    final_dict['Command'] = command_launched
+    final_dict["Command"] = command_launched
 
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):
@@ -194,15 +194,23 @@ def store_data(compss_path: str, stats_path: Path):
             for n in nodes:
                 if stat in final_dict.get(n, {}):  # Check if the key exists
                     current_value = float(final_dict[n][stat])
-                    min_value = current_value if current_value < min_value else min_value
-            final_dict["overall"][stat] = min_value if min_value != float("inf") else None  # or some default value
+                    min_value = (
+                        current_value if current_value < min_value else min_value
+                    )
+            final_dict["overall"][stat] = (
+                min_value if min_value != float("inf") else None
+            )  # or some default value
         elif "max" in stat.lower():
             max_value = float("-inf")
             for n in nodes:
                 if stat in final_dict.get(n, {}):  # Check if the key exists
                     current_value = float(final_dict[n][stat])
-                    max_value = current_value if current_value > max_value else max_value
-            final_dict["overall"][stat] = max_value if max_value != float("-inf") else None  # or some default value
+                    max_value = (
+                        current_value if current_value > max_value else max_value
+                    )
+            final_dict["overall"][stat] = (
+                max_value if max_value != float("-inf") else None
+            )  # or some default value
         else:
             total = 0
             for n in nodes:

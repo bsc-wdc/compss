@@ -179,7 +179,7 @@ def main():
         fixed_outs,
         yaml_content,
         INFO_YAML,
-        path_plog,
+        path_log,
         datetime.fromisoformat(end_time),
         auxiliary_file_list,
     )
@@ -208,7 +208,7 @@ def main():
         f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
     )
 
-    store_data(folder, STATS_PATH)
+    store_data(DEST_FOLDER, STATS_PATH)
 
 
 if __name__ == "__main__":
@@ -225,8 +225,8 @@ if __name__ == "__main__":
         path_log = Path(sys.argv[2])
         DEST_FOLDER = sys.argv[3]
         DP_LOG = path_log / "dataprovenance.log"
-        path_dplog = Path(sys.argv[2])
-        COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
-        ENERGY_PATH = path_dplog.parent / "energy"
-        PLOTS_PATH = path_dplog.parent / "stats/plots"
+        COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
+        ENERGY_PATH = path_log / "energy"
+        STATS_PATH = path_log / "stats"
+        PLOTS_PATH = path_log / "stats/plots"
     main()

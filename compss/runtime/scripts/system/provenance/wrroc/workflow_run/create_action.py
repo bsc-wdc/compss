@@ -54,7 +54,7 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
 
             parameter_list = list(filter(None, row.strip().split(" ")))
             len_row = len(parameter_list)
-            if len_row >= 4:
+            if len_row >= 4 and not row.startswith("Task"):
                 data_list.append(parameter_list)
 
         try:
@@ -158,7 +158,7 @@ def wrroc_create_action(
     info_yaml: str,
     log_dir: Path,
     end_time: datetime,
-) -> str:
+) -> tuple:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -483,4 +483,4 @@ def wrroc_create_action(
             f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
         )
 
-    return run_uuid
+    return create_action

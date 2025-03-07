@@ -20,32 +20,28 @@
     following the Workflow Run Crate profile specification. Takes as parameters the ro-crate-info.yaml, and the
     dataprovenance.log generated from the run.
 """
+import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
 import yaml
-import time
-import sys
-
-from rocrate.rocrate import ROCrate
 from rocrate.utils import iso_now
 
-from provenance.wrroc.provenance_run.control_action import add_control_action
-from provenance.wrroc.provenance_run.create_action import add_create_action_for_task
-from provenance.wrroc.provenance_run.how_to_step import add_how_to_step, update_main_entity_with_steps
-from provenance.wrroc.provenance_run.organize_action import add_organize_action
-from provenance.utils.url_fixes import fix_in_files_at_out_dirs
-from provenance.utils.common_paths import get_common_paths
-from provenance.utils.yaml_template import get_yaml_template
-from provenance.processing.entities import root_entity, get_main_entities
-from provenance.processing.files import process_accessed_files
-from provenance.file_adding.source_code import add_application_source_files
 from provenance.file_adding.datasets import (
     add_dataset_file_to_crate,
     add_manual_datasets,
 )
-from provenance.wrroc.workflow_run.create_action import wrroc_create_action
+from provenance.file_adding.source_code import add_application_source_files
+from provenance.processing.entities import root_entity, get_main_entities
+from provenance.processing.files import process_accessed_files
+from provenance.utils.common_paths import get_common_paths
+from provenance.utils.url_fixes import fix_in_files_at_out_dirs
+from provenance.utils.yaml_template import get_yaml_template
 from provenance.wrroc.profile import set_profile_details
+from provenance.wrroc.provenance_run.prospective import *
+from provenance.wrroc.provenance_run.retrospective import *
+from provenance.wrroc.workflow_run.create_action import wrroc_create_action
 
 
 def main():
@@ -186,29 +182,30 @@ def main():
     )
 
     # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
+    defined_tools = {}
     steps = []
     step_control_actions = []
     for task in tasks:
-        step = add_how_to_step(compss_crate, task["name"], task["id"])
-        create_action = add_create_action_for_task(
-            compss_crate,
-            task=task,
-        )
-        control_action = add_control_action(compss_crate, step, create_action)
+        if task["name"] not in defined_tools:
+            defined_tools[task["name"]] = add_software_tool(compss_crate, task)
+
+        step = add_how_to_step(compss_crate, task, defined_tools[task["name"]])
+        create_action = add_create_action_for_task(compss_crate, task, defined_tools[task["name"]])
+        control_action = add_control_action_for_step(compss_crate, step, create_action)
 
         steps.append(step)
         step_control_actions.append(control_action)
 
-    # Add HowTo to @type and add 'steps'
+    update_main_entity_with_software_tools(compss_crate, list(defined_tools.values()))
     update_main_entity_with_steps(compss_crate, steps)
 
+    compss_runtime = add_workflow_engine(compss_crate, compss_ver)
     add_organize_action(
         compss_crate,
         step_control_actions,
-        main_create_action
+        main_create_action,
+        compss_runtime
     )
-
     # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     # Set RO-Crate conformance to profiles

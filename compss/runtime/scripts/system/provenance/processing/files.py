@@ -14,12 +14,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import typing
-import time
 import socket
-
-from urllib.parse import urlsplit
+import time
+import typing
 from pathlib import Path
+from urllib.parse import urlsplit
+
+from provenance.utils.datatype_mapping import map_datatype
+
+
+def process_task_parameters(parameters: list):
+    """ Splits parameter strings and maps COMPSs data types to Schema.org types. """
+    param_names, param_directions, param_types = [], [], []
+
+    for param in parameters:
+        name, direction, ptype = param.split(".")
+        param_names.append(name)
+        param_directions.append(direction)
+        param_types.append(map_datatype(ptype))
+
+    return param_names, param_directions, param_types
+
 
 # TODO: rename this (or change logic), since it is not only file processing anymore
 def process_accessed_files(dp_log: Path) -> typing.Tuple[list, list, list]:
@@ -72,19 +87,24 @@ def process_accessed_files(dp_log: Path) -> typing.Tuple[list, list, list]:
                     outs_of_current_task.append(line_record[0])
             elif len(line_record) == 4 and line_record[0] == "Task":
                 task_id = line_record[1]
-                task_method = line_record[2]
+                signature = line_record[2]
+                file_name, method_name = line_record[2].split(".")
                 task_parameters = line_record[3].split("::")
+                param_names, param_directions, param_types = process_task_parameters(task_parameters)
 
                 new_task = {
                     "id": task_id,
-                    "name": task_method,
-                    "params": task_parameters,
+                    "signature": signature,
+                    "method_name": method_name,
+                    "file_name": file_name,
+                    "param_names": param_names,
+                    "param_types": param_types,
+                    "param_directions": param_directions,
                     "ins": ins_of_current_task,
                     "outs": outs_of_current_task
                 }
                 l_tasks.append(new_task)
-                ins_of_current_task = []
-                outs_of_current_task = []
+                ins_of_current_task, outs_of_current_task  = [], []
             # else dismiss the line
 
     l_ins = list(inputs)

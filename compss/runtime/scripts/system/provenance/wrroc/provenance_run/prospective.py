@@ -26,28 +26,26 @@ def add_workflow_engine(
     ))
 
 
-def add_software_tool(
+def add_software_tool_for_task(
         compss_crate: ROCrate,
         task: dict
 ):
     """
     Adds a `SoftwareSourceCode` entity, representing the software tool (a.k.a. the task definition), to the COMPSs RO-Crate.
+    Consequently, it also inserts the formal parameters of the task, as FormalParameter entities, into the RO-Crate.
 
     @param compss_crate: The COMPSs RO-Crate being generated.
     @param task: A dictionary representing the task that implements the software tool.
 
     @return: The created SoftwareSourceCode instance.
     """
-    tool_id = f"#{task['name']}"
-
-    # TODO: THINK ABOUT THIS. The splitting logic should be kept in the files.py, where we handle the dataprovenance.log
-    file_name, method_name = task["name"].split(".")
+    tool_id = f"#{task['signature']}"
 
     input_params = []
     output_params = []
-    for param in task["params"]:
-        param_name, param_direction = param.split(".")
-        returned_param = add_parameter_definition(compss_crate, method_name, param_name)
+    for param_name, param_type, param_direction in zip(task["param_names"], task["param_types"], task["param_directions"]):
+        returned_param = add_parameter_definition(compss_crate, task["method_name"], param_name, param_type)
+        # TODO: double check this logic:
         if "OUT" in param_direction:
             output_params.append(returned_param)
         if "IN" in param_direction:
@@ -60,8 +58,8 @@ def add_software_tool(
         tool_id,
         {
             "@type": "SoftwareSourceCode",
-            "name": method_name,
-            "description": f"{method_name} inside {file_name}",
+            "name": task["method_name"],
+            "description": f"{task['method_name']} method inside {task['file_name']}",
             "input": input_params,
             "output": output_params
         }
@@ -87,7 +85,7 @@ def add_parameter_definition(
         compss_crate: ROCrate,
         method_name: str,
         param_name: str,
-        type="TODO"
+        param_type: str
 ):
     """
     Adds a formal parameter definition to a COMPSs RO-Crate.
@@ -95,7 +93,7 @@ def add_parameter_definition(
     @param compss_crate: The COMPSs RO-Crate being generated.
     @param method_name: The name of the method to which this parameter belongs.
     @param param_name: The name of the parameter as it appears in the method definition.
-    @param type: The type of the parameter.
+    @param param_type: The data type of the parameter.
 
     @return: The created FormalParameter instance
     """
@@ -105,7 +103,7 @@ def add_parameter_definition(
         formal_parameter_id,
         {
             "@type": "FormalParameter",
-            "additionalType": type,
+            "additionalType": param_type,
             "name": param_name
         }
     ))

@@ -186,11 +186,11 @@ def main():
     steps = []
     step_control_actions = []
     for task in tasks:
-        if task["name"] not in defined_tools:
-            defined_tools[task["name"]] = add_software_tool(compss_crate, task)
+        if task["signature"] not in defined_tools:
+            defined_tools[task["signature"]] = add_software_tool_for_task(compss_crate, task)
 
-        step = add_how_to_step(compss_crate, task, defined_tools[task["name"]])
-        create_action = add_create_action_for_task(compss_crate, task, defined_tools[task["name"]])
+        step = add_how_to_step(compss_crate, task, defined_tools[task["signature"]])
+        create_action = add_create_action_for_task(compss_crate, task, defined_tools[task["signature"]])
         control_action = add_control_action_for_step(compss_crate, step, create_action)
 
         steps.append(step)

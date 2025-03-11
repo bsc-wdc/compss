@@ -131,7 +131,7 @@ def add_how_to_step(
 
     @return The created `HowToStep` instance.
     """
-    how_to_step_id = f"#{task['name']}.task{task['id']}"
+    how_to_step_id = f"#{task['signature']}.task{task['id']}"
 
     return compss_crate.add(ContextEntity(
         compss_crate,

@@ -103,6 +103,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1387,6 +1388,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
             isReplicated, isDistributed, hasTarget, numReturns, pars, onFailure, timeOut);
+
+        if (DP_ENABLED) {
+            StringBuilder taskInfoBuilder = new StringBuilder("Task " + task + " " + signature + " ");
+            for (Parameter par : pars) {
+                if (!StringUtils.equals(par.getName(), "$return_0")) {
+                    taskInfoBuilder.append(par.getName()).append(".").append(par.getDirection().toString()).append(".")
+                        .append(par.getType().name()).append("::");
+                }
+            }
+            String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
+            DP_LOGGER.info(taskInfo);
+        }
 
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {

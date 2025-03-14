@@ -4,11 +4,15 @@ if [ -n "${LOADED_SYSTEM_COMMONS_VERSION}" ]; then
   return 0
 fi
 
+VERSION=$(cat "${COMPSS_HOME}Runtime/scripts/system/commons/VERSION")
+VERSION_NAME=$(cat "${COMPSS_HOME}Runtime/scripts/system/commons/VERSION_NAME")
+VERSION_FLOWER=$(cat "${COMPSS_HOME}Runtime/scripts/system/commons/VERSION_FLOWER")
+
 ###############################################
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 3.3 Orchid"
+  echo "COMPSs version ${VERSION} ${VERSION_NAME}"
   echo " "
 }
 
@@ -16,25 +20,7 @@ show_version() {
 # Displays version's full header
 ###############################################
 show_full_version() {
-  cat << EOF
-
-        .-~~-.--.           ______        ______
-       :         )         |____  \\      |____  \\
- .~ ~ -.\\       /.- ~~ .      __) |         __) |
- >       \`.   .'       <     |__  |        |__  |
-(         .- -.         )   ____) |   _   ____) |
- \`- -.-~  \`- -'  ~-.- -'   |______/  |_| |______/
-   (        :        )           _ _ .-:
-    ~--.    :    .--~        .-~  .-~  }
-        ~-.-^-.-~ \\       .~  .-~   .~
-                 \\ \\      \\ '_ _ -~
-                  \`.\`.    //
-         . - ~ ~-.__\`.\`-.//
-     .-~   . - ~  }~ ~ ~-.~-.
-   .' .-~      .-~       :/~-.~-./:
-  /_~_ _ . - ~                 ~-.~-._
-                                   ~-.<
-EOF
+  echo "${VERSION_FLOWER}"
   show_version
 }
 

@@ -2,15 +2,15 @@
 
   usage() {
     exitValue=$1
-  
+
     echo " "
     echo "Usage $0 <version>"
     echo " "
-  
+
     exit "$exitValue"
   }
 
- 
+
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   # MAIN
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -23,10 +23,10 @@
 
   # Set parameters
   version=$1
-  buildFolder="nord3"
-  buildScript="buildNord3"
+  buildFolder="nord4"
+  buildScript="buildNord4"
   user=compss
-  endpoint=nord3.bsc.es
+  endpoint=n4login1.bsc.es
   modules_folder="/apps/modules/modulefiles/tools/compss/"
   install_folder="/apps/COMPSs/"
   # Call generic script
@@ -34,4 +34,3 @@
 
   # END
   exit 0
-

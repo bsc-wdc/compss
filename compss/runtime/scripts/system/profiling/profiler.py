@@ -22,8 +22,11 @@ from datetime import datetime
 try:
     import psutil
 except ImportError:
-    print("psutil is not installed. Install it, if you want to monitor the resources status during the execution.")
+    print(
+        "Error: psutil is not installed. Install it, if you want to monitor the resources status during the execution."
+    )
     exit(1)
+
 
 def get_cpu_top() -> list:
     """
@@ -36,13 +39,16 @@ def get_cpu_top() -> list:
     result = subprocess.check_output(COMMAND, shell=True, text=True).strip().split(",")
     return result
 
+
 def profiling_function(
-        byte_read: int,
-        byte_write: int,
-        time_read: int,
-        time_write: int,
-        prev_bytes_sent: int,
-        prev_bytes_recv: int,
+    byte_read: int,
+    byte_write: int,
+    time_read: int,
+    time_write: int,
+    prev_bytes_sent: int,
+    prev_bytes_recv: int,
+    system_type: str,
+    interval: int,
 ) -> tuple:
     """
     Function to profile and monitor system resource usage, including CPU, memory, and network I/O.
@@ -53,6 +59,8 @@ def profiling_function(
     :param time_write: The time taken (in seconds) for write operations.
     :param prev_bytes_sent: The total number of bytes sent before this profiling period.
     :param prev_bytes_recv: The total number of bytes received before this profiling period.
+    :param system_type: Type of the system where the application is executed
+    :param interval: Interval to use between every measurement
 
     :return: A tuple containing three elements:
         - A formatted string with the following comma-separated values:
@@ -68,9 +76,17 @@ def profiling_function(
         - The updated total number of bytes sent.
         - The updated total number of bytes received.
     """
-    cpu_mem = get_cpu_top()
-    cpu = cpu_mem[0]
-    mem = cpu_mem[1]
+    if system_type == "Linux":
+        cpu_mem = get_cpu_top()
+        cpu = cpu_mem[0]
+        mem = cpu_mem[1]
+    elif system_type == "Darwin":
+        logical_processors = psutil.cpu_count(logical=True)
+        physical_cores = psutil.cpu_count(logical=False)
+        multiplication_factor = float(round(logical_processors / physical_cores, 2))
+        cpu = psutil.cpu_percent(interval=interval) * multiplication_factor
+        cpu = cpu if cpu < 100 else 100
+        mem = psutil.virtual_memory().percent
 
     net = psutil.net_io_counters()
     byte_sent = net.bytes_sent - prev_bytes_sent
@@ -90,6 +106,12 @@ def main():
     computing_units = None
     # hostname = "localhost"
 
+    CHECK_SYSTEM = "uname -s"
+    system_type = subprocess.check_output(CHECK_SYSTEM, shell=True, text=True).strip()
+    if system_type not in ("Linux", "Darwin"):
+        print("Error: it is not possible to monitor the resources on this system")
+        exit(1)
+
     is_local = os.getenv("IS_LOCAL")
     hostname = "localhost" if is_local else socket.gethostname()
 
@@ -106,7 +128,7 @@ def main():
     ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
 
     new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-        0, 0, 0, 0, ref_byte_sent, ref_byte_recv
+        0, 0, 0, 0, ref_byte_sent, ref_byte_recv, system_type, profiling_interval
     )
     to_write += new_entry
 
@@ -115,7 +137,8 @@ def main():
         resource.flush()
 
         while True:
-            time.sleep(profiling_interval)
+            if system_type == "Linux":
+                time.sleep(profiling_interval)
             io_current = psutil.disk_io_counters()
             byte_read = io_current.read_bytes - ref_read
             byte_write = io_current.write_bytes - ref_write
@@ -137,10 +160,13 @@ def main():
                 time_write,
                 ref_byte_sent,
                 ref_byte_recv,
+                system_type,
+                profiling_interval,
             )
 
             resource.write(new_entry)
             resource.flush()
+
 
 if __name__ == "__main__":
     main()

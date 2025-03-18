@@ -185,26 +185,36 @@ def main():
     defined_tools = {}
     steps = []
     step_control_actions = []
+    main_inputs = set()
     for task in tasks:
-        if task["signature"] not in defined_tools:
-            defined_tools[task["signature"]] = add_software_tool_for_task(compss_crate, task)
+        for param in task.params:
+            param.formal_instance = add_parameter_definition(compss_crate, param)
+            if param.dtype == "File":
+                param.actual_instance = {"@id": param.value}
+            else:
+                param.actual_instance = add_parameter_value(compss_crate, param)
+                main_inputs.add(param.actual_instance)
 
-        step = add_how_to_step(compss_crate, task, defined_tools[task["signature"]])
-        create_action = add_create_action_for_task(compss_crate, task, defined_tools[task["signature"]])
+        if task.signature not in defined_tools:
+            defined_tools[task.signature] = add_software_tool_for_task(compss_crate, task)
+
+        step = add_how_to_step(compss_crate, task, defined_tools[task.signature])
+        create_action = add_create_action_for_task(compss_crate, task, defined_tools[task.signature])
         control_action = add_control_action_for_step(compss_crate, step, create_action)
 
         steps.append(step)
         step_control_actions.append(control_action)
 
+    update_main_create_action(main_create_action, list(main_inputs), [])
     update_main_entity_with_software_tools(compss_crate, list(defined_tools.values()))
     update_main_entity_with_steps(compss_crate, steps)
 
     compss_runtime = add_workflow_engine(compss_crate, compss_ver)
     add_organize_action(
-        compss_crate,
-        step_control_actions,
-        main_create_action,
-        compss_runtime
+        compss_crate=compss_crate,
+        objects=step_control_actions,
+        result=main_create_action,
+        workflow_engine=compss_runtime
     )
     # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 

@@ -1391,10 +1391,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         if (DP_ENABLED) {
             StringBuilder taskInfoBuilder = new StringBuilder("Task " + task + " " + signature + " ");
-            for (Parameter par : pars) {
-                if (!StringUtils.equals(par.getName(), "$return_0")) {
-                    taskInfoBuilder.append(par.getName()).append(".").append(par.getDirection().toString()).append(".")
-                        .append(par.getType().name()).append("::");
+            for (Parameter p : pars) {
+                // TODO: handle return values
+                if (!p.getName().startsWith("$return")) {
+                    taskInfoBuilder.append(p.getName()).append(".").append(p.getDirection().toString()).append(".")
+                        .append(p.getType().name()).append("::");
                 }
             }
             String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
@@ -1653,10 +1654,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                             Resource host = Comm.getAppHost();
                             String absolute = dirFile.getAbsolutePath();
                             String fixedFinalPath = "dir://" + host.getName() + absolute;
-                            DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
+                            DP_LOGGER.info(
+                                "parameter " + name + " " + type + " " + fixedFinalPath + " " + direction.toString());
 
                         } else {
-                            DP_LOGGER.info(finalPath + " " + direction.toString());
+                            DP_LOGGER
+                                .info("parameter " + name + " " + type + " " + finalPath + " " + direction.toString());
                         }
                     }
                 } catch (Exception e) {
@@ -1681,10 +1684,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                                 Resource host = Comm.getAppHost();
                                 String absolute = f.getAbsolutePath();
                                 String fixedFinalPath = "file://" + host.getName() + absolute;
-                                DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
+                                DP_LOGGER.info("parameter " + name + " " + type + " " + fixedFinalPath + " "
+                                    + direction.toString());
 
                             } else {
-                                DP_LOGGER.info(finalPath + " " + direction.toString());
+                                DP_LOGGER.info(
+                                    "parameter " + name + " " + type + " " + finalPath + " " + direction.toString());
                             }
                         }
                     }
@@ -1892,6 +1897,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, pyType,
                     monitor));
+                if (DP_ENABLED) {
+                    DP_LOGGER.info("parameter " + name + " " + type + " " + content + " IN");
+                }
                 break;
         }
         return 1;

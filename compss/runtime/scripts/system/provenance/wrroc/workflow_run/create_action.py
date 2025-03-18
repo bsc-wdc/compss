@@ -54,7 +54,7 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
 
             parameter_list = list(filter(None, row.strip().split(" ")))
             len_row = len(parameter_list)
-            if len_row >= 4 and not row.startswith("Task"):
+            if len_row >= 4 and not row.startswith("Task") and not row.startswith("parameter"):
                 data_list.append(parameter_list)
 
         try:

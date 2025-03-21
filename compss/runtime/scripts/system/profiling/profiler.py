@@ -21,11 +21,19 @@ from datetime import datetime
 
 try:
     import psutil
+
+    psutil_imported = True
 except ImportError:
     print(
-        "Error: psutil is not installed. Install it, if you want to monitor the resources status during the execution."
+        "Error: psutil is not installed. Install it, if you want to monitor all the resources status during the execution."
     )
-    exit(1)
+    psutil_imported = False
+
+PROFILER_CONFIG = (
+    "linux",
+    "macos",
+    "linux-top",
+)
 
 
 def get_cpu_top() -> list:
@@ -47,7 +55,7 @@ def profiling_function(
     time_write: int,
     prev_bytes_sent: int,
     prev_bytes_recv: int,
-    system_type: str,
+    config: str,
     interval: int,
 ) -> tuple:
     """
@@ -76,24 +84,32 @@ def profiling_function(
         - The updated total number of bytes sent.
         - The updated total number of bytes received.
     """
-    if system_type == "Linux":
-        cpu_mem = get_cpu_top()
-        cpu = cpu_mem[0]
-        mem = cpu_mem[1]
-    elif system_type == "Darwin":
+    if config == PROFILER_CONFIG[1]:
         logical_processors = psutil.cpu_count(logical=True)
         physical_cores = psutil.cpu_count(logical=False)
         multiplication_factor = float(round(logical_processors / physical_cores, 2))
         cpu = psutil.cpu_percent(interval=interval) * multiplication_factor
         cpu = cpu if cpu < 100 else 100
         mem = psutil.virtual_memory().percent
+    else:
+        cpu_mem = get_cpu_top()
+        cpu = cpu_mem[0]
+        mem = cpu_mem[1]
 
-    net = psutil.net_io_counters()
-    byte_sent = net.bytes_sent - prev_bytes_sent
-    byte_recv = net.bytes_recv - prev_bytes_recv
+    if config != PROFILER_CONFIG[2]:
+        net = psutil.net_io_counters()
+        ref_byte_sent = net.bytes_sent
+        ref_byte_recv = net.bytes_recv
+        byte_sent = ref_byte_sent - prev_bytes_sent
+        byte_recv = ref_byte_recv - prev_bytes_recv
+    else:
+        ref_byte_sent = 0
+        ref_byte_recv = 0
+        byte_sent = None
+        byte_recv = None
 
     new_entry = f"{cpu},{mem},{byte_sent},{byte_recv},{byte_read},{byte_write},{time_read},{time_write},{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-    return new_entry, net.bytes_sent, net.bytes_recv
+    return new_entry, ref_byte_sent, ref_byte_recv
 
 
 def main():
@@ -108,7 +124,18 @@ def main():
 
     CHECK_SYSTEM = "uname -s"
     system_type = subprocess.check_output(CHECK_SYSTEM, shell=True, text=True).strip()
-    if system_type not in ("Linux", "Darwin"):
+    if psutil_imported:
+        config_map = {
+            "Linux": PROFILER_CONFIG[0],
+            "Darwin": PROFILER_CONFIG[1],
+        }
+    else:
+        config_map = {
+            "Linux": PROFILER_CONFIG[2],
+        }
+    current_config = config_map.get(system_type, None)
+
+    if current_config is None:
         print("Error: it is not possible to monitor the resources on this system")
         exit(1)
 
@@ -117,18 +144,22 @@ def main():
 
     to_write = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
 
-    io_initial = psutil.disk_io_counters()
-    ref_read, ref_write, ref_time_read, ref_time_write = (
-        io_initial.read_bytes,
-        io_initial.write_bytes,
-        io_initial.read_time,
-        io_initial.write_time,
-    )
-    net = psutil.net_io_counters()
-    ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
+    if current_config != PROFILER_CONFIG[2]:
+        io_initial = psutil.disk_io_counters()
+        ref_read, ref_write, ref_time_read, ref_time_write = (
+            io_initial.read_bytes,
+            io_initial.write_bytes,
+            io_initial.read_time,
+            io_initial.write_time,
+        )
+        net = psutil.net_io_counters()
+        ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
+    else:
+        ref_byte_sent = 0
+        ref_byte_recv = 0
 
     new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-        0, 0, 0, 0, ref_byte_sent, ref_byte_recv, system_type, profiling_interval
+        0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval
     )
     to_write += new_entry
 
@@ -139,19 +170,21 @@ def main():
         while True:
             if system_type == "Linux":
                 time.sleep(profiling_interval)
-            io_current = psutil.disk_io_counters()
-            byte_read = io_current.read_bytes - ref_read
-            byte_write = io_current.write_bytes - ref_write
-            time_read = io_current.read_time - ref_time_read
-            time_write = io_current.write_time - ref_time_write
+            if current_config != PROFILER_CONFIG[2]:
+                io_current = psutil.disk_io_counters()
+                byte_read = io_current.read_bytes - ref_read
+                byte_write = io_current.write_bytes - ref_write
+                time_read = io_current.read_time - ref_time_read
+                time_write = io_current.write_time - ref_time_write
 
-            # Update references
-            ref_read, ref_write, ref_time_read, ref_time_write = (
-                io_current.read_bytes,
-                io_current.write_bytes,
-                io_current.read_time,
-                io_current.write_time,
-            )
+                ref_read, ref_write, ref_time_read, ref_time_write = (
+                    io_current.read_bytes,
+                    io_current.write_bytes,
+                    io_current.read_time,
+                    io_current.write_time,
+                )
+            else:
+                byte_read = byte_write = time_read = time_write = None
 
             new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
                 byte_read,
@@ -160,7 +193,7 @@ def main():
                 time_write,
                 ref_byte_sent,
                 ref_byte_recv,
-                system_type,
+                current_config,
                 profiling_interval,
             )
 

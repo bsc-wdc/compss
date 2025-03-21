@@ -1,18 +1,18 @@
-#!/bin/bash -e 
- 
+#!/bin/bash -e
+
   #############################################################
-  # Name: buildMN
-  # Description: SCRIPT FOR MareNostrum COMPSs BUILD
-  # Parameters: <MN_user> MareNostrum user account. Preferable with ssh keys inserted
-  #             <FullTmpPath> Tmp path on MareNostrum for deployment
-  #             <FullTargetPath> Base Target Installation folder on MareNostrum
+  # Name: buildNord4
+  # Description: SCRIPT FOR Nord 4 COMPSs BUILD
+  # Parameters: <Nord_user> Nord 4 account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Nord 4 for deployment
+  #             <FullTargetPath> Base Target Installation folder on Nord 4
   #############################################################
 
   ####################
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildMN <MN_user> <FullTmpPath> <FullTargetPath>"
+    echo " Usage: buildNord4 <Nord_user> <FullTmpPath> <FullTargetPath>"
     echo " "
   }
 
@@ -35,12 +35,12 @@
 
   # SET SCRIPT VARIABLES
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  
+
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
-  MNloginNode=mn3.bsc.es
-  MNauxScript=${SCRIPT_DIR}/buildMN_aux
+  MNloginNode=n4login1.bsc.es
+  MNauxScript=${SCRIPT_DIR}/buildNord4_aux
   PRELOAD_ENV=""
 
   # Perform installation
@@ -51,4 +51,3 @@
 
   # END
   exit $exitStatus
-

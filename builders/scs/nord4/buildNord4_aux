@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -e
 
   #############################################################
-  # Name: buildMN_aux
-  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MareNostrum
+  # Name: buildNord4_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Nord 4
   # Parameters: <targetDir>           Base Target Installation folder
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
@@ -11,7 +11,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildMN_aux <FullTargetPath>"
+    echo " Usage: buildNord4_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -44,7 +44,7 @@
   additionalExports=""
 
   additional_module_use_folder="ignore"
-  queues_cfg="mn.cfg"
+  queues_cfg="nord4.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="true"

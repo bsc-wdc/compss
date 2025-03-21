@@ -3,7 +3,7 @@
 Please, use the following references when citing COMPSs in your publications:
 * Primary citation:
 
-   ServiceSs: an interoperable programming framework for the Cloud, Journal of Grid Computing, March 2014, Volume 12, Issue 1, pp 67–91, Lordan, F., E. Tejedor, J. Ejarque, R. Rafanell, J. Álvarez, F. Marozzo, D. Lezzi, R. Sirvent, D. Talia, and R. M. Badia, DOI: 10.1007/s10723-013-9272-5
+    ServiceSs: an interoperable programming framework for the Cloud, Journal of Grid Computing, March 2014, Volume 12, Issue 1, pp 67–91, Lordan, F., E. Tejedor, J. Ejarque, R. Rafanell, J. Álvarez, F. Marozzo, D. Lezzi, R. Sirvent, D. Talia, and R. M. Badia, DOI: 10.1007/s10723-013-9272-5
 
 * Code reference:
 

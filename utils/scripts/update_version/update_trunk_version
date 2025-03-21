@@ -9,7 +9,7 @@ usage() {
 
   exit "$exitValue"
 }
- 
+
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   # Check parameters
@@ -38,7 +38,19 @@ usage() {
     sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$pom"
     sed -i 's/<compss.version>'"${previousVersion}"'<\/compss.version>/<compss.version>'"${newVersion}"'<\/compss.version>/g' "$pom"
   done
+  reducedPomFiles=$(find . -name dependency-reduced-pom.xml)
+  for reducedPom in $reducedPomFiles; do
+    echo "    $reducedPom"
+    sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$reducedPom"
+  done
   cd "${base_trunk_dir}"
+
+  #---------------------------------------------------------------------
+  # Modify version file
+  echo "- Modifying version file..."
+  versionFile=${base_trunk_dir}/compss/runtime/scripts/system/commons/VERSION
+  echo "    $versionFile"
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$versionFile"
 
   #---------------------------------------------------------------------
   # Modify python binding files
@@ -75,8 +87,6 @@ usage() {
   echo "    $file"
   sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$file"
   cd "${base_trunk_dir}"
-
-
 
   #---------------------------------------------------------------------
   # Modify builders version

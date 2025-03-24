@@ -114,7 +114,6 @@ def profiling_function(
 
 def main():
     log_dir = sys.argv[1]
-    print(f"LOG DIRECTORY RECEIVED: {log_dir}")
 
     profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL"))
     compss_home = os.getenv("COMPSS_HOME")

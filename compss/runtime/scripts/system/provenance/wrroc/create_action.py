@@ -80,7 +80,7 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
         for idx, row in enumerate(data_provenance.readlines()):
             if idx == 1:
                 application_name = row.rstrip()
-            elif idx >= 3:
+            elif idx >= 4:
                 parameter_list = list(filter(None, row.strip().split(" ")))
                 len_row = len(parameter_list)
                 if len_row >= 4:
@@ -561,7 +561,7 @@ def wrroc_create_action(
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
-            if i == 2:
+            if i == 3:
                 try:
                     start_time = datetime.strptime(
                         line.strip(), "%Y-%m-%dT%H:%M:%S.%f%z"

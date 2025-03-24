@@ -43,6 +43,9 @@ def parse_sys_argv():
                              default="",
                              type=str,
                              help="Environment ID")
+    parser.add_argument("-v", "--version",
+                        help="Get version",
+                        action="store_true")
 
     # Parent parser - includes all arguments which are common to all actions
     parent_parser = argparse.ArgumentParser(add_help=False,
@@ -55,9 +58,9 @@ def parse_sys_argv():
                                         help="Initialize COMPSs environment (default local).",
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
-                                        
+
     parser_init.set_defaults(func=lambda: print(parser_init.format_help()))
-    
+
     parser_init.add_argument("-cfg", "--config",
                              default="",
                              type=str,
@@ -71,16 +74,16 @@ def parse_sys_argv():
     init_env_subparser = parser_init.add_subparsers(title="environment", dest="env")
     # init_env_subparser.default = "local"
 
-    init_env_subparser.add_parser("docker", add_help=False, 
+    init_env_subparser.add_parser("docker", add_help=False,
                                     parents=[docker_init_parser()])
 
-    init_env_subparser.add_parser("local", add_help=False, 
+    init_env_subparser.add_parser("local", add_help=False,
                                     parents=[local_init_parser()])
 
-    init_env_subparser.add_parser("remote", add_help=False, 
+    init_env_subparser.add_parser("remote", add_help=False,
                                     parents=[remote_init_parser()])
 
-    init_env_subparser.add_parser("unicore", add_help=False, 
+    init_env_subparser.add_parser("unicore", add_help=False,
                                     parents=[unicore_init_parser()])
 
     # EXEC
@@ -91,9 +94,9 @@ def parse_sys_argv():
                                         formatter_class=FORMATTER_CLASS)
     parser_exec.set_defaults(action='exec')
 
-    
-    parser_exec.add_argument('exec_cmd', 
-                            nargs=argparse.REMAINDER,   
+
+    parser_exec.add_argument('exec_cmd',
+                            nargs=argparse.REMAINDER,
                             help="Exec program arguments")
     # RUN
     parser_run = subparsers.add_parser("run",
@@ -109,14 +112,14 @@ def parse_sys_argv():
         assets_folder = os.path.dirname(os.path.abspath(__file__)) + '/..'
         with open(assets_folder + '/assets/runcompss_args.txt', 'r', encoding='utf-8') as f:
             parser_run.epilog = f.read()
-            
+
 
     parser_run.add_argument("-app", "--app_name",
                              default="",
                              type=str,
                              help="Name of the app where to execute runcompss. Only required for `remote` type environment")
     parser_run.add_argument('rest_args',
-                            nargs=argparse.REMAINDER,   
+                            nargs=argparse.REMAINDER,
                             help="Runcompss program arguments")
 
     # APP  remote_parser_app
@@ -133,7 +136,7 @@ def parse_sys_argv():
                                     parents=[remote_parser_job()],
                                     formatter_class=FORMATTER_CLASS)
     parser_job.set_defaults(action='job')
-    
+
 
     # MONITOR
     parser_monitor = subparsers.add_parser("monitor",
@@ -142,7 +145,7 @@ def parse_sys_argv():
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
     parser_monitor.set_defaults(action='monitor')
-    
+
     parser_monitor.add_argument("option",
                                 help="Start or stop de monitoring service.",
                                 choices=["start", "stop"],
@@ -160,14 +163,14 @@ def parse_sys_argv():
     parser_jupyter.add_argument("-lab",
                              action="store_true",
                              help="Run Jupyter Lab")
-    
-    
+
+
     parser_jupyter.add_argument("-app", "--app_name",
                              default="",
                              type=str,
                              help="Name of the app where the notebook will be deployed. Only required for `remote` type environment")
-    parser_jupyter.add_argument('rest_args', 
-                            nargs=argparse.REMAINDER,   
+    parser_jupyter.add_argument('rest_args',
+                            nargs=argparse.REMAINDER,
                             help="Jupyter arguments")
 
     # GENGRAPH
@@ -199,7 +202,7 @@ def parse_sys_argv():
                                     type=str,
                                     help="Directory where the traces will be downloaded.")
 
-    parser_gentrace.add_argument('rest_args', 
+    parser_gentrace.add_argument('rest_args',
                             nargs=argparse.REMAINDER,
                             help="compss_gentrace arguments")
 
@@ -211,9 +214,9 @@ def parse_sys_argv():
                                               formatter_class=FORMATTER_CLASS)
     parser_components.set_defaults(action='components')
 
-                                                 
+
     subparsers_components = parser_components.add_subparsers(dest="components")
-    
+
     subparsers_components.add_parser("list",
                                     aliases=["l"],
                                     help="List COMPSs active components.",  # noqa: E501
@@ -267,7 +270,7 @@ def parse_sys_argv():
                                                              formatter_class=FORMATTER_CLASS)
     parser_environment_change.add_argument("env_id",
                                             type=str,
-                                            help="ID of the environment to set as active")  # noqa: E501                 
+                                            help="ID of the environment to set as active")  # noqa: E501
 
     parser_environment_remove = subparsers_environment.add_parser("remove",
                                                                 aliases=["r"],
@@ -277,12 +280,12 @@ def parse_sys_argv():
     parser_environment_remove.add_argument("-f", "--force",
                              action='store_true',
                              default=False,
-                             help="Force deleting de environment and the applications") 
+                             help="Force deleting de environment and the applications")
 
     parser_environment_remove.add_argument("env_id",
                                             nargs="+",
                                             type=str,
-                                            help="ID of the environment to remove")  # noqa: E501                                                                           
+                                            help="ID of the environment to remove")  # noqa: E501
 
     # INSPECT
     parser_environment = subparsers.add_parser("inspect",

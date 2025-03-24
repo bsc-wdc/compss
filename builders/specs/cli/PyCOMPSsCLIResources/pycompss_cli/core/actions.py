@@ -35,14 +35,14 @@ class Actions(ABC):
         self.debug = debug
         self.env_conf = env_conf
         self.home_path = str(Path.home())
-        
+
         if self.env_conf:
             self.env_conf['env_path'] = self.home_path + '/.COMPSs/envs/' + self.env_conf['name']
 
         if 'name' in self.arguments and self.arguments.name == 'unique uuid':
             self.arguments.name = ''.join(str(uuid()).split('-')[:2])
 
-    
+
     def env_add_conf(self, extra_conf):
         current_env, env_conf_path = utils.get_current_env_conf(env_id=self.arguments.name, return_path=True)
         new_conf =  {**current_env, **extra_conf}
@@ -76,7 +76,7 @@ class Actions(ABC):
 
         if self.arguments.config:
             shutil.copy2(self.arguments.config, env_path)
-            
+
         print('Environment created ID:', self.arguments.name)
 
     @abstractmethod
@@ -121,7 +121,7 @@ class Actions(ABC):
     @abstractmethod
     def components(self):
         pass
-    
+
     def environment(self):
         action_name = 'list'
 
@@ -140,7 +140,7 @@ class Actions(ABC):
             env_type = json.load(open(envs_path + f'/{env_name}/env.json'))['env']
             env_current = '*' if 'current' in os.listdir(envs_path + f'/{env_name}') else ''
             env_info.append([env_name, env_type, env_current])
-        
+
         col_names = ['ID', 'Type', 'Active']
         utils.table_print(col_names, env_info)
 
@@ -164,7 +164,7 @@ class Actions(ABC):
         env_id = self.arguments.env_id if eid is None else eid
 
         env_dir_name = self.home_path + '/.COMPSs/envs/' + env_id
-        
+
         print(f'Deleting environment `{env_id}`...')
         shutil.rmtree(env_dir_name)
 

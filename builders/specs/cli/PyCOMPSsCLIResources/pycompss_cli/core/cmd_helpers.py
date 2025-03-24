@@ -21,14 +21,16 @@ import subprocess
 DECODING_FORMAT = 'utf-8'
 
 
-def command_runner(cmd):
+def command_runner(cmd, silent=False):
     """ Run the command defined in the cmd list.
 
     :param cmd: Command to execute as list (list[str]).
+    :param silent: Print or no extra information.
     :returns: Exit code
     :raises Exception: Exit code != 0
     """
-    print("Executing: %s" % " ".join(cmd))
+    if not silent:
+        print("Executing: %s" % " ".join(cmd))
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
@@ -36,15 +38,19 @@ def command_runner(cmd):
     stdout = stdout.decode(DECODING_FORMAT)
     stderr = stderr.decode(DECODING_FORMAT)
     return_code = p.returncode
-    print("Exit code: %s" % str(return_code))
-    print("------------ STDOUT ------------",
-          flush=True)
-    print(stdout, flush=True)
-    if stderr:
-        print("------------ STDERR ------------",
-              file=sys.stderr, flush=True)
-        print(stderr, file=sys.stderr, flush=True)
-    if return_code != 0:
-        print("Exit code: %s != 0" % str(return_code),
-              file=sys.stderr, flush=True)
+    if not silent:
+        print("Exit code: %s" % str(return_code))
+        print("------------ STDOUT ------------", flush=True)
+        print(stdout, flush=True)
+        if stderr:
+            print("------------ STDERR ------------",
+                  file=sys.stderr, flush=True)
+            print(stderr, file=sys.stderr, flush=True)
+        if return_code != 0:
+            print("Exit code: %s != 0" % str(return_code),
+                  file=sys.stderr, flush=True)
+    else:
+        print(stdout.strip(), flush=True)
+        if stderr:
+            print(stderr, flush=True)
     exit(return_code)

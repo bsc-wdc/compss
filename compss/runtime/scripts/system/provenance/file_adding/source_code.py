@@ -278,7 +278,7 @@ def add_file_to_crate(
             )
 
         # out_profile
-        if os.path.exists(out_profile):
+        if os.path.exists(out_profile) and out_profile.split("/")[-1] != "App_Profile.json":
             file_properties = {}
             file_properties["name"] = out_profile
             file_properties["contentSize"] = os.path.getsize(out_profile)

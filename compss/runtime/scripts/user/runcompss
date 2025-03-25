@@ -771,12 +771,6 @@ if [ -n "${env_script_path}" ]; then
   done
 fi
 
-if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
-  export IS_LOCAL=true
-else
-  export IS_LOCAL=false
-fi
-
 # Start the profiling process
 start_profiling
 

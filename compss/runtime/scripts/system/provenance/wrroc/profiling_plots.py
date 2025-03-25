@@ -206,6 +206,9 @@ def plot_results(folder_pathname) -> str:
     #     master_node = None
 
     if not os.path.exists(folder_pathname):
+        print(
+            "Error: stats folder does not exist"
+        )
         exit(1)
 
     plots_pathname = folder_pathname + "/plots/"

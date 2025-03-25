@@ -138,7 +138,7 @@ def main():
         print("Error: it is not possible to monitor the resources on this system")
         exit(1)
 
-    is_local = os.getenv("IS_LOCAL")
+    is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
     hostname = "localhost" if is_local else socket.gethostname()
 
     to_write = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"

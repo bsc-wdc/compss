@@ -15,6 +15,7 @@
 #  limitations under the License.
 #
 import os
+import time
 
 try:
     import matplotlib.pyplot as plt
@@ -328,9 +329,11 @@ def generate_plots(stats_path) -> str:
     :return plots_folder: pathname containing the plots
     """
     plots_folder = None
+    start_time = time.time()
     try:
         plots_folder = plot_results(stats_path)
-        print("PROVENANCE | Generation of the profiling plots.")
+        elapsed_time = time.time() - start_time
+        print(f"PROVENANCE | Profiling plots generated in {elapsed_time:.2f} seconds.")
     except:
         print("PROVENANCE | ERROR Could not generate the profiling plots.")
 

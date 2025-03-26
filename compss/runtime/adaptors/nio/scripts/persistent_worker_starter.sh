@@ -66,12 +66,10 @@
   # Provide a name for EAR to identify the main worker process
   export EAR_APP_NAME="piper_worker(${hostName})"
 
-  echo "START PROFILING - WORKER STARTER"
-  # To remove
-  # specific_log_dir=$(echo "${logDir}" | awk -F'/' '{print $4}')
-  # specific_log_dir="/home/bsc/bsc306949/.COMPSs/${specific_log_dir}"
-
-  echo "THIS IS LOG DIR ${logDir}"
+  if [ "$debug" == "true" ]; then
+    echo "Start profiling - worker starter"
+    echo "Log directory: ${logDir}"
+  fi
 
   # START PROFILING
   # shellcheck disable=SC1090

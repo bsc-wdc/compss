@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import time
 import typing
 import os
 import uuid
@@ -65,6 +66,28 @@ description_plots = {
 LANGUAGES_EXTENSION = (".java", ".py", ".sh")
 
 
+def process_log(dp_path: str, data_list: list) -> tuple:
+    """
+    Reads and processes the dataprovenance.log efficiently.
+
+    :param dp_path: pathname of the dataprovenance.log
+    :param data_list: list of data to fill with data parsed from dataprovenance.log
+    :return: Parsed statistical data
+    """
+    application_name = None
+
+    with open(dp_path, "r") as data_provenance:
+        for idx, row in enumerate(data_provenance):
+            row = row.strip()
+            if idx == 1:
+                application_name = row
+            elif idx >= 4 and row:
+                parameter_list = row.split()
+                if len(parameter_list) >= 4:
+                    data_list.append(parameter_list)
+
+    return application_name
+
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
     """
     Function that provide a list of the statistical data recorded
@@ -76,25 +99,22 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
     :return data_list: list of data parsed from dataprovenance.log
     """
     data_list = []
-    with open(dp_path, "r") as data_provenance:
-        for idx, row in enumerate(data_provenance.readlines()):
-            if idx == 1:
-                application_name = row.rstrip()
-            elif idx >= 4:
-                parameter_list = list(filter(None, row.strip().split(" ")))
-                len_row = len(parameter_list)
-                if len_row >= 4:
-                    data_list.append(parameter_list)
-        try:
-            start_time = start_time.timestamp()
-            end_time = end_time.timestamp()
-            execution_time = int((end_time - start_time) * 1000)
-            app_name = application_name.split(".")[0]
-            data_list.append(
-                ["overall", app_name, "executionTime", str(execution_time)]
-            )
-        except TypeError:
-            print("PROVENANCE | WARNING: could not retrieve execution time")
+    try:
+        init_process_log = time.time()
+        application_name = process_log(dp_path, data_list)
+        elapsed_process_log = init_process_log - time.time()
+        if __debug__:
+            print(f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds")
+
+        start_time = start_time.timestamp()
+        end_time = end_time.timestamp()
+        execution_time = int((end_time - start_time) * 1000)
+        app_name = application_name.split(".")[0]
+        data_list.append(
+            ["overall", app_name, "executionTime", str(execution_time)]
+        )
+    except TypeError:
+        print("PROVENANCE | WARNING: could not retrieve execution time")
 
     return data_list
 

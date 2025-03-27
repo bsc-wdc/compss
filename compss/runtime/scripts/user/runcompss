@@ -39,7 +39,6 @@ DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 DEFAULT_PROVENANCE_YAML="ro-crate-info.yaml"
-DEFAULT_PROVENANCE_ENABLED=true
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c, python or r"
@@ -298,7 +297,7 @@ get_args() {
         # Enable provenance
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-        provenance=${DEFAULT_PROVENANCE_ENABLED}
+        provenance=true
         if [ -z "$output_profile" ] ; then
           echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
@@ -659,7 +658,7 @@ get_args() {
             # Enable provenance, YAML file specified as parameter
             provenance_yaml=${OPTARG//provenance=/}
             echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            provenance=${DEFAULT_PROVENANCE_ENABLED}
+            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -673,7 +672,7 @@ get_args() {
             # Enable provenance
             provenance_yaml=${DEFAULT_PROVENANCE_YAML}
             echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-            provenance=${DEFAULT_PROVENANCE_ENABLED}
+            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"

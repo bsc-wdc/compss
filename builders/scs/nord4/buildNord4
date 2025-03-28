@@ -39,7 +39,7 @@
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
-  MNloginNode=n4login1.bsc.es
+  MNloginNode=n4login0.bsc.es
   MNauxScript=${SCRIPT_DIR}/buildNord4_aux
   PRELOAD_ENV=""
 

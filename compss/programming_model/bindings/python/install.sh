@@ -28,6 +28,8 @@ INCORRECT_PARAMETER="Error: No such parameter"
 INCORRECT_TARGET_DIR="Error: No target directory"
 NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
+SETUPTOOLS_VERSION="69.2.0"
+WHEEL_VERSION="0.43.0"
 
 #---------------------------------------------------
 # SET SCRIPT VARIABLES
@@ -215,6 +217,39 @@ clean() {
   rm -rf "${SCRIPT_DIR}"/target
 }
 
+compare_versions() {
+  # Returns 1 if $1 >= $2
+  #         0 else if $1 < $2
+  ver1="$1"
+  ver2="$2"
+
+  # Split the versions in parts
+  parts1=($(echo "$ver1" | tr '.' ' '))
+  parts2=($(echo "$ver2" | tr '.' ' '))
+
+  # Compare all parts
+  for (( i = 0; i < ${#parts1[@]}; i++ )); do
+    if (( ${parts1[$i]} > ${parts2[$i]})); then
+      # echo "ver1 is higher than ver2"
+      return 1
+    elif (( ${parts1[$i]} < ${parts2[$i]})); then
+      # echo "ver1 is lower than ver2"
+      return 0
+    fi
+  done
+
+  # If all are equal:
+  # echo "ver1 is equal as ver2"
+  return 1
+}
+
+install_with_timeout() {
+  python_command=$1
+  package_name=$2
+  package_version=$3
+  ( timeout 30s ${python_command} -m pip install --upgrade "${package_name}${package_version}" > /dev/null 2>&1 )
+}
+
 install () {
   local python_command=$1
   local target_directory=$2
@@ -229,6 +264,10 @@ install () {
   export PYTHONPATH=${pycompss_home}:${OLD_PYTHONPATH}
   #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
+  # Get setuptools and wheel versions
+  setuptools_version=$(${python_command} -c "import setuptools; print(setuptools.__version__)")
+  wheel_version=$(${python_command} -c "import wheel; print(wheel.__version__)")
+
   echo "INFO: Installation parameters:"
   echo "      - Current script directory: ${SCRIPT_DIR}"
   echo "      - Python command: ${python_command}"
@@ -236,6 +275,42 @@ install () {
   echo "      - PyCOMPSs home: ${pycompss_home}"
   echo "      - Python complete version: ${python_complete_version}"
   echo "      - Python major version: ${python_major_version}"
+  echo "      - Python setuptools version: ${setuptools_version}"
+  echo "      - Python wheel version: ${wheel_version}"
+
+  # Check that setuptools and wheel are not too old
+  setuptools_comparison=$(compare_versions "${setuptools_version}" "${SETUPTOOLS_VERSION}")
+  wheel_comparison=$(compare_versions "${wheel_version}" "${WHEEL_VERSION}")
+
+  if [[ ${setuptools_comparison} -eq 1 ]]; then
+    echo "Setuptools version is OK"
+  elif [[ ${setuptools_comparison} -eq 0 ]]; then
+    echo "ERROR: Setuptools version is TOO old, please install version >= ${SETUPTOOLS_VERSION}"
+    exit 1
+    #install_with_timeout "${python_command}" "setuptools" ">=${SETUPTOOLS_VERSION}"
+    #if [[ $? -eq 0 ]]; then
+    #  echo "Updated setuptools."
+    #else
+    #  echo "Error: could not install 'setuptools>=${SETUPTOOLS_VERSION}'. No internet connection or extremely slow."
+    #  echo "Setuptools version is TOO old, please install version >= ${SETUPTOOLS_VERSION}"
+    #  exit 1
+    #fi
+  fi
+
+  if [[ ${wheel_comparison} -eq 1 ]]; then
+    echo "Wheel version is OK"
+  elif [[ ${wheel_comparison} -eq 0 ]]; then
+    echo "ERROR: Wheel version is TOO old, please install version >= ${WHEEL_VERSION}"
+    exit 1
+    #install_with_timeout "${python_command}" "wheel" ">=${WHEEL_VERSION}"
+    #if [[ $? -eq 0 ]]; then
+    #  echo "Updated wheel."
+    #else
+    #  echo "Error: could not install 'wheel>=${WHEEL_VERSION}'. No internet connection or extremely slow."
+    #  echo "Wheel version is TOO old, please install version >= ${WHEEL_VERSION}"
+    #  exit 1
+    #fi
+  fi
 
   # Check that the sources can be byte-compiled - this avoids syntax errors
   # that are not checked on the installation

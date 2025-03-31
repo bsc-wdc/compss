@@ -36,7 +36,16 @@
       if [ -n "${I_MPI_ROOT}" ]; then
         mpiPath="${I_MPI_ROOT}"
         argMpi="--with-mpi=${mpiPath}"
-	argMpiLibs="--with-mpi-libs=${mpiPath}/lib/release/"
+        if [ -d "${mpiPath}/lib/" ]; then
+          argMpiLibs="--with-mpi-libs=${mpiPath}/lib/release/"
+        else
+          if [ -d "${mpiPath}/lib64/" ]; then
+            argMpiLibs="--with-mpi-libs=${mpiPath}/lib64/release/"
+          else
+            echo "ERROR: Cannot find MPI lib or lib64 folder within ${mpiPath}"
+            exit 1
+          fi
+        fi
       else
         mpiPath=$(which mpirun 2> /dev/null)
         if [ -n "${mpiPath}" ]; then
@@ -70,7 +79,7 @@
           if [ -d "${mpiPath}/include" ]; then
             argMpiHeaders="--with-mpi-headers=${mpiPath}/include"
           else
-		  echo "ERROR: Cannot automatically infer MPI include folder (${mpiPath})"
+            echo "ERROR: Cannot automatically infer MPI include folder (${mpiPath})"
             exit 1
           fi
         fi

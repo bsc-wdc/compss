@@ -1,8 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash
 
   #############################################################
-  # Name: buildNord4_aux
-  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Nord 4
+  # Name: buildMN_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MareNostrum
   # Parameters: <targetDir>           Base Target Installation folder
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
@@ -11,7 +11,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildNord4_aux <FullTargetPath>"
+    echo " Usage: buildMN4_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git ear/4.3-compss"
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git"
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   run_before_py3_modules="ignore"
@@ -37,14 +37,14 @@
   # Python modules with jupyter:
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules="module load openssl/1.1.1f"
-  py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2 python/3.8.2 python/3.9.10 python/3.10.2"
+  py3_other_modules="python/3.7.4 python/3.8.2 python/3.9.10 python/3.10.2"
 
   # DEFINE CONFIGURATION PARAMETERS
   # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
   additionalExports=""
 
   additional_module_use_folder="ignore"
-  queues_cfg="nord4.cfg"
+  queues_cfg="mn4.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="true"

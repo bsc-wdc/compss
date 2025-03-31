@@ -198,7 +198,9 @@ def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> d
     return properties_item
 
 
-def build_info_dict_resource_usage(measure_name: str, value: typing.Union[float, int]) -> dict:
+def build_info_dict_resource_usage(
+    measure_name: str, value: typing.Union[float, int]
+) -> dict:
     """
     Build the dictionary of resource property
 
@@ -320,10 +322,7 @@ def wrroc_create_action(
     outs: list,
     yaml_content: dict,
     info_yaml: str,
-    dp_log: str,
-    energy_path: str,
-    stats_path: str,
-    plots_path: str,
+    log_dir: Path,
     end_time: datetime,
     auxiliary_file_list: list,
 ) -> str:
@@ -338,14 +337,17 @@ def wrroc_create_action(
     :param outs: List of output files of the workflow
     :param yaml_content: Content of the YAML file specified by the user
     :param info_yaml: Name of the YAML file specified by the user
-    :param energy_path: path of the energy stats
-    :param dp_log: Full path to the dataprovenance.log file
-    :param stats_path: path of the statistics folder
+    :param log_dir: Path object to the directory where dataprovenance.log file, profiling and trace files can be found
     :param end_time: Time where the COMPSs application execution ended
     :param auxiliary_file_list: list of the auxiliary file contained in the instruments
 
     :returns: UUID generated for this run
     """
+    # Define useful pathnames of file/directory in log directory
+    energy_path = log_dir / "energy/"
+    stats_path = log_dir / "stats/"
+    plots_path = log_dir / "stats/plots/"
+    dp_log = log_dir / "dataprovenance.log"
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # marenostrum4, nord3, ... BSC_MACHINE would also work

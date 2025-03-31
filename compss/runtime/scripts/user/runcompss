@@ -789,6 +789,13 @@ if [ ${provenance} ]; then
   fi
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
+  for file in "${specific_log_dir}"stats/*.csv; do
+    if [[ "$(basename "$file")" == *"${COMPSS_MASTER_NODE}"* ]]; then
+      new_name="${file%.csv}-MASTER.csv"
+      mv "$file" "$new_name"
+      break
+    fi
+  done
   if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
     rm -r "${specific_log_dir}/workers/"
   fi

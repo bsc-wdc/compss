@@ -12,8 +12,7 @@ start_profiling() {
     if [ -z "${logDir}" ]; then
       working_directory="$(dirname ${wdir_in_master})/stats"
       mkdir $working_directory
-      echo "DEBUG CPUS IN MASTER: ${worker_in_master_cpus}"
-      if [ -z "${worker_in_master_cpus}" ] && [ "${worker_in_master_cpus}" -eq 0 ]; then
+      if [ -z "${worker_in_master_cpus}" ] || [ "${worker_in_master_cpus}" -eq 0 ]; then
         launch_profiling_script
       fi
     else

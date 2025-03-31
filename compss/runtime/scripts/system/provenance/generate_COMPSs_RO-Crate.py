@@ -225,7 +225,7 @@ if __name__ == "__main__":
         DEST_FOLDER = sys.argv[3]
         DP_LOG = path_log / "dataprovenance.log"
         COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
-        ENERGY_PATH = path_log / "energy"
-        STATS_PATH = path_log / "stats"
-        PLOTS_PATH = path_log / "stats/plots"
+        ENERGY_PATH = path_log / "energy/"
+        STATS_PATH = path_log / "stats/"
+        PLOTS_PATH = path_log / "stats/plots/"
     main()

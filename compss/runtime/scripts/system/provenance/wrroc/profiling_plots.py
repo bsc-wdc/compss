@@ -193,7 +193,7 @@ def plot_results(folder_pathname) -> str:
         )
         exit(1)
 
-    plots_pathname = folder_pathname + "/plots/"
+    plots_pathname = folder_pathname + "plots/"
 
     list_of_cpus = {}
     list_of_mems = {}

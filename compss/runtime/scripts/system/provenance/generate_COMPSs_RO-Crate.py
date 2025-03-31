@@ -200,6 +200,8 @@ def main():
     # folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     sys.stdout.flush()  # All pending stdout to the log file
     compss_crate.write(DEST_FOLDER)
+    store_data(DEST_FOLDER, STATS_PATH, compss_crate)
+
     print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
     print(
         f"PROVENANCE | Workflow Provenance generation TOTAL EXECUTION TIME: {time.time() - exec_time} s"
@@ -207,9 +209,6 @@ def main():
     print(
         f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
     )
-
-    store_data(DEST_FOLDER, STATS_PATH, compss_crate)
-
 
 if __name__ == "__main__":
 

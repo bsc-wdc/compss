@@ -28,7 +28,7 @@ INCORRECT_PARAMETER="Error: No such parameter"
 INCORRECT_TARGET_DIR="Error: No target directory"
 NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
-SETUPTOOLS_VERSION="69.2.0"
+SETUPTOOLS_VERSION="61.0.0"  # 69.2.0 next
 WHEEL_VERSION="0.43.0"
 
 #---------------------------------------------------

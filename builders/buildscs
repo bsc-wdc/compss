@@ -12,9 +12,9 @@
   SCtarget=/apps/COMPSs/${BranchName^} # capitalize branch name
 
   # Install on each enabled supercomputer
-  ENABLED_SCS=("mn5" "mn5_acc" "cte-amd" "nord3" "nord4")
-  SCS_SCRIPT_NAMES=("buildMN5" "buildMN5_acc" "buildCTE-AMD" "buildNord3" "buildNord4")
-  SCS_TARGETS=("/apps/GPP/COMPSs/" "/apps/ACC/COMPSs/" "/apps/COMPSs/" "/apps/COMPSs/" "/apps/COMPSs/")
+  ENABLED_SCS=("mn5" "mn5_acc" "cte-amd" "nord3") #  "nord4")
+  SCS_SCRIPT_NAMES=("buildMN5" "buildMN5_acc" "buildCTE-AMD" "buildNord3")  # "buildNord4")
+  SCS_TARGETS=("/apps/GPP/COMPSs/" "/apps/ACC/COMPSs/" "/apps/COMPSs/" "/apps/COMPSs/")  # "/apps/COMPSs/")
 
   echo "Installing COMPSs branch ${BranchName} at SCs"
 

@@ -2214,6 +2214,7 @@ launch() {
     fi
     if [ ! -z "${master_node}" ]; then
       if [ "${worker_in_master_cpus}" -ne 0 ]; then
+        export worker_in_master_cpus
         # Worker in master node
         local jvm_worker_in_master_opts_str
         local jvm_worker_in_master_opts_size

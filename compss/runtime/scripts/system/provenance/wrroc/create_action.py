@@ -777,4 +777,48 @@ def wrroc_create_action(
             file_properties["about"] = create_action_id
             compss_crate.add_file(file_properties["name"], properties=file_properties)
 
+    # Add Paraver trace files if they have been generated in PRV_DIR/ folder
+    compss_wf_info = yaml_content["COMPSs Workflow Information"]
+    if (
+            "trace_persistence" in compss_wf_info
+            and compss_wf_info["trace_persistence"] is True
+    ):
+        prv_persist = True
+    else:
+        prv_persist = False
+    prv_dir = log_dir / "trace/"
+    if prv_dir.exists() and prv_dir.is_dir():
+        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
+        if not prv_persist:
+            print(
+                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
+            )
+        for file in prv_dir.iterdir():
+            if file.is_file():
+                file_properties = {}
+                file_properties["name"] = file.name
+                file_properties["contentSize"] = file.stat().st_size
+                file_properties["description"] = "PARAVER trace files"
+                file_properties["encodingFormat"] = "text/plain"
+                file_properties["about"] = create_action_id
+                if prv_persist:
+                    crate_path = "trace/" + file.name
+                    compss_crate.add_file(
+                        source=file.resolve(),
+                        dest_path=crate_path,
+                        properties=file_properties,
+                    )
+                else:
+                    file_url = "file://" + socket.gethostname() + str(file.resolve())
+                    compss_crate.add_file(
+                        source=file_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        properties=file_properties,
+                    )
+    elif prv_persist:
+        print(
+            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
+        )
+
     return run_uuid

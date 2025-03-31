@@ -229,11 +229,6 @@ def plot_results(folder_pathname) -> str:
             continue
 
         machine_name = csv_resources.split(".csv")[0].split("_")[-1]
-        is_master_node = "static_" not in csv_resources
-
-        if is_master_node:
-            machine_name += "-MASTER"
-
         name_list.append(machine_name)
 
         df = pd.read_csv(csv_resources)

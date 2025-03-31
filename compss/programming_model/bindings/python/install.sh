@@ -229,10 +229,10 @@ compare_versions() {
 
   # Compare all parts
   for (( i = 0; i < ${#parts1[@]}; i++ )); do
-    if (( ${parts1[$i]} > ${parts2[$i]})); then
+    if (( ${parts1[$i]} > ${parts2[$i]} )); then
       echo "- ${parts1[$i]} is higher than ${parts2[$i]}"
       return 1
-    elif (( ${parts1[$i]} < ${parts2[$i]})); then
+    elif (( ${parts1[$i]} < ${parts2[$i]} )); then
       echo "- ${parts1[$i]} is lower than ${parts2[$i]}"
       return 0
     fi

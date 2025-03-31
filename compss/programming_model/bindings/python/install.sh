@@ -28,7 +28,7 @@ INCORRECT_PARAMETER="Error: No such parameter"
 INCORRECT_TARGET_DIR="Error: No target directory"
 NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
-SETUPTOOLS_VERSION="61.0.0"  # 69.2.0 next
+SETUPTOOLS_VERSION="69.2.0"
 WHEEL_VERSION="0.43.0"
 
 #---------------------------------------------------
@@ -230,10 +230,10 @@ compare_versions() {
   # Compare all parts
   for (( i = 0; i < ${#parts1[@]}; i++ )); do
     if (( ${parts1[$i]} > ${parts2[$i]})); then
-      # echo "ver1 is higher than ver2"
+      echo "- ${parts1[$i]} is higher than ${parts2[$i]}"
       return 1
     elif (( ${parts1[$i]} < ${parts2[$i]})); then
-      # echo "ver1 is lower than ver2"
+      echo "- ${parts1[$i]} is lower than ${parts2[$i]}"
       return 0
     fi
   done

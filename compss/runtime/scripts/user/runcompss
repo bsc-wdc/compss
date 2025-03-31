@@ -784,7 +784,9 @@ if [ ${provenance} ]; then
   fi
 
   # Stop profiling process
-  kill $PROFILING_PID
+  if [ -n "${PROFILING_PID}" ]; then
+    kill $PROFILING_PID
+  fi
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
   if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then

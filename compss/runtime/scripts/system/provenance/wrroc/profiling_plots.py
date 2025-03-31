@@ -50,6 +50,7 @@ def timestamp_axis(num_entries, time_list):
     plt.xticks(time_indices, labels=labels, rotation=80)
     plt.subplots_adjust(top=0.95, bottom=0.25)
 
+
 def build_plot(title, time_list, value_list, name_dataset, measure, num_entries):
     """
     Function to build the plot of the profiling data (percentage such as CPU and memory usage)
@@ -85,7 +86,7 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
 
 
 def plot_bytes(
-        time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
+    time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
 ):
     """
     Function to generate the plots for metrics which use bytes
@@ -140,7 +141,14 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     plt.figure(figsize=(12, 8))
     i = 0
     for label, resampled_df in resampled_dfs.items():
-        plt.plot(resampled_df.index, resampled_df[metric], label=label, color=colors[i % len(colors)], marker=".", linestyle="-")
+        plt.plot(
+            resampled_df.index,
+            resampled_df[metric],
+            label=label,
+            color=colors[i % len(colors)],
+            marker=".",
+            linestyle="-",
+        )
         i += 1
 
     all_times = pd.concat(resampled_dfs.values()).index.unique().sort_values()
@@ -148,47 +156,20 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     num_entries = len(all_times)
     step = int(num_entries / 60) + 1
     selected_times = all_times[::step]
-    labels = [time.strftime('%Y-%m-%d %H:%M:%S') for time in selected_times]
+    labels = [time.strftime("%Y-%m-%d %H:%M:%S") for time in selected_times]
 
     plt.xticks(selected_times, labels=labels, rotation=80)
     plt.subplots_adjust(top=0.95, bottom=0.25)
 
-    plt.xlabel('Timestamp')
-    plt.ylabel(f'{name_metric} usage (%)')
-    plt.title(f'{name_metric} usage among the nodes')
+    plt.xlabel("Timestamp")
+    plt.ylabel(f"{name_metric} usage (%)")
+    plt.title(f"{name_metric} usage among the nodes")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(name_plot)
     plt.close()
 
-def filter_files(directory):
-    """
-    Function which delete the duplicated csv files generated when the master executes the application
-
-    :param directory: stats folder which contains the csv files
-    :return:
-    """
-    files = [f for f in os.listdir(directory) if f.endswith('.csv')]
-    node_code_dict = {}
-    num_files = len(files)
-
-    if num_files > 1:
-        for file in files:
-            node_code = file.split('_')[-1]
-
-            if node_code in node_code_dict:
-                if 'static' in file:
-                    os.remove(os.path.join(directory, file))
-                    break
-                else:
-                    if 'static' in node_code_dict[node_code]:
-                        os.remove(os.path.join(directory, node_code_dict[node_code]))
-                        break
-            else:
-                node_code_dict[node_code] = file
-
-    return num_files
 
 def plot_results(folder_pathname) -> str:
     """
@@ -220,7 +201,7 @@ def plot_results(folder_pathname) -> str:
     df_list = []
     name_list = []
 
-    num_files = filter_files(folder_pathname)
+    num_files = num_files = sum(1 for f in os.listdir(folder_pathname) if f.endswith(".csv"))
 
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
@@ -302,16 +283,20 @@ def plot_results(folder_pathname) -> str:
     if num_files > 1:
         colors = list(mcolors.TABLEAU_COLORS.values())
 
-        plt.style.use('ggplot')
+        plt.style.use("ggplot")
         resampled_dfs = {}
         for df, label in zip(df_list, name_list):
-            df['TIME'] = pd.to_datetime(df['TIME'])
-            df.set_index('TIME', inplace=True)
-            resampled_df = df.resample('s').mean().interpolate(method='linear')
+            df["TIME"] = pd.to_datetime(df["TIME"])
+            df.set_index("TIME", inplace=True)
+            resampled_df = df.resample("s").mean().interpolate(method="linear")
             resampled_dfs[label] = resampled_df
 
-        build_plot_nodes(resampled_dfs, plots_pathname + "cpu_nodes.png", "CPU", "CPU", colors)
-        build_plot_nodes(resampled_dfs, plots_pathname + "mem_nodes.png", "MEM", "Memory", colors)
+        build_plot_nodes(
+            resampled_dfs, plots_pathname + "cpu_nodes.png", "CPU", "CPU", colors
+        )
+        build_plot_nodes(
+            resampled_dfs, plots_pathname + "mem_nodes.png", "MEM", "Memory", colors
+        )
 
     return plots_pathname
 

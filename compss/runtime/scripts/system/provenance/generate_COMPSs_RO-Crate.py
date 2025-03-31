@@ -55,12 +55,12 @@ def main():
     :returns: None
     """
 
-    generate_plots(STATS_PATH)
-
     exec_time = time.time()
     yaml_template = get_yaml_template()
     compss_crate = ROCrate()
     end_time = iso_now()
+
+    generate_plots(STATS_PATH)
 
     # First, read values defined by user from ro-crate-info.yaml
     try:

@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import time
 import typing
 import os
 import uuid
@@ -65,6 +66,28 @@ description_plots = {
 LANGUAGES_EXTENSION = (".java", ".py", ".sh")
 
 
+def process_log(dp_path: str, data_list: list) -> tuple:
+    """
+    Reads and processes the dataprovenance.log efficiently.
+
+    :param dp_path: pathname of the dataprovenance.log
+    :param data_list: list of data to fill with data parsed from dataprovenance.log
+    :return: Parsed statistical data
+    """
+    application_name = None
+
+    with open(dp_path, "r") as data_provenance:
+        for idx, row in enumerate(data_provenance):
+            row = row.strip()
+            if idx == 1:
+                application_name = row
+            elif idx >= 4 and row:
+                parameter_list = row.split()
+                if len(parameter_list) >= 4:
+                    data_list.append(parameter_list)
+
+    return application_name
+
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
     """
     Function that provide a list of the statistical data recorded
@@ -76,25 +99,22 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
     :return data_list: list of data parsed from dataprovenance.log
     """
     data_list = []
-    with open(dp_path, "r") as data_provenance:
-        for idx, row in enumerate(data_provenance.readlines()):
-            if idx == 1:
-                application_name = row.rstrip()
-            elif idx >= 4:
-                parameter_list = list(filter(None, row.strip().split(" ")))
-                len_row = len(parameter_list)
-                if len_row >= 4:
-                    data_list.append(parameter_list)
-        try:
-            start_time = start_time.timestamp()
-            end_time = end_time.timestamp()
-            execution_time = int((end_time - start_time) * 1000)
-            app_name = application_name.split(".")[0]
-            data_list.append(
-                ["overall", app_name, "executionTime", str(execution_time)]
-            )
-        except TypeError:
-            print("PROVENANCE | WARNING: could not retrieve execution time")
+    try:
+        init_process_log = time.time()
+        application_name = process_log(dp_path, data_list)
+        elapsed_process_log = init_process_log - time.time()
+        if __debug__:
+            print(f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds")
+
+        start_time = start_time.timestamp()
+        end_time = end_time.timestamp()
+        execution_time = int((end_time - start_time) * 1000)
+        app_name = application_name.split(".")[0]
+        data_list.append(
+            ["overall", app_name, "executionTime", str(execution_time)]
+        )
+    except TypeError:
+        print("PROVENANCE | WARNING: could not retrieve execution time")
 
     return data_list
 
@@ -178,7 +198,9 @@ def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> d
     return properties_item
 
 
-def build_info_dict_resource_usage(measure_name: str, value: typing.Union[float, int]) -> dict:
+def build_info_dict_resource_usage(
+    measure_name: str, value: typing.Union[float, int]
+) -> dict:
     """
     Build the dictionary of resource property
 
@@ -315,18 +337,18 @@ def wrroc_create_action(
     :param outs: List of output files of the workflow
     :param yaml_content: Content of the YAML file specified by the user
     :param info_yaml: Name of the YAML file specified by the user
-    :param energy_path: path of the energy stats
-    :param dp_log: Full path to the dataprovenance.log file
-    :param stats_path: path of the statistics folder
+    :param log_dir: Path object to the directory where dataprovenance.log file, profiling and trace files can be found
     :param end_time: Time where the COMPSs application execution ended
     :param auxiliary_file_list: list of the auxiliary file contained in the instruments
 
     :returns: UUID generated for this run
     """
-
+    # Define useful pathnames of file/directory in log directory
     energy_path = log_dir / "energy"
     stats_path = log_dir / "stats"
     plots_path = log_dir / "stats/plots"
+    dp_log = log_dir / "dataprovenance.log"
+
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # marenostrum4, nord3, ... BSC_MACHINE would also work
     host_name = os.getenv("SLURM_CLUSTER_NAME")
@@ -388,8 +410,8 @@ def wrroc_create_action(
             env_var["@type"] = "PropertyValue"
             env_var["name"] = name
             env_var["value"] = value
-            if "COMPSS_PROFILING_INTERVAL" == name:
-                env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
+            # if "COMPSS_PROFILING_INTERVAL" == name:
+            #     env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
             compss_crate.add(
                 ContextEntity(
                     compss_crate,
@@ -533,27 +555,6 @@ def wrroc_create_action(
     if len(environment_property) > 0:
         create_action_properties["environment"] = environment_property
 
-    if job_id:
-        # sacct may fail if the run is done from a container
-        try:
-            sacct_command = ["sacct", "-j", str(job_id), "--format=Start", "--noheader"]
-            head_command = ["head", "-n", "1"]
-            sacct_process = subprocess.Popen(sacct_command, stdout=subprocess.PIPE)
-            head_process = subprocess.Popen(
-                head_command, stdin=sacct_process.stdout, stdout=subprocess.PIPE
-            )
-            output, _ = head_process.communicate()
-            start_time_str = output.decode("utf-8").strip()
-            # Convert start time to datetime object
-            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
-            create_action_properties["startTime"] = start_time.astimezone(
-                timezone.utc
-            ).isoformat()
-        except Exception as e:
-            print(
-                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
-            )
-
     # Take startTime and endTime from dataprovenance.log when no queuing system is involved
     # The string generated by the runtime is already in UTC
     # If times are found in dataprovenance.log, they replace the ones obtained at the beginning of provenance generation
@@ -574,6 +575,26 @@ def wrroc_create_action(
                         f"PROVENANCE | WARNING: No 'startTime' found in dataprovenance.log. SLURM's job start time "
                         f"will be used, if available"
                     )
+                    if job_id:
+                        # sacct may fail if the run is done from a container
+                        try:
+                            sacct_command = ["sacct", "-j", str(job_id), "--format=Start", "--noheader"]
+                            head_command = ["head", "-n", "1"]
+                            sacct_process = subprocess.Popen(sacct_command, stdout=subprocess.PIPE)
+                            head_process = subprocess.Popen(
+                                head_command, stdin=sacct_process.stdout, stdout=subprocess.PIPE
+                            )
+                            output, _ = head_process.communicate()
+                            start_time_str = output.decode("utf-8").strip()
+                            # Convert start time to datetime object
+                            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
+                            create_action_properties["startTime"] = start_time.astimezone(
+                                timezone.utc
+                            ).isoformat()
+                        except Exception as e:
+                            print(
+                                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
+                            )
             else:
                 last_line = line.strip()
         try:

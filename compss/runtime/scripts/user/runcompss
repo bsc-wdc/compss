@@ -778,9 +778,9 @@ start_compss_app
 
 if [ ${provenance} ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
-    echo "runcompss" $all_arguments > compss_submission_command_line.txt
+    echo "runcompss" $all_arguments > .compss_submission_command_line.txt
   else
-    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
+    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > .compss_submission_command_line.txt
   fi
 
   # Stop profiling process

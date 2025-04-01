@@ -650,7 +650,7 @@ def wrroc_create_action(
                     id_measure_list.append({"@id": measure_id})
 
         id_name_list.extend(id_measure_list)
-        print(f"PROVENANCE | RO-Crate added resource profiling information ")
+        print(f"PROVENANCE | Added resource profiling information ")
 
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")

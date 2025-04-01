@@ -183,10 +183,9 @@ def add_file_to_crate(
         path_in_crate = "application_sources/" + file_path.name
 
     if file_name != main_entity:
-        if not any(part.startswith(".") for part in Path(file_path).parts):
-            # Or check if the file is an executable (.py or .java)
-            # if file_name.endswith(".py") or file_name.endswith(".java")
-            auxiliary_file_list.append(path_in_crate)
+        # Or check if the file is an executable (.py or .java)
+        # if file_name.endswith(".py") or file_name.endswith(".java")
+        auxiliary_file_list.append(path_in_crate)
         if __debug__:
             print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
         compss_crate.add_file(
@@ -473,7 +472,7 @@ def add_application_source_files(
                         # Avoid dealing with symlinks with wildcards
                         continue
                     resolved_file = os.path.join(root, f_name)
-                    if resolved_file not in added_files:
+                    if resolved_file not in added_files and not any(part.startswith(".") for part in Path(str(resolved_file)).parts):
                         add_file_to_crate(
                             compss_crate,
                             compss_wf_info,
@@ -537,7 +536,7 @@ def add_application_source_files(
                     auxiliary_file_list,
                 )
         elif os.path.isfile(resolved_source):
-            if resolved_source not in added_files:
+            if resolved_source not in added_files and not any(part.startswith(".") for part in Path(str(resolved_source)).parts):
                 add_file_to_crate(
                     compss_crate,
                     compss_wf_info,

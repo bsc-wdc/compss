@@ -193,7 +193,7 @@ def plot_results(folder_pathname) -> str:
         )
         exit(1)
 
-    plots_pathname = folder_pathname + "plots/"
+    plots_pathname = folder_pathname + "/plots/"
 
     list_of_cpus = {}
     list_of_mems = {}
@@ -313,7 +313,7 @@ def generate_plots(stats_path) -> str:
     try:
         plots_folder = plot_results(stats_path)
         elapsed_time = time.time() - start_time
-        print(f"PROVENANCE | Profiling plots generated in {elapsed_time:.2f} seconds.")
+        print(f"PROVENANCE | Profiling plots generation TIME: {elapsed_time:.2f} s.")
     except:
         print("PROVENANCE | ERROR Could not generate the profiling plots.")
 

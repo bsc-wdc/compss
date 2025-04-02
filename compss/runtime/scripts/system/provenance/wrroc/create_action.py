@@ -51,16 +51,17 @@ unit_dict = {
 }
 
 description_plots = {
-    "bytes_read": "Plot of the amount of data read from the disk during the execution",
-    "bytes_written": "Plot of the amount of data written from the disk during the execution",
-    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
-    "bytes_received": "Plot of the amount of data received across the network during the execution",
     "cpu": "Plot of the percentage of cpu used during the execution",
     "mem": "Plot of the amount of memory used during the execution",
     "disk_usage": "Plot of the cumulative amount of data read and written on the disk during the execution",
     "network_usage": "Plot of the cumulative amount of data sent and received during the execution",
     "cpu_nodes": "Plot of the percentage of cpu used during the execution of all nodes used",
     "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
+    # The following plots represent bursts over time and are currently unused
+    "bytes_read": "Plot of the amount of data read from the disk during the execution",
+    "bytes_written": "Plot of the amount of data written from the disk during the execution",
+    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
+    "bytes_received": "Plot of the amount of data received across the network during the execution",
 }
 
 LANGUAGES_EXTENSION = (".java", ".py", ".sh")

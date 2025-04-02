@@ -106,6 +106,7 @@ def generate_command_line(self, sub_directory_path: str) -> list[str]:
     for e in crate.get_entities():
         if "COMPSs_Workflow" in e.id:
             new_command = e["description"]
+            break
 
     # compss_submission_command_path = os.path.join(path, "compss_submission_command_line.txt")
 

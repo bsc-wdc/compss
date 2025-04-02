@@ -32,9 +32,9 @@
   modules="intel/2021.4.0 bsc/current oneapi-rt/2021.4.0 impi/2021.4.0 tbb/2021.4.0 mkl/2021.4.0 boost/1.78.0 papi/6.0.0 dlb/git"
   unload_before_python="ignore"
   run_before_py3_modules="ignore"
-  py3_modules="python/3.7.12"
+  py3_modules="python/3.9.10" # "python/3.7.12"  # too old setuptools
   run_before_py3_other_modules="ignore"
-  py3_other_modules="anaconda/2021.05-py38 python/3.9.10"
+  py3_other_modules=""
 
   # DEFINE CONFIGURATION PARAMETERS
   additionalExports='export JAVA_HOME=/apps/COMPSs/JAVA/jdk-11.0.2 PATH=$JAVA_HOME/bin:$PATH EXTRAE_MPI_LIBS=\${I_MPI_ROOT}/lib/release CFLAGS="-I/usr/include/libxml2/ $CFLAGS"'

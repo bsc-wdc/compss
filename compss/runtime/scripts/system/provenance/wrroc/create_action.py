@@ -27,7 +27,13 @@ from hashlib import sha256
 from pathlib import Path
 from datetime import timezone
 from datetime import datetime
-import pandas as pd
+try:
+    import pandas as pd
+except:
+    print(
+        "Error: pandas is not installed. Please install it using 'pip install pandas'."
+    )
+    exit(1)
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity

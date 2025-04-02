@@ -104,7 +104,7 @@ def generate_command_line(self, sub_directory_path: str) -> list[str]:
     new_command = ""
     crate = ROCrate(path)
     for e in crate.get_entities():
-        if "COMPSs_Workflow" in e.id:
+        if "#COMPSs_Workflow_Run_Crate_" in e.id:
             new_command = e["description"]
             break
 

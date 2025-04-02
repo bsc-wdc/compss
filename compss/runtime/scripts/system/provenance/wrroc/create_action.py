@@ -385,17 +385,14 @@ def wrroc_create_action(
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
-    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
-    uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
+    # uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
+    # uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
-    description_property = uname_out
+    description_property = ""
 
-    if os.path.exists(".compss_submission_command_line"):
-        with open(".compss_submission_command_line", "r") as file:
-            description_property = file.read()[:-1]  # Remove final '\n'
-    elif os.path.exists("compss_submission_command_line.txt"):
-        with open("compss_submission_command_line.txt", "r") as file:
-            description_property = file.read().replace("\n", " ")
+    if os.path.exists(".compss_submission_command_line.txt"):
+        with open(".compss_submission_command_line.txt", "r") as file:
+            description_property = file.read()[:-1].strip()
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.

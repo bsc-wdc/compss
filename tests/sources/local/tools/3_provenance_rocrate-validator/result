@@ -81,11 +81,11 @@
     else
       echo "PROVENANCE complete_graph.svg FILE EXISTS" | tee -a "${output_file}"
     fi
-    if [ ! -f "${prov_dir}compss_submission_command_line.txt" ]; then
-      echo "PROVENANCE compss_submission_command_line.txt FILE DOES NOT EXIST" | tee -a "${output_file}"
+    if [ ! -f "${prov_dir}.compss_submission_command_line.txt" ]; then
+      echo "PROVENANCE .compss_submission_command_line.txt FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
-      echo "PROVENANCE compss_submission_command_line.txt FILE EXISTS" | tee -a "${output_file}"
+      echo "PROVENANCE .compss_submission_command_line.txt FILE EXISTS" | tee -a "${output_file}"
     fi
     if [ ! -f "${prov_dir}MATMUL.yaml" ]; then
       echo "PROVENANCE MATMUL.yaml FILE DOES NOT EXIST" | tee -a "${output_file}"

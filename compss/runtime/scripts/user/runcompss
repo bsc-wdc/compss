@@ -796,6 +796,7 @@ if [ ${provenance} ]; then
       break
     fi
   done
+
   if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
     rm -r "${specific_log_dir}/workers/"
   fi
@@ -829,13 +830,13 @@ if [ ${provenance} ]; then
   fi
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it
-      rm -f "${PWD}/App_Profile.json" compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
+      rm -f "${PWD}/App_Profile.json" .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
     else
-      rm -f compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
+      rm -f .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
     fi
   else
     echo "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED"
-    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
+    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json .compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
   fi
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi

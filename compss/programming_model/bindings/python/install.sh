@@ -28,7 +28,7 @@ INCORRECT_PARAMETER="Error: No such parameter"
 INCORRECT_TARGET_DIR="Error: No target directory"
 NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
-SETUPTOOLS_VERSION="69.2.0"
+SETUPTOOLS_VERSION="69.1.0"
 WHEEL_VERSION="0.43.0"
 
 #---------------------------------------------------
@@ -227,20 +227,32 @@ compare_versions() {
   parts1=($(echo "$ver1" | tr '.' ' '))
   parts2=($(echo "$ver2" | tr '.' ' '))
 
+  for i in "${arr[@]}"
+  do
+    echo "$i"
+  done
+
   # Compare all parts
   for (( i = 0; i < ${#parts1[@]}; i++ )); do
-    if (( ${parts1[$i]} > ${parts2[$i]} )); then
-      echo "- ${parts1[$i]} is higher than ${parts2[$i]}"
-      return 1
-    elif (( ${parts1[$i]} < ${parts2[$i]} )); then
-      echo "- ${parts1[$i]} is lower than ${parts2[$i]}"
-      return 0
+    if [[ "${parts1[$i]}" -eq "${parts2[$i]}" ]]; then
+      #echo "- ${#parts1[$i]} is equal than ${#parts2[$i]}"
+      echo ""
+    elif [[ "${parts1[$i]}" -gt "${parts2[$i]}" ]]; then
+      #echo "- ${#parts1[$i]} is higher than ${#parts2[$i]}"
+      echo "1"
+      return
+    elif [[ "${parts1[$i]}" -lt "${parts2[$i]}" ]]; then
+      #echo "- ${#parts1[$i]} is lower than ${#parts2[$i]}"
+      echo "0"
+      return
     fi
   done
 
+  echo "1"
+
   # If all are equal:
   # echo "ver1 is equal as ver2"
-  return 1
+  return
 }
 
 install_with_timeout() {
@@ -279,8 +291,8 @@ install () {
   echo "      - Python wheel version: ${wheel_version}"
 
   # Check that setuptools and wheel are not too old
-  setuptools_comparison=$(compare_versions "${setuptools_version}" "${SETUPTOOLS_VERSION}")
-  wheel_comparison=$(compare_versions "${wheel_version}" "${WHEEL_VERSION}")
+  setuptools_comparison=$(compare_versions "${setuptools_version}" "${SETUPTOOLS_VERSION}" | xargs)
+  wheel_comparison=$(compare_versions "${wheel_version}" "${WHEEL_VERSION}" | xargs)
 
   if [[ ${setuptools_comparison} -eq 1 ]]; then
     echo "Setuptools version is OK"

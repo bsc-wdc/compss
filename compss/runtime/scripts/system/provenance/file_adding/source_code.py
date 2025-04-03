@@ -448,6 +448,8 @@ def add_application_source_files(
             )
             continue
         resolved_source = str(path_source.resolve())
+        if any(part.startswith(".") for part in Path(str(resolved_source)).parts):
+            continue
         if os.path.isdir(resolved_source):
             # Adding files twice is not a drama, since add_file_to_crate won't add them twice, but we save traversing directories
             if resolved_source in added_dirs:
@@ -473,13 +475,11 @@ def add_application_source_files(
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
-                    if f_name.startswith("*"):
+                    if f_name.startswith(("*", ".")):
                         # Avoid dealing with symlinks with wildcards
                         continue
                     resolved_file = os.path.join(root, f_name)
-                    if resolved_file not in added_files and not any(
-                        part.startswith(".") for part in Path(str(resolved_file)).parts
-                    ):
+                    if resolved_file not in added_files:
                         add_file_to_crate(
                             compss_crate,
                             compss_wf_info,
@@ -543,9 +543,7 @@ def add_application_source_files(
                     auxiliary_file_list,
                 )
         elif os.path.isfile(resolved_source):
-            if resolved_source not in added_files and not any(
-                part.startswith(".") for part in Path(str(resolved_source)).parts
-            ):
+            if resolved_source not in added_files:
                 add_file_to_crate(
                     compss_crate,
                     compss_wf_info,

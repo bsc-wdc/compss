@@ -105,8 +105,8 @@ class PiperWorkerConfiguration:
         exec_ids = argv[16 : 16 + self.tasks_x_node]  # noqa: E203
         self.exec_ids = [int(exec_id) for exec_id in exec_ids]
         in_pipes = argv[
-                   16 + self.tasks_x_node : 16 + (self.tasks_x_node * 2)  # noqa: E203
-                   ]
+            16 + self.tasks_x_node : 16 + (self.tasks_x_node * 2)  # noqa: E203
+        ]
         out_pipes = argv[16 + (self.tasks_x_node * 2) : -2]  # noqa: E203
         if self.debug:
             if self.tasks_x_node != len(in_pipes):

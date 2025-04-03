@@ -60,7 +60,9 @@ def set_profile_details(compss_crate: ROCrate) -> None:
         )
     )
 
-    for proc in "process", "workflow", "provenance":
+    # provenance-run not enabled yet
+    # for proc in "process", "workflow", "provenance":
+    for proc in "process", "workflow":
         id_ = f"{PROFILES_BASE}/{proc}/{WRROC_PROFILES_VERSION}"
         profiles.append(
             compss_crate.add(

@@ -29,7 +29,7 @@ INCORRECT_TARGET_DIR="Error: No target directory"
 NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
 SETUPTOOLS_VERSION="69.1.0"
-WHEEL_VERSION="0.43.0"
+WHEEL_VERSION="0.42.0"
 
 #---------------------------------------------------
 # SET SCRIPT VARIABLES

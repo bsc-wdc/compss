@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import time
 import typing
 import os
 import uuid
@@ -26,7 +27,14 @@ from hashlib import sha256
 from pathlib import Path
 from datetime import timezone
 from datetime import datetime
-import pandas as pd
+
+try:
+    import pandas as pd
+except:
+    print(
+        "Error: pandas is not installed. Please install it using 'pip install pandas'."
+    )
+    exit(1)
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
@@ -50,19 +58,43 @@ unit_dict = {
 }
 
 description_plots = {
-    "bytes_read": "Plot of the amount of data read from the disk during the execution",
-    "bytes_written": "Plot of the amount of data written from the disk during the execution",
-    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
-    "bytes_received": "Plot of the amount of data received across the network during the execution",
     "cpu": "Plot of the percentage of cpu used during the execution",
     "mem": "Plot of the amount of memory used during the execution",
     "disk_usage": "Plot of the cumulative amount of data read and written on the disk during the execution",
     "network_usage": "Plot of the cumulative amount of data sent and received during the execution",
     "cpu_nodes": "Plot of the percentage of cpu used during the execution of all nodes used",
     "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
+    # The following plots represent bursts over time and are currently unused
+    "bytes_read": "Plot of the amount of data read from the disk during the execution",
+    "bytes_written": "Plot of the amount of data written from the disk during the execution",
+    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
+    "bytes_received": "Plot of the amount of data received across the network during the execution",
 }
 
 LANGUAGES_EXTENSION = (".java", ".py", ".sh")
+
+
+def process_log(dp_path: str, data_list: list) -> tuple:
+    """
+    Reads and processes the dataprovenance.log efficiently.
+
+    :param dp_path: pathname of the dataprovenance.log
+    :param data_list: list of data to fill with data parsed from dataprovenance.log
+    :return: Parsed statistical data
+    """
+    application_name = None
+
+    with open(dp_path, "r") as data_provenance:
+        for idx, row in enumerate(data_provenance):
+            row = row.strip()
+            if idx == 1:
+                application_name = row
+            elif idx >= 4 and row:
+                parameter_list = row.split()
+                if len(parameter_list) >= 4:
+                    data_list.append(parameter_list)
+
+    return application_name
 
 
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
@@ -76,25 +108,22 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
     :return data_list: list of data parsed from dataprovenance.log
     """
     data_list = []
-    with open(dp_path, "r") as data_provenance:
-        for idx, row in enumerate(data_provenance.readlines()):
-            if idx == 1:
-                application_name = row.rstrip()
-            elif idx >= 3:
-                parameter_list = list(filter(None, row.strip().split(" ")))
-                len_row = len(parameter_list)
-                if len_row >= 4:
-                    data_list.append(parameter_list)
-        try:
-            start_time = start_time.timestamp()
-            end_time = end_time.timestamp()
-            execution_time = int((end_time - start_time) * 1000)
-            app_name = application_name.split(".")[0]
-            data_list.append(
-                ["overall", app_name, "executionTime", str(execution_time)]
+    try:
+        init_process_log = time.time()
+        application_name = process_log(dp_path, data_list)
+        elapsed_process_log = init_process_log - time.time()
+        if __debug__:
+            print(
+                f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds"
             )
-        except TypeError:
-            print("PROVENANCE | WARNING: could not retrieve execution time")
+
+        start_time = start_time.timestamp()
+        end_time = end_time.timestamp()
+        execution_time = int((end_time - start_time) * 1000)
+        app_name = application_name.split(".")[0]
+        data_list.append(["overall", app_name, "executionTime", str(execution_time)])
+    except TypeError:
+        print("PROVENANCE | WARNING: could not retrieve execution time")
 
     return data_list
 
@@ -126,7 +155,7 @@ def get_properties(id_name: str, stat: str, value: int) -> dict:
 
 
 def get_resource_usage_dataset(
-    dp_path: str, start_time: datetime, end_time: datetime
+        dp_path: str, start_time: datetime, end_time: datetime
 ) -> list:
     """
     Function that provides a list of the statistical data recorded
@@ -179,7 +208,7 @@ def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> d
 
 
 def build_info_dict_resource_usage(
-    measure_name: str, value: typing.Union[float, int]
+        measure_name: str, value: typing.Union[float, int]
 ) -> dict:
     """
     Build the dictionary of resource property
@@ -295,16 +324,16 @@ def get_resource_information(resource_file: Path) -> dict:
 
 
 def wrroc_create_action(
-    compss_crate: ROCrate,
-    main_entity: str,
-    author_list: list,
-    ins: list,
-    outs: list,
-    yaml_content: dict,
-    info_yaml: str,
-    log_dir: Path,
-    end_time: datetime,
-    auxiliary_file_list: list,
+        compss_crate: ROCrate,
+        main_entity: str,
+        author_list: list,
+        ins: list,
+        outs: list,
+        yaml_content: dict,
+        info_yaml: str,
+        log_dir: Path,
+        end_time: datetime,
+        auxiliary_file_list: list,
 ) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
@@ -324,9 +353,9 @@ def wrroc_create_action(
     :returns: UUID generated for this run
     """
     # Define useful pathnames of file/directory in log directory
-    energy_path = log_dir / "energy"
-    stats_path = log_dir / "stats"
-    plots_path = log_dir / "stats/plots"
+    energy_path = log_dir / "energy/"
+    stats_path = log_dir / "stats/"
+    plots_path = log_dir / "stats/plots/"
     dp_log = log_dir / "dataprovenance.log"
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
@@ -344,37 +373,34 @@ def wrroc_create_action(
 
     if job_id is None:
         name_property = (
-            "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+                "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         )
         userportal_url = None
         create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
     else:
         name_property = (
-            "COMPSs "
-            + main_entity_pathobj.name
-            + " execution at "
-            + host_name
-            + " with JOB_ID "
-            + job_id
+                "COMPSs "
+                + main_entity_pathobj.name
+                + " execution at "
+                + host_name
+                + " with JOB_ID "
+                + job_id
         )
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id = (
-            "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+                "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
         )
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
-    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
-    uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
+    # uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
+    # uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
-    description_property = uname_out
+    description_property = ""
 
-    if os.path.exists(".compss_submission_command_line"):
-        with open(".compss_submission_command_line", "r") as file:
-            description_property = file.read()[:-1]  # Remove final '\n'
-    elif os.path.exists("compss_submission_command_line.txt"):
-        with open("compss_submission_command_line.txt", "r") as file:
-            description_property = file.read().replace("\n", " ")
+    if os.path.exists(".compss_submission_command_line.txt"):
+        with open(".compss_submission_command_line.txt", "r") as file:
+            description_property = file.read()[:-1].strip()
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
@@ -382,22 +408,22 @@ def wrroc_create_action(
     environment_property = []
     for name, value in os.environ.items():
         if (
-            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
-            and name != "SLURM_JOBID"
+                name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
+                and name != "SLURM_JOBID"
         ):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}
             env_var["@type"] = "PropertyValue"
             env_var["name"] = name
             env_var["value"] = value
-            if "COMPSS_PROFILING_INTERVAL" == name:
-                env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
+            # if "COMPSS_PROFILING_INTERVAL" == name:
+            #     env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
             compss_crate.add(
                 ContextEntity(
                     compss_crate,
                     "#" + name.lower(),
                     properties=env_var,
-                )
+                    )
             )
             environment_property.append({"@id": "#" + name.lower()})
 
@@ -499,7 +525,7 @@ def wrroc_create_action(
             print(f"PROVENANCE | WARNING: 'Submitter' in {info_yaml} wrongly defined")
 
     if (
-        "Agent" not in yaml_content and "Submitter" not in yaml_content
+            "Agent" not in yaml_content and "Submitter" not in yaml_content
     ) or not agent_added:
         # Choose first author, to avoid leaving it empty. May be true most of the times
         if author_list:
@@ -535,27 +561,6 @@ def wrroc_create_action(
     if len(environment_property) > 0:
         create_action_properties["environment"] = environment_property
 
-    if job_id:
-        # sacct may fail if the run is done from a container
-        try:
-            sacct_command = ["sacct", "-j", str(job_id), "--format=Start", "--noheader"]
-            head_command = ["head", "-n", "1"]
-            sacct_process = subprocess.Popen(sacct_command, stdout=subprocess.PIPE)
-            head_process = subprocess.Popen(
-                head_command, stdin=sacct_process.stdout, stdout=subprocess.PIPE
-            )
-            output, _ = head_process.communicate()
-            start_time_str = output.decode("utf-8").strip()
-            # Convert start time to datetime object
-            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
-            create_action_properties["startTime"] = start_time.astimezone(
-                timezone.utc
-            ).isoformat()
-        except Exception as e:
-            print(
-                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
-            )
-
     # Take startTime and endTime from dataprovenance.log when no queuing system is involved
     # The string generated by the runtime is already in UTC
     # If times are found in dataprovenance.log, they replace the ones obtained at the beginning of provenance generation
@@ -563,7 +568,7 @@ def wrroc_create_action(
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
-            if i == 2:
+            if i == 3:
                 try:
                     start_time = datetime.strptime(
                         line.strip(), "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -576,6 +581,38 @@ def wrroc_create_action(
                         f"PROVENANCE | WARNING: No 'startTime' found in dataprovenance.log. SLURM's job start time "
                         f"will be used, if available"
                     )
+                    if job_id:
+                        # sacct may fail if the run is done from a container
+                        try:
+                            sacct_command = [
+                                "sacct",
+                                "-j",
+                                str(job_id),
+                                "--format=Start",
+                                "--noheader",
+                            ]
+                            head_command = ["head", "-n", "1"]
+                            sacct_process = subprocess.Popen(
+                                sacct_command, stdout=subprocess.PIPE
+                            )
+                            head_process = subprocess.Popen(
+                                head_command,
+                                stdin=sacct_process.stdout,
+                                stdout=subprocess.PIPE,
+                            )
+                            output, _ = head_process.communicate()
+                            start_time_str = output.decode("utf-8").strip()
+                            # Convert start time to datetime object
+                            start_time = datetime.strptime(
+                                start_time_str, "%Y-%m-%dT%H:%M:%S"
+                            )
+                            create_action_properties["startTime"] = (
+                                start_time.astimezone(timezone.utc).isoformat()
+                            )
+                        except Exception as e:
+                            print(
+                                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
+                            )
             else:
                 last_line = line.strip()
         try:
@@ -631,7 +668,7 @@ def wrroc_create_action(
                     id_measure_list.append({"@id": measure_id})
 
         id_name_list.extend(id_measure_list)
-        print(f"PROVENANCE | RO-Crate added resource profiling information ")
+        print(f"PROVENANCE | Added resource profiling information ")
 
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
@@ -752,10 +789,54 @@ def wrroc_create_action(
             file_properties["name"] = "compss-" + job_id + f_suffix
             file_properties["contentSize"] = os.path.getsize(file_properties["name"])
             file_properties["description"] = (
-                "COMPSs console standard " + f_msg + " log file"
+                    "COMPSs console standard " + f_msg + " log file"
             )
             file_properties["encodingFormat"] = "text/plain"
             file_properties["about"] = create_action_id
             compss_crate.add_file(file_properties["name"], properties=file_properties)
+
+    # Add Paraver trace files if they have been generated in PRV_DIR/ folder
+    compss_wf_info = yaml_content["COMPSs Workflow Information"]
+    if (
+            "trace_persistence" in compss_wf_info
+            and compss_wf_info["trace_persistence"] is True
+    ):
+        prv_persist = True
+    else:
+        prv_persist = False
+    prv_dir = log_dir / "trace/"
+    if prv_dir.exists() and prv_dir.is_dir():
+        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
+        if not prv_persist:
+            print(
+                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
+            )
+        for file in prv_dir.iterdir():
+            if file.is_file():
+                file_properties = {}
+                file_properties["name"] = file.name
+                file_properties["contentSize"] = file.stat().st_size
+                file_properties["description"] = "PARAVER trace files"
+                file_properties["encodingFormat"] = "text/plain"
+                file_properties["about"] = create_action_id
+                if prv_persist:
+                    crate_path = "trace/" + file.name
+                    compss_crate.add_file(
+                        source=file.resolve(),
+                        dest_path=crate_path,
+                        properties=file_properties,
+                    )
+                else:
+                    file_url = "file://" + socket.gethostname() + str(file.resolve())
+                    compss_crate.add_file(
+                        source=file_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        properties=file_properties,
+                    )
+    elif prv_persist:
+        print(
+            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
+        )
 
     return run_uuid

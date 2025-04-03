@@ -182,7 +182,8 @@ def add_file_to_crate(
     else:
         path_in_crate = "application_sources/" + file_path.name
 
-    auxiliary_file_list.append(path_in_crate)
+    # provenance-run-crate standard not ready yet
+    # auxiliary_file_list.append(path_in_crate)
 
     if file_name != main_entity:
         # Or check if the file is an executable (.py or .java)
@@ -579,10 +580,12 @@ def add_application_source_files(
 
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
     # Not working well when an application has several versions (ex: Java matmul files, objects, arrays)
-    for e in compss_crate.data_entities:
-        if "ComputationalWorkflow" in e.type:
-            for file in auxiliary_file_list:
-                e.append_to("hasPart", {"@id": file})
+
+    # provenance-run-crate standard not ready yet
+    # for e in compss_crate.data_entities:
+    #     if "ComputationalWorkflow" in e.type:
+    #         for file in auxiliary_file_list:
+    #             e.append_to("hasPart", {"@id": file})
 
     print(f"PROVENANCE | Application source files detected ({len(added_files)})")
     if __debug__:

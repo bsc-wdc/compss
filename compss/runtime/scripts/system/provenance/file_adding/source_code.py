@@ -279,7 +279,10 @@ def add_file_to_crate(
             )
 
         # out_profile
-        if os.path.exists(out_profile) and out_profile.split("/")[-1] != "App_Profile.json":
+        if (
+            os.path.exists(out_profile)
+            and out_profile.split("/")[-1] != "App_Profile.json"
+        ):
             file_properties = {}
             file_properties["name"] = out_profile
             file_properties["contentSize"] = os.path.getsize(out_profile)
@@ -474,7 +477,9 @@ def add_application_source_files(
                         # Avoid dealing with symlinks with wildcards
                         continue
                     resolved_file = os.path.join(root, f_name)
-                    if resolved_file not in added_files and not any(part.startswith(".") for part in Path(str(resolved_file)).parts):
+                    if resolved_file not in added_files and not any(
+                        part.startswith(".") for part in Path(str(resolved_file)).parts
+                    ):
                         add_file_to_crate(
                             compss_crate,
                             compss_wf_info,
@@ -538,7 +543,9 @@ def add_application_source_files(
                     auxiliary_file_list,
                 )
         elif os.path.isfile(resolved_source):
-            if resolved_source not in added_files and not any(part.startswith(".") for part in Path(str(resolved_source)).parts):
+            if resolved_source not in added_files and not any(
+                part.startswith(".") for part in Path(str(resolved_source)).parts
+            ):
                 add_file_to_crate(
                     compss_crate,
                     compss_wf_info,

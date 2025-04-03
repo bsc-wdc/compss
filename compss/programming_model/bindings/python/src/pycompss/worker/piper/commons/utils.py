@@ -74,7 +74,7 @@ class PiperWorkerConfiguration:
         self.cache = False  # type: typing.Union[str, bool]
         self.cache_profiler = ""  # type: str
         self.ear = False  # type: bool
-        self.data_provenance = False # type: bool
+        self.data_provenance = False  # type: bool
 
     def update_params(self, argv: typing.List[str]) -> None:
         """Update the PiperWorkerConfiguration parameters from arguments.
@@ -152,7 +152,7 @@ class PiperWorkerConfiguration:
         logger.debug(HEADER + "Cache          : " + str(self.cache))
         logger.debug(HEADER + "Cache profiler : " + str(self.cache_profiler))
         logger.debug(HEADER + "Ear            : " + str(self.ear))
-        logger.debug(HEADER + "Provenance     : " + str(self.data_provenance) )
+        logger.debug(HEADER + "Provenance     : " + str(self.data_provenance))
         logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))
         logger.debug(HEADER + "Exec ids       : ")
         for exec_id in self.exec_ids:

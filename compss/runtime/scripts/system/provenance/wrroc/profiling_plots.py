@@ -188,9 +188,7 @@ def plot_results(folder_pathname) -> str:
     #     master_node = None
 
     if not os.path.exists(folder_pathname):
-        print(
-            "Error: stats folder does not exist"
-        )
+        print("Error: stats folder does not exist")
         exit(1)
 
     plots_pathname = folder_pathname + "/plots/"
@@ -201,7 +199,9 @@ def plot_results(folder_pathname) -> str:
     df_list = []
     name_list = []
 
-    num_files = num_files = sum(1 for f in os.listdir(folder_pathname) if f.endswith(".csv"))
+    num_files = num_files = sum(
+        1 for f in os.listdir(folder_pathname) if f.endswith(".csv")
+    )
 
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
@@ -267,7 +267,10 @@ def plot_results(folder_pathname) -> str:
             plt.savefig(output_path + "/network_usage.png")
             plt.close()
 
-        if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
+        if (
+            not byte_write_disk.isna().any().any()
+            and not byte_read_disk.isna().any().any()
+        ):
             plot_bytes(
                 time_list=timestamps,
                 first_df=byte_write_disk,

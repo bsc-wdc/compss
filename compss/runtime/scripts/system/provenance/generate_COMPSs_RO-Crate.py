@@ -210,6 +210,7 @@ def main():
         f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
     )
 
+
 if __name__ == "__main__":
 
     # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log /dest/folder/

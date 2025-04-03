@@ -27,6 +27,7 @@ from hashlib import sha256
 from pathlib import Path
 from datetime import timezone
 from datetime import datetime
+
 try:
     import pandas as pd
 except:
@@ -95,6 +96,7 @@ def process_log(dp_path: str, data_list: list) -> tuple:
 
     return application_name
 
+
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
     """
     Function that provide a list of the statistical data recorded
@@ -111,15 +113,15 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
         application_name = process_log(dp_path, data_list)
         elapsed_process_log = init_process_log - time.time()
         if __debug__:
-            print(f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds")
+            print(
+                f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds"
+            )
 
         start_time = start_time.timestamp()
         end_time = end_time.timestamp()
         execution_time = int((end_time - start_time) * 1000)
         app_name = application_name.split(".")[0]
-        data_list.append(
-            ["overall", app_name, "executionTime", str(execution_time)]
-        )
+        data_list.append(["overall", app_name, "executionTime", str(execution_time)])
     except TypeError:
         print("PROVENANCE | WARNING: could not retrieve execution time")
 
@@ -582,19 +584,31 @@ def wrroc_create_action(
                     if job_id:
                         # sacct may fail if the run is done from a container
                         try:
-                            sacct_command = ["sacct", "-j", str(job_id), "--format=Start", "--noheader"]
+                            sacct_command = [
+                                "sacct",
+                                "-j",
+                                str(job_id),
+                                "--format=Start",
+                                "--noheader",
+                            ]
                             head_command = ["head", "-n", "1"]
-                            sacct_process = subprocess.Popen(sacct_command, stdout=subprocess.PIPE)
+                            sacct_process = subprocess.Popen(
+                                sacct_command, stdout=subprocess.PIPE
+                            )
                             head_process = subprocess.Popen(
-                                head_command, stdin=sacct_process.stdout, stdout=subprocess.PIPE
+                                head_command,
+                                stdin=sacct_process.stdout,
+                                stdout=subprocess.PIPE,
                             )
                             output, _ = head_process.communicate()
                             start_time_str = output.decode("utf-8").strip()
                             # Convert start time to datetime object
-                            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S")
-                            create_action_properties["startTime"] = start_time.astimezone(
-                                timezone.utc
-                            ).isoformat()
+                            start_time = datetime.strptime(
+                                start_time_str, "%Y-%m-%dT%H:%M:%S"
+                            )
+                            create_action_properties["startTime"] = (
+                                start_time.astimezone(timezone.utc).isoformat()
+                            )
                         except Exception as e:
                             print(
                                 f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
@@ -784,8 +798,8 @@ def wrroc_create_action(
     # Add Paraver trace files if they have been generated in PRV_DIR/ folder
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
     if (
-            "trace_persistence" in compss_wf_info
-            and compss_wf_info["trace_persistence"] is True
+        "trace_persistence" in compss_wf_info
+        and compss_wf_info["trace_persistence"] is True
     ):
         prv_persist = True
     else:

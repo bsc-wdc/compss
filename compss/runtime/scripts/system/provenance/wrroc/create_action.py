@@ -570,8 +570,9 @@ def wrroc_create_action(
         for i, line in enumerate(dp_file):
             if i == 3:
                 try:
+                    clean_time = line.strip().replace('Z', '+0000')[:26] + '+0000'
                     start_time = datetime.strptime(
-                        line.strip(), "%Y-%m-%dT%H:%M:%S.%f%z"
+                        clean_time, "%Y-%m-%dT%H:%M:%S.%f%z"
                     )
                     create_action_properties["startTime"] = start_time.replace(
                         microsecond=0
@@ -616,7 +617,8 @@ def wrroc_create_action(
             else:
                 last_line = line.strip()
         try:
-            end_time_file = datetime.strptime(last_line, "%Y-%m-%dT%H:%M:%S.%f%z")
+            clean_time = line.strip().replace('Z', '+0000')[:26] + '+0000'
+            end_time_file = datetime.strptime(clean_time, "%Y-%m-%dT%H:%M:%S.%f%z")
             # Next assignation won't be executed if strptime fails
             create_action_properties["endTime"] = end_time_file.replace(
                 microsecond=0

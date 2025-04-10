@@ -544,15 +544,15 @@ def wrroc_create_action(
         with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
             yaml.dump(yaml_content, f_y, default_flow_style=False)
 
-    instrument_list = []
-    instrument_list.append({"@id": resolved_main_entity})
+    # instrument_list = []
+    # instrument_list.append({"@id": resolved_main_entity})
 
-    for aux_file in auxiliary_file_list:
-        instrument_list.append({"@id": aux_file})
+    # for aux_file in auxiliary_file_list:
+    #     instrument_list.append({"@id": aux_file})
 
     create_action_properties = {
         "@type": "CreateAction",
-        "instrument": instrument_list,  # Resolved path of the main file
+        "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
         "endTime": end_time.isoformat(),  # endTime of the application corresponds to the start of the provenance generation
         "name": name_property,

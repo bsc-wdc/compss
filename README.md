@@ -96,18 +96,7 @@ cd builders/
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
-For macOS:
-```
-cd builders/
-alias libtoolize=/usr/local/bin/glibtoolize
-alias readlink=/usr/local/bin/greadlink
-
-export LIBTOOL=`which glibtool`
-export LIBTOOLIZE=`which glibtoolize`
-
-INSTALL_DIR=$HOME/opt/COMPSs/
-./buildlocal -K -T -M ${INSTALL_DIR}
-```
+For macOS visit the [Buidling from sources section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/02_Building_from_sources.html) of the COMPSs documentation website.
 
 
 Many COMPSs modules can be activated/deactivated during the build using different options in the `buildlocal` command. You may check the available options by running the following command:
@@ -170,11 +159,7 @@ In order to run Jenkins tests locally on macOS, GNU sed (gsed) is needed. To ins
 brew install gsed
 ```
 
-Some environment variables also need to be defined to ensure gsed is used instead of macOS sed.
-
-```
-export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
-```
+This will install gsed at `/opt/homebrew/bin/gsed`.
 
 Finally, the `NIO_mac.cfg` file needs to be updated with any specific features of the local macOS environment, commonly variables such as the `java_home`, `compss_home` and `runcompss_opts` parameters should be updated.
 

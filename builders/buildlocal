@@ -405,6 +405,10 @@ get_args() {
   # Parse target directory location
   if [ $# -ne 0 ]; then
     targetDir=$1
+    # Remove end slash if the user added it
+    if [[ "${targetDir}" == */ ]]; then
+      targetDir="${targetDir%/}"
+    fi
   fi
 }
 
@@ -978,7 +982,9 @@ install_compss() {
   fi
 
   echo "- Adding runcompss to profile..."
-  echo "# COMPSs environment variables" >> $envFile
+  build_date=$(date "+%Y-%m-%d %H:%M:%S")
+  echo " " >> $envFile
+  echo "# COMPSs environment variables ${build_date}" >> $envFile
   echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user:${targetDir}/Runtime/scripts/utils" >> $envFile
   echo "- Runcompss added to user profile"
   echo " "
@@ -986,20 +992,22 @@ install_compss() {
   echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> $envFile
   echo "- compss-engine.jar added to user profile"
   echo " "
+
   if [ "$bindings" == "true" ]; then
     echo "- Adding c-binaries to profile..."
     echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> $envFile
     echo "- c-binaries added to user profile"
     echo " "
     echo "- Adding binding-common to profile..."   # Needed for jupyter notebook
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/amd64/server:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
+    # Java paths changed since Java 11, from $JAVA_HOME/lib/amd64/server:$JAVA_HOME/jre/lib/amd64/server
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/server" >> $envFile
     echo "- binding-common library added to user profile"
     echo " "
     # Instead of importing it in the envFile, it is done with softlinks from site-packages in python3 (if available) on the installation
     # echo "- Adding PyCOMPSs to user profile..."
     # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python3 -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
     # echo "- PyCOMPSs added to user profile"
-    echo " "
+    # echo " "
   fi
 
   if [ "$dlb" == "true" ]; then
@@ -1022,6 +1030,29 @@ install_compss() {
       # Debian based distrs
       sudo update-rc.d compss-monitor defaults
     fi
+  fi
+
+  # MACOS NEEDED VARIABLES
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # This is needed to be able to find util-linux tools at the worker (such as setsid)
+    arch=$(uname -m)
+    echo "- Adding macOS environment variables for architecture $arch..."
+    echo " " >> $envFile
+    echo "# COMPSs environment variables for macOS ${arch} ${build_date}" >> $envFile
+    echo "export JAVA_HOME=${JAVA_HOME}" >> $envFile
+    JAVA_HOME_DIR=$(echo "$JAVA_HOME" | sed 's|/libexec.*||')
+    echo "export PATH=$JAVA_HOME_DIR/bin:\$PATH" >> $envFile
+    if [[ "$arch" == "x86_64" ]]; then
+      # Homebrew packages are at /usr/local/opt
+      echo "export PATH=/usr/local/opt/util-linux/bin:\$PATH" >> $envFile
+      echo "export PATH=/usr/local/opt/util-linux/sbin:\$PATH" >> $envFile
+    elif [[ "$arch" == "arm64" ]]; then
+      # Homebrew packages are at /opt/homebrew/opt
+      echo "export PATH=/opt/homebrew/opt/util-linux/bin:\$PATH" >> $envFile
+      echo "export PATH=/opt/homebrew/opt/util-linux/sbin:\$PATH" >> $envFile
+    fi
+    echo "- macOS environment variables for architecture $arch added to user profile"
+    echo " "
   fi
 
   # ERASE TMP FILES

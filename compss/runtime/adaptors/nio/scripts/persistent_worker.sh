@@ -62,11 +62,8 @@
   touch "${logDir}/binding_worker.err"
 
   # shellcheck disable=SC2086
-  if [ "$(uname)" == "Darwin" ]; then
-    SETSID="/usr/local/opt/util-linux/bin/setsid"
-  else
-    SETSID="setsid"
-  fi
+
+  SETSID="setsid"
 
   export LD_PRELOAD=${LD_PRELOAD}:${AFTER_EXTRAE_LD_PRELOAD}
 

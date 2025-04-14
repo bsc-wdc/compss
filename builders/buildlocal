@@ -971,12 +971,16 @@ install_compss() {
     fi
   else
     # Script has been run as normal user
-    # Insert to .bashrc
-    envFile=~/.bashrc
+    # Insert to .bashrc or .zshenv (more common on macOS)
+    if [[ "$SHELL" == */zsh ]]; then
+      envFile=~/.zshenv
+    else
+      envFile=~/.bashrc
+    fi
     # Launch warning
     echo " "
     echo "***************************************************************************"
-    echo "* WARNING: Script is not running as sudo. Inserting COMPSs env at .bashrc *"
+    echo "* WARNING: Script is not running as sudo. Inserting COMPSs env at ${envFile} *"
     echo "*          COMPSs WILL ONLY BE AVAILABLE FOR USER: $(whoami)              *"
     echo "***************************************************************************"
   fi

@@ -26,7 +26,7 @@
   buildFolder="mn5"
   buildScript="buildMN5"
   user=compss
-  endpoint=glogin1.bsc.es
+  endpoint=glogin2.bsc.es
   modules_folder="/apps/GPP/modulefiles/applications/COMPSs/"
   install_folder="/apps/GPP/COMPSs/"
   # Call generic script

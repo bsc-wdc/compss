@@ -45,11 +45,20 @@ METRICS_UNITS = {
     'byteRecv': 'bytes',
 }
 
+ORDER = {'executions': 0, 'avgTime': 1, 'maxTime': 2, 'minTime': 3}
+
 # ############# #
 # API FUNCTIONS #
 # ############# #
 
-def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False, isfirst=True):
+def print_resource_usage_ordered(resource_usage_list: list):
+    sorted_list = sorted(resource_usage_list, key=lambda line: ORDER.get(
+        next((k for k in ORDER if k in line), ''), float('inf')))
+
+    for line in sorted_list:
+        print(line, end="")
+
+def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False, isfirst=True, to_print=[]):
     if isinstance(jsonData, dict):
         if not isfirst:
             print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
@@ -57,7 +66,9 @@ def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False
         length = len(jsonData)
         for i, key in enumerate(jsonData.keys()):
             last = i == (length - 1)
-            resources_tree(jsonData[key], key, file, prefix, last, isfirst=False)
+            resources_tree(jsonData[key], key, file, prefix, last, isfirst=False, to_print=to_print)
+        print_resource_usage_ordered(to_print)
+        to_print.clear()
     else:
         unit = METRICS_UNITS[name] if name in METRICS_UNITS.keys() else ''
         try:
@@ -65,7 +76,7 @@ def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False
             name = name + f' = {int_value:,} {unit}'
         except ValueError:
             name = name + f' = {jsonData} {unit}'
-        print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
+        to_print.append(f"{prefix}{pointers[1] if last else pointers[0]}{name}\n")
 
 def local_deploy_compss(working_dir: str = "") -> None:
     """Starts the main COMPSs image in Docker.

@@ -162,42 +162,47 @@ def main():
     )
     to_write += new_entry
 
-    with open(f"{log_dir}/resource_profiling_{hostname}.csv", "w") as resource:
-        resource.write(to_write)
-        resource.flush()
-
-        while True:
-            if system_type == "Linux":
-                time.sleep(profiling_interval)
-            if current_config != PROFILER_CONFIG[2]:
-                io_current = psutil.disk_io_counters()
-                byte_read = io_current.read_bytes - ref_read
-                byte_write = io_current.write_bytes - ref_write
-                time_read = io_current.read_time - ref_time_read
-                time_write = io_current.write_time - ref_time_write
-
-                ref_read, ref_write, ref_time_read, ref_time_write = (
-                    io_current.read_bytes,
-                    io_current.write_bytes,
-                    io_current.read_time,
-                    io_current.write_time,
-                )
-            else:
-                byte_read = byte_write = time_read = time_write = None
-
-            new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                byte_read,
-                byte_write,
-                time_read,
-                time_write,
-                ref_byte_sent,
-                ref_byte_recv,
-                current_config,
-                profiling_interval,
-            )
-
-            resource.write(new_entry)
+    try:
+        with open(f"{log_dir}/resource_profiling_{hostname}.csv", "w") as resource:
+            resource.write(to_write)
             resource.flush()
+
+            while True:
+                if system_type == "Linux":
+                    time.sleep(profiling_interval)
+                if current_config != PROFILER_CONFIG[2]:
+                    io_current = psutil.disk_io_counters()
+                    byte_read = io_current.read_bytes - ref_read
+                    byte_write = io_current.write_bytes - ref_write
+                    time_read = io_current.read_time - ref_time_read
+                    time_write = io_current.write_time - ref_time_write
+
+                    ref_read, ref_write, ref_time_read, ref_time_write = (
+                        io_current.read_bytes,
+                        io_current.write_bytes,
+                        io_current.read_time,
+                        io_current.write_time,
+                    )
+                else:
+                    byte_read = byte_write = time_read = time_write = None
+
+                new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
+                    byte_read,
+                    byte_write,
+                    time_read,
+                    time_write,
+                    ref_byte_sent,
+                    ref_byte_recv,
+                    current_config,
+                    profiling_interval,
+                )
+
+                resource.write(new_entry)
+                resource.flush()
+    except:
+        print(
+            "Profiling completed."
+        )
 
 
 if __name__ == "__main__":

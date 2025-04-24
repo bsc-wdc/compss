@@ -27,7 +27,10 @@ import os
 from rocrate.rocrate import ROCrate
 from utils import get_by_id, print_colored, TextColor, generate_file_status_table
 
-def files_verifier(crate_path: str, instrument: str, objects: dict, remote_dataset_dict: dict):
+
+def files_verifier(
+    crate_path: str, instrument: str, objects: dict, remote_dataset_dict: dict
+):
     """
     Verify files within an RO-Crate against their metadata.
 
@@ -46,7 +49,7 @@ def files_verifier(crate_path: str, instrument: str, objects: dict, remote_datas
         modification dates, although this feature is currently commented out.
     """
     print_colored("Verifying the files in the crate", TextColor.YELLOW)
-    file_verifier = [] # tuple of (file_name, file_path, content_size, actual_size)
+    file_verifier = []  # tuple of (file_name, file_path, content_size, actual_size)
     verified = True
     size_verifier = True
     # date_verifier = True
@@ -62,21 +65,33 @@ def files_verifier(crate_path: str, instrument: str, objects: dict, remote_datas
         temp_path.append(instrument_path)
         instrument_tuple = (instrument_tuple[0], instrument_tuple[1], 0, 0)
 
-    if not os.path.getsize(instrument_path) == get_by_id(crate, instrument)["contentSize"]:
+    if (
+        not os.path.getsize(instrument_path)
+        == get_by_id(crate, instrument)["contentSize"]
+    ):
         size_verifier = False
         temp_size.append(instrument_path)
-        instrument_tuple = (instrument_tuple[0], instrument_tuple[1], instrument_tuple[2], 1)
+        instrument_tuple = (
+            instrument_tuple[0],
+            instrument_tuple[1],
+            instrument_tuple[2],
+            1,
+        )
 
     file_verifier.append(instrument_tuple)
-    #Verify the objects/inputs
+    # Verify the objects/inputs
     crate = ROCrate(crate_path)
 
     if not objects:
-        print_colored("No objects found in the crate, so nothing to verify", TextColor.GREEN)
+        print_colored(
+            "No objects found in the crate, so nothing to verify", TextColor.GREEN
+        )
         return
 
-    for name,input in objects.items():
-        if not remote_dataset_dict and name[0] in remote_dataset_dict: # Do not verifiy the local objects if remote dataset exists
+    for name, input in objects.items():
+        if (
+            not remote_dataset_dict and name[0] in remote_dataset_dict
+        ):  # Do not verifiy the local objects if remote dataset exists
             continue
         # Skip the remote objects
         if input.startswith("http"):
@@ -110,7 +125,10 @@ def files_verifier(crate_path: str, instrument: str, objects: dict, remote_datas
 
         file_verifier.append(file_tuple)
 
-    print_colored("STATUS TABLE (the crate includes the DATASETS needed by the workflow to run, data persistence was TRUE):", TextColor.YELLOW)
+    print_colored(
+        "STATUS TABLE (the crate includes the DATASETS needed by the workflow to run, data persistence was TRUE):",
+        TextColor.YELLOW,
+    )
 
     generate_file_status_table(file_verifier, "Included")
 
@@ -118,10 +136,12 @@ def files_verifier(crate_path: str, instrument: str, objects: dict, remote_datas
         if verified:
             raise ValueError(f"Content size mismatch in files: {temp_size}")
         else:
-            raise ValueError(f"Content size mismatch in files: {temp_size}\nFiles missing: {temp_path}")
+            raise ValueError(
+                f"Content size mismatch in files: {temp_size}\nFiles missing: {temp_path}"
+            )
     if not verified:
         raise FileNotFoundError(f"Files missing in directory: {temp_path}")
 
-    print_colored("All files in the crate have been verified successfully", TextColor.GREEN)
-
-
+    print_colored(
+        "All files in the crate have been verified successfully", TextColor.GREEN
+    )

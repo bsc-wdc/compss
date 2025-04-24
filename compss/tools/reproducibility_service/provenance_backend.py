@@ -26,7 +26,15 @@ import time
 
 from rocrate.rocrate import ROCrate
 from ruamel.yaml import YAML
-from utils import get_instument, get_yes_or_no, get_name_and_description, get_ro_crate_info, print_colored, TextColor
+from utils import (
+    get_instument,
+    get_yes_or_no,
+    get_name_and_description,
+    get_ro_crate_info,
+    print_colored,
+    TextColor,
+)
+
 
 def update_yaml(crate_path: str):
     """
@@ -52,33 +60,49 @@ def update_yaml(crate_path: str):
     yaml.preserve_quotes = True
     yaml_file_path = os.path.join(os.getcwd(), "ro-crate-info.yaml")
     # Read the YAML content from the file
-    with open(yaml_file_path, 'r', encoding='utf-8') as file:
+    with open(yaml_file_path, "r", encoding="utf-8") as file:
         data = yaml.load(file)
 
     # Update the name and description fields
     # Update the fields in the loaded YAML content
-    data['COMPSs Workflow Information']['sources'] = sources
-    data['COMPSs Workflow Information']['sources_main_file'] = sources_main_file
-    data['COMPSs Workflow Information']['name'] = name
-    data['COMPSs Workflow Information']['description'] = description
-    data['Authors'] = authors
+    data["COMPSs Workflow Information"]["sources"] = sources
+    data["COMPSs Workflow Information"]["sources_main_file"] = sources_main_file
+    data["COMPSs Workflow Information"]["name"] = name
+    data["COMPSs Workflow Information"]["description"] = description
+    data["Authors"] = authors
 
     # Ask for submitter details
-    print_colored("Please provide the submitter's detail for provenance generation: ", TextColor.YELLOW)
-    submitter_details = data['Submitter']
-    submitter_details['name'] = input("Submitter's Name [Name]: ").strip() or "Name"
-    submitter_details['e-mail'] = input("Submitter's E-mail [submitter@email.com]: ").strip() or "submitter@email.com"
-    submitter_details['orcid'] = input("Submitter's ORCID [https://orcid.org/XXXX-XXXX-XXXX-XXXX]: ").strip() or "https://orcid.org/XXXX-XXXX-XXXX-XXXX"
-    submitter_details['organisation_name'] = input("Submitter's Organisation Name [Submitter Institution name]: ").strip() or "Submitter Institution name"
-    submitter_details['ror'] = input("Submitter's ROR [https://ror.org/XXXXXXXXX]: ").strip() or "https://ror.org/XXXXXXXXX"
+    print_colored(
+        "Please provide the submitter's detail for provenance generation: ",
+        TextColor.YELLOW,
+    )
+    submitter_details = data["Submitter"]
+    submitter_details["name"] = input("Submitter's Name [Name]: ").strip() or "Name"
+    submitter_details["e-mail"] = (
+        input("Submitter's E-mail [submitter@email.com]: ").strip()
+        or "submitter@email.com"
+    )
+    submitter_details["orcid"] = (
+        input("Submitter's ORCID [https://orcid.org/XXXX-XXXX-XXXX-XXXX]: ").strip()
+        or "https://orcid.org/XXXX-XXXX-XXXX-XXXX"
+    )
+    submitter_details["organisation_name"] = (
+        input("Submitter's Organisation Name [Submitter Institution name]: ").strip()
+        or "Submitter Institution name"
+    )
+    submitter_details["ror"] = (
+        input("Submitter's ROR [https://ror.org/XXXXXXXXX]: ").strip()
+        or "https://ror.org/XXXXXXXXX"
+    )
 
     # Write the updated dictionary back to the YAML file
-    with open(yaml_file_path, 'w', encoding='utf-8') as file:
+    with open(yaml_file_path, "w", encoding="utf-8") as file:
         yaml.dump(data, file)
 
     print("Updated the ro-crate-info.yaml file with the workflow information.")
 
-def provenance_info_collector(execution_path:str, service_path: str) -> bool:
+
+def provenance_info_collector(execution_path: str, service_path: str) -> bool:
     """
     Collect provenance information for the workflow based on user input.
 
@@ -91,7 +115,9 @@ def provenance_info_collector(execution_path:str, service_path: str) -> bool:
         to ensure it is filled correctly. If not found or verified, it invokes 'get_ro_crate_info'
         to generate the file. It returns True if provenance collection is enabled, False otherwise.
     """
-    provenance_flag = get_yes_or_no("Do you want to generate the provenance of your workflow run?")
+    provenance_flag = get_yes_or_no(
+        "Do you want to generate the provenance of your workflow run?"
+    )
     # print("Provenance_flag:",provenance_flag)
     if provenance_flag:
         files = os.listdir(os.getcwd())
@@ -101,18 +127,29 @@ def provenance_info_collector(execution_path:str, service_path: str) -> bool:
 
     return provenance_flag
 
-def provenance_checker(execution_path: str) :
+
+def provenance_checker(execution_path: str):
     # for file in os.listdir(os.getcwd()):
     #     if file == "ro-crate-info.yaml":
     #         os.unlink(os.path.join(os.getcwd(), file))
     #         break
-    result_path = os.path.join(execution_path, 'Result')
+    result_path = os.path.join(execution_path, "Result")
     if not os.path.exists(result_path):
         contains_crate = False
     else:
-        contains_crate = any(name.startswith('COMPSs_RO-Crate_') for name in os.listdir(result_path) if os.path.isdir(os.path.join(result_path, name)))
+        contains_crate = any(
+            name.startswith("COMPSs_RO-Crate_")
+            for name in os.listdir(result_path)
+            if os.path.isdir(os.path.join(result_path, name))
+        )
 
     if contains_crate:
-        print_colored(f"RO_CRATE has been generated successfully inside {result_path}", TextColor.GREEN)
+        print_colored(
+            f"RO_CRATE has been generated successfully inside {result_path}",
+            TextColor.GREEN,
+        )
     else:
-        print_colored("Could not generate the RO_CRATE for provenance, please see the above provenance log for more details", TextColor.RED)
+        print_colored(
+            "Could not generate the RO_CRATE for provenance, please see the above provenance log for more details",
+            TextColor.RED,
+        )

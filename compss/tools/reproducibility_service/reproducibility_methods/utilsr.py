@@ -23,18 +23,19 @@ import subprocess
 
 from rocrate.rocrate import ROCrate
 
+
 def get_file_names(folder_path: str) -> dict:
     """
     Get the file names in the folder path
     """
     file_names = {}
-    for root,_,files in os.walk(folder_path):
+    for root, _, files in os.walk(folder_path):
         for file in files:
             file_names[file] = os.path.join(root, file)
     return file_names
 
 
-def get_Create_Action(entity:ROCrate):
+def get_Create_Action(entity: ROCrate):
     """
     Get the Create Action entity from the ROCrate
     """
@@ -43,13 +44,16 @@ def get_Create_Action(entity:ROCrate):
             return entity
     return None
 
-def get_results_dict(entity:ROCrate):
+
+def get_results_dict(entity: ROCrate):
     """
     Get the results dictionary from the Create Action entity
     """
     createAction = get_Create_Action(entity)
-    results= {}
-    if "result" in createAction: # It is not necessary to have inputs/objects in Create Action
+    results = {}
+    if (
+        "result" in createAction
+    ):  # It is not necessary to have inputs/objects in Create Action
         temp = createAction["result"]
     else:
         return None
@@ -57,6 +61,7 @@ def get_results_dict(entity:ROCrate):
     for result in temp:
         results[result["name"]] = result.id
     return results
+
 
 def check_slurm_cluster() -> tuple[bool, str]:
     """
@@ -67,8 +72,10 @@ def check_slurm_cluster() -> tuple[bool, str]:
             is running on a SLURM cluster and a message.
     """
     try:
-        result = subprocess.run(['squeue'], capture_output=True, text=True)
+        result = subprocess.run(["squeue"], capture_output=True, text=True)
         if result.returncode == 0:
             return True, result.stdout
+        else:
+            return False, result.stdout
     except Exception as e:
         return False, str(e)

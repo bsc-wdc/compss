@@ -28,6 +28,7 @@ within a given directory structure. It includes the following functions:
 
 import os
 
+
 # TO-DO:
 # change address converter backend such that if a file/directory matches with
 # any result object then mak a new folder with same name if directory inside the Results/ and map it there
@@ -88,8 +89,15 @@ def address_converter_backend(path: str, addr: str, dataset_hashmap: dict) -> st
 
     return mapped_addr
 
-def address_converter(path: str, addr: str, dataset_hashmap: dict,
-                      application_sources_hashmap: dict,remote_dataset_hashmap:dict, dataset_flags: tuple[bool, bool]) -> str:
+
+def address_converter(
+    path: str,
+    addr: str,
+    dataset_hashmap: dict,
+    application_sources_hashmap: dict,
+    remote_dataset_hashmap: dict,
+    dataset_flags: tuple[bool, bool],
+) -> str:
     """
     Attempts to convert the given address first using the dataset hashmap and
     then using the application sources hashmap. Raises a `FileNotFoundError` if
@@ -117,22 +125,39 @@ def address_converter(path: str, addr: str, dataset_hashmap: dict,
         dataset_path = os.path.join(path, "dataset")
     application_sources_path = os.path.join(path, "application_sources")
 
-     # Define the paths to try for address conversion
+    # Define the paths to try for address conversion
     paths_to_try = [
         (dataset_path, dataset_hashmap, "Dataset Error"),
-        (application_sources_path, application_sources_hashmap, "Application Sources Error")
+        (
+            application_sources_path,
+            application_sources_hashmap,
+            "Application Sources Error",
+        ),
     ]
 
     if dataset_flags[0]:
-        paths_to_try.insert(0,(os.path.join(path, "remote_dataset"), remote_dataset_hashmap, "Remote Dataset Error"))
+        paths_to_try.insert(
+            0,
+            (
+                os.path.join(path, "remote_dataset"),
+                remote_dataset_hashmap,
+                "Remote Dataset Error",
+            ),
+        )
 
-    for path, hashmap, error_context in paths_to_try: # try all the paths one by one and return where
-        try:                                           # file is found,if not found append the error to the list
+    for (
+        path,
+        hashmap,
+        error_context,
+    ) in paths_to_try:  # try all the paths one by one and return where
+        try:  # file is found,if not found append the error to the list
             return address_converter_backend(path, addr, hashmap)
         except FileNotFoundError as e:
             errors.append((error_context, e))
 
     handle_address_conversion_failure(addr, errors)
+
+
 def addr_extractor(path: str) -> dict:
     """
     Extracts the addresses of datasets in the given path. For this particular case,
@@ -153,7 +178,8 @@ def addr_extractor(path: str) -> dict:
 
     return hash_map
 
-def handle_address_conversion_failure(addr:str, errors: list):
+
+def handle_address_conversion_failure(addr: str, errors: list):
     """
     Used for raising a `FileNotFoundError` when the address conversion fails.
     """

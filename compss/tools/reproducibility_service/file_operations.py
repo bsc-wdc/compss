@@ -27,6 +27,7 @@ import os
 import shutil
 import datetime
 
+
 def move_results_created(initial_files, execution_path: str):
     """
     Removes temporary files and moves newly created files to a 'Result' folder.
@@ -36,7 +37,7 @@ def move_results_created(initial_files, execution_path: str):
     temp (list): List of temporary files to be removed.
 
     """
-    result_folder_path = os.path.join(execution_path, 'Result')
+    result_folder_path = os.path.join(execution_path, "Result")
     # Get the current list of files in the CWD and remove the clean-up files, that were copied for the execution
     cwd = os.getcwd()
     current_files = set(os.listdir(cwd))
@@ -48,13 +49,16 @@ def move_results_created(initial_files, execution_path: str):
             os.makedirs(result_folder_path)
         # Move the new files to the Result folder
         for new_file in new_files:
-            if new_file.startswith("reproducibility_service_"): #cannot move the execution directory into itself
+            if new_file.startswith(
+                "reproducibility_service_"
+            ):  # cannot move the execution directory into itself
                 continue
-            if new_file == "__pycache__": # Do not consider the cache files
+            if new_file == "__pycache__":  # Do not consider the cache files
                 continue
             src_path = os.path.join(cwd, new_file)
             dest_path = os.path.join(result_folder_path, new_file)
             shutil.move(src_path, dest_path)
+
 
 # def remote_dataset_mover(directory: str) -> set[str]:
 #     """
@@ -91,6 +95,7 @@ def move_results_created(initial_files, execution_path: str):
 
 #     return input_files_copied
 
+
 def copy_all_files_to_cwd(src_path) -> set[str]:
     """
     Copies all files from the specified source path to the current working directory.
@@ -117,6 +122,7 @@ def copy_all_files_to_cwd(src_path) -> set[str]:
 
     return copied_files
 
+
 def copy_all_to_cwd(src_path) -> set[str]:
     """
     Copies all files and folders from the specified source path to the current working directory.
@@ -140,7 +146,9 @@ def copy_all_to_cwd(src_path) -> set[str]:
                 os.makedirs(dst_item_path)
             items = os.listdir(src_item_path)
             for item in items:
-                copy_item(os.path.join(src_item_path, item), os.path.join(dst_item_path, item))
+                copy_item(
+                    os.path.join(src_item_path, item), os.path.join(dst_item_path, item)
+                )
         else:
             shutil.copy2(src_item_path, dst_item_path)
         copied_items.add(os.path.relpath(dst_item_path, cwd))
@@ -152,6 +160,7 @@ def copy_all_to_cwd(src_path) -> set[str]:
 
     return copied_items
 
+
 # def cleanup(temp: set):
 #     cwd = os.getcwd()
 #     for filename in temp:
@@ -161,13 +170,16 @@ def copy_all_to_cwd(src_path) -> set[str]:
 #         elif os.path.isdir(file_path):
 #             shutil.rmtree(file_path)
 
+
 def create_new_execution_directory(SERVICE_PATH: str):
     # Create a unique sub-directory name based on the current timestamp
-    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    new_execution_dir = os.path.join(os.getcwd(), f'reproducibility_service_{timestamp}')
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    new_execution_dir = os.path.join(
+        os.getcwd(), f"reproducibility_service_{timestamp}"
+    )
     # Create the new sub-directory
     os.makedirs(new_execution_dir)
     # required directories for the service
-    os.makedirs(os.path.join(new_execution_dir, 'log'))
-    os.makedirs(os.path.join(new_execution_dir, 'Workflow'))
+    os.makedirs(os.path.join(new_execution_dir, "log"))
+    os.makedirs(os.path.join(new_execution_dir, "Workflow"))
     return new_execution_dir

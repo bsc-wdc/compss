@@ -40,8 +40,9 @@ from .utilsr import get_file_names, get_results_dict, check_slurm_cluster
 
 def generate_command_line(self, sub_directory_path: str) -> list[str]:
     """
-    Generates a modified command line based on the contents of a compss_submission_command_line.txt
-    file and the mappings of dataset and application sources in the crate directory.
+    Generates a modified command line based on the contents of a compss_submission_command_line.txt file, if it exists.
+    In alternative, the command line is parsed from thr ro-crate-metadata.json, in the description of the workflow.
+    The final command line includes mappings of dataset and application sources found in the crate directory.
 
     Args:
     crate_directory (str): Path to the crate directory containing dataset and application sources.

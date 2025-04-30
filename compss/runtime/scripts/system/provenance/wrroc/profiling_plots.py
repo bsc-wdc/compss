@@ -20,6 +20,7 @@ import time
 try:
     import matplotlib.pyplot as plt
     import matplotlib.colors as mcolors
+    from matplotlib.lines import Line2D
 except:
     print(
         "Error: matplotlib is not installed. Please install it using 'pip install matplotlib'."
@@ -32,6 +33,24 @@ except:
         "Error: pandas is not installed. Please install it using 'pip install pandas'."
     )
     exit(1)
+
+# Color-blind friendly palette (Paul Tol's high contrast)
+COLOR_PALETTE = [
+    '#4477AA',  # blue
+    '#EE6677',  # red
+    '#228833',  # green
+    '#CCBB44',  # yellow
+    '#66CCEE',  # cyan
+    '#AA3377',  # purple
+    '#BBBBBB',  # grey
+    '#000000'  # black
+]
+
+# Different marker styles for better distinction
+MARKER_STYLES = ['o', 's', '^', 'v', 'D', 'p', '*', 'h', 'H', '+', 'x', '|', '_']
+
+# Line styles for additional distinction
+LINE_STYLES = ['-', '--', '-.', ':']
 
 
 def timestamp_axis(num_entries, time_list):
@@ -64,19 +83,39 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
     :return:
     """
     plt.style.use("ggplot")
+    plt.rcParams['figure.dpi'] = 300  # Higher resolution
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['lines.linewidth'] = 1.5
+    plt.rcParams['lines.markersize'] = 4  # Smaller markers
+
     fig, ax = plt.subplots(figsize=(12, 8))
     avg_perc = round(sum(value_list) / num_entries, 2)
 
-    if max(value_list) > 10**6:
-        value_list = [value / 10**6 for value in value_list]
+    if max(value_list) > 10 ** 6:
+        value_list = [value / 10 ** 6 for value in value_list]
         measure = "Megabyte (MB)"
 
-    ax.plot(time_list, value_list, marker=".", linestyle="-", label=name_dataset)
+    # Use solid line with less frequent markers
+    ax.plot(
+        time_list,
+        value_list,
+        marker='.',
+        markersize=3,  # Smaller points
+        markevery=10,  # Show marker every 10 points
+        linestyle="-",
+        label=name_dataset,
+        color=COLOR_PALETTE[0]
+    )
 
     timestamp_axis(num_entries, time_list)
 
     if avg_perc < 100:
-        plt.axhline(avg_perc, color="b", linestyle="--", label=f"Average = {avg_perc}%")
+        plt.axhline(
+            avg_perc,
+            color=COLOR_PALETTE[1],
+            linestyle="--",
+            label=f"Average = {avg_perc}%"
+        )
 
     ax.set_title(title)
     ax.set_xlabel("Timestamp")
@@ -86,7 +125,7 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
 
 
 def plot_bytes(
-    time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
+        time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
 ):
     """
     Function to generate the plots for metrics which use bytes
@@ -101,10 +140,15 @@ def plot_bytes(
     :return:
     """
     plt.style.use("ggplot")
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['lines.linewidth'] = 1.5
+    plt.rcParams['lines.markersize'] = 4
+
     fig, ax = plt.subplots(figsize=(12, 8))
 
-    first_df = [value / 10**6 for value in first_df]
-    second_df = [value / 10**6 for value in second_df]
+    first_df = [value / 10 ** 6 for value in first_df]
+    second_df = [value / 10 ** 6 for value in second_df]
 
     for i in range(num_entries):
         first_value = 0 if i == 0 else first_df[i - 1]
@@ -113,9 +157,26 @@ def plot_bytes(
         first_df[i] = first_value + first_df[i]
         second_df[i] = second_value + second_df[i]
 
-    ax.plot(time_list, first_df, c="r", marker=".", linestyle="-", label=first_df_name)
+    # Different line styles and markers for better distinction
     ax.plot(
-        time_list, second_df, c="b", marker=".", linestyle="-", label=second_df_name
+        time_list,
+        first_df,
+        color=COLOR_PALETTE[0],
+        marker='s',
+        markersize=3,
+        markevery=10,
+        linestyle="-",
+        label=first_df_name
+    )
+    ax.plot(
+        time_list,
+        second_df,
+        color=COLOR_PALETTE[1],
+        marker='^',
+        markersize=3,
+        markevery=10,
+        linestyle="--",
+        label=second_df_name
     )
 
     timestamp_axis(num_entries, time_list)
@@ -138,21 +199,46 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     :param colors: list of colors to use in the plots
     :return:
     """
+    plt.style.use("ggplot")
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['lines.linewidth'] = 1.5
+    plt.rcParams['lines.markersize'] = 3
+
     plt.figure(figsize=(12, 8))
-    i = 0
-    for label, resampled_df in resampled_dfs.items():
+
+    # Create custom legend handles for better distinction
+    legend_elements = []
+
+    for i, (label, resampled_df) in enumerate(resampled_dfs.items()):
+        color = COLOR_PALETTE[i % len(COLOR_PALETTE)]
+        marker = MARKER_STYLES[i % len(MARKER_STYLES)]
+        linestyle = LINE_STYLES[i % len(LINE_STYLES)]
+
         plt.plot(
             resampled_df.index,
             resampled_df[metric],
             label=label,
-            color=colors[i % len(colors)],
-            marker=".",
-            linestyle="-",
+            color=color,
+            marker=marker,
+            markersize=3,
+            markevery=15,
+            linestyle=linestyle,
+            linewidth=1.5
         )
-        i += 1
+
+        # Create custom legend entry with all distinguishing features
+        legend_elements.append(Line2D(
+            [0], [0],
+            color=color,
+            marker=marker,
+            linestyle=linestyle,
+            label=label,
+            markersize=8,
+            linewidth=1.5
+        ))
 
     all_times = pd.concat(resampled_dfs.values()).index.unique().sort_values()
-    # all_times = pd.concat([df for df in resampled_dfs.values() if not df.empty]).index.unique().sort_values()
     num_entries = len(all_times)
     step = int(num_entries / 60) + 1
     selected_times = all_times[::step]
@@ -164,10 +250,17 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     plt.xlabel("Timestamp")
     plt.ylabel(f"{name_metric} usage (%)")
     plt.title(f"{name_metric} usage among the nodes")
-    plt.legend()
+
+    # Use custom legend
+    plt.legend(handles=legend_elements)
+
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(name_plot)
+
+    # Save as SVG for vector format
+    if name_plot.endswith('.svg'):
+        name_plot = name_plot[:-4] + '.svg'
+    plt.savefig(name_plot, format='svg')
     plt.close()
 
 
@@ -179,19 +272,12 @@ def plot_results(folder_pathname) -> str:
     :return plots_pathname: pathname of the directory containing the plots generated
     """
     folder_pathname = str(folder_pathname)
-    # with open(folder_pathname + '/stats.json', 'r') as f:
-    #     stats_file = json.load(f)
-
-    # try:
-    #     master_node = stats_file['COMPSS_MASTER_NODE'].strip().upper()
-    # except:
-    #     master_node = None
-
     if not os.path.exists(folder_pathname):
         print("Error: stats folder does not exist")
         exit(1)
 
     plots_pathname = folder_pathname + "/plots/"
+    os.makedirs(plots_pathname, exist_ok=True)
 
     list_of_cpus = {}
     list_of_mems = {}
@@ -199,9 +285,7 @@ def plot_results(folder_pathname) -> str:
     df_list = []
     name_list = []
 
-    num_files = num_files = sum(
-        1 for f in os.listdir(folder_pathname) if f.endswith(".csv")
-    )
+    num_files = sum(1 for f in os.listdir(folder_pathname) if f.endswith(".csv"))
 
     # iterate on every file in the directory
     for csv_resources in os.listdir(folder_pathname):
@@ -222,8 +306,6 @@ def plot_results(folder_pathname) -> str:
         byte_recv = df["BYTE_RECV"]
         byte_read_disk = df["BYTE_READ_DISK"]
         byte_write_disk = df["BYTE_WRITE_DISK"]
-        # time_read_disk = df["TIME_READ_DISK"]
-        # time_write_disk = df["TIME_WRITE_DISK"]
         timestamps = df["TIME"]
 
         list_of_cpus[machine_name] = list(cpu_usage)
@@ -240,7 +322,7 @@ def plot_results(folder_pathname) -> str:
             measure="CPU %",
             num_entries=df_length,
         )
-        plt.savefig(output_path + "/cpu.png")
+        plt.savefig(output_path + "/cpu.svg", format='svg')
         plt.close()
 
         build_plot(
@@ -251,7 +333,7 @@ def plot_results(folder_pathname) -> str:
             measure="Memory %",
             num_entries=df_length,
         )
-        plt.savefig(output_path + "/mem.png")
+        plt.savefig(output_path + "/mem.svg", format='svg')
         plt.close()
 
         if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
@@ -264,13 +346,10 @@ def plot_results(folder_pathname) -> str:
                 num_entries=df_length,
                 title=f"Network usage of {machine_name}",
             )
-            plt.savefig(output_path + "/network_usage.png")
+            plt.savefig(output_path + "/network_usage.svg", format='svg')
             plt.close()
 
-        if (
-            not byte_write_disk.isna().any().any()
-            and not byte_read_disk.isna().any().any()
-        ):
+        if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
             plot_bytes(
                 time_list=timestamps,
                 first_df=byte_write_disk,
@@ -280,12 +359,10 @@ def plot_results(folder_pathname) -> str:
                 num_entries=df_length,
                 title=f"Disk usage of {machine_name}",
             )
-            plt.savefig(output_path + "/disk_usage.png")
+            plt.savefig(output_path + "/disk_usage.svg", format='svg')
             plt.close()
 
     if num_files > 1:
-        colors = list(mcolors.TABLEAU_COLORS.values())
-
         plt.style.use("ggplot")
         resampled_dfs = {}
         for df, label in zip(df_list, name_list):
@@ -295,10 +372,10 @@ def plot_results(folder_pathname) -> str:
             resampled_dfs[label] = resampled_df
 
         build_plot_nodes(
-            resampled_dfs, plots_pathname + "cpu_nodes.png", "CPU", "CPU", colors
+            resampled_dfs, plots_pathname + "cpu_nodes.svg", "CPU", "CPU", COLOR_PALETTE
         )
         build_plot_nodes(
-            resampled_dfs, plots_pathname + "mem_nodes.png", "MEM", "Memory", colors
+            resampled_dfs, plots_pathname + "mem_nodes.svg", "MEM", "Memory", COLOR_PALETTE
         )
 
     return plots_pathname

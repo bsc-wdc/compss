@@ -23,6 +23,13 @@ import socket
 import yaml
 import statistics as st
 from hashlib import sha256
+try:
+    import matplotlib.pyplot as plt
+except:
+    print(
+        "Error: matplotlib is not installed. Please install it using 'pip install matplotlib'."
+    )
+    exit(1)
 
 from pathlib import Path
 from datetime import timezone
@@ -57,22 +64,25 @@ unit_dict = {
     "MEM_GBS": "https://qudt.org/vocab/unit/GigaBYTES",
 }
 
-description_plots = {
-    "cpu": "Plot of the percentage of cpu used during the execution",
-    "mem": "Plot of the amount of memory used during the execution",
-    "disk_usage": "Plot of the cumulative amount of data read and written on the disk during the execution",
-    "network_usage": "Plot of the cumulative amount of data sent and received during the execution",
-    "cpu_nodes": "Plot of the percentage of cpu used during the execution of all nodes used",
-    "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
-    # The following plots represent bursts over time and are currently unused
-    "bytes_read": "Plot of the amount of data read from the disk during the execution",
-    "bytes_written": "Plot of the amount of data written from the disk during the execution",
-    "bytes_sent": "Plot of the amount of data sent across the network during the execution",
-    "bytes_received": "Plot of the amount of data received across the network during the execution",
-}
-
 LANGUAGES_EXTENSION = (".java", ".py", ".sh")
 
+
+def get_description_plot(metric, node_name="unknown node"):
+    description_plots = {
+        "cpu": f"Plot of {node_name} showing the percentage of CPU used during the execution",
+        "mem": f"Plot of {node_name} showing the amount of memory used during the execution",
+        "disk_usage": f"Plot of {node_name} showing the cumulative amount of data read and written on the disk during the execution",
+        "network_usage": f"Plot of {node_name} showing the cumulative amount of data sent and received during the execution",
+        "cpu_nodes": "Plot of the percentage of CPU used during the execution of all nodes used",
+        "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
+        # The following plots represent bursts over time and are currently unused
+        "bytes_read": "Plot of the amount of data read from the disk during the execution",
+        "bytes_written": "Plot of the amount of data written from the disk during the execution",
+        "bytes_sent": "Plot of the amount of data sent across the network during the execution",
+        "bytes_received": "Plot of the amount of data received across the network during the execution",
+    }
+
+    return description_plots[metric]
 
 def process_log(dp_path: str, data_list: list) -> tuple:
     """
@@ -437,18 +447,19 @@ def wrroc_create_action(
     if os.path.exists(plots_path):
         for root, _, files in os.walk(plots_path):
             for file in files:
-                if file.endswith(".png"):
+                if file.endswith(".svg"):
                     full_path = os.path.join(root, file)
                     relative_path = "profiling" + full_path.split("/plots")[1]
 
                     # Generate a unique ID and path for the file
-                    unique_id = "#" + full_path.split("plots/")[1].split(".png")[
+                    unique_id = "#" + full_path.split("plots/")[1].split(".svg")[
                         0
                     ].replace(
                         "/", "."
                     )  # Replace '/' with '_'
 
-                    metric = relative_path.split("/")[-1].split(".png")[0]
+                    metric = relative_path.split("/")[-1].split(".svg")[0]
+                    node_name = relative_path.split("/")[-2]
 
                     # Add the CreateAction entity
                     # action = compss_crate.add(Entity(compss_crate, unique_id, properties={
@@ -467,12 +478,12 @@ def wrroc_create_action(
                             "@id": relative_path,  # Unique ID for the file
                             "@type": ["File", "ImageObject"],
                             "name": relative_path.split("/")[-1],
-                            "description": description_plots[metric],
+                            "description": get_description_plot(metric, node_name),
                             "contentSize": os.stat(full_path).st_size,
                             "encodingFormat": [
-                                "image/png",
+                                "image/svg+xml",
                                 {
-                                    "@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/11"
+                                    "@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"
                                 },
                             ],
                             "about": resolved_main_entity,
@@ -627,6 +638,7 @@ def wrroc_create_action(
             )
 
     try:
+        stat_data_time = time.time()
         print(f"PROVENANCE | RO-Crate adding statistical data")
         # Add the resource usage to the ROCrate object
         resource_usage_list = get_resource_usage_dataset(dp_log, start_time, end_time)
@@ -668,58 +680,60 @@ def wrroc_create_action(
                     id_measure_list.append({"@id": measure_id})
 
         id_name_list.extend(id_measure_list)
-        print(f"PROVENANCE | Added resource profiling information ")
+        print(f"PROVENANCE | Added resource profiling information TIME: {time.time() - stat_data_time} s")
 
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
 
-    try:
-        entry_list = [
-            "AVG_CPUFREQ_KHZ",
-            "AVG_IMCFREQ_KHZ",
-            "CPI",
-            "TPI",
-            "MEM_GBS",
-            "IO_MBS",
-            "DC_NODE_POWER_W",
-            "DRAM_POWER_W",
-            "PCK_POWER_W",
-            "CYCLES",
-            "INSTRUCTIONS",
-            "CPU_GFLOPS",
-        ]
+    if os.path.isdir(energy_path):
+        try:
+            entry_list = [
+                "AVG_CPUFREQ_KHZ",
+                "AVG_IMCFREQ_KHZ",
+                "CPI",
+                "TPI",
+                "MEM_GBS",
+                "IO_MBS",
+                "DC_NODE_POWER_W",
+                "DRAM_POWER_W",
+                "PCK_POWER_W",
+                "CYCLES",
+                "INSTRUCTIONS",
+                "CPU_GFLOPS",
+            ]
 
-        print(f"PROVENANCE | RO-Crate adding energy data")
+            id_measure_list = []
+            for subdir, dirs, files in os.walk(energy_path):
+                for file in files:
+                    if file.endswith("time.csv"):
+                        energy_file = Path(subdir, file)
+                        node = file.split(".")[1]
+                        df = pd.read_csv(energy_file, sep=";")
+                        # pandas library has problems in column names containing dash
+                        df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
+                        node_id = df["NODENAME"].iloc[0]
+                        df = df[entry_list]
 
-        id_measure_list = []
-        for subdir, dirs, files in os.walk(energy_path):
-            for file in files:
-                if file.endswith("time.csv"):
-                    energy_file = Path(subdir, file)
-                    node = file.split(".")[1]
-                    df = pd.read_csv(energy_file, sep=";")
-                    # pandas library has problems in column names containing dash
-                    df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
-                    node_id = df["NODENAME"].iloc[0]
-                    df = df[entry_list]
+                        for measure in entry_list:
+                            average_value = round(st.mean(df[measure]), 2)
 
-                    for measure in entry_list:
-                        average_value = round(st.mean(df[measure]), 2)
-
-                        measure_id = f"#{node_id}.{measure}"
-                        new_properties = build_info_dict_ear(measure, average_value)
-                        compss_crate.add(
-                            ContextEntity(
-                                compss_crate, measure_id, properties=new_properties
+                            measure_id = f"#{node_id}.{measure}"
+                            new_properties = build_info_dict_ear(measure, average_value)
+                            compss_crate.add(
+                                ContextEntity(
+                                    compss_crate, measure_id, properties=new_properties
+                                )
                             )
-                        )
-                        id_measure_list.append({"@id": measure_id})
-        id_name_list.extend(id_measure_list)
-    except ValueError:
-        print(
-            f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
-        )
-        print("PROVENANCE | EAR not used")
+                            id_measure_list.append({"@id": measure_id})
+            id_name_list.extend(id_measure_list)
+            print(f"PROVENANCE | RO-Crate adding energy data")
+        except ValueError:
+            print(
+                f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
+            )
+            print("PROVENANCE | EAR not used")
+    else:
+        print("PROVENANCE | EAR not enabled")
 
     create_action_properties["resourceUsage"] = id_name_list
 

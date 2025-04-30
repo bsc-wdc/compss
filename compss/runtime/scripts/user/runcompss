@@ -9,6 +9,11 @@ if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
 fi
 export COMPSS_HOME=${COMPSS_HOME}
 
+# Variables for showing the provenance log
+is_yaml_default=true
+is_output_profile_default=true
+is_graph_default=true
+provenance=false
 
 # Load auxiliar scripts
 # shellcheck source=../system/commons/logger.sh
@@ -296,14 +301,11 @@ get_args() {
       p)
         # Enable provenance
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-        echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
         provenance=true
         if [ -z "$output_profile" ] ; then
-          echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
         fi
         if [ -z "$graph" ] ; then
-          echo "PROVENANCE | Setting 'graph' to 'true' by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
         fi
         ;;
@@ -385,6 +387,7 @@ get_args() {
           graph=*)
             # Graph generation at the end of the execution with user option
             graph=${OPTARG//graph=/}
+            is_graph_default=false
             ;;
           graph)
             # Graph generation at the end of the execution by default arg
@@ -562,6 +565,7 @@ get_args() {
           output_profile=*)
             # Specify the file where COMPSs will store the tasks profile
             output_profile=${OPTARG//output_profile=/}
+            is_output_profile_default=false
             ;;
           scheduler=*)
             # Scheduler main class
@@ -639,46 +643,33 @@ get_args() {
             # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
-          data_provenance=*)
-            # Enable or disable provenance
-            provenance=${OPTARG//data_provenance=/}
-            # Enable provenance, YAML file specified as parameter
-            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting 'graph' to 'true' by default"
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
-            ;;
           provenance=*)
-            # Enable provenance, YAML file specified as parameter
-            provenance_yaml=${OPTARG//provenance=/}
-            echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            provenance=true
-            if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting 'graph' to 'true' by default"
-              graph=${DEFAULT_GRAPH_ARGUMENT}
+            provenance_arg=${OPTARG//provenance=/}
+            if [ "${provenance_arg}" != false ]; then
+              # Enable provenance, YAML file specified as parameter
+              if [[ "${provenance_arg}" == *.yaml ]]; then
+                provenance_yaml="${provenance_arg}"
+                is_yaml_default=false
+              else
+                provenance_yaml="${DEFAULT_PROVENANCE_YAML}"
+              fi
+              provenance=true
+              if [ -z "$output_profile" ] ; then
+                output_profile="${PWD}/App_Profile.json"
+              fi
+              if [ -z "$graph" ] ; then
+                graph=${DEFAULT_GRAPH_ARGUMENT}
+              fi
             fi
             ;;
           provenance)
             # Enable provenance
             provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
             provenance=true
             if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
             fi
             if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
             fi
             ;;
@@ -694,6 +685,27 @@ get_args() {
         ;;
     esac
   done
+
+  if [ "${provenance}" != false ]; then
+    # Show log provenance
+    if [ "${is_yaml_default}" = true ]; then
+      echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
+    else
+      echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
+    fi
+    if [ "${is_output_profile_default}" = true ]; then
+      echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+    else
+      echo "PROVENANCE | Setting 'output_profile' to '${output_profile}'"
+    fi
+    if [ "${is_graph_default}" = true ]; then
+      echo "PROVENANCE | Setting 'graph' to 'true' by default"
+    else
+      echo "PROVENANCE | Setting 'graph' to '${graph}'"
+    fi
+  fi
+
+
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
@@ -776,19 +788,17 @@ start_profiling
 # Real runtime execution
 start_compss_app
 
-if [ ${provenance} ]; then
+if [ "${provenance}" != false ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
     echo "runcompss" $all_arguments > .compss_submission_command_line.txt
   else
     echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > .compss_submission_command_line.txt
   fi
-  kill $PROFILING_PID
 
   # Stop profiling process
   if [ -n "${PROFILING_PID}" ]; then
     kill $PROFILING_PID
   fi
-  kill $PROFILING_PID
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
   for file in "${specific_log_dir}"stats/*.csv; do

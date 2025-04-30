@@ -478,7 +478,7 @@ master_cmd() {
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
             --jvm_workers_opts=${jvm_workers_opts} \
-            --data_provenance=${provenance}"
+            --provenance=${provenance}"
   if [ -n "${master_working_dir}" ]; then
     MCMD="$MCMD --master_working_dir=${master_working_dir}"
   fi
@@ -1392,6 +1392,9 @@ get_args() {
           # Added for EAR integration
           ear=true
           ear_flags=${OPTARG//ear=/}
+          ;;
+        provenance=*)
+          provenance=${OPTARG//provenance=/}
           ;;
         provenance)
           provenance=true

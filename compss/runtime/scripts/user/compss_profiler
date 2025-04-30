@@ -1,7 +1,7 @@
 #!/bin/bash
 
 start_profiling() {
-  if [ ${provenance} ]; then
+  if [ "${provenance}" != false ]; then
     # specific_log_dir=$(pwd)
     # profiling_status=$(echo "${specific_log_dir}/.status_profiling")
 

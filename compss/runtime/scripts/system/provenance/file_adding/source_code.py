@@ -279,41 +279,39 @@ def add_file_to_crate(
             )
 
         # out_profile
-        if (
-            os.path.exists(out_profile)
-            and out_profile.split("/")[-1] != "App_Profile.json"
-        ):
-            file_properties = {}
-            file_properties["name"] = out_profile
-            file_properties["contentSize"] = os.path.getsize(out_profile)
-            file_properties["description"] = "COMPSs application Tasks profile"
-            file_properties["encodingFormat"] = [
-                "application/json",
-                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
-            ]
+        if os.path.exists(out_profile):
+            if out_profile.split("/")[-1] != "App_Profile.json":
+                file_properties = {}
+                file_properties["name"] = out_profile
+                file_properties["contentSize"] = os.path.getsize(out_profile)
+                file_properties["description"] = "COMPSs application Tasks profile"
+                file_properties["encodingFormat"] = [
+                    "application/json",
+                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
+                ]
 
-            # Fix COMPSs crappy format of JSON files
-            with open(out_profile, encoding="UTF-8") as op_file:
-                op_json = json.load(op_file)
-            with open(out_profile, "w", encoding="UTF-8") as op_file:
-                json.dump(op_json, op_file, indent=1)
+                # Fix COMPSs crappy format of JSON files
+                with open(out_profile, encoding="UTF-8") as op_file:
+                    op_json = json.load(op_file)
+                with open(out_profile, "w", encoding="UTF-8") as op_file:
+                    json.dump(op_json, op_file, indent=1)
 
-            # Add JSON as ContextEntity
-            compss_crate.add(
-                ContextEntity(
-                    compss_crate,
-                    "https://www.nationalarchives.gov.uk/PRONOM/fmt/817",
-                    {"@type": "WebSite", "name": "JSON Data Interchange Format"},
+                # Add JSON as ContextEntity
+                compss_crate.add(
+                    ContextEntity(
+                        compss_crate,
+                        "https://www.nationalarchives.gov.uk/PRONOM/fmt/817",
+                        {"@type": "WebSite", "name": "JSON Data Interchange Format"},
+                    )
                 )
-            )
 
-            # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
-            with open(out_profile) as file, mmap(
-                file.fileno(), 0, access=ACCESS_READ
-            ) as file:
-                file_properties["sha256"] = sha256(file).hexdigest()
+                # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
+                with open(out_profile) as file, mmap(
+                    file.fileno(), 0, access=ACCESS_READ
+                ) as file:
+                    file_properties["sha256"] = sha256(file).hexdigest()
 
-            compss_crate.add_file(out_profile, properties=file_properties)
+                compss_crate.add_file(out_profile, properties=file_properties)
         else:
             print(
                 "PROVENANCE | WARNING: COMPSs application profile has not been generated.\n"

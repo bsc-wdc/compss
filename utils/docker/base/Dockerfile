@@ -4,7 +4,7 @@ LABEL maintainer="COMPSs Support <support-compss@bsc.es>" \
       url="http://compss.bsc.es"
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG TARGETARCH=amd
+ARG TARGETARCH=amd64
 
 FROM base as base_amd64
 
@@ -20,20 +20,21 @@ ENV EXTRAE_MPI_HEADERS /usr/include/aarch64-linux-gnu/mpi
 
 
 FROM base_$TARGETARCH as base_rt
+#FROM base_amd64 as base_rt
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openjdk-11-jdk graphviz xdg-utils uuid-runtime && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 
-FROM base_rt as base_python
+FROM base_rt as base_bindings
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 && \
+    apt-get install -y --no-install-recommends python3 r-base && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 
-FROM base_python as base_all
+FROM base_bindings as base_all
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server jq bc && \
@@ -60,7 +61,7 @@ RUN apt-get update && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt-get update && apt-get install -y --no-install-recommends --no-upgrade nodejs python3-tk && \
-    apt-get autoclean && rm -rf /var/lib/apt/lists/* 
+    apt-get autoclean && rm -rf /var/lib/apt/lists/*
 
 FROM base_tutorial as base_ci
 

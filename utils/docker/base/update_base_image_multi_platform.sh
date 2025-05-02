@@ -6,7 +6,7 @@ dh_password=$3
 
 #base_name=base18
 base_name=base22
-base_images="rt python all tutorial ci"
+base_images="rt bindings all tutorial ci"
 platforms="linux/amd64,linux/arm64"
 builder="docker-multiarch"
 BASE_VERSION=$(date -u +%y%m%d-%H%M%S)

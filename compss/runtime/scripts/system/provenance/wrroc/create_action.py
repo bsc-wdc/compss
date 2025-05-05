@@ -581,9 +581,8 @@ def wrroc_create_action(
         for i, line in enumerate(dp_file):
             if i == 3:
                 try:
-                    start_time = datetime.strptime(
-                        line.strip(), "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
+                    clean_time = line.strip().replace('Z', '+0000')[:26] + '+0000'
+                    start_time = datetime.strptime(clean_time, "%Y-%m-%dT%H:%M:%S.%f%z")
                     create_action_properties["startTime"] = start_time.replace(
                         microsecond=0
                     ).isoformat()

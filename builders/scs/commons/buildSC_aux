@@ -102,6 +102,13 @@
   # Load needed modules on MN
   echo "- Load modules on SC account"
   module purge
+
+  # Use external modules
+  if [ "$additional_module_use_folder" != "ignore" ]; then
+    #shellcheck disable=SC2086
+    module use ${additional_module_use_folder}
+  fi
+
   # shellcheck disable=SC2086
   module load ${modules}
   ev=$?
@@ -116,12 +123,6 @@
   # Load additional exports
   eval ${additionalExports}
   echo "NEW PATH=$PATH"
-
-  # Use external modules
-  if [ "$additional_module_use_folder" != "ignore" ]; then
-    #shellcheck disable=SC2086
-    module use ${additional_module_use_folder}
-  fi
 
   # CREATE TARGET FOLDER
   echo "- Create target folder"

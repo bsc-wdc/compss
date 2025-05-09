@@ -19,8 +19,8 @@ ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server:$LD_LIRBRARY_PATH
 ENV EXTRAE_MPI_HEADERS /usr/include/aarch64-linux-gnu/mpi
 
 
-FROM base_$TARGETARCH as base_rt
-#FROM base_amd64 as base_rt
+#FROM base_$TARGETARCH as base_rt
+FROM base_amd64 as base_rt
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openjdk-11-jdk graphviz xdg-utils uuid-runtime && \

@@ -19,8 +19,8 @@ fi
 
 for img in $base_images; do
    docker buildx build --builder ${builder} --target base_${img} --platform ${platforms} ${flag} -t compss/${base_name}_${img}:${BASE_VERSION} -t compss/${base_name}_${img}:latest .
-   #docker push compss/${base_name}_${img}:${BASE_VERSION}
+   docker push compss/${base_name}_${img}:${BASE_VERSION}
 
-   #docker tag compss/${base_name}_${img}:${BASE_VERSION} compss/${base_name}_${img}:latest
-   #docker push compss/${base_name}_${img}:latest
+   docker tag compss/${base_name}_${img}:${BASE_VERSION} compss/${base_name}_${img}:latest
+   docker push compss/${base_name}_${img}:latest
 done

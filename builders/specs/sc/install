@@ -22,6 +22,8 @@ usage() {
     echo " --no-bindings, -B           Disable bindings installation"
     echo " --no-tracing, -T            Disable tracing system installation"
     echo " --no-c-binding, -C          Disable C++ binding installation"
+    echo " --no-python-binding, -P     Disable Python binding installation"
+    echo " --r-binding, -r             Enable R binding installation (Disabled by default)"
     echo " --nothing, -N               Disable all previous options"
     echo " "
     echo " Parameters:"
@@ -47,7 +49,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvBTAC-: flag; do
+  while getopts hvBTACPr-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -66,11 +68,21 @@ get_args() {
         # Custom C++ binding value
         c_binding=false
         ;;
+      P)
+        # Custom Python binding value
+        python_binding=false
+        ;;
+      r)
+        # Custom Python binding value
+        r_binding=true
+        ;;
       N)
         # Disables all flags
         tracing=false
         bindings=false
         c_binding=false
+        python_binding=false
+        r_binding=false
         ;;
       -)
         # Check more complex arguments
@@ -90,11 +102,19 @@ get_args() {
           no-c-binding)
             c_binding=false
             ;;
+          no-python-binding)
+            python_binding=false
+            ;;
+          r-binding)
+            r_binding=true
+            ;;
           nothing)
             # Disables all flags
             tracing=false
             bindings=false
             c_binding=false
+            python_binding=false
+            r_binding=false
             ;;
           *)
             # Flag didn't match any patern. End of COMPSs flags
@@ -128,6 +148,8 @@ get_args() {
   tracing=true
   bindings=true
   c_binding=true
+  python_binding=true
+  r_binding=false
 
   system_os=$(uname)
   if [[ "$system_os" == "Darwin" ]]; then
@@ -142,7 +164,9 @@ get_args() {
   echo "Options:"
   echo "  - Tracing: $tracing"
   echo "  - Bindings: $bindings"
-  echo "  - C_Binding: $c_binding"
+  echo "  - C Binding: $c_binding"
+  echo "  - Python Binding: $python_binding"
+  echo "  - R Binding: $r_binding"
   echo " "
   echo "Parameters:"
   echo "  - Target Installation Folder = $targetDir"
@@ -191,11 +215,13 @@ get_args() {
     fi
 
     # Install Python-binding
-    echo "- Install Python binding"
-    cd "${SCRIPT_DIR}"/Bindings/python
-    ./install.sh "${targetDir}"/Bindings/python false python3
-    cd "${SCRIPT_DIR}"
-    echo "   Success"
+    if [ "${python_binding}" == "true" ]; then
+      echo "- Install Python binding"
+      cd "${SCRIPT_DIR}"/Bindings/python
+      ./install "${targetDir}"/Bindings/python false python3
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    fi
   fi
   if [ "${tracing}" == "true" ]; then
     # Install extrae
@@ -205,6 +231,17 @@ get_args() {
     cd "${SCRIPT_DIR}"
     echo "   Success"
   fi
+  if [ "${bindings}" == "true" ]; then
+    # Install R-binding - after extrae since it may need it
+    if [ "${r_binding}" == "true" ]; then
+      echo "- Install R binding"
+      cd "${SCRIPT_DIR}"/Bindings/RCOMPSs
+      ./install.sh "${targetDir}"/Bindings/RCOMPSs ${tracing}
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    fi
+  fi
+
   # Set permissions
   echo "- Set COMPSs permissions"
   chmod -R 755 "${targetDir}"

@@ -29,14 +29,14 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2023.2.0 impi/2021.10.0 mkl/2023.2.0 oneapi/2023.2.0 java-openjdk/11.0.18+10 ear-tools/ear-lite/5.0 papi/7.1.0"
+  modules="impi/2021.10.0 mkl/2023.2.0 oneapi/2023.2.0 intel/2024.0.1-sycl_cuda java-openjdk/11.0.18+10 ear-tools/ear-lite/5.0 papi/7.1.0"
   unload_before_python=""
   # Plain python modules:
   run_before_py3_modules="ignore"
   py3_modules="python/3.12.1"
   # Python modules with jupyter:
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
-  run_before_py3_other_modules="module load intel/2023.2.0 impi/2021.10.0 mkl/2023.2.0 oneapi/2023.2.0 hdf5/1.14.1-2"
+  run_before_py3_other_modules="module load impi/2021.10.0 intel/2024.0.1-sycl_cuda mkl/2023.2.0 oneapi/2023.2.0 hdf5/1.14.1-2"
   py3_other_modules="python/3.11.5-gcc miniforge/24.3.0-0"  # python/3.8.1 pip version too old - does not support new installation standards.
 
   # DEFINE CONFIGURATION PARAMETERS
@@ -52,8 +52,10 @@
   autoparallel="false"
   c_binding="false"
   extrae_no_mpi="true"
+  r_binding="false"
+
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}" "${r_binding}"
   ev=$?
 
   # End

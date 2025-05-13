@@ -132,7 +132,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
 
         String args = constructPipeBuilderArgs(context);
-        LOGGER.info("Init piper PipeBuilder. Args: " + args);
+        LOGGER.debug("Init piper PipeBuilder. Args: " + args);
         ProcessBuilder pb = new ProcessBuilder(piperScript, args);
         try {
             // Set NW environment
@@ -297,6 +297,14 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private void stopExecutors() {
         LOGGER.info("Stopping executor pipes for mirror " + this.mirrorId);
+
+        // Emit one event when the executors are going to be stopped
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEventType.SYNC);
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            Tracer.emitEvent(TraceEventType.SYNC, (long) timestamp.getTime());
+            Tracer.emitEventEnd(TraceEventType.SYNC);
+        }
 
         for (String executorId : new LinkedList<>(pipePool.keySet())) {
             unregisterExecutor(executorId);

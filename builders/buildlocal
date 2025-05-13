@@ -10,6 +10,7 @@
 #		[--no-bindings] Disable bindings installation
 #		[--tracing]     Enable tracing system installation
 #		[--no-tracing]  Disable tracing system installation
+#   [and many more ...]
 #		targetDir	COMPSs installation directory
 ######################################################################
 
@@ -19,6 +20,7 @@
 DEFAULT_MONITOR=true
 DEFAULT_BINDINGS=true
 DEFAULT_PYCOMPSS=true
+DEFAULT_RCOMPSS=false
 DEFAULT_TRACING=true
 DEFAULT_DLB=true
 DEFAULT_KAFKA=true
@@ -36,6 +38,7 @@ INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
 NO_BINDINGS="Warning: No bindings specified. Loading default value"
 NO_PYCOMPSS="Warning: No PyCOMPSs specified. Loading default value"
+NO_RCOMPSS="Warning: No RCOMPSs specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
 NO_JACOCO="Warning: No jacoco module specified. Loading default value"
@@ -77,6 +80,10 @@ show_opts() {
 
     --pycompss, -p              Enable PyCOMPSs installation
     --no-pycompss, -P           Disable PyCOMPSs installation
+                                Default: ${DEFAULT_PYCOMPSS}
+
+    --rcompss, -r               Enable RCOMPSs installation
+    --no-rcompss, -R            Disable RCOMPSs installation
                                 Default: ${DEFAULT_PYCOMPSS}
 
     --tracing, -t               Enable tracing system installation
@@ -157,7 +164,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTkKjJdDcCNxXsS-: flag; do
+  while getopts hvmMbBpPtRrTkKjJdDcCNxXsS-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -194,6 +201,14 @@ get_args() {
       P)
         # Custom PyCOMPSs value
         pycompss=false
+        ;;
+      r)
+        # Custom RCOMPSs value
+        rcompss=true
+        ;;
+      R)
+        # Custom RCOMPSs value
+        rcompss=false
         ;;
       t)
         # Custom tracing value
@@ -307,6 +322,14 @@ get_args() {
             # Custom PyCOMPSs value
             pycompss=false
             ;;
+          rcompss)
+            # Custom RCOMPSs value
+            rcompss=true
+            ;;
+          no-rcompss)
+            # Custom RCOMPSs value
+            rcompss=false
+            ;;
           tracing)
             # Custom tracing value
             tracing=true
@@ -369,6 +392,7 @@ get_args() {
             monitor=false
             bindings=false
             pycompss=false
+            rcompss=false
             kafka=false
             jacoco=false
             cli=false
@@ -426,6 +450,11 @@ check_args() {
   if [ -z "$pycompss" ]; then
     display_warning "${NO_PYCOMPSS}"
     pycompss=${DEFAULT_PYCOMPSS}
+  fi
+
+  if [ -z "$rcompss" ]; then
+    display_warning "${NO_RCOMPSS}"
+    rcompss=${DEFAULT_RCOMPSS}
   fi
 
   if [ -z "$tracing" ]; then
@@ -500,6 +529,7 @@ warn_and_log_parameters() {
   echo "- Monitor          = ${monitor}"
   echo "- Bindings         = ${bindings}"
   echo "- PyCOMPSs         = ${pycompss}"
+  echo "- RCOMPSs          = ${rcompss}"
   echo "- Tracing          = ${tracing}"
   echo "- Stream Backend   = ${kafka}"
   echo "- CLI              = ${cli}"
@@ -908,7 +938,7 @@ install_compss() {
   cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/"
 
   # BINDINGS DEPLOYMENT
-  if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ]; then
+  if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ] || [ "${rcompss}" == "true" ]; then
     echo "- Deploying bindings-common files"
     cd "${TMP_DIR}/compss/programming_model/bindings/bindings-common"
     ./install_common "${targetDir}/Bindings/bindings-common"
@@ -947,6 +977,18 @@ install_compss() {
       fi
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install Python-binding"
+        exit 1
+      fi
+      cd "${SCRIPT_DIR}"
+    fi
+
+    if [ "${rcompss}" == "true" ]; then
+      echo "- Deploying R-binding files"
+      cd "${TMP_DIR}/compss/programming_model/bindings/RCOMPSs"
+      ./install.sh "${targetDir}/Bindings/RCOMPSs" "${tracing}" && :
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Failed to install R-binding"
         exit 1
       fi
       cd "${SCRIPT_DIR}"

@@ -132,7 +132,8 @@ export_tracing() {
             export EXTRAE_HOME=${dependencies_path}/extrae
             export EXTRAE_CONFIG_FILE=${workerConfigFile}
             export EXTRAE_USE_POSIX_CLOCK=0
-            export PYTHONPATH=${dependencies_path}/extrae/libexec/:${dependencies_path}/extrae/lib/:${PYTHONPATH}
+            export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+            export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${SCRIPT_DIR}/../../../../../../Bindings/RCOMPSs/dummy_extrae/
         fi
 
     fi

@@ -4,7 +4,7 @@
   # FUNCTIONS
   ######################################################
   usage() {
-    echo " " 
+    echo " "
     echo "ERROR: Incorrect number of parameters"
     echo " Usage: ./install_bindings <COMPSS_HOME>"
     echo "        COMPSS_HOME must be a full path"
@@ -41,6 +41,7 @@
   mkdir -p ${targetDir}/Bindings
   mkdir -p ${targetDir}/Bindings/c
   mkdir -p ${targetDir}/Bindings/python
+  mkdir -p ${targetDir}/Bindings/RCOMPSs
   rm -rf ${tmpDir}
 
   # Copy bindings
@@ -51,6 +52,7 @@
   cp -r bindings-common $tmpDir
   cp -r c $tmpDir
   cp -r python $tmpDir
+  cp -r RCOMPSs $tmpDir
 
   # Install bindings
   echo " "
@@ -65,6 +67,10 @@
   cd ${tmpDir}/python
   ./install.sh ${targetDir}/Bindings/python false
   cd ${currentDir}
+  echo "   - R-binding"
+  cd ${tmpDir}/RCOMPSs
+  ./install.sh ${targetDir}/Bindings/RCOMPSs
+  cd ${currentDir}
 
   # Clean tmp files
   echo " "
@@ -75,4 +81,3 @@
   echo " "
   echo " *** INSTALLATION COMPLETED ***"
   exit 0
-

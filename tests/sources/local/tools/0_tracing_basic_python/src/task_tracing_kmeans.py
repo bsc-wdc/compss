@@ -78,7 +78,7 @@ def reduceCentersTask(a, b):
 def has_converged(mu, oldmu, epsilon, iter, maxIterations):
     print("iter: " + str(iter))
     print("maxIterations: " + str(maxIterations))
-    if oldmu != []:
+    if np.size(oldmu) != 0:
         if iter < maxIterations:
             aux = [np.linalg.norm(oldmu[i] - mu[i]) for i in range(len(mu))]
             distancia = sum(aux)
@@ -120,7 +120,7 @@ def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
     print("Points generation Time {} (s)".format(time.time() - startTime))
 
     mu = init_random(dim, k)
-    oldmu = []
+    oldmu = np.array([])
     n = 0
     startTime = time.time()
     while not has_converged(mu, oldmu, epsilon, n, maxIterations):

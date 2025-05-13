@@ -1,5 +1,5 @@
-#!/bin/bash -e 
- 
+#!/bin/bash -e
+
   #############################################################
   # Name: buildMN5
   # Description: SCRIPT FOR MareNostrum5 COMPSs BUILD
@@ -35,11 +35,11 @@
 
   # SET SCRIPT VARIABLES
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  
+
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
-  MNloginNode=glogin2.bsc.es
+  MNloginNode=glogin4.bsc.es   # Requires connectivity for R dependencies.
   MNauxScript=${SCRIPT_DIR}/buildMN5_aux
   PRELOAD_ENV=""
 
@@ -51,4 +51,3 @@
 
   # END
   exit $exitStatus
-

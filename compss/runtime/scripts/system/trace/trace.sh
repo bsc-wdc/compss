@@ -101,6 +101,13 @@
           files+=" ./python"
         fi
     fi
+
+    if [ -d "./R" ] ; then
+        if [ -f "./R/TRACE.mpits" ]; then
+          files+=" ./R"
+        fi
+    fi
+
     echo "Creating package ${package_path} with files: ${files}"
     mkdir -p "${package_path%/*}/"
     tar czf "${package_path}" ${files}

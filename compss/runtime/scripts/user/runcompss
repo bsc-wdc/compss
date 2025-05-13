@@ -37,7 +37,7 @@ DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 DEFAULT_PROVENANCE_YAML="ro-crate-info.yaml"
 
 APPLICATION_ERROR="ERROR: Application name not provided"
-LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
+LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c, python or r"
 TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
 
 
@@ -73,7 +73,7 @@ show_opts() {
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
                                             Default: ${DEFAULT_RESOURCES}
-    --lang=<name>                           Language of the application (java/c/python)
+    --lang=<name>                           Language of the application (java/c/python/r)
                                             Default: Inferred is possible. Otherwise: ${DEFAULT_LANGUAGE}
     --summary                               Displays a task execution summary at the end of the application execution
                                             Default: ${DEFAULT_SUMMARY}
@@ -87,7 +87,7 @@ show_opts() {
     --extrae_config_file_python=<path>      Sets a custom extrae config file for python. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON:-Empty}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
-                                            Default: Applicacion name 
+                                            Default: Applicacion name
     --tracing_task_dependencies=<bool>      Adds communication lines for the task dependencies (true/false)
                                             Default: ${DEFAULT_TRACING_TASK_DEPENDENCIES}
     --generate_trace=<bool>                 Converts the events register into a trace file. Only used in the case of activated tracing.
@@ -227,6 +227,7 @@ show_opts() {
     For Java applications:   Fully qualified name of the application
     For C applications:      Path to the master binary
     For Python applications: Path to the .py file containing the main program
+    For R applications:      Path to the .R file containing the main program
 
 * Application arguments:
     Command line arguments to pass to the application. Can be empty.
@@ -264,7 +265,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do    
+  while getopts hvgtmdp-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -717,6 +718,8 @@ check_args() {
     lang=c
   elif [ "$lang" == "python" ]; then
     lang=python
+  elif [ "$lang" == "r" ]; then
+    lang=r
   else
     arguments_error "${LANGUAGE_ERROR}"
   fi
@@ -815,6 +818,6 @@ if [ ${provenance} ]; then
   fi
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi
-  
+
 
 unset ENQUEUE_COMPSS_ARGS

@@ -165,6 +165,10 @@ start_tracing() {
   if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
     export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+  else
+    if [ "${lang}" == "r" ]; then
+      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/RCOMPSs/dummy_extrae/:${LD_LIBRARY_PATH}
+    fi
   fi
 }
 
@@ -231,6 +235,14 @@ generate_trace() {
     exit "${endCode}"
   fi
   rm -rf "${extraeWDir}/python"
+
+  echo "Joining R traces"
+  R_traces=$(find "${extraeWDir}/R" -name "*.prv")
+  merge_R_traces "${extraeWDir}" "${trace_name}" ${R_traces}
+  if [ ! "${endCode}" -eq "0" ]; then
+    exit "${endCode}"
+  fi
+  rm -rf "${extraeWDir}/R"
 
   if [ "${tracing_custom_threads}" == "true" ]; then
     echo "Customizing threads"

@@ -39,6 +39,7 @@ public class COMPSsConstants {
         JAVA, // For Java applications
         C, // For C or C++ applications
         PYTHON, // For Python applications
+        R, // For R applications
         UNKNOWN // For Services
     }
 

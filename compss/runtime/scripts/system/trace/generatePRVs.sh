@@ -36,6 +36,21 @@ else
   extraeDir=$EXTRAE_HOME
 fi
 
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
+if command_exists "${extraeDir}/bin/mpi2prv" ; then
+  mpi2prv_bin="${extraeDir}/bin/mpi2prv"
+  mpimpi2prv_bin="${extraeDir}/bin/mpimpi2prv"
+elif command_exists "${extraeDir}/bin/x86_64-linux-gnu-mpi2prv" ; then
+  mpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpi2prv"
+  mpimpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv"
+else
+  echo "ERROR: Could not find mpi2prv or x86_64-linux-gnu-mpi2prv binary."
+  exit 1
+fi
+
 MIN_MPITS_PARALLEL_MERGE=1000
 export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
 
@@ -57,7 +72,6 @@ check_genPRV_env(){
   if [ ! "${gen_tracing_log_dir: -1}" == "/" ]; then
     gen_tracing_log_dir="${gen_tracing_log_dir}/"
   fi
-
 }
 
 #-------------------------------------
@@ -86,9 +100,9 @@ mpi2prv() {
   # Check if parallel merge is available / should be used
   configuration=$("${extraeDir}"/etc/configured.sh | grep "enable-parallel-merge")
   if [ -z "${configuration}" ] || [ "${num_merge_procs}" -eq 1 ] || [ "$(wc -l < "${mpits}")" -lt ${maxMpitNumber} ] ; then
-    "${extraeDir}/bin/mpi2prv" -f "${mpits}" -no-syn -o "${prv}"
+    "${mpi2prv_bin}" -f "${mpits}" -no-syn -o "${prv}"
   else
-    mpirun -np "${num_merge_procs}" "${extraeDir}/bin/mpimpi2prv" -f "${mpits}" -no-syn -o "${prv}"
+    mpirun -np "${num_merge_procs}" "${mpimpi2prv_bin}" -f "${mpits}" -no-syn -o "${prv}"
   fi
 }
 
@@ -114,9 +128,13 @@ gen_traces() {
   if [ ! -d "${python_output_dir}" ]; then
     mkdir -p "${python_output_dir}"
   fi
+  R_output_dir="${output_dir}R/"
+  if [ ! -d "${R_output_dir}" ]; then
+    mkdir -p "${R_output_dir}"
+  fi
 
   mpits="${output_dir}TRACE.mpits"
-  prv="${output_dir}/${trace_name}.prv"
+  prv="${output_dir}${trace_name}.prv"
 
   set_folders=""
   for package in ${packages[*]}; do
@@ -125,13 +143,12 @@ gen_traces() {
 
     hostId=$(cat "${tmp_dir}/hostID")
 
-
     # DEAL WITH JAVA TRACE
     if [ -f "${tmp_dir}/TRACE.mpits" ]; then
       sed -i "s|//|/|g" "${tmp_dir}/TRACE.mpits"
       local original_absolute_path=""
       for f in $(tar -tzf ${package} | grep .mpit | grep -v mpits); do
-        f=$(echo $f |cut -c2-)
+        f=$(echo $f | cut -c2-)
         grep=$(grep "${f}" "${tmp_dir}/TRACE.mpits" | awk '{print $1}')
         original_absolute_path=${grep//$f/}
         if [ -n "${original_absolute_path}" ]; then
@@ -141,7 +158,6 @@ gen_traces() {
 
       sed -i "s|${original_absolute_path}|${output_dir}|g" "${tmp_dir}/TRACE.mpits"
       cat "${tmp_dir}/TRACE.mpits" >> "${mpits}"
-
 
       set_folder=$(ls "${tmp_dir}" | grep "set" )
 
@@ -188,6 +204,34 @@ gen_traces() {
       echo "Python trace information not found" 1>&2
     fi
 
+    # DEAL WITH R TRACE
+    R_dir="${tmp_dir}/R"
+
+    missing_mpits=""
+    if [ -d "${R_dir}" ]; then
+      R_mpits="${R_dir}/TRACE.mpits"
+      sed -i "s|//|/|g" "${R_mpits}"
+      if [ -f "${R_mpits}" ]; then
+        # rm "${R_mpits}"
+        # touch "${R_mpits}"
+        local original_absolute_path=""
+        for f in $(tar -tzf ${package} | grep "\/R\/" | grep .mpit | grep -v mpits); do
+          f=$(echo $f | cut -c2-)
+          echo "mpit file ${f} not included in the original mpits file. Adding it..." 1>&2
+          if [ "${missing_mpits}" == "" ]; then
+            missing_mpits="${tmp_dir}${f}"
+          else
+            missing_mpits="${missing_mpits} -- ${tmp_dir}${f}"
+          fi
+        done
+        R_prv="${R_output_dir}/${hostId}_R_trace.prv"
+        mpi2prv_args="${missing_mpits} -o ${R_prv}"
+        echo ${mpi2prv_args} | xargs "${mpi2prv_bin}"
+      fi
+    else
+      echo "R trace information not found" 1>&2
+    fi
+
     rm -rf "${tmp_dir}"
   done
 
@@ -227,6 +271,34 @@ merge_python_traces() {
 }
 
 #-------------------------------------
+# Merges the events within python traces into the main one
+# Parameters:
+# 1: directory where to find the main trace
+# 2: name of the main prv file
+# >2: list of R traces to join into the main
+#-------------------------------------
+merge_R_traces() {
+  check_genPRV_env
+
+  local out_dir=${1}
+  local trace_name=${2}
+  shift 2
+  local R_traces=${*}
+
+  if [ -n "${R_traces}" ]; then
+    ${JAVA} \
+      -cp "${COMPSS_HOME}/Tools/tracing/compss-tracing.jar:${COMPSS_HOME}/Runtime/compss-engine.jar" \
+      "-Dlog4j.configurationFile=${COMPSS_HOME}/Runtime/configuration/log/TraceMerging-log4j.${gen_tracing_log_level}" \
+      "-Dcompss.trace.logDir=${gen_tracing_log_dir}" \
+      es.bsc.compss.tracing.RTraceMerger \
+      "${out_dir}" "${trace_name}" ${R_traces}
+    endCode=$?
+  else
+    endCode=0
+  fi
+}
+
+#-------------------------------------
 # Reorganizes the threads of a trace
 # Parameters:
 # 1: directory where to find the  trace
@@ -246,7 +318,6 @@ rearrange_trace_threads() {
     "${out_dir}" "${trace_name}"
   endCode=$?
 }
-
 
 #-------------------------------------
 # Joins several traces as a single one

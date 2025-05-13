@@ -90,7 +90,7 @@
 
     # Set MPI libs by user or from the system
     if [ -n "${argMpiLibs}" ]; then
-	echo "WARN: MPI lbs already set in a previous step"
+      echo "WARN: MPI lbs already set in a previous step"
     else
       if [ -n "${mpiPath}" ]; then
         if [ -n "${EXTRAE_MPI_LIBS}" ]; then
@@ -193,30 +193,69 @@
       exit $ev
     fi
 
-    if [ $(uname) == "Darwin" ]; then
+    if [ $(uname) == "Darwin" ]; then   # para linux parece que si que es necesario tambien en Shaheen.
       otherFlags="--enable-pthread"
     else
       otherFlags=""
     fi
 
-    ./configure \
-      --enable-gettimeofday-clock \
-      --without-unwind \
-      --without-dyninst \
-      --without-binutils \
-      "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
-      "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
-      --with-java-jdk="${JAVA_HOME}" \
-      --disable-openmp \
-      --enable-nanos \
-      --disable-smpss \
-      --disable-instrument-io \
-      --disable-pebs-sampling \
-      --disable-pthread-cond-calls \
-      "${otherFlags}" \
-      --prefix="${extraeTarget}" \
-      --libdir="${extraeTarget}/lib"
-    ev=$?
+    is_cray="false"
+    if test -d /opt/cray ; then
+       if test `which cc | grep xt-asyncpe | wc -l` != "0" ; then
+         is_cray="true"
+       elif test `which cc | grep craype | wc -l` != "0" ; then
+         is_cray="true"
+       fi
+    fi
+
+    if [ "${is_cray}" == "false" ]; then
+      # No Cray machine
+      ./configure \
+        --enable-gettimeofday-clock \
+        --without-unwind \
+        --without-dyninst \
+        --without-binutils \
+        "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
+        "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
+        --with-java-jdk="${JAVA_HOME}" \
+        --disable-openmp \
+        --enable-nanos \
+        --disable-smpss \
+        --disable-instrument-io \
+        --disable-pebs-sampling \
+        --disable-pthread-cond-calls \
+        "${otherFlags}" \
+        --prefix="${extraeTarget}" \
+        --libdir="${extraeTarget}/lib" \
+        --target=${TARGET_HOST}
+      ev=$?
+    else
+      # Cray machine
+      ./configure \
+        --enable-pthread \
+        --enable-gettimeofday-clock \
+        --without-unwind \
+        --without-dyninst \
+        --without-binutils \
+        "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
+        "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
+        --with-java-jdk="${JAVA_HOME}" \
+        --disable-openmp \
+        --enable-nanos \
+        --disable-smpss \
+        --disable-instrument-io \
+        --disable-pebs-sampling \
+        --prefix="${extraeTarget}" \
+        --libdir="${extraeTarget}/lib" \
+        --disable-xmltest \
+        --with-binary-type=64 \
+        --host=x86_64-linux-gnu \
+        --target=x86_64-linux-gnu \
+        --with-xml-prefix=/usr \
+        CC=cc CFLAGS='-O3 -g -std=gnu90 -lpthread' LDFLAGS='-O3 -g -std=gnu90 -lpthread' CXX=CC CXXFLAGS='-O3 -g' F77=ftn FFLAGS='-O3 -g -std=gnu90 -lpthread'
+      ev=$?
+    fi
+
     if [ "$ev" -ne 0 ]; then
       exit $ev
     fi

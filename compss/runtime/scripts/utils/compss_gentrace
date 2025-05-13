@@ -202,7 +202,6 @@ get_args() {
             show_full_version
             exit 0
             ;;
-
           # Trae Generation options
           keep_packages=*)
             keep_packages=${OPTARG//keep_packages=/}
@@ -212,7 +211,7 @@ get_args() {
             ;;
           debug*)
             # Enable debug in log level
-            gen_tracing_log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            gen_tracing_log_level=${DEFAULT_LOG_LEVEL_ENABLED}
             ;;
           log_dir=*)
             # Tracing system
@@ -263,7 +262,6 @@ check_args() {
   fi
   in_dir=$(eval "readlink -f ${in_dir}")
 
-
   if [ -z "${out_dir}" ]; then
     out_dir=${in_dir}
   fi
@@ -309,14 +307,35 @@ fi
 
 # Merge python traces into main
 python_traces=$(find "${out_dir}/python" -name "*.prv" | sort -h)
-merge_python_traces "${out_dir}" "${trace_name}" ${python_traces}
-if [[ ${endCode} -ne 0 ]]; then
-  echo "FAILED merge_python_traces"
-  exit "${endCode}"
+if [ ! -z "${python_traces}" ]; then
+  echo "Processing Python traces"
+  merge_python_traces "${out_dir}" "${trace_name}" ${python_traces}
+  if [[ ${endCode} -ne 0 ]]; then
+    echo "FAILED merge_python_traces"
+    exit "${endCode}"
+  else
+    echo "SUCCESS merge_python_traces"
+  fi
 else
-  echo "SUCCESS merge_python_traces"
+  echo "Python traces not found."
 fi
 rm -rf "${out_dir}/python"
+
+# Merge R traces into main
+R_traces=$(find "${out_dir}/R" -name "*.prv" | sort -h)
+if [ ! -z "${R_traces}" ]; then
+  echo "Processing R traces"
+  merge_R_traces "${out_dir}" "${trace_name}" ${R_traces}
+  if [[ ${endCode} -ne 0 ]]; then
+    echo "FAILED merge_R_traces"
+    exit "${endCode}"
+  else
+    echo "SUCCESS merge_R_traces"
+  fi
+else
+  echo "R traces not found"
+fi
+rm -rf "${out_dir}/R"
 
 # Re-arranging PRV trace with custom threads
 if [ "${custom_threads}" == "true" ]; then

@@ -42,6 +42,7 @@ import es.bsc.compss.invokers.external.PythonMPIInvoker;
 import es.bsc.compss.invokers.external.persistent.CPersistentInvoker;
 import es.bsc.compss.invokers.external.piped.CInvoker;
 import es.bsc.compss.invokers.external.piped.PythonInvoker;
+import es.bsc.compss.invokers.external.piped.RInvoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
@@ -132,6 +133,7 @@ public class Executor implements Runnable, InvocationRunner {
 
     protected boolean isRegistered;
     protected PipePair cPipes;
+    protected PipePair rPipes;
     protected PipePair pyPipes;
 
     protected Invocation invocation;
@@ -278,7 +280,7 @@ public class Executor implements Runnable, InvocationRunner {
     private void execute() throws Exception {
         if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
             && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
-            && invocation.getLang() != Lang.C) {
+            && invocation.getLang() != Lang.C && invocation.getLang() != Lang.R) {
             String errMsg = "Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId();
             LOGGER.error(errMsg);
             // Print to the job.err file
@@ -571,6 +573,7 @@ public class Executor implements Runnable, InvocationRunner {
                         isRegistered = true;
                     }
                 } else {
+
                     if (cPipes == null) {
                         PipedMirror mirror;
                         synchronized (platform) {
@@ -585,6 +588,21 @@ public class Executor implements Runnable, InvocationRunner {
                     cInvoker = new CInvoker(context, invocation, sandbox, assignedResources, cPipes);
                 }
                 return cInvoker;
+            case R:
+                if (rPipes == null) {
+                    PipedMirror mirror;
+                    synchronized (platform) {
+                        mirror = (PipedMirror) platform.getMirror(RInvoker.class);
+                        if (mirror == null) {
+                            mirror = (PipedMirror) RInvoker.getMirror(context, platform);
+                            platform.registerMirror(RInvoker.class, mirror);
+                        }
+                    }
+                    rPipes = mirror.registerExecutor(this.id, this.name);
+
+                }
+                return new RInvoker(context, invocation, sandbox, assignedResources, rPipes);
+
             default:
                 throw new JobExecutionException("Unrecognised lang for a method type invocation");
         }

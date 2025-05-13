@@ -94,7 +94,7 @@ ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory i
 ERROR_NODE_STORAGE_BANDWIDTH_TOO_HIGH="Parameter node_storage_bandwidth exceeds available storage bandwidth limit"
 ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
-ERROR_LANGUAGE="Value of option --lang must be: java, c or python"
+ERROR_LANGUAGE="Value of option --lang must be: java, c, python or r"
 JAVA_JRE_ERROR="Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
 #---------------------------------------------------------------------------------------
@@ -132,6 +132,10 @@ Usage: $0 [options] application_name application_arguments
 EOT
 
   show_opts "$exitValue"
+}
+
+command_exists () {
+  type "$1" &> /dev/null ;
 }
 
 ###############################################
@@ -274,6 +278,7 @@ infer_language() {
   local isPython
   local isPythonCompiled
   local isC
+  local isR
 
   fullApp=$1
   fileName=$(basename "$fullApp")
@@ -283,6 +288,11 @@ infer_language() {
        echo "[ INFO] Inferred PYTHON language"
     fi
     lang=python
+  elif [ "$extension" == "R" ]; then
+    if [ "${log_level}" != "off" ]; then
+       echo "[ INFO] Inferred R language"
+    fi
+    lang=r
   else
     # Try to infer language by file command
     isPython=$(file "$fullAppPath" | grep "Python" | cat)
@@ -290,18 +300,18 @@ infer_language() {
     isC=$(file "$fullAppPath" | grep "executable" | cat)
     if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
       if [ "${log_level}" != "off" ]; then
-	 echo "[  INFO] Inferred PYTHON language"
+        echo "[  INFO] Inferred PYTHON language"
       fi
       lang=python
     elif [ -n "$isC" ]; then
       if [ "${log_level}" != "off" ]; then
-         echo "[  INFO] Inferred C/C++ language"
+        echo "[  INFO] Inferred C/C++ language"
       fi
       lang=c
     else
       # Lang cannot be infered or it's the default JAVA
       if [ "${log_level}" != "off" ]; then
-         echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
+        echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
       fi
       lang=${DEFAULT_LANGUAGE}
     fi
@@ -627,11 +637,11 @@ xml_project_add_elasticity() {
       props="$props qos=${qos}"
     fi
     if [ -n "${constraints}" ]; then
-     constraints_prop=$(echo ${constraints} | tr " " "#" | tr "=" "%")
-     props="$props constraints=${constraints_prop}"
+      constraints_prop=$(echo ${constraints} | tr " " "#" | tr "=" "%")
+      props="$props constraints=${constraints_prop}"
     fi
     if [ -n "${licenses}" ]; then
-     props="$props licenses=${licenses}"
+      props="$props licenses=${licenses}"
     fi
     if [ -n "${container_opts}" ]; then
       container_opts_prop=$(echo ${container_opts} | tr " " "#" | tr "=" "%")
@@ -647,9 +657,9 @@ xml_project_add_elasticity() {
       props="$props batch_job=${ELASTICITY_BATCH}"
     fi
     if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
-            if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
-                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} ${AUXILIAR_LAUNCH_PARAMS}"
-            fi
+      if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
+        AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} ${AUXILIAR_LAUNCH_PARAMS}"
+      fi
     fi
     if [ -n "${het_group}" ]; then
 	    AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
@@ -1682,10 +1692,18 @@ check_args() {
     rand_num=$RANDOM
     offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
     master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
-    while [ "$(netstat | grep -v CLOSED | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
-       echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
-       master_port=$((master_port+1))
-    done
+    if command_exists "netstat" ; then
+      while [ "$(netstat | grep -v CLOSED | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
+        echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
+        master_port=$((master_port+1))
+      done
+    else
+      # No netstat available
+      while [ ! -z "$(lsof -i :${master_port})" ]; do
+        echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
+        master_port=$((master_port+1))
+      done
+    fi
   fi
 
   #
@@ -1800,6 +1818,8 @@ check_args() {
     lang=c
   elif [ "$lang" = "python" ]; then
     lang=python
+  elif [ "$lang" = "r" ]; then
+    lang=r
   else
     display_error "${ERROR_LANGUAGE}"
   fi
@@ -2185,7 +2205,7 @@ launch() {
         if [ -z "${EAR_LITE}"  ]; then
           PRE_CMD="${ear_flags}"
         else
-          PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
+          PRE_CMD="${EAR_INSTALL_PATH}/bin/erun ${ear_flags}"
         fi
       fi
       if [ "${log_level}" != "off" ]; then

@@ -218,7 +218,7 @@ public class GOSWorker implements InvocationContext {
             }
         }
 
-        final GOSInvocation implDef = parseArguments(args, debug, Lang.valueOf(lang.toUpperCase()));
+        final GOSInvocation implDef = parseArguments(args, debug, COMPSsConstants.Lang.valueOf(lang.toUpperCase()));
 
         String storageConf = (storageConfArg == null || storageConfArg.isEmpty()) ? "null" : storageConfArg;
 

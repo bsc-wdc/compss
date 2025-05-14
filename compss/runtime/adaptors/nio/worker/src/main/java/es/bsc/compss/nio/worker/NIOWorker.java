@@ -167,7 +167,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Load timer property
         String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
         IS_TIMER_COMPSS_ENABLED = (isTimerCOMPSsEnabledProperty == null || isTimerCOMPSsEnabledProperty.isEmpty()
-            || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
+                || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
 
         // Set processes to capturer out/error
         OUT = new ThreadedPrintStream(SUFFIX_OUT, System.out);
@@ -212,11 +212,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param dataProvenance Check if provenance is enabled.
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
-        int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
-        String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
-        String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
-        boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
-        PythonParams pyParams, CParams cParams, String lang, boolean ear, boolean dataProvenance) {
+                     int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
+                     String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
+                     String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
+                     boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
+                     PythonParams pyParams, CParams cParams, RParams rParams, String lang, boolean ear, boolean dataProvenance) {
 
         super(snd, rcv, masterPort);
 
@@ -276,7 +276,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, false, computingUnitsGPU, gpuMap,
-            computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
+                computingUnitsFPGA, fpgaMap, ioExecNum, limitOfTasks);
 
         try {
             this.executionManager.init();
@@ -341,7 +341,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("TARGET:");
             if (task.getTarget() != null) {
                 WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":"
-                    + task.getTarget().getValue());
+                        + task.getTarget().getValue());
             }
             WORKER_LOGGER.debug("RESULTS:");
             for (InvocationParam param : task.getResults()) {
@@ -366,7 +366,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             obsoletesTimeEnd = System.nanoTime();
             final float obsoletesTimeElapsed = (obsoletesTimeEnd - obsoletesTimeStart) / (float) 1_000_000;
             TIMER_LOGGER
-                .info("[TIMER] Erasing obsoletes for task " + task.getJobId() + ": " + obsoletesTimeElapsed + " ms");
+                    .info("[TIMER] Erasing obsoletes for task " + task.getJobId() + ": " + obsoletesTimeElapsed + " ms");
         }
 
         // Demand files
@@ -383,7 +383,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 // Parameter has associated data
                 if (WORKER_LOGGER_DEBUG) {
                     WORKER_LOGGER
-                        .debug("- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx);
+                            .debug("- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx);
                 }
                 listener.addOperation();
                 dataManager.fetchParam(param, paramIdx, listener);
@@ -394,7 +394,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (targetParam != null) {
             // Parameter has associated data
             WORKER_LOGGER
-                .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
+                    .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
             listener.addOperation();
             dataManager.fetchParam(targetParam, -1, listener);
 
@@ -413,7 +413,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             final long paramsTimeEnd = System.nanoTime();
             final float paramsTimeElapsed = (paramsTimeEnd - obsoletesTimeEnd) / (float) 1_000_000;
             TIMER_LOGGER
-                .info("[TIMER] Process parameters for task " + task.getJobId() + ": " + paramsTimeElapsed + " ms");
+                    .info("[TIMER] Process parameters for task " + task.getJobId() + ": " + paramsTimeElapsed + " ms");
 
             // Add start transfer time
             this.transferStartTimes.put(task.getJobId(), paramsTimeEnd);
@@ -474,7 +474,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          */
         // If error or not external
         ErrorManager.warn(
-            "Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
+                "Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
         c.finishConnection();
     }
 
@@ -508,7 +508,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             wdr.getListener().fetchedValue(dataId);
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug(
-                    "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
+                        "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
             }
         }
         if (NIOTracer.isActivated()) {
@@ -560,7 +560,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         CommandNIOTaskDone cmd = null;
         if (e instanceof COMPSsException) {
             cmd = new CommandNIOTaskDone(tr, successful, nt.getProfile(), invocation.getHistory().toString(),
-                (COMPSsException) e);
+                    (COMPSsException) e);
         } else {
             cmd = new CommandNIOTaskDone(tr, successful, nt.getProfile(), invocation.getHistory().toString(), null);
         }
@@ -633,10 +633,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             // Check that output files already exists. If not exists generate an empty one.
             String taskFileOutName = jobStdsFileName + ".out";
             checkStreamFileExistence(taskFileOutName, "out",
-                "Autogenerated Empty file. An error was produced before generating any log in the stdout", null);
+                    "Autogenerated Empty file. An error was produced before generating any log in the stdout", null);
             String taskFileErrName = jobStdsFileName + ".err";
             checkStreamFileExistence(taskFileErrName, "err",
-                "Autogenerated Empty file. An error was produced before generating any log in the stderr", null);
+                    "Autogenerated Empty file. An error was produced before generating any log in the stderr", null);
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug("Sending file " + taskFileOutName + ", for connection: " + c.hashCode());
             }
@@ -794,7 +794,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, NIOTaskProfile profile, boolean successful,
-        Exception e) {
+                                    Exception e) {
         // Should not receive this call
     }
 
@@ -827,7 +827,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private Set<String> getFilesPathFromFolder(String folderPath) {
 
         Set<String> pathSet = Stream.of(new File(folderPath).listFiles()).filter(file -> !file.isDirectory())
-            .map(File::getName).collect(Collectors.toSet());
+                .map(File::getName).collect(Collectors.toSet());
 
         Set<String> frozenPaths = new HashSet<String>();
 
@@ -1012,7 +1012,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public LanguageParams getLanguageParams(Lang lang) {
         WORKER_LOGGER
-            .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
+                .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
         return this.langParams[lang.ordinal()];
     }
 
@@ -1088,7 +1088,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void storeParam(InvocationParam param, boolean createifNonExistent)
-        throws UnwritableValueException, NonExistentDataException {
+            throws UnwritableValueException, NonExistentDataException {
         this.dataManager.storeParam(param);
         if (param.getType() == DataType.FILE_T) {
             String filepath = (String) param.getValue();
@@ -1215,8 +1215,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
-            pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache,
-            pythonCacheProfiler);
+                pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache,
+                pythonCacheProfiler);
         final CParams cParams = new CParams(classpath);
         final RParams rParams = new RParams(classpath);
 
@@ -1370,7 +1370,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleExecutorShutdownCommandACKError(Connection c,
-        CommandExecutorShutdownACK commandExecutorShutdownACK) {
+                                                      CommandExecutorShutdownACK commandExecutorShutdownACK) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending executor shutdown ACK. Not handeled");
 
@@ -1410,7 +1410,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleTracingGenerateDoneCommandError(Connection c,
-        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone) {
+                                                      CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending tracing generate done. Not handeled");
 
@@ -1418,7 +1418,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleTracingGenerateCommandError(Connection c,
-        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles) {
+                                                  CommandGenerateAnalysisFiles commandGenerateAnalysisFiles) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error receiving tracing generate command. Not handeled");
 
@@ -1426,7 +1426,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateDebugFiles commandGenerateDebugFiles) {
+                                                      CommandGenerateDebugFiles commandGenerateDebugFiles) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error receiving generate worker debug command. Not handeled");
 
@@ -1434,7 +1434,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone) {
+                                                          CommandGenerateDebugFilesDone commandGenerateDebugFilesDone) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending  generate worker debug done. Not handeled");
 

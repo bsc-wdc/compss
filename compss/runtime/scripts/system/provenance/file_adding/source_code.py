@@ -332,33 +332,38 @@ def add_file_to_crate(
             )
 
         # ro-crate-info.yaml
-        yaml_path = Path(info_yaml)
-        file_properties = {}
-        file_properties["name"] = yaml_path.name
-        file_properties["contentSize"] = os.path.getsize(yaml_path)
-        file_properties["description"] = (
-            "COMPSs Workflow Provenance YAML configuration file"
-        )
-        file_properties["encodingFormat"] = [
-            "YAML",
-            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
-        ]
-
-        # Add YAML as ContextEntity
-        compss_crate.add(
-            ContextEntity(
-                compss_crate,
-                "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
-                {"@type": "WebSite", "name": "YAML"},
+        if os.path.exists(info_yaml):
+            yaml_path = Path(info_yaml)
+            file_properties = {}
+            file_properties["name"] = yaml_path.name
+            file_properties["contentSize"] = os.path.getsize(yaml_path)
+            file_properties["description"] = (
+                "COMPSs Workflow Provenance YAML configuration file"
             )
-        )
+            file_properties["encodingFormat"] = [
+                "YAML",
+                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
+            ]
 
-        with open(info_yaml) as file, mmap(
-            file.fileno(), 0, access=ACCESS_READ
-        ) as file:
-            file_properties["sha256"] = sha256(file).hexdigest()
+            # Add YAML as ContextEntity
+            compss_crate.add(
+                ContextEntity(
+                    compss_crate,
+                    "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
+                    {"@type": "WebSite", "name": "YAML"},
+                )
+            )
 
-        compss_crate.add_file(yaml_path, properties=file_properties)
+            with open(info_yaml) as file, mmap(
+                file.fileno(), 0, access=ACCESS_READ
+            ) as file:
+                file_properties["sha256"] = sha256(file).hexdigest()
+
+            compss_crate.add_file(yaml_path, properties=file_properties)
+        else:
+            print(
+                "PROVENANCE | WARNING: YAML configuration file was not added to the crate."
+            )
 
         return ""
 

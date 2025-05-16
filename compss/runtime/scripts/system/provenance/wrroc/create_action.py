@@ -16,7 +16,6 @@
 #
 import typing
 import os
-import uuid
 import subprocess
 import socket
 import yaml
@@ -158,7 +157,8 @@ def wrroc_create_action(
     info_yaml: str,
     log_dir: Path,
     end_time: datetime,
-) -> str:
+    run_uuid: str,
+):
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -172,8 +172,7 @@ def wrroc_create_action(
     :param info_yaml: Name of the YAML file specified by the user
     :param log_dir: Path object to the directory where dataprovenance.log file, profiling and trace files can be found
     :param end_time: Time where the COMPSs application execution ended
-
-    :returns: UUID generated for this run
+    :param run_uuid: UUID generated for this run
     """
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
@@ -186,8 +185,6 @@ def wrroc_create_action(
     job_id = os.getenv("SLURM_JOB_ID")
 
     main_entity_pathobj = Path(main_entity)
-
-    run_uuid = str(uuid.uuid4())
 
     if job_id is None:
         name_property = (
@@ -482,5 +479,3 @@ def wrroc_create_action(
         print(
             f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
         )
-
-    return run_uuid

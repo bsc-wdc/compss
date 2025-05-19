@@ -34,10 +34,11 @@
   # Plain python modules:
   run_before_py3_modules="ignore"
   py3_modules="python/3.12.1"
-  # Python modules with jupyter:
-  # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules="module load impi/2021.10.0 intel/2024.0.1-sycl_cuda mkl/2023.2.0 oneapi/2023.2.0 hdf5/1.14.1-2"
-  py3_other_modules="python/3.11.5-gcc miniforge/24.3.0-0"  # python/3.8.1 pip version too old - does not support new installation standards.
+  py3_other_modules="python/3.8.1 MINIFORGE/24.3.0-0 python/3.11.5-gcc python/3.13.0-gcc"
+  # MINIFORGE/24.3.0-0 has python 3.10
+  # ANACONDA/2023.07 has python 3.11
+
 
   # DEFINE CONFIGURATION PARAMETERS
   # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)

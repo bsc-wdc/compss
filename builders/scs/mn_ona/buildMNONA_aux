@@ -1,0 +1,64 @@
+#!/bin/bash
+
+  #############################################################
+  # Name: buildMN_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MareNostrum ONA
+  # Parameters: <targetDir>           Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildMN script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildMNONA_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  # DEFINE MODULES
+  modules="bsc/1.0 java-openjdk/11.0.18+10 papi/7.1.0"
+  unload_before_python=""
+  # Plain python modules:
+  run_before_py3_modules="ignore"
+  py3_modules="python/3.10.13"
+  run_before_py3_other_modules=""
+  py3_other_modules="miniforge/24.11.3-2"
+
+  # DEFINE CONFIGURATION PARAMETERS
+  # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports='export CFLAGS="-I/usr/include/libxml2/ $CFLAGS"'
+
+  additional_module_use_folder="ignore"
+  queues_cfg="mn_ona.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
+  extrae_with_impi="false"
+  impi_version=""
+  autoparallel="false"
+  c_binding="false"
+  extrae_no_mpi="true"
+  r_binding="false"
+
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}" "${r_binding}"
+  ev=$?
+
+  # End
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception in auxiliar script"
+    exit $ev
+  fi
+  exit 0

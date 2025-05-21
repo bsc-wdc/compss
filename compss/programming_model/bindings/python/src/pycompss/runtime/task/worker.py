@@ -282,24 +282,26 @@ class TaskWorker:
                     num_returns, user_returns, ret_params, python_mpi
                 )
 
-                # We must notify COMPSs when types are updated
-                new_types, new_values = self.manage_new_types_values(
-                    num_returns,
-                    user_returns,
-                    args,
-                    ret_params,
-                    has_self,
-                    self_type,
-                    self_value,
-                )
+                with EventInsideWorker(TRACING_WORKER.manage_new_types):
+                    # We must notify COMPSs when types are updated
+                    new_types, new_values = self.manage_new_types_values(
+                        num_returns,
+                        user_returns,
+                        args,
+                        ret_params,
+                        has_self,
+                        self_type,
+                        self_value,
+                    )
 
-                # Clean cached references
-                if self.cache.references:
-                    # Let the garbage collector act
-                    self.cache.references = []  # loose all references
+                with EventInsideWorker(TRACING_WORKER.release_memory):
+                    # Clean cached references
+                    if self.cache.references:
+                        # Let the garbage collector act
+                        self.cache.references = []  # loose all references
 
-                # Release memory after task execution
-                self.__release_memory__(user_returns)
+                    # Release memory after task execution
+                    self.__release_memory__(user_returns)
 
                 if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
                     self.__report_heap__()

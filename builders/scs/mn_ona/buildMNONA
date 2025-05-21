@@ -39,7 +39,7 @@
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
-  MNloginNode=qlogin1.bsc.es
+  MNloginNode=qlogin2.bsc.es
   MNauxScript=${SCRIPT_DIR}/buildMNONA_aux
   PRELOAD_ENV=""
 

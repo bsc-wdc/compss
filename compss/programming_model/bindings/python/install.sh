@@ -28,8 +28,7 @@ INCORRECT_PARAMETER="Error: No such parameter"
 INCORRECT_TARGET_DIR="Error: No target directory"
 NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
-SETUPTOOLS_VERSION="69.1.0"
-WHEEL_VERSION="0.41.0"
+SETUPTOOLS_VERSION="61.0.0"
 
 #---------------------------------------------------
 # SET SCRIPT VARIABLES
@@ -255,13 +254,6 @@ compare_versions() {
   return
 }
 
-install_with_timeout() {
-  python_command=$1
-  package_name=$2
-  package_version=$3
-  ( timeout 30s ${python_command} -m pip install --upgrade "${package_name}${package_version}" > /dev/null 2>&1 )
-}
-
 install () {
   local python_command=$1
   local target_directory=$2
@@ -274,11 +266,9 @@ install () {
 
   pycompss_home="${target_directory}/${python_major_version}"
   export PYTHONPATH=${pycompss_home}:${OLD_PYTHONPATH}
-  #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
   # Get setuptools and wheel versions
   setuptools_version=$(${python_command} -c "import setuptools; print(setuptools.__version__)")
-  wheel_version=$(${python_command} -c "import wheel; print(wheel.__version__)")
 
   echo "INFO: Installation parameters:"
   echo "      - Current script directory: ${SCRIPT_DIR}"
@@ -288,41 +278,6 @@ install () {
   echo "      - Python complete version: ${python_complete_version}"
   echo "      - Python major version: ${python_major_version}"
   echo "      - Python setuptools version: ${setuptools_version}"
-  echo "      - Python wheel version: ${wheel_version}"
-
-  # Check that setuptools and wheel are not too old
-  setuptools_comparison=$(compare_versions "${setuptools_version}" "${SETUPTOOLS_VERSION}" | xargs)
-  wheel_comparison=$(compare_versions "${wheel_version}" "${WHEEL_VERSION}" | xargs)
-
-  if [[ ${setuptools_comparison} -eq 1 ]]; then
-    echo "Setuptools version is OK"
-  elif [[ ${setuptools_comparison} -eq 0 ]]; then
-    echo "ERROR: Setuptools version is TOO old, please install version >= ${SETUPTOOLS_VERSION}"
-    exit 1
-    #install_with_timeout "${python_command}" "setuptools" ">=${SETUPTOOLS_VERSION}"
-    #if [[ $? -eq 0 ]]; then
-    #  echo "Updated setuptools."
-    #else
-    #  echo "Error: could not install 'setuptools>=${SETUPTOOLS_VERSION}'. No internet connection or extremely slow."
-    #  echo "Setuptools version is TOO old, please install version >= ${SETUPTOOLS_VERSION}"
-    #  exit 1
-    #fi
-  fi
-
-  if [[ ${wheel_comparison} -eq 1 ]]; then
-    echo "Wheel version is OK"
-  elif [[ ${wheel_comparison} -eq 0 ]]; then
-    echo "ERROR: Wheel version is TOO old, please install version >= ${WHEEL_VERSION}"
-    exit 1
-    #install_with_timeout "${python_command}" "wheel" ">=${WHEEL_VERSION}"
-    #if [[ $? -eq 0 ]]; then
-    #  echo "Updated wheel."
-    #else
-    #  echo "Error: could not install 'wheel>=${WHEEL_VERSION}'. No internet connection or extremely slow."
-    #  echo "Wheel version is TOO old, please install version >= ${WHEEL_VERSION}"
-    #  exit 1
-    #fi
-  fi
 
   # Check that the sources can be byte-compiled - this avoids syntax errors
   # that are not checked on the installation
@@ -333,12 +288,23 @@ install () {
     exit $exitCode
   fi
 
+  # Check that setuptools is or not old
+  setuptools_comparison=$(compare_versions "${setuptools_version}" "${SETUPTOOLS_VERSION}" | xargs)
+
   # Do the installation
   echo "INFO: Starting the installation... Please wait..."
-  # ${python_command} "${SCRIPT_DIR}"/setup.py install --single-version-externally-managed --root="/" --install-lib="${pycompss_home}" -O2
-  ${python_command} -m pip install --no-build-isolation --target="${pycompss_home}" "${SCRIPT_DIR}/."
-  # ${python_command} -m pip install --target="${pycompss_home}" "${SCRIPT_DIR}/."
-  exitCode=$?
+  if [[ ${setuptools_comparison} -eq 1 ]]; then
+    ${python_command} -m pip install --no-build-isolation --target="${pycompss_home}" "${SCRIPT_DIR}/."
+    # ${python_command} -m pip install --target="${pycompss_home}" "${SCRIPT_DIR}/."
+    exitCode=$?
+  elif [[ ${setuptools_comparison} -eq 0 ]]; then
+    current_dir=$(pwd)
+    cd ${SCRIPT_DIR}
+    ${python_command} setup.py install --single-version-externally-managed --root="/" --install-lib="${pycompss_home}" -O2
+    #${python_command} setup.py install --install-lib="${pycompss_home}" -O2
+    cd ${current_dir}
+    exitCode=$?
+  fi
   if [ $exitCode -ne 0 ]; then
     echo "ERROR: Cannot install PyCOMPSs using ${python_command}"
     exit $exitCode

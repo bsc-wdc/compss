@@ -73,6 +73,8 @@ class TypesEventsWorker:
         "cleanup_task_event",
         "executor_load_ear_event",
         "executor_finalize_ear_event",
+        "manage_new_types",
+        "release_memory",
         "inside_tasks_cpu_affinity_type",
         "inside_tasks_cpu_count_type",
         "inside_tasks_gpu_affinity_type",
@@ -146,6 +148,8 @@ class TypesEventsWorker:
         self.cleanup_task_event = 31
         self.executor_load_ear_event = 32
         self.executor_finalize_ear_event = 33
+        self.manage_new_types = 34
+        self.release_memory = 35
 
         # Task affinity events:
         self.inside_tasks_cpu_affinity_type = 9000150

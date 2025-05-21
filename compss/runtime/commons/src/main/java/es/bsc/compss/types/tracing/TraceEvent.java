@@ -159,6 +159,8 @@ public enum TraceEvent {
     CLEANUP_TASK(31, TraceEventType.BINDING_INSIDE_TASKS, "Cleanup Task"), //
     EXECUTOR_LOAD_EAR(32, TraceEventType.BINDING_INSIDE_TASKS, "Import EAR"), //
     EXECUTOR_FINALIZE_EAR(33, TraceEventType.BINDING_INSIDE_TASKS, "Finalize EAR"), //
+    MANAGE_NEW_TYPES(34, TraceEventType.BINDING_INSIDE_TASKS, "Manage new types"), //
+    RELEASE_MEMORY(35, TraceEventType.BINDING_INSIDE_TASKS, "Release memory"), //
 
     // Python Events Inside Tasks
     CACHE_MSG_RECEIVE(1, TraceEventType.BINDING_WORKER_CACHE, "Receive message"), //

@@ -34,10 +34,10 @@
   # Plain python modules:
   run_before_py3_modules="ignore"
   py3_modules="python/3.12.1"
-  # Python modules with jupyter:
-  # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules=""
-  py3_other_modules="python/3.8.18 miniforge/24.3.0-0"  # python/3.9.16 old setuptools version
+  py3_other_modules="python/3.8.18 python/3.9.16 miniforge/24.3.0-0 anaconda/2023.07"
+  # miniforge has python 3.10 used as replacement of python/3.10.15 which does not have wheel
+  # anaconda has python 3.11 and has jupyter
 
   # DEFINE CONFIGURATION PARAMETERS
   # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)

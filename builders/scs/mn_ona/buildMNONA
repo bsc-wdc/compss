@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildMNONA
+  # Description: SCRIPT FOR MareNostrum ONA COMPSs BUILD
+  # Parameters: <MNONA_user> MareNostrum ONA user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on MareNostrum ONA for deployment
+  #             <FullTargetPath> Base Target Installation folder on MareNostrum ONA
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildMNONA <MN_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  MNuser=$1
+  MNtmpDir=$2
+  MNtargetDir=$3
+  MNloginNode=qlogin2.bsc.es
+  MNauxScript=${SCRIPT_DIR}/buildMNONA_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

@@ -30,7 +30,7 @@ from utils.common_paths import is_canonical
 
 def add_person_definition(
     compss_crate: ROCrate, contact_type: str, yaml_author: dict, info_yaml: str
-) -> (bool, dict):
+) -> tuple[bool, dict]:
     """
     Check if a specified person has enough defined terms to be added in the RO-Crate.
 
@@ -238,18 +238,23 @@ def root_entity(
     for author_orcid in author_list:
         crate_author_list.append({"@id": author_orcid})
     if crate_author_list:
-        compss_crate.root_dataset["author"] = crate_author_list  # As specified in RO-Crate 1.1
-        compss_crate.creator = crate_author_list  # Also needed, either for WFHub or rocrate-inveniordm
+        compss_crate.root_dataset["author"] = (
+            crate_author_list  # As specified in RO-Crate 1.1
+        )
+        compss_crate.creator = (
+            crate_author_list  # Also needed, either for WFHub or rocrate-inveniordm
+        )
     for org_ror in org_list:
         crate_org_list.append({"@id": org_ror})
 
     # publisher is SHOULD in RO-Crate 1.1. Preferably an Organisation, but could be a Person
     if not crate_org_list:
         # Empty list of organisations, add authors as publishers
-        if crate_author_list:
-            compss_crate.publisher = crate_author_list
+        if crate_author_list and not len(crate_author_list) == 0:
+            compss_crate.publisher = crate_author_list[0]
     else:
-        compss_crate.publisher = crate_org_list
+        if crate_org_list and not len(crate_org_list) == 0:
+            compss_crate.publisher = crate_org_list[0]
 
     if len(crate_author_list) == 0:
         print(f"PROVENANCE | WARNING: No valid 'Authors' specified in {info_yaml}")
@@ -612,7 +617,7 @@ def get_manually_defined_software_requirements(
     return software_requirements_list
 
 
-def search_orcid(person_name: str) -> (str, str, str, dict):
+def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     """
     Search at orcid.org the first ORCID matching the person's name
 
@@ -692,7 +697,7 @@ def search_orcid(person_name: str) -> (str, str, str, dict):
     return orcid, res_institution, e_mail, all_names
 
 
-def search_by_orcid(orcid_str: str) -> (str, str, str, dict):
+def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
     """
     Search at orcid.org the first ORCID matching the ORCID reference provided
 
@@ -764,7 +769,7 @@ def search_by_orcid(orcid_str: str) -> (str, str, str, dict):
     return obtained_full_name, res_institution, e_mail, all_names
 
 
-def search_ror(org_name: str) -> (str, str, str):
+def search_ror(org_name: str) -> tuple[str, str, str]:
     """
     Search at ror.org the first ROR matching the institution's name
 
@@ -829,7 +834,7 @@ def search_ror(org_name: str) -> (str, str, str):
     return obtained_ror, obtained_org_name, obtained_url
 
 
-def search_by_ror(org_ror: str) -> (str, str):
+def search_by_ror(org_ror: str) -> tuple[str, str]:
     """
     Search at ror.org the first institution matching the ROR passed
 

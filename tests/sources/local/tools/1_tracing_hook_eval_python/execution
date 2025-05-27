@@ -127,7 +127,7 @@
     fi
 
     # Compute test results
-    margin="20000000000"  # 20 seconds in nanoseconds
+    margin="10000000000"  # 20 seconds in nanoseconds
     "${base_app_dir}"/result "${output_log1}" "${error_log1}" "${exec_target_log_folder1}" "${output_log2}" "${error_log2}" "${exec_target_log_folder2}" "${elapsed_th_enabled}" "${elapsed_th_disabled}" "${margin}"
     exit_value=$?
   done

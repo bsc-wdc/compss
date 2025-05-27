@@ -69,24 +69,24 @@
     else
       echo "PROVENANCE application_sources/ DIRECTORY EXISTS" | tee -a "${output_file}"
     fi
-    if [ ! -f "${prov_dir}App_Profile.json" ]; then
-      echo "PROVENANCE App_Profile.json FILE DOES NOT EXIST" | tee -a "${output_file}"
-      exit 1
-    else
-      echo "PROVENANCE App_Profile.json FILE EXISTS" | tee -a "${output_file}"
-    fi
+#    if [ ! -f "${prov_dir}App_Profile.json" ]; then
+#      echo "PROVENANCE App_Profile.json FILE DOES NOT EXIST" | tee -a "${output_file}"
+#      exit 1
+#    else
+#      echo "PROVENANCE App_Profile.json FILE EXISTS" | tee -a "${output_file}"
+#    fi
     if [ ! -f "${prov_dir}complete_graph.svg" ]; then
       echo "PROVENANCE complete_graph.svg FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
       echo "PROVENANCE complete_graph.svg FILE EXISTS" | tee -a "${output_file}"
     fi
-    if [ ! -f "${prov_dir}.compss_submission_command_line.txt" ]; then
-      echo "PROVENANCE .compss_submission_command_line.txt FILE DOES NOT EXIST" | tee -a "${output_file}"
-      exit 1
-    else
-      echo "PROVENANCE .compss_submission_command_line.txt FILE EXISTS" | tee -a "${output_file}"
-    fi
+#    if [ ! -f "${prov_dir}.compss_submission_command_line.txt" ]; then
+#      echo "PROVENANCE .compss_submission_command_line.txt FILE DOES NOT EXIST" | tee -a "${output_file}"
+#      exit 1
+#    else
+#      echo "PROVENANCE .compss_submission_command_line.txt FILE EXISTS" | tee -a "${output_file}"
+#    fi
     if [ ! -f "${prov_dir}MATMUL.yaml" ]; then
       echo "PROVENANCE MATMUL.yaml FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1

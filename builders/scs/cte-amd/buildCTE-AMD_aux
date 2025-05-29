@@ -29,14 +29,14 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="bsc/current papi/6.0.0.1 gcc/10.2.0 impi/2023.1 python/3.9.1 boost/1.76.0 dlb/git"
+  modules="bsc/current papi/6.0.0.1 gcc/7.5.0-binutils impi/2023.1 python/3.9.1 boost/1.76.0 dlb/git"
   unload_before_python=""
   # Plain python modules:
   run_before_py3_modules="ignore"
   py3_modules="python/3.9.1"
   # Python modules with jupyter:
-  run_before_py3_other_modules="ignore"
-  py3_other_modules=""
+  run_before_py3_other_modules="module load intel/2018.4 mkl/2018.4"
+  py3_other_modules="anaconda/2022.05 anaconda/2021.05_py38"
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)

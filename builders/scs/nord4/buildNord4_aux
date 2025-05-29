@@ -29,15 +29,15 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git"
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/16.0.1 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git" # pcre2/10.45 R/4.4.3" # No R support due to missing packages nor internet connection
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   run_before_py3_modules="ignore"
-  py3_modules="python/3.9.10" # "python/3.6.1" Unsupported version. setuptools and wheel too old.
-  # Python modules with jupyter:
-  # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
+  py3_modules="python/3.9.10"
   run_before_py3_other_modules="module load openssl/1.1.1f"
-  py3_other_modules="python/3.10.2"  # "python/3.7.4 python/3.8.2"
+  py3_other_modules="ANACONDA/5.1.0_py3 python/3.7.4 python/3.8.2 python/3.10.2 ANACONDA/2019.10 ANACONDA/2020.11 ANACONDA/2022.10"
+  # python/3.12.0 Does not have setuptools
+  # python/3.13.2 Does not have setuptools
 
   # DEFINE CONFIGURATION PARAMETERS
   # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
@@ -52,9 +52,10 @@
   autoparallel="false"
   c_binding="true"
   extrae_no_mpi="true"
+  r_binding="false"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}" "${r_binding}"
   ev=$?
 
   # End

@@ -125,6 +125,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private boolean started = false;
 
     private boolean ear = false;
+    private boolean dataProvenance = false;
 
 
     /**
@@ -282,6 +283,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             earing = COMPSsDefaults.EAR;
         }
         this.ear = earing.toUpperCase().compareTo("TRUE") == 0;
+
+        // PROVENANCE
+        String provenance = System.getProperty(COMPSsConstants.DATA_PROVENANCE);
+        if (provenance == null || provenance.isEmpty() || provenance.equals("null")) {
+            provenance = COMPSsDefaults.DP_ENABLED;
+        }
+        this.dataProvenance = provenance.toUpperCase().compareTo("TRUE") == 0;
 
         JavaParams javaParams = new JavaParams(classPath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVEnv, pythonPropagateVEnv,
@@ -1512,6 +1520,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public boolean getEar() {
         return this.ear;
+    }
+
+    @Override
+    public boolean getDataProvenance() {
+        return this.dataProvenance;
     }
 
     public void setLoaderApi(LoaderAPI loaderApi) {

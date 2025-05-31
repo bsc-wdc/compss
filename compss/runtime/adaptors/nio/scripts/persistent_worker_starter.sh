@@ -66,6 +66,16 @@
   # Provide a name for EAR to identify the main worker process
   export EAR_APP_NAME="piper_worker(${hostName})"
 
+  if [ "$debug" == "true" ]; then
+    echo "Start profiling - worker starter"
+    echo "Log directory: ${logDir}"
+  fi
+
+  # START PROFILING
+  # shellcheck disable=SC1090
+  source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
+  start_profiling
+
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 
   exitValue=$?
@@ -74,6 +84,9 @@
   fi
 
   post_launch
+
+  # STOP PROFILING
+  # stop_profiling
 
   # Exit with the worker status (last command)
   if [ "$debug" == "true" ]; then

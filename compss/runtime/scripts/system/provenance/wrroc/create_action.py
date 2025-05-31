@@ -14,22 +14,97 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import time
 import typing
 import os
+import uuid
 import subprocess
 import socket
 import yaml
+import statistics as st
+from hashlib import sha256
+try:
+    import matplotlib.pyplot as plt
+except:
+    print(
+        "Error: matplotlib is not installed. Please install it using 'pip install matplotlib'."
+    )
+    exit(1)
 
 from pathlib import Path
 from datetime import timezone
 from datetime import datetime
-import pytz
+
+try:
+    import pandas as pd
+except:
+    print(
+        "Error: pandas is not installed. Please install it using 'pip install pandas'."
+    )
+    exit(1)
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
+from rocrate.model.entity import Entity
 
 from provenance.utils.url_fixes import fix_dir_url
 from provenance.processing.entities import add_person_definition
+
+
+unit_dict = {
+    "TIME_SEC": "https://qudt.org/vocab/unit/SEC",
+    "DC_NODE_POWER_W": "https://qudt.org/vocab/unit/W",
+    "DRAM_POWER_W": "https://qudt.org/vocab/unit/W",
+    "PCK_POWER_W": "https://qudt.org/vocab/unit/W",
+    "CPU-GFLOPS": "https://qudt.org/vocab/unit/GigaFLOPS",
+    "AVG_CPUFREQ_KHZ": "https://qudt.org/vocab/unit/KiloHZ",
+    "AVG_IMCFRQ_KHZ": "https://qudt.org/vocab/unit/KiloHZ",
+    "DEF_FREQ_KHZ": "https://qudt.org/vocab/unit/Hz",
+    "IO_MBS": "https://qudt.org/vocab/unit/MegaBYTES",
+    "MEM_GBS": "https://qudt.org/vocab/unit/GigaBYTES",
+}
+
+LANGUAGES_EXTENSION = (".java", ".py", ".sh")
+
+
+def get_description_plot(metric, node_name="unknown node"):
+    description_plots = {
+        "cpu": f"Plot of {node_name} showing the percentage of CPU used during the execution",
+        "mem": f"Plot of {node_name} showing the amount of memory used during the execution",
+        "disk_usage": f"Plot of {node_name} showing the cumulative amount of data read and written on the disk during the execution",
+        "network_usage": f"Plot of {node_name} showing the cumulative amount of data sent and received during the execution",
+        "cpu_nodes": "Plot of the percentage of CPU used during the execution of all nodes used",
+        "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
+        # The following plots represent bursts over time and are currently unused
+        "bytes_read": "Plot of the amount of data read from the disk during the execution",
+        "bytes_written": "Plot of the amount of data written from the disk during the execution",
+        "bytes_sent": "Plot of the amount of data sent across the network during the execution",
+        "bytes_received": "Plot of the amount of data received across the network during the execution",
+    }
+
+    return description_plots[metric]
+
+def process_log(dp_path: str, data_list: list) -> tuple:
+    """
+    Reads and processes the dataprovenance.log efficiently.
+
+    :param dp_path: pathname of the dataprovenance.log
+    :param data_list: list of data to fill with data parsed from dataprovenance.log
+    :return: Parsed statistical data
+    """
+    application_name = None
+
+    with open(dp_path, "r") as data_provenance:
+        for idx, row in enumerate(data_provenance):
+            row = row.strip()
+            if idx == 1:
+                application_name = row
+            elif idx >= 4 and row:
+                parameter_list = row.split()
+                if len(parameter_list) >= 4:
+                    data_list.append(parameter_list)
+
+    return application_name
 
 
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
@@ -43,80 +118,50 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
     :return data_list: list of data parsed from dataprovenance.log
     """
     data_list = []
-    with open(dp_path, "r") as data_provenance:
-        for idx, row in enumerate(data_provenance.readlines()):
-            if idx == 1:
-                application_name = row.rstrip()
-                continue
-            elif idx < 3:
-                continue
-
-            parameter_list = list(filter(None, row.strip().split(" ")))
-            len_row = len(parameter_list)
-            if len_row >= 4:
-                data_list.append(parameter_list)
-
-        try:
-            start_time = start_time.timestamp()
-            end_time = end_time.timestamp()
-            execution_time = int((end_time - start_time) * 1000)
-            data_list.append(
-                ["overall", application_name, "executionTime", str(execution_time)]
+    try:
+        init_process_log = time.time()
+        application_name = process_log(dp_path, data_list)
+        elapsed_process_log = init_process_log - time.time()
+        if __debug__:
+            print(
+                f"Time of reading dataprovenance.log file: {elapsed_process_log:.2f} seconds"
             )
-        except TypeError:
-            print("PROVENANCE | WARNING: could not retrieve execution time")
+
+        start_time = start_time.timestamp()
+        end_time = end_time.timestamp()
+        execution_time = int((end_time - start_time) * 1000)
+        app_name = application_name.split(".")[0]
+        data_list.append(["overall", app_name, "executionTime", str(execution_time)])
+    except TypeError:
+        print("PROVENANCE | WARNING: could not retrieve execution time")
 
     return data_list
 
 
-def add_execution(id_name: str, value: int) -> dict:
+def get_properties(id_name: str, stat: str, value: int) -> dict:
     """
-    Function that generate a new dictionary of the number of executions.
-
-    :param id_name: id of the new item
-    :param value: value of the parameter passed
-
-    :return new_item: new item referred to the number of executions data
-    """
-    # If there is no execution, it means that it haven't been executed
-    if value == 0:
-        value = None
-    new_item = {
-        "id": id_name,
-        "@type": "PropertyValue",
-        "name": "executions",
-        "propertyID": "https://w3id.org/ro/terms/compss#executions",
-        "value": str(value),
-    }
-    return new_item
-
-
-def add_time(id_name: str, name_parameter: str, value: int) -> dict:
-    """
-    Function that generate a new dictionary of the item referred to a time.
+    Function that generate a new dictionary of the item
 
     :param id_name: identifier of the Data Entity that is generated
-    :param name_parameter: the name of the parameter
+    :param stat: the name of the parameter
     :param value: value of the parameter passed
-
-    :return new_item: new item referred to a time data
+    :return: new dictionary containing the properties
     """
-    new_item = {
+    properties = {
         "id": id_name,
         "@type": "PropertyValue",
-        "name": name_parameter,
-        "propertyID": f"https://w3id.org/ro/terms/compss#{name_parameter}",
-        "unitCode": "https://qudt.org/vocab/unit/MilliSEC",
-        "value": str(value),
+        "name": stat,
+        "propertyID": f"https://w3id.org/ro/terms/compss#{stat}",
     }
-    return new_item
 
-
-def get_new_item(id_name: str, stat: str, value: int) -> dict:
     if stat == "executions":
-        return add_execution(id_name, value)
+        if value == 0:
+            value = None
     else:
-        return add_time(id_name, stat, value)
+        properties["unitCode"] = "https://qudt.org/vocab/unit/MilliSEC"
+
+    properties["value"] = str(value)
+    return properties
 
 
 def get_resource_usage_dataset(
@@ -142,9 +187,150 @@ def get_resource_usage_dataset(
         except ValueError:
             value = None
         id_name = f"#{resource}.{implementation}.{stat}"
-        new_item = get_new_item(id_name, stat, value)
+        new_item = get_properties(id_name, stat, value)
         resource_dataset.append(new_item)
     return resource_dataset
+
+
+def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> dict:
+    """
+    Build the dictionary of ear property
+
+    :param measure_name: name of metric
+    :param value: value of the metric
+    :return: dictionary containing the ear property
+    """
+    properties_item = {
+        "@type": "PropertyValue",
+        "name": measure_name,
+        "value": str(value),
+        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}",
+    }
+
+    if measure_name in unit_dict.keys():
+        properties_item["unitCode"] = unit_dict[measure_name]
+    elif "DATE" in measure_name:
+        properties_item["value"] = datetime.strptime(
+            value, "%Y-%m-%d %H:%M:%S"
+        ).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+    return properties_item
+
+
+def build_info_dict_resource_usage(
+    measure_name: str, value: typing.Union[float, int]
+) -> dict:
+    """
+    Build the dictionary of resource property
+
+    :param measure_name: name of metric
+    :param value: value of the metric
+    :return: dictionary containing the new resource property
+    """
+    properties_item = {
+        "@type": "PropertyValue",
+        "name": measure_name,
+        "value": str(value),
+        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}",
+    }
+
+    if "byte" in measure_name:
+        properties_item["unitCode"] = "https://qudt.org/vocab/unit/BYTE"
+    else:
+        properties_item["unitCode"] = "https://qudt.org/vocab/unit/PERCENT"
+
+    return properties_item
+
+
+def get_energy_usage_for_node(energy_file: str, info_list: list, node: str):
+    """
+    Build the list containing the energy usage of a node
+
+    :param energy_file: csv file containing the energy data
+    :param info_list: list where to add the data containing the energy usage of the node
+    :param node: name of the node
+    """
+    df = pd.read_csv(energy_file, sep=";")
+    df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
+
+    df = df[
+        [
+            "APPID",
+            "START_DATE",
+            "END_DATE",
+            "AVG_CPUFREQ_KHZ",
+            "AVG_IMCFREQ_KHZ",
+            "DEF_FREQ_KHZ",
+            "TIME_SEC",
+            "CPI",
+            "TPI",
+            "MEM_GBS",
+            "IO_MBS",
+            "DC_NODE_POWER_W",
+            "DRAM_POWER_W",
+            "PCK_POWER_W",
+            "CYCLES",
+            "INSTRUCTIONS",
+            "CPU_GFLOPS",
+            "L1_MISSES",
+            "L2_MISSES",
+            "L3_MISSES",
+        ]
+    ]
+
+    for row in df.itertuples(index=True):
+        id = f"{getattr(row, 'APPID')}"
+        is_appid = True
+        for column in df.columns:
+            if is_appid:
+                is_appid = False
+                continue
+            info_list.append(
+                build_info_dict_ear(node, id, column, getattr(row, column))
+            )
+
+
+def check_resource(path: str):
+    """
+    Get the list of the csv files contained in the folder
+
+    :param path: pathname of the directory containing the csv files
+    :return: list containing the filenames
+    """
+    list_of_files = []
+    for file in os.listdir(path):
+        filename = os.fsdecode(file)
+        if filename.endswith(".csv"):
+            list_of_files.append(filename)
+    return list_of_files
+
+
+def get_resource_information(resource_file: Path) -> dict:
+    """
+    Get the resource summary data contained in the file
+
+    :param resource_file: csv file containing the data of the node
+    :return: dictionary containing the summary data of the node
+    """
+    resource_df = pd.read_csv(resource_file)
+    cpu_avg = round(sum(resource_df["CPU"]) / len(resource_df), 2)
+    cpu_max = max(resource_df["CPU"])
+    mem_avg = round(sum(resource_df["MEM"]) / len(resource_df), 2)
+    mem_min = min(resource_df["MEM"])
+    mem_max = max(resource_df["MEM"])
+    byte_sent_sum = sum(resource_df["BYTE_SENT"])
+    byte_recv_sum = sum(resource_df["BYTE_RECV"])
+
+    resource_properties = {
+        "cpuAvg": cpu_avg,
+        "cpuMax": cpu_max,
+        "memAvg": mem_avg,
+        "memMin": mem_min,
+        "memMax": mem_max,
+        "byteSent": byte_sent_sum,
+        "byteRecv": byte_recv_sum,
+    }
+    return resource_properties
 
 
 def wrroc_create_action(
@@ -157,8 +343,8 @@ def wrroc_create_action(
     info_yaml: str,
     log_dir: Path,
     end_time: datetime,
-    run_uuid: str,
-):
+    auxiliary_file_list: list,
+) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -172,8 +358,15 @@ def wrroc_create_action(
     :param info_yaml: Name of the YAML file specified by the user
     :param log_dir: Path object to the directory where dataprovenance.log file, profiling and trace files can be found
     :param end_time: Time where the COMPSs application execution ended
-    :param run_uuid: UUID generated for this run
+    :param auxiliary_file_list: list of the auxiliary file contained in the instruments
+
+    :returns: UUID generated for this run
     """
+    # Define useful pathnames of file/directory in log directory
+    energy_path = log_dir / "energy/"
+    stats_path = log_dir / "stats/"
+    plots_path = log_dir / "stats/plots/"
+    dp_log = log_dir / "dataprovenance.log"
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # marenostrum4, nord3, ... BSC_MACHINE would also work
@@ -185,6 +378,8 @@ def wrroc_create_action(
     job_id = os.getenv("SLURM_JOB_ID")
 
     main_entity_pathobj = Path(main_entity)
+
+    run_uuid = str(uuid.uuid4())
 
     if job_id is None:
         name_property = (
@@ -208,8 +403,14 @@ def wrroc_create_action(
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
-    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
-    uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
+    # uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
+    # uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
+
+    description_property = ""
+
+    if os.path.exists(".compss_submission_command_line.txt"):
+        with open(".compss_submission_command_line.txt", "r") as file:
+            description_property = file.read()[:-1].strip()
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
@@ -225,6 +426,8 @@ def wrroc_create_action(
             env_var["@type"] = "PropertyValue"
             env_var["name"] = name
             env_var["value"] = value
+            # if "COMPSS_PROFILING_INTERVAL" == name:
+            #     env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
             compss_crate.add(
                 ContextEntity(
                     compss_crate,
@@ -234,12 +437,60 @@ def wrroc_create_action(
             )
             environment_property.append({"@id": "#" + name.lower()})
 
-    description_property = uname_out
-
     resolved_main_entity = main_entity
     for entity in compss_crate.get_entities():
         if "ComputationalWorkflow" in entity.type:
             resolved_main_entity = entity.id
+
+    # Adding profiling plots to RO-Crate
+    plots_path = str(plots_path)
+    if os.path.exists(plots_path):
+        for root, _, files in os.walk(plots_path):
+            for file in files:
+                if file.endswith(".svg"):
+                    full_path = os.path.join(root, file)
+                    relative_path = "profiling" + full_path.split("/plots")[1]
+
+                    # Generate a unique ID and path for the file
+                    unique_id = "#" + full_path.split("plots/")[1].split(".svg")[
+                        0
+                    ].replace(
+                        "/", "."
+                    )  # Replace '/' with '_'
+
+                    metric = relative_path.split("/")[-1].split(".svg")[0]
+                    node_name = relative_path.split("/")[-2]
+
+                    # Add the CreateAction entity
+                    # action = compss_crate.add(Entity(compss_crate, unique_id, properties={
+                    #     '@type': 'CreateAction',
+                    #     'instrument': {
+                    #         '@id': resolved_main_entity
+                    #     },
+                    #     'name': f'Profiling plot of {metric}',
+                    # }))
+
+                    # Add the trace file with a unique ID and file path
+                    trace_file = compss_crate.add_file(
+                        full_path,
+                        dest_path=relative_path,
+                        properties={
+                            "@id": relative_path,  # Unique ID for the file
+                            "@type": ["File", "ImageObject"],
+                            "name": relative_path.split("/")[-1],
+                            "description": get_description_plot(metric, node_name),
+                            "contentSize": os.stat(full_path).st_size,
+                            "encodingFormat": [
+                                "image/svg+xml",
+                                {
+                                    "@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"
+                                },
+                            ],
+                            "about": resolved_main_entity,
+                        },
+                    )
+    else:
+        print("Plots folder does not exist")
 
     # Register user submitting the workflow
     agent_added = False
@@ -304,6 +555,12 @@ def wrroc_create_action(
         with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
             yaml.dump(yaml_content, f_y, default_flow_style=False)
 
+    # instrument_list = []
+    # instrument_list.append({"@id": resolved_main_entity})
+
+    # for aux_file in auxiliary_file_list:
+    #     instrument_list.append({"@id": aux_file})
+
     create_action_properties = {
         "@type": "CreateAction",
         "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
@@ -319,15 +576,13 @@ def wrroc_create_action(
     # The string generated by the runtime is already in UTC
     # If times are found in dataprovenance.log, they replace the ones obtained at the beginning of provenance generation
     # and obtained with sacct
-    dp_log = log_dir / "dataprovenance.log"
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
             if i == 3:
                 try:
-                    start_time = datetime.strptime(
-                        line.strip(), "%Y-%m-%dT%H:%M:%S.%f%z"
-                    )
+                    clean_time = line.strip().replace('Z', '+0000')[:26] + '+0000'
+                    start_time = datetime.strptime(clean_time, "%Y-%m-%dT%H:%M:%S.%f%z")
                     create_action_properties["startTime"] = start_time.replace(
                         microsecond=0
                     ).isoformat()
@@ -366,7 +621,7 @@ def wrroc_create_action(
                             )
                         except Exception as e:
                             print(
-                                f"PROVENANCE | WARNING: 'sacct' command not available"
+                                f"PROVENANCE | WARNING: 'sacct' command not available. 'startTime' will be obtained from dataprovenance.log"
                             )
             else:
                 last_line = line.strip()
@@ -382,6 +637,7 @@ def wrroc_create_action(
             )
 
     try:
+        stat_data_time = time.time()
         print(f"PROVENANCE | RO-Crate adding statistical data")
         # Add the resource usage to the ROCrate object
         resource_usage_list = get_resource_usage_dataset(dp_log, start_time, end_time)
@@ -393,9 +649,125 @@ def wrroc_create_action(
                 ContextEntity(compss_crate, resource_id, properties=resource_usage)
             )
             id_name_list.append({"@id": resource_id})
-        create_action_properties["resourceUsage"] = id_name_list
+
+        # Get profiling data
+        try:
+            profiling_files_list = check_resource(stats_path)
+        except FileNotFoundError:
+            profiling_files_list = []
+        id_measure_list = []
+        if len(profiling_files_list) == 0:
+            print(f"PROVENANCE | WARNING: No profiling resource file found ")
+        else:
+            for profiling_file in profiling_files_list:
+                resource_name = profiling_file.split(".")[0].split("_")[-1]
+                resource_properties = get_resource_information(
+                    stats_path / profiling_file
+                )
+                resource_id = "#" + resource_name
+
+                for measure in resource_properties.keys():
+                    measure_id = f"{resource_id}.{measure}"
+                    new_properties = build_info_dict_resource_usage(
+                        measure, resource_properties[measure]
+                    )
+                    compss_crate.add(
+                        ContextEntity(
+                            compss_crate, measure_id, properties=new_properties
+                        )
+                    )
+                    id_measure_list.append({"@id": measure_id})
+
+        id_name_list.extend(id_measure_list)
+        print(f"PROVENANCE | Added resource profiling information TIME: {time.time() - stat_data_time} s")
+
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
+
+    if os.path.isdir(energy_path):
+        try:
+            entry_list = [
+                "AVG_CPUFREQ_KHZ",
+                "AVG_IMCFREQ_KHZ",
+                "CPI",
+                "TPI",
+                "MEM_GBS",
+                "IO_MBS",
+                "DC_NODE_POWER_W",
+                "DRAM_POWER_W",
+                "PCK_POWER_W",
+                "CYCLES",
+                "INSTRUCTIONS",
+                "CPU_GFLOPS",
+            ]
+
+            id_measure_list = []
+            for subdir, dirs, files in os.walk(energy_path):
+                for file in files:
+                    if file.endswith("time.csv"):
+                        energy_file = Path(subdir, file)
+                        node = file.split(".")[1]
+                        df = pd.read_csv(energy_file, sep=";")
+                        # pandas library has problems in column names containing dash
+                        df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
+                        node_id = df["NODENAME"].iloc[0]
+                        df = df[entry_list]
+
+                        for measure in entry_list:
+                            average_value = round(st.mean(df[measure]), 2)
+
+                            measure_id = f"#{node_id}.{measure}"
+                            new_properties = build_info_dict_ear(measure, average_value)
+                            compss_crate.add(
+                                ContextEntity(
+                                    compss_crate, measure_id, properties=new_properties
+                                )
+                            )
+                            id_measure_list.append({"@id": measure_id})
+            id_name_list.extend(id_measure_list)
+            print(f"PROVENANCE | RO-Crate adding energy data")
+        except ValueError:
+            print(
+                f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
+            )
+            print("PROVENANCE | EAR not used")
+    else:
+        print("PROVENANCE | EAR not enabled")
+
+    create_action_properties["resourceUsage"] = id_name_list
+
+    # if os.path.isdir(energy_path):
+    #     try:
+    #         print(f"PROVENANCE | RO-Crate adding energy data")
+    #         # Add the resource usage to the ROCrate object
+    #         for data_file in os.listdir(energy_path):
+    #             if data_file.endswith("time.csv"):
+    #                 info_list = []
+    #                 filename = Path(energy_path, data_file)
+    #                 node = data_file.split(".")[1]
+    #                 get_energy_usage_for_node(filename, info_list, node)
+    #
+    #                 id_info_list = []
+    #                 for info_properties in info_list:
+    #                     info_id = info_properties["id"]
+    #                     del info_properties["id"]
+    #                     compss_crate.add(
+    #                         ContextEntity(
+    #                             compss_crate, info_id, properties=info_properties
+    #                         )
+    #                     )
+    #                     id_info_list.append({"@id": info_id})
+    #                     create_action_properties["resourceUsage"] = id_info_list
+    #                     compss_crate.add(
+    #                         ContextEntity(
+    #                             compss_crate, node, properties=create_action_properties
+    #                         )
+    #                     )
+    #     except ValueError:
+    #         print(
+    #             f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
+    #         )
+    #         print("PROVENANCE | EAR not used")
 
     if agent:
         create_action_properties["agent"] = agent
@@ -479,3 +851,5 @@ def wrroc_create_action(
         print(
             f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
         )
+
+    return run_uuid

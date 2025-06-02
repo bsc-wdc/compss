@@ -183,9 +183,6 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         // Ear
         cmd[nextPosition++] = this.ear;
 
-        // Provenance
-        cmd[nextPosition++] = this.dataProvenance;
-
         if (cmd.length != nextPosition) {
             throw new Exception(
                 "ERROR: Incorrect number of parameters. Expected: " + cmd.length + ". Got: " + nextPosition);

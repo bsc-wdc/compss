@@ -30,9 +30,6 @@ from rocrate.model.contextentity import ContextEntity
 from provenance.processing.entities import get_manually_defined_software_requirements
 
 
-LANGUAGE_EXTENSIONS = (".java", ".py", ".sh")
-
-
 def add_file_to_crate(
     compss_crate: ROCrate,
     wf_info: dict,
@@ -41,9 +38,8 @@ def add_file_to_crate(
     main_entity: str,
     out_profile: str,
     in_sources_dir: str,
-    complete_graph: str,
+    complete_graph: Path,
     info_yaml: str,
-    auxiliary_file_list: list,
 ) -> str:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
@@ -56,15 +52,13 @@ def add_file_to_crate(
     :param out_profile: COMPSs application profile output
     :param in_sources_dir: Path to the defined sources_dir. May be passed empty, so there is no sub-folder structure
         to be respected
-    :param complete_graph: Full path to the file containing the workflow diagram
+    :param complete_graph: Path object to the file containing the workflow diagram
     :param info_yaml: Name of the YAML file specified by the user
-    :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
 
     :returns: Path where the file has been stored in the crate
     """
 
     file_path = Path(file_name)
-
     file_properties = {
         "name": file_path.name,
         "contentSize": os.path.getsize(file_name),
@@ -116,7 +110,7 @@ def add_file_to_crate(
     else:
         # Any other extra file needed
         file_properties["description"] = "Auxiliary File"
-        if file_path.suffix in LANGUAGE_EXTENSIONS:
+        if file_path.suffix in (".py", ".java"):
             file_properties["encodingFormat"] = "text/plain"
             file_properties["@type"] = ["File", "SoftwareSourceCode"]
         elif file_path.suffix == ".json":
@@ -182,12 +176,7 @@ def add_file_to_crate(
     else:
         path_in_crate = "application_sources/" + file_path.name
 
-    # provenance-run-crate standard not ready yet
-    # auxiliary_file_list.append(path_in_crate)
-
     if file_name != main_entity:
-        # Or check if the file is an executable (.py or .java)
-        # if file_name.endswith(".py") or file_name.endswith(".java")
         if __debug__:
             print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
         compss_crate.add_file(
@@ -280,38 +269,37 @@ def add_file_to_crate(
 
         # out_profile
         if os.path.exists(out_profile):
-            if out_profile.split("/")[-1] != "App_Profile.json":
-                file_properties = {}
-                file_properties["name"] = out_profile
-                file_properties["contentSize"] = os.path.getsize(out_profile)
-                file_properties["description"] = "COMPSs application Tasks profile"
-                file_properties["encodingFormat"] = [
-                    "application/json",
-                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
-                ]
+            file_properties = {}
+            file_properties["name"] = out_profile
+            file_properties["contentSize"] = os.path.getsize(out_profile)
+            file_properties["description"] = "COMPSs application Tasks profile"
+            file_properties["encodingFormat"] = [
+                "application/json",
+                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
+            ]
 
-                # Fix COMPSs crappy format of JSON files
-                with open(out_profile, encoding="UTF-8") as op_file:
-                    op_json = json.load(op_file)
-                with open(out_profile, "w", encoding="UTF-8") as op_file:
-                    json.dump(op_json, op_file, indent=1)
+            # Fix COMPSs crappy format of JSON files
+            with open(out_profile, encoding="UTF-8") as op_file:
+                op_json = json.load(op_file)
+            with open(out_profile, "w", encoding="UTF-8") as op_file:
+                json.dump(op_json, op_file, indent=1)
 
-                # Add JSON as ContextEntity
-                compss_crate.add(
-                    ContextEntity(
-                        compss_crate,
-                        "https://www.nationalarchives.gov.uk/PRONOM/fmt/817",
-                        {"@type": "WebSite", "name": "JSON Data Interchange Format"},
-                    )
+            # Add JSON as ContextEntity
+            compss_crate.add(
+                ContextEntity(
+                    compss_crate,
+                    "https://www.nationalarchives.gov.uk/PRONOM/fmt/817",
+                    {"@type": "WebSite", "name": "JSON Data Interchange Format"},
                 )
+            )
 
-                # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
-                with open(out_profile) as file, mmap(
-                    file.fileno(), 0, access=ACCESS_READ
-                ) as file:
-                    file_properties["sha256"] = sha256(file).hexdigest()
+            # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
+            with open(out_profile) as file, mmap(
+                file.fileno(), 0, access=ACCESS_READ
+            ) as file:
+                file_properties["sha256"] = sha256(file).hexdigest()
 
-                compss_crate.add_file(out_profile, properties=file_properties)
+            compss_crate.add_file(out_profile, properties=file_properties)
         else:
             print(
                 "PROVENANCE | WARNING: COMPSs application profile has not been generated.\n"
@@ -320,57 +308,62 @@ def add_file_to_crate(
             )
 
         # compss_submission_command_line.txt. Old compss_command_line_arguments.txt
-        # if os.path.exists("compss_submission_command_line.txt"):
-        #     file_properties = {}
-        #     file_properties["name"] = "compss_submission_command_line.txt"
-        #     file_properties["contentSize"] = os.path.getsize(
-        #         "compss_submission_command_line.txt"
-        #     )
-        #     file_properties["description"] = (
-        #         "COMPSs submission command line (runcompss / enqueue_compss), including flags and parameters passed to the application"
-        #     )
-        #     file_properties["encodingFormat"] = "text/plain"
-        #     with open("compss_submission_command_line.txt") as file, mmap(
-        #         file.fileno(), 0, access=ACCESS_READ
-        #     ) as file:
-        #         file_properties["sha256"] = sha256(file).hexdigest()
-        #     compss_crate.add_file(
-        #         "compss_submission_command_line.txt", properties=file_properties
-        #     )
-        # else:
-        #     print(
-        #         "PROVENANCE | WARNING: COMPSs submission command line has not been generated.\n"
-        #         "\tProvenance will be generated without submission information"
-        #     )
+        if os.path.exists("compss_submission_command_line.txt"):
+            file_properties = {}
+            file_properties["name"] = "compss_submission_command_line.txt"
+            file_properties["contentSize"] = os.path.getsize(
+                "compss_submission_command_line.txt"
+            )
+            file_properties["description"] = (
+                "COMPSs submission command line (runcompss / enqueue_compss), including flags and parameters passed to the application"
+            )
+            file_properties["encodingFormat"] = "text/plain"
+            with open("compss_submission_command_line.txt") as file, mmap(
+                file.fileno(), 0, access=ACCESS_READ
+            ) as file:
+                file_properties["sha256"] = sha256(file).hexdigest()
+            compss_crate.add_file(
+                "compss_submission_command_line.txt", properties=file_properties
+            )
+        else:
+            print(
+                "PROVENANCE | WARNING: COMPSs submission command line has not been generated.\n"
+                "\tProvenance will be generated without submission information"
+            )
 
         # ro-crate-info.yaml
-        yaml_path = Path(info_yaml)
-        file_properties = {}
-        file_properties["name"] = yaml_path.name
-        file_properties["contentSize"] = os.path.getsize(yaml_path)
-        file_properties["description"] = (
-            "COMPSs Workflow Provenance YAML configuration file"
-        )
-        file_properties["encodingFormat"] = [
-            "YAML",
-            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
-        ]
-
-        # Add YAML as ContextEntity
-        compss_crate.add(
-            ContextEntity(
-                compss_crate,
-                "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
-                {"@type": "WebSite", "name": "YAML"},
+        if os.path.exists(info_yaml):
+            yaml_path = Path(info_yaml)
+            file_properties = {}
+            file_properties["name"] = yaml_path.name
+            file_properties["contentSize"] = os.path.getsize(yaml_path)
+            file_properties["description"] = (
+                "COMPSs Workflow Provenance YAML configuration file"
             )
-        )
+            file_properties["encodingFormat"] = [
+                "YAML",
+                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
+            ]
 
-        with open(info_yaml) as file, mmap(
-            file.fileno(), 0, access=ACCESS_READ
-        ) as file:
-            file_properties["sha256"] = sha256(file).hexdigest()
+            # Add YAML as ContextEntity
+            compss_crate.add(
+                ContextEntity(
+                    compss_crate,
+                    "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
+                    {"@type": "WebSite", "name": "YAML"},
+                )
+            )
 
-        compss_crate.add_file(yaml_path, properties=file_properties)
+            with open(info_yaml) as file, mmap(
+                file.fileno(), 0, access=ACCESS_READ
+            ) as file:
+                file_properties["sha256"] = sha256(file).hexdigest()
+
+            compss_crate.add_file(yaml_path, properties=file_properties)
+        else:
+            print(
+                "PROVENANCE | WARNING: YAML configuration file was not added to the crate."
+            )
 
         return ""
 
@@ -387,7 +380,6 @@ def add_application_source_files(
     out_profile: str,
     info_yaml: str,
     complete_graph: str,
-    auxiliary_file_list: list,
 ) -> None:
     """
     Add all application source files as part of the crate. This means, to include them physically in the resulting
@@ -400,7 +392,6 @@ def add_application_source_files(
     :param out_profile: COMPSs application profile output file
     :param info_yaml: Name of the YAML file specified by the user
     :param complete_graph: Full path to the file containing the workflow diagram
-    :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
 
     :returns: None
     """
@@ -446,8 +437,6 @@ def add_application_source_files(
             )
             continue
         resolved_source = str(path_source.resolve())
-        if any(part.startswith(".") for part in Path(str(resolved_source)).parts):
-            continue
         if os.path.isdir(resolved_source):
             # Adding files twice is not a drama, since add_file_to_crate won't add them twice, but we save traversing directories
             if resolved_source in added_dirs:
@@ -470,10 +459,10 @@ def add_application_source_files(
             for root, dirs, files in os.walk(
                 resolved_source, topdown=True, followlinks=True
             ):
-                if "__pycache__" in root:
-                    continue  # We skip __pycache__ subdirectories
+                if root.endswith("__pycache__") or root.endswith(".git"):
+                    continue  # We skip __pycache__ and .git subdirectories
                 for f_name in files:
-                    if f_name.startswith(("*", ".")):
+                    if f_name.startswith("*"):
                         # Avoid dealing with symlinks with wildcards
                         continue
                     resolved_file = os.path.join(root, f_name)
@@ -488,7 +477,6 @@ def add_application_source_files(
                             resolved_source,
                             complete_graph,
                             info_yaml,
-                            auxiliary_file_list,
                         )
                         added_files.append(resolved_file)
                     else:
@@ -517,7 +505,6 @@ def add_application_source_files(
                             resolved_source,
                             complete_graph,
                             info_yaml,
-                            auxiliary_file_list,
                         )
             if not os.listdir(resolved_source):
                 # The root directory itself is empty
@@ -538,7 +525,6 @@ def add_application_source_files(
                     resolved_source,
                     complete_graph,
                     info_yaml,
-                    auxiliary_file_list,
                 )
         elif os.path.isfile(resolved_source):
             if resolved_source not in added_files:
@@ -552,7 +538,6 @@ def add_application_source_files(
                     "",
                     complete_graph,
                     info_yaml,
-                    auxiliary_file_list,
                 )
                 added_files.append(resolved_source)
             else:
@@ -577,18 +562,16 @@ def add_application_source_files(
             "",
             complete_graph,
             info_yaml,
-            auxiliary_file_list,
         )
         added_files.append(main_entity)
 
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
     # Not working well when an application has several versions (ex: Java matmul files, objects, arrays)
-
-    # provenance-run-crate standard not ready yet
     # for e in compss_crate.data_entities:
-    #     if "ComputationalWorkflow" in e.type:
-    #         for file in auxiliary_file_list:
-    #             e.append_to("hasPart", {"@id": file})
+    #     if 'ComputationalWorkflow' in e.type:
+    #         for file in crate_paths:
+    #             if file is not "":
+    #                 e.append_to("hasPart", {"@id": file})
 
     print(f"PROVENANCE | Application source files detected ({len(added_files)})")
     if __debug__:

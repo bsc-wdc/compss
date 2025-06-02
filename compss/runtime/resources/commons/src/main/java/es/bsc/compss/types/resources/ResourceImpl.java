@@ -90,8 +90,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     private final Set<LogicalData> privateFiles = new HashSet<>();
     private boolean isLost = false;
 
-    private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
-
 
     /**
      * Creates a new ResourceImplementation instance.
@@ -524,7 +522,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             generateAndRetrieveWorkerAnalysis();
         }
 
-        if (DEBUG || DP_ENABLED) {
+        if (DEBUG) {
             generateAndRetrieveWorkerDebug();
         }
     }

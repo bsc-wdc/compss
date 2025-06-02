@@ -215,7 +215,6 @@ class ExecutorConf:
         "out_cache_queue",
         "cache_profiler",
         "ear",
-        "dp_enabled",
     ]
 
     def __init__(
@@ -235,7 +234,6 @@ class ExecutorConf:
         out_cache_queue: typing.Optional[Queue] = None,
         cache_profiler: bool = False,
         ear: bool = False,
-        dp_enabled: bool = False,
     ) -> None:
         """Construct a new executor configuration.
 
@@ -255,7 +253,6 @@ class ExecutorConf:
                                to cache_ids.
         :param out_cache_queue: Cache queue where to the cache returns info.
         :param ear: Ear energy metering.
-        :param dp_enabled: Check if Provenance is enabled or not.
         """
         self.debug = debug
         self.tmp_dir = tmp_dir
@@ -272,7 +269,6 @@ class ExecutorConf:
         self.out_cache_queue = out_cache_queue
         self.cache_profiler = cache_profiler
         self.ear = ear
-        self.dp_enabled = dp_enabled
 
 
 ######################

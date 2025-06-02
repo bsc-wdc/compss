@@ -94,20 +94,6 @@ def generate_command_line(self, sub_directory_path: str) -> list[str]:
 
     # compss_submission_command = clean_command(link_or_path, new_command.split(" "))
 
-    new_command = ""
-    crate = ROCrate(path)
-    for e in crate.get_entities():
-        if "#COMPSs_Workflow_Run_Crate_" in e.id:
-            new_command = e["description"]
-            break
-
-    new_command = ""
-    crate = ROCrate(path)
-    for e in crate.get_entities():
-        if "#COMPSs_Workflow_Run_Crate_" in e.id:
-            new_command = e["description"]
-            break
-
     # compss_submission_command_path = os.path.join(path, "compss_submission_command_line.txt")
 
     # with open(compss_submission_command_path, 'r', encoding='utf-8') as file:

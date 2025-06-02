@@ -379,7 +379,7 @@ public class JSONStateManager {
     /**
      * get list of resources used in the execution.
      *
-     * @param jsonObject object containing the JSON parsed from the jsonRepresentation object
+     * @param jsonObject object containing the JSON parsed from the App_Profile.json
      * @return list of keys referred to the resources
      */
     private List<String> getListKeys(JSONObject jsonObject) {

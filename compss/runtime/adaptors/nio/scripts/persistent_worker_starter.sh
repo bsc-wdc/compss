@@ -76,6 +76,11 @@
     echo "Log directory: ${logDir}"
   fi
 
+  # START PROFILING
+  # shellcheck disable=SC1090
+  source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
+  start_profiling
+
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 
   # Stop profiling process

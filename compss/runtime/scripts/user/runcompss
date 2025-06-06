@@ -25,6 +25,10 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
+# Load profiling script
+# shellcheck disable=SC1090
+source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
+
 
 #---------------------------------------------------
 # CONSTANTS DEFINTION
@@ -818,15 +822,32 @@ if [ -n "${env_script_path}" ]; then
     source $script
   done
 fi
+
+# Start the profiling process
+start_profiling
+
 # Real runtime execution
 start_compss_app
 
-if [ ${provenance} ]; then
+if [ "${provenance}" != false ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
     echo "runcompss" $all_arguments > compss_submission_command_line.txt
   else
     echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
+
+  find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
+  for file in "${specific_log_dir}"stats/*.csv; do
+    if [[ "$(basename "$file")" == *"${COMPSS_MASTER_NODE}"* ]]; then
+      new_name="${file%.csv}-MASTER.csv"
+      mv "$file" "$new_name"
+      break
+    fi
+  done
+
+  # if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
+  #   rm -r "${specific_log_dir}/workers/"
+  # fi
 
   # Check if provenance_dest_path is unset or empty
   if [ -z "${provenance_dest_path}" ]; then

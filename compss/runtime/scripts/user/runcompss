@@ -29,6 +29,7 @@ source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 # shellcheck disable=SC1090
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/profiler.sh"
 
+
 #---------------------------------------------------
 # CONSTANTS DEFINTION
 #---------------------------------------------------
@@ -847,9 +848,9 @@ if [ "${provenance}" != false ]; then
     fi
   done
 
-   if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
-     rm -r "${specific_log_dir}/workers/"
-   fi
+  if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
+    rm -r "${specific_log_dir}/workers/"
+  fi
 
   # Check if provenance_dest_path is unset or empty
   if [ -z "${provenance_dest_path}" ]; then

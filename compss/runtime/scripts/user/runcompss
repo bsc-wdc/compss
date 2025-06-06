@@ -314,7 +314,6 @@ get_args() {
         provenance=true
         zip_provenance=true
         if [ -z "$provenance_yaml" ] ; then
-          echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
           provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         fi
         if [ -z "$output_profile" ] ; then

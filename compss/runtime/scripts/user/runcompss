@@ -23,7 +23,6 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 # shellcheck source=../system/runtime/compss_setup.sh
 # shellcheck disable=SC1091
-<<<<<<< HEAD
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 # Load profiling script

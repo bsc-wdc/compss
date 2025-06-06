@@ -118,6 +118,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String pythonWorkerCache;
     protected String pythonCacheProfiler;
     protected String ear;
+    protected String dataProvenance;
     protected int totalCPU;
     protected int totalGPU;
     protected int totalFPGA;
@@ -313,6 +314,12 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         this.ear = System.getProperty(COMPSsConstants.EAR);
         if (this.ear == null || this.ear.isEmpty() || this.ear.equals("null")) {
             this.ear = COMPSsDefaults.EAR;
+        }
+
+        // Configure provenance
+        this.dataProvenance = System.getProperty(COMPSsConstants.DATA_PROVENANCE);
+        if (this.dataProvenance == null || this.dataProvenance.isEmpty() || this.dataProvenance.equals("null")) {
+            this.dataProvenance = COMPSsDefaults.DP_ENABLED;
         }
 
         this.lang = System.getProperty(COMPSsConstants.LANG);

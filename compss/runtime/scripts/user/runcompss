@@ -304,11 +304,9 @@ get_args() {
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
         if [ -z "$output_profile" ] ; then
-          echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
         fi
         if [ -z "$graph" ] ; then
-          echo "PROVENANCE | Setting 'graph' to 'true' by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
         fi
         ;;

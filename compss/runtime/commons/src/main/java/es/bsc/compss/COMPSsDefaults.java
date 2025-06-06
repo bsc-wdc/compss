@@ -54,6 +54,8 @@ public class COMPSsDefaults {
 
     // EAR
     public static final String EAR = "false";
+    // PROVENANCE
+    public static final String DP_ENABLED = "false";
 
     // ANALYSIS TOOLS CONFIG
     // LOG

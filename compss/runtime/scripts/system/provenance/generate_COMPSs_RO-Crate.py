@@ -46,6 +46,10 @@ from provenance.wrroc.profile import set_profile_details
 from provenance.wrroc.store_data import store_data
 from provenance.wrroc.profiling_plots import generate_plots
 
+from scripts.system.provenance.wrroc.store_data import store_data
+from provenance.wrroc.store_data import store_data
+from provenance.wrroc.profiling_plots import generate_plots
+
 
 def main():
     """

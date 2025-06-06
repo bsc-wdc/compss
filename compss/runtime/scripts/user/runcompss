@@ -311,12 +311,11 @@ get_args() {
         ;;
       z)
         # Zip provenance result
-        provenance=true
+        if [ -z "$output_profile" ] ; then
         zip_provenance=true
         if [ -z "$provenance_yaml" ] ; then
           provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         fi
-        if [ -z "$output_profile" ] ; then
           output_profile="${PWD}/App_Profile.json"
         fi
         if [ -z "$graph" ] ; then
@@ -709,7 +708,6 @@ get_args() {
               echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
             fi
-            ;;
           *)
             # Flag didn't match any patern. Raise exception
             arguments_error "Bad argument: $OPTARG"

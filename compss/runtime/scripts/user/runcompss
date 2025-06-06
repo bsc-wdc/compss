@@ -301,7 +301,6 @@ get_args() {
         # Enable provenance
         provenance=true
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-        echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
         if [ -z "$output_profile" ] ; then
           output_profile="${PWD}/App_Profile.json"
         fi

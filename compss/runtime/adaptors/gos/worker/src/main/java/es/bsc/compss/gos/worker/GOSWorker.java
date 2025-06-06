@@ -88,7 +88,7 @@ public class GOSWorker implements InvocationContext {
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
     private static final int HOSTS_FLAGS_SIZE = 10;
     private static final int TRACING_FLAGS_SIZE = 7;
-    private static final int LANG_SIZE_FLAGS = 10;
+    private static final int LANG_SIZE_FLAGS = 11;
     private static final int EXTRA_FLAG_SIZE = 0;
     private static final int HOST_INX = 0;
     private static final int TRACING_INX = HOST_INX + HOSTS_FLAGS_SIZE;
@@ -623,6 +623,11 @@ public class GOSWorker implements InvocationContext {
 
     @Override
     public boolean getEar() {
+        return false;
+    }
+
+    @Override
+    public boolean getDataProvenance() {
         return false;
     }
 }

@@ -209,6 +209,8 @@ def main():
         compss_crate.write_zip(DEST_FOLDER.rstrip("/"))
     else:
         compss_crate.write(DEST_FOLDER)
+    store_data(DEST_FOLDER, STATS_PATH, compss_crate)
+
     print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
     print(
         f"PROVENANCE | Workflow Provenance generation TOTAL EXECUTION TIME: {time.time() - exec_time} s"

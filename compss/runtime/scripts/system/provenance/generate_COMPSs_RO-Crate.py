@@ -21,8 +21,12 @@ following the Workflow Run Crate profile specification. Takes as parameters the 
 dataprovenance.log generated from the run.
 """
 import numpy as np
+import numpy as np
+import sys
 import sys
 import time
+import time
+import yaml
 import yaml
 from datetime import datetime
 from pathlib import Path

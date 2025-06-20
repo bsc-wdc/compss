@@ -148,6 +148,7 @@ def __add_loggers(
             handlers = [
                 "info_master_file_handler",
                 "error_master_file_handler",
+                "dp_file_handler"
             ]
         else:
             # ERROR level
@@ -163,6 +164,7 @@ def __add_loggers(
             handlers = [
                 "info_worker_file_handler",
                 "error_worker_file_handler",
+                "dp_file_handler"
             ]
         else:
             # ERROR level
@@ -223,6 +225,10 @@ def init_logging(remittent: str, log_level: str, log_path: str) -> None:
     if handler in conf["handlers"]:
         debug_file = conf["handlers"][handler].get("filename")
         conf["handlers"][handler]["filename"] = log_path + debug_file
+    handler = "dp_file_handler"
+    if handler in conf["handlers"]:
+        dp_file = conf["handlers"][handler].get("filename")
+        conf["handlers"][handler]["filename"] = log_path + dp_file
     CONFIG_FUNC(conf)
 
 
@@ -258,6 +264,10 @@ def init_logging_worker(
         if handler in conf["handlers"]:
             debug_file = conf["handlers"][handler].get("filename")
             conf["handlers"][handler]["filename"] = "../" + debug_file
+        handler = "dp_file_handler"
+        if handler in conf["handlers"]:
+            dp_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = "../" + dp_file
     # If within task
     if job_err:
         handler = "error_worker_file_handler"
@@ -268,6 +278,9 @@ def init_logging_worker(
         if handler in conf["handlers"]:
             conf["handlers"][handler]["filename"] = job_out
         handler = "debug_worker_file_handler"
+        if handler in conf["handlers"]:
+            conf["handlers"][handler]["filename"] = job_out
+        handler = "dp_file_handler"
         if handler in conf["handlers"]:
             conf["handlers"][handler]["filename"] = job_out
 
@@ -302,6 +315,12 @@ def init_logging_worker_piper(
         debug_file = conf["handlers"][handler].get("filename")
         conf["handlers"][handler]["filename"] = os.path.join(
             log_dir, debug_file
+        )
+    handler = "dp_file_handler"
+    if handler in conf["handlers"]:
+        dp_file = conf["handlers"][handler].get("filename")
+        conf["handlers"][handler]["filename"] = os.path.join(
+            log_dir, dp_file
         )
     CONFIG_FUNC(conf)
 

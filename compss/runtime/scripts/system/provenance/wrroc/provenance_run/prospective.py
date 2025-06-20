@@ -1,4 +1,4 @@
-from rocrate.model import ContextEntity
+from rocrate.model import ContextEntity, Entity
 from rocrate.rocrate import ROCrate
 
 from provenance.models.Parameter import Parameter
@@ -8,7 +8,7 @@ from provenance.models.Task import Task
 def add_workflow_engine(
         compss_crate: ROCrate,
         version: str
-) -> tuple:
+) -> ContextEntity:
     """
     Adds a `SoftwareApplication` entity, representing the COMPSs runtime, to the COMPSs RO-Crate.
 
@@ -29,10 +29,63 @@ def add_workflow_engine(
     ))
 
 
+def add_how_to_step(
+        compss_crate: ROCrate,
+        task: Task,
+        tool: Entity
+) -> ContextEntity:
+    """
+    Adds a `HowToStep` instance to the COMPSs RO-Crate.
+    This represents the task declaration.
+
+    :param compss_crate: The COMPSs RO-Crate being generated.
+    :param task: The executed task that this step represents.
+    :param tool: The `SoftwareSourceCode` instance that this step serves as an example of.
+
+    :return: The created `HowToStep` instance.
+    """
+    how_to_step_id = f"#Task_{task.tid}"
+
+    return compss_crate.add(ContextEntity(
+        crate=compss_crate,
+        identifier=how_to_step_id,
+        properties={
+            "@type": "HowToStep",
+            "name": f"Task {task.tid}",
+            "workExample": tool,
+            "position": task.tid
+        }
+    ))
+
+
+def update_main_entity_with_steps(
+        compss_crate: ROCrate,
+        steps: list[ContextEntity]
+) -> Entity:
+    """
+    Updates the main entity with a `step` section that includes the executed `HowToStep`s.
+
+    :param compss_crate: The COMPSs RO-Crate being generated.
+    :param steps: A list of the executed `HowToStep` instances
+
+    :return: The updated mainEntity with the steps.
+    """
+    main_entity_id = compss_crate.mainEntity.get("@id")
+    old_types = compss_crate.mainEntity.get("@type")
+
+    compss_crate.update_jsonld({
+        "@id": main_entity_id,
+        "@type": old_types.append("HowTo"),
+    })
+    compss_crate.mainEntity["step"] = steps
+
+    return compss_crate.mainEntity
+
+
 def add_software_tool_for_task(
         compss_crate: ROCrate,
         task: Task
-):
+) -> ContextEntity:
     """
     Adds a `SoftwareSourceCode` entity, representing the software tool (a.k.a. the task definition), to the COMPSs RO-Crate.
 
@@ -48,7 +101,7 @@ def add_software_tool_for_task(
     for param in task.params:
         if "OUT" in param.direction:
             output_params.append(param.formal_instance)
-        if "IN" in param.direction or param.direction in ["CONCURRENT", "COMMUTATIVE"]:
+        if "IN" in param.direction:
             input_params.append(param.formal_instance)
 
     return compss_crate.add(ContextEntity(
@@ -66,8 +119,8 @@ def add_software_tool_for_task(
 
 def update_main_entity_with_software_tools(
         compss_crate: ROCrate,
-        tools: list
-):
+        tools: list[Entity]
+) -> ContextEntity:
     """
     Updates the main entity's `hasPart` section to include the given tools (task definitions).
 
@@ -82,7 +135,7 @@ def update_main_entity_with_software_tools(
 def add_parameter_definition(
         compss_crate: ROCrate,
         param: Parameter
-):
+) -> ContextEntity:
     """
     Adds a formal parameter definition to a COMPSs RO-Crate.
 
@@ -91,13 +144,19 @@ def add_parameter_definition(
 
     :return: The created FormalParameter instance
     """
-    formal_parameter_id = f"#{param.method}#{param.name}"
+    formal_parameter_id = f"#{param.method}::{param.name}"
+    formal_parameter_properties = {
+        "@type": "FormalParameter",
+        "additionalType": param.dtype,
+        "name": param.name,
+        "workExample": []
+    }
+
+    if param.isArray == "True":
+        formal_parameter_properties["multipleValues"] = True
+
     return compss_crate.add(ContextEntity(
         compss_crate,
         formal_parameter_id,
-        {
-            "@type": "FormalParameter",
-            "additionalType": param.dtype,
-            "name": param.name
-        }
+        formal_parameter_properties
     ))

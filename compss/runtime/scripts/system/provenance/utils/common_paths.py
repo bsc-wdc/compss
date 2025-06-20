@@ -156,3 +156,12 @@ def is_canonical(version):
         )
         is not None
     )
+
+
+def is_valid_path(path_str):
+    try:
+        Path(path_str)  # Try creating a Path object
+        return True
+    except Exception:
+        return False
+

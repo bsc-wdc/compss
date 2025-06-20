@@ -76,6 +76,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
+    public static final boolean INFO = LOGGER.isInfoEnabled();
     private static final boolean CACHE_PROFILING_ENABLED =
         Boolean.parseBoolean(System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER));
     protected final String name;
@@ -522,7 +523,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             generateAndRetrieveWorkerAnalysis();
         }
 
-        if (DEBUG) {
+        if (DEBUG || INFO) {
             generateAndRetrieveWorkerDebug();
         }
     }

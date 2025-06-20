@@ -22,17 +22,17 @@ PyCOMPSs runtime - Task - Worker.
 
 This file contains the task core functions when acting as worker.
 """
-
 import gc
+import logging
 import os
 import re
+import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from shutil import copyfile
 
 from pycompss.api import parameter
-from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import CONSTANTS
@@ -48,10 +48,11 @@ from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
-from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_direction_from_key
+from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.shared_args import SHARED_ARGUMENTS
 from pycompss.runtime.task.wrappers.psco_stream import PscoStreamWrapper
+from pycompss.util.context import CONTEXT
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.objects.properties import create_object_by_con_type
@@ -66,12 +67,11 @@ from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.worker import build_task_parameter
-
+from pycompss.worker.piper.cache.classes import TaskWorkerCache
 # The cache is only available currently for piper_worker.py and python >= 3.8
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
-from pycompss.worker.piper.cache.classes import TaskWorkerCache
 
 NP = None  # type: typing.Any
 try:
@@ -81,9 +81,8 @@ try:
 except ImportError:
     NP = None
 
+DP_LOGGER = logging.getLogger("dp_logger")
 if __debug__:
-    import logging
-
     LOGGER = logging.getLogger(__name__)
 
 
@@ -101,12 +100,14 @@ class TaskWorker:
         "on_failure",
         "defaults",
         "cache",
+        "task_id",
+        "method_name"
     ]
 
     def __init__(
-        self,
-        decorator_arguments: TaskArguments,
-        decorated_function: FunctionDefinition,
+            self,
+            decorator_arguments: TaskArguments,
+            decorated_function: FunctionDefinition,
     ) -> None:
         """Task at worker constructor.
 
@@ -121,9 +122,11 @@ class TaskWorker:
         self.on_failure = ""
         self.defaults = {}  # type: dict
         self.cache = TaskWorkerCache()
+        self.task_id = None
+        self.method_name = ""
 
     def call(
-        self, *args: typing.Any, **kwargs: typing.Any
+            self, *args: typing.Any, **kwargs: typing.Any
     ) -> typing.Tuple[list, list, str, tuple]:
         """Run the task as worker.
 
@@ -144,6 +147,10 @@ class TaskWorker:
         # Grab LOGGER from kwargs
         # (shadows outer LOGGER since it is set by the worker)
         LOGGER = kwargs["compss_logger"]  # noqa
+        if kwargs["compss_job_id"]:
+            self.task_id = kwargs["compss_job_id"]
+        if kwargs["compss_method_name"]:
+            self.method_name = kwargs["compss_method_name"]
         with swap_logger_name(LOGGER, __name__):
             if __debug__:
                 LOGGER.debug("Starting @task decorator worker call")
@@ -207,6 +214,18 @@ class TaskWorker:
                 # After this line all the objects in arg have a "content"
                 # field, now we will segregate them in User positional and
                 # variadic args
+
+                for argument in args:
+                    if is_return(argument.name):
+                        continue
+                    name_to_print = argument.name.replace("#kwarg_", "")
+                    pythontype, is_array = get_type_info(argument.content)
+                    content_no_newline = str(argument.content).replace("\n", "")
+                    description = get_array_shape_string(argument.content) if is_array or "dict" in pythontype else ""
+                    DP_LOGGER.info(f"TASK={self.task_id} HOST={socket.gethostname()} METHOD={self.method_name} PARAMETER={name_to_print} "
+                                   f"COMPSSTYPE={get_compss_type(argument.content)} PYTHONTYPE={pythontype} IS_ARRAY={is_array} "
+                                   f"DESCRIPTION={description} CONTENT={content_no_newline} DIRECTION=IN")
+
                 user_args, user_kwargs, ret_params = self.segregate_objects(
                     args
                 )
@@ -268,6 +287,18 @@ class TaskWorker:
                 if default_values:
                     self.manage_defaults(args, default_values)
 
+                for arg in args:
+                    if is_return(arg.name):
+                        continue
+
+                    name_to_print = arg.name.replace("#kwarg_", "")
+                    pythontype, is_array = get_type_info(arg.content)
+                    content_no_newline = str(arg.content).replace("\n", "")
+                    description = get_array_shape_string(argument.content) if is_array or "dict" in pythontype else ""
+                    DP_LOGGER.info(f"TASK={self.task_id} HOST={socket.gethostname()} METHOD={self.method_name} PARAMETER={name_to_print} "
+                                   f"COMPSSTYPE={get_compss_type(arg.content)} PYTHONTYPE={pythontype} IS_ARRAY={is_array} "
+                                   f"DESCRIPTION={description} CONTENT={content_no_newline} DIRECTION=OUT")
+
                 # Deal with INOUTs and COL_OUTs
                 self.manage_inouts(args, python_mpi)
 
@@ -307,6 +338,14 @@ class TaskWorker:
             if __debug__:
                 LOGGER.debug("Finished @task decorator")
 
+            for ret_param in ret_params:
+                pythontype, is_array = get_type_info(ret_param.content)
+                user_returns_no_newline = str(ret_param.content).replace("\n", "")
+                user_returns_no_newline = re.sub(r'\s+', ' ', user_returns_no_newline)
+                description = get_array_shape_string(argument.content) if is_array or "dict" in pythontype else ""
+                DP_LOGGER.info(f"TASK={self.task_id} HOST={socket.gethostname()} METHOD={self.method_name} PARAMETER={ret_param.name} "
+                               f"COMPSSTYPE={get_compss_type(ret_param.content)} PYTHONTYPE={pythontype} IS_ARRAY={is_array} "
+                               f"DESCRIPTION={description} CONTENT={user_returns_no_newline} DIRECTION=OUT")
         return (
             new_types,
             new_values,
@@ -361,10 +400,10 @@ class TaskWorker:
                 LOGGER.debug(guppy.hpy().heap())
 
     def reveal_objects(
-        self,
-        args: tuple,
-        collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
-        python_mpi: bool = False,
+            self,
+            args: tuple,
+            collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
+            python_mpi: bool = False,
     ) -> None:
         """Get the objects from the args message.
 
@@ -451,13 +490,13 @@ class TaskWorker:
             return False
 
     def retrieve_content(
-        self,
-        argument: Parameter,
-        name_prefix: str,
-        python_mpi: bool,
-        collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
-        depth: int = 0,
-        force_file: bool = False,
+            self,
+            argument: Parameter,
+            name_prefix: str,
+            python_mpi: bool,
+            collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
+            depth: int = 0,
+            force_file: bool = False,
     ) -> None:
         """Retrieve the content of a particular argument.
 
@@ -493,9 +532,9 @@ class TaskWorker:
 
         if content_type == type_file:
             if (
-                self.is_parameter_an_object(argument.name)
-                and not force_file
-                # and argument.content_type != parameter.TYPE.FILE
+                    self.is_parameter_an_object(argument.name)
+                    and not force_file
+                    # and argument.content_type != parameter.TYPE.FILE
             ):
                 # Get the direction from the decorator (could be taken from
                 # the runtime in compss_types if sorted)
@@ -587,9 +626,9 @@ class TaskWorker:
             # 3- the current argument is the layout target
             in_mpi_collection_env = False
             if (
-                python_mpi
-                and collections_layouts
-                and argument.name in collections_layouts
+                    python_mpi
+                    and collections_layouts
+                    and argument.name in collections_layouts
             ):
                 in_mpi_collection_env = True
                 from pycompss.util.mpi.helper import rank_distributor
@@ -631,7 +670,7 @@ class TaskWorker:
                         argument.name
                     )
                     is_really_file = (
-                        is_file_collection or content_type_elem == "FILE"
+                            is_file_collection or content_type_elem == "FILE"
                     )
                     sub_arg, _ = build_task_parameter(
                         int(data_type),
@@ -650,13 +689,13 @@ class TaskWorker:
                     # col_out params do NOT have "direction", we identify
                     # them by "depth"..
                     if _col_dir == parameter.DIRECTION.OUT or (
-                        (_col_dir is None) and _col_dep > 0
+                            (_col_dir is None) and _col_dep > 0
                     ):
                         # if we are at the last level of COL_OUT param,
                         # create "empty" instances of elements
                         if (
-                            _col_dep == 1
-                            or content_type_elem != "collection:list"
+                                _col_dep == 1
+                                or content_type_elem != "collection:list"
                         ):
                             # Not a nested collection anymore
                             if is_really_file:
@@ -784,13 +823,13 @@ class TaskWorker:
                 # collections of dict_col_out params do NOT have
                 # "direction", we identify them by "depth"..
                 if _dict_col_dir == parameter.DIRECTION.OUT or (
-                    (_dict_col_dir is None) and _dict_col_dep > 0
+                        (_dict_col_dir is None) and _dict_col_dep > 0
                 ):
                     # if we are at the last level of DICT_COL_OUT param,
                     # create "empty" instances of elements
                     if (
-                        _dict_col_dep == 1
-                        or content_type_elem != "collection:dict"
+                            _dict_col_dep == 1
+                            or content_type_elem != "collection:dict"
                     ):
                         if content_type_elem == "FILE":
                             temp_k = content_file_key
@@ -853,8 +892,8 @@ class TaskWorker:
                         sub_arg_value  # noqa: E501
                     )
         elif (
-            not self.storage_supports_pipelining()
-            and content_type == type_external_psco
+                not self.storage_supports_pipelining()
+                and content_type == type_external_psco
         ):
             if __debug__:
                 LOGGER.debug("\t\t - It is a PSCO")
@@ -892,8 +931,8 @@ class TaskWorker:
 
         # Check if cache is available
         cache = (
-            self.cache.in_queue is not None
-            and self.cache.out_queue is not None
+                self.cache.in_queue is not None
+                and self.cache.out_queue is not None
         )
         use_cache = False  # default store object in cache
 
@@ -901,8 +940,8 @@ class TaskWorker:
             # Check if the user has defined that the parameter has or not to be
             # stored in cache explicitly
             if (
-                not self.cache.profiler
-                and param_name in self.decorator_arguments.parameters
+                    not self.cache.profiler
+                    and param_name in self.decorator_arguments.parameters
             ):
                 use_cache = self.decorator_arguments.parameters[
                     param_name
@@ -911,8 +950,8 @@ class TaskWorker:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
                     if (
-                        not self.cache.profiler
-                        and vararg_name in self.decorator_arguments.parameters
+                            not self.cache.profiler
+                            and vararg_name in self.decorator_arguments.parameters
                     ):
                         use_cache = self.decorator_arguments.parameters[
                             vararg_name
@@ -984,8 +1023,8 @@ class TaskWorker:
                     )
             obj = deserialize_from_file(original_path, LOGGER)
             if (
-                argument.file_name.keep_source
-                and argument.direction != parameter.DIRECTION.IN_DELETE
+                    argument.file_name.keep_source
+                    and argument.direction != parameter.DIRECTION.IN_DELETE
             ):
                 # Try to insert in cache.
                 # May not be inserted if there is other process inserting the
@@ -1041,11 +1080,11 @@ class TaskWorker:
         return user_args, user_kwargs, ret_params
 
     def execute_user_code(
-        self,
-        user_args: list,
-        user_kwargs: dict,
-        tracing: bool,
-        cache_on: bool,
+            self,
+            user_args: list,
+            user_kwargs: dict,
+            tracing: bool,
+            cache_on: bool,
     ) -> typing.Tuple[
         typing.Any, typing.Optional[COMPSsException], typing.Optional[dict]
     ]:
@@ -1071,12 +1110,12 @@ class TaskWorker:
                 global_tracing_hook = False
                 if CONSTANTS.tracing_hook_env_var in os.environ:
                     hook_enabled = (
-                        os.environ[CONSTANTS.tracing_hook_env_var] == "true"
+                            os.environ[CONSTANTS.tracing_hook_env_var] == "true"
                     )
                     global_tracing_hook = hook_enabled
                 if (
-                    self.decorator_arguments.tracing_hook
-                    or global_tracing_hook
+                        self.decorator_arguments.tracing_hook
+                        or global_tracing_hook
                 ):
                     # The user wants to keep the tracing hook
                     pass
@@ -1107,9 +1146,9 @@ class TaskWorker:
                 numba_mode = self.decorator_arguments.numba
                 numba_flags = self.decorator_arguments.numba_flags
                 if (
-                    isinstance(numba_mode, dict)
-                    or numba_mode is True
-                    or numba_mode == "jit"
+                        isinstance(numba_mode, dict)
+                        or numba_mode is True
+                        or numba_mode == "jit"
                 ):
                     # Use the flags defined by the user
                     numba_flags["cache"] = True  # Always force cache
@@ -1182,7 +1221,7 @@ class TaskWorker:
             return user_returns, compss_exception, default_values
 
     def manage_exception(
-        self,
+            self,
     ) -> typing.Tuple[typing.Optional[int], typing.Optional[dict]]:
         """Deal with exceptions (on failure action).
 
@@ -1243,7 +1282,7 @@ class TaskWorker:
 
             # Skip files and non-task-parameters
             if not isinstance(
-                arg, Parameter
+                    arg, Parameter
             ) or not self.is_parameter_an_object(
                 arg.name,
             ):
@@ -1266,21 +1305,21 @@ class TaskWorker:
             # Skip psco: since param.content_type has the old type, we can
             # not use:  param.content_type != parameter.TYPE.EXTERNAL_PSCO
             _is_psco_true = (
-                arg.content_type == parameter.TYPE.EXTERNAL_PSCO
-                or is_psco(arg.content)
+                    arg.content_type == parameter.TYPE.EXTERNAL_PSCO
+                    or is_psco(arg.content)
             )
             if _is_psco_true:
                 continue
 
             # skip non-inouts or non-col_outs
             _is_col_out = (
-                arg.content_type == parameter.TYPE.COLLECTION
-                and param.direction == parameter.DIRECTION.OUT
+                    arg.content_type == parameter.TYPE.COLLECTION
+                    and param.direction == parameter.DIRECTION.OUT
             )
 
             _is_dict_col_out = (
-                arg.content_type == parameter.TYPE.DICT_COLLECTION
-                and param.direction == parameter.DIRECTION.OUT
+                    arg.content_type == parameter.TYPE.DICT_COLLECTION
+                    and param.direction == parameter.DIRECTION.OUT
             )
 
             _is_inout = param.direction in (
@@ -1289,8 +1328,8 @@ class TaskWorker:
             )
 
             _is_out = (
-                param.direction == parameter.DIRECTION.OUT
-                and arg.content_type != parameter.TYPE.EXTERNAL_STREAM
+                    param.direction == parameter.DIRECTION.OUT
+                    and arg.content_type != parameter.TYPE.EXTERNAL_STREAM
             )
 
             if not (_is_inout or _is_out or _is_col_out or _is_dict_col_out):
@@ -1336,7 +1375,7 @@ class TaskWorker:
                     )
                 # handle dictionary collections recursively
                 for content, elem in get_dict_collection_objects(
-                    arg.content, arg
+                        arg.content, arg
                 ):
                     if elem.file_name:
                         _is_delegated = False
@@ -1421,7 +1460,7 @@ class TaskWorker:
         return False
 
     def update_object_in_cache(
-        self, content: typing.Any, argument: Parameter
+            self, content: typing.Any, argument: Parameter
     ) -> None:
         """Update the object into cache if possible.
 
@@ -1433,12 +1472,12 @@ class TaskWorker:
         original_path = argument.file_name.original_path
 
         cache = (
-            self.cache.in_queue is not None
-            and self.cache.out_queue is not None
+                self.cache.in_queue is not None
+                and self.cache.out_queue is not None
         )
         if (
-            not self.cache.profiler
-            and name in self.decorator_arguments.parameters
+                not self.cache.profiler
+                and name in self.decorator_arguments.parameters
         ):
             use_cache = self.decorator_arguments.parameters[name].cache
         elif self.cache.profiler:
@@ -1471,11 +1510,11 @@ class TaskWorker:
                 )
 
     def manage_returns(
-        self,
-        num_returns: int,
-        user_returns: typing.Any,
-        ret_params: list,
-        python_mpi: bool,
+            self,
+            num_returns: int,
+            user_returns: typing.Any,
+            ret_params: list,
+            python_mpi: bool,
     ) -> typing.Any:
         """Manage task returns.
 
@@ -1508,8 +1547,8 @@ class TaskWorker:
 
                 # If the object is a PSCO, do not serialize to file
                 if (
-                    param.content_type == parameter.TYPE.EXTERNAL_PSCO
-                    or is_psco(obj)
+                        param.content_type == parameter.TYPE.EXTERNAL_PSCO
+                        or is_psco(obj)
                 ):
                     continue
 
@@ -1553,15 +1592,15 @@ class TaskWorker:
                 else:
                     serialize_to_file(obj, f_name, LOGGER)
                 if (
-                    self.cache.in_queue is not None
-                    and self.cache.out_queue is not None
-                    and (
+                        self.cache.in_queue is not None
+                        and self.cache.out_queue is not None
+                        and (
                         self.cache.profiler
                         or self.decorator_arguments.cache_returns
-                    )
-                    and not CACHE_TRACKER.in_cache(
-                        LOGGER, f_name, self.cache.ids
-                    )
+                )
+                        and not CACHE_TRACKER.in_cache(
+                    LOGGER, f_name, self.cache.ids
+                )
                 ):
                     with EventInsideWorker(TRACING_WORKER.cache_miss_event):
                         if __debug__:
@@ -1599,8 +1638,8 @@ class TaskWorker:
                 -1,
             ]
             return (
-                self.decorator_arguments.parameters[original_name].content_type
-                in annotated
+                    self.decorator_arguments.parameters[original_name].content_type
+                    in annotated
             )
         # The parameter is not annotated in the decorator, so return default
         return True
@@ -1627,14 +1666,14 @@ class TaskWorker:
         return False
 
     def manage_new_types_values(
-        self,
-        num_returns: int,
-        user_returns: typing.Any,
-        args: tuple,
-        ret_params: list,
-        has_self: bool,
-        self_type: int,
-        self_value: typing.Any,
+            self,
+            num_returns: int,
+            user_returns: typing.Any,
+            args: tuple,
+            ret_params: list,
+            has_self: bool,
+            self_type: int,
+            self_value: typing.Any,
     ) -> typing.Tuple[list, list]:
         """Manage new types and values.
 
@@ -1657,7 +1696,7 @@ class TaskWorker:
             LOGGER.debug("Building types update")
 
         def build_collection_types_values(
-            _content: typing.Any, _arg: Parameter, direction: int
+                _content: typing.Any, _arg: Parameter, direction: int
         ) -> list:
             """Retrieve collection type-value recursively.
 
@@ -1678,15 +1717,15 @@ class TaskWorker:
                             )
                         )
                     elif (
-                        _elem.content_type == parameter.TYPE.EXTERNAL_PSCO
-                        and is_psco(_cont)
-                        and direction != parameter.DIRECTION.IN
+                            _elem.content_type == parameter.TYPE.EXTERNAL_PSCO
+                            and is_psco(_cont)
+                            and direction != parameter.DIRECTION.IN
                     ):
                         coll.append([_elem.content_type, _cont.getID()])
                     elif (
-                        _elem.content_type == parameter.TYPE.FILE
-                        and is_psco(_cont)
-                        and direction != parameter.DIRECTION.IN
+                            _elem.content_type == parameter.TYPE.FILE
+                            and is_psco(_cont)
+                            and direction != parameter.DIRECTION.IN
                     ):
                         coll.append(
                             [parameter.TYPE.EXTERNAL_PSCO, _cont.getID()]
@@ -1711,7 +1750,7 @@ class TaskWorker:
         params_end = len(args) - num_returns + 1
         # Update new_types and new_values with the args list
         # The results parameter is a boolean to distinguish the error message.
-        for arg in args[params_start : params_end - 1]:  # noqa: E203
+        for arg in args[params_start: params_end - 1]:  # noqa: E203
             # Loop through the arguments and update new_types and new_values
             if not isinstance(arg, Parameter):
                 raise PyCOMPSsException(
@@ -1726,8 +1765,8 @@ class TaskWorker:
                 original_name, real_direction
             )
             if arg.content_type in (
-                parameter.TYPE.EXTERNAL_PSCO,
-                parameter.TYPE.FILE,
+                    parameter.TYPE.EXTERNAL_PSCO,
+                    parameter.TYPE.FILE,
             ):
                 # It was originally a persistent object
                 if is_psco(arg.content):
@@ -1763,8 +1802,8 @@ class TaskWorker:
         # Add self type and value if exist
         if has_self:
             if (
-                self.decorator_arguments.target_direction
-                == parameter.INOUT.key
+                    self.decorator_arguments.target_direction
+                    == parameter.INOUT.key
             ):
                 # Check if self is a PSCO that has been persisted inside the
                 # task and target_direction.
@@ -1799,8 +1838,8 @@ class TaskWorker:
                     collection_ret_values = []
                     for elem in ret:
                         if elem.type in (
-                            parameter.TYPE.EXTERNAL_PSCO,
-                            parameter.TYPE.FILE,
+                                parameter.TYPE.EXTERNAL_PSCO,
+                                parameter.TYPE.FILE,
                         ):
                             if is_psco(elem.content):
                                 collection_ret_values.append(elem.key)
@@ -1862,7 +1901,7 @@ def clean_cupy_env():
 
 
 def get_collection_objects(
-    content: typing.Any, argument: Parameter
+        content: typing.Any, argument: Parameter
 ) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve collection objects recursively generator.
 
@@ -1874,7 +1913,7 @@ def get_collection_objects(
     """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for new_con, _elem in zip(
-            argument.content, argument.collection_content
+                argument.content, argument.collection_content
         ):
             # Update the sub-parameter content with the existing content
             # to keep track of the synchronized.
@@ -1895,7 +1934,7 @@ def get_collection_objects(
 
 
 def get_dict_collection_objects(
-    content: typing.Any, argument: Parameter
+        content: typing.Any, argument: Parameter
 ) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve the dictionary collection objects recursively generator.
 
@@ -1913,8 +1952,8 @@ def get_dict_collection_objects(
         # Prepare dict_collection_content per key
         element_parameters_preproc = {}
         for (
-            dict_coll_k,
-            dict_coll_v,
+                dict_coll_k,
+                dict_coll_v,
         ) in argument.dict_collection_content.items():
             element_parameters_preproc[dict_coll_k.content] = [
                 dict_coll_k,
@@ -1934,7 +1973,7 @@ def get_dict_collection_objects(
         for new_con, _elem in zip(elements, elements_parameters):
             _elem.content = new_con
             for sub_el, sub_param in get_dict_collection_objects(
-                new_con, _elem
+                    new_con, _elem
             ):
                 # Update the sub-parameter content with the existing content
                 # to keep track of the synchronized.
@@ -1959,3 +1998,82 @@ def get_ret_rank(_ret_params: list) -> list:
     from mpi4py import MPI  # pylint: disable=import-outside-toplevel
 
     return [_ret_params[MPI.COMM_WORLD.rank]]
+
+
+def get_type_info(element):
+    """
+    Returns a tuple (type_str, is_list_like)
+    - type_str: Comma-separated string of the type of the elements
+    - is_list_like: True if the input is list-, tuple-, set-like, or a numpy array.
+    """
+    container_chain = []
+    list_like_types = (list, tuple, set, NP.ndarray)
+    seen_containers = set()
+    is_list_like = isinstance(element, list_like_types)
+
+    current = element
+    while isinstance(current, list_like_types):
+        if isinstance(current, NP.ndarray):
+            if 'nd.array' not in seen_containers:
+                container_chain.append('nd.array')
+                seen_containers.add('nd.array')
+            if current.size == 0:
+                return ('None,' + ','.join(container_chain), is_list_like)
+            current = current.flat[0]
+        else:
+            container_name = type(current).__name__
+            if container_name not in seen_containers:
+                container_chain.append(container_name)
+                seen_containers.add(container_name)
+            if len(current) == 0:
+                return ('None,' + ','.join(container_chain), True)
+            current = next(iter(current))
+
+    # Use numpy type names if applicable
+    if isinstance(current, NP.generic):
+        inner_type = str(current.dtype)
+    else:
+        inner_type = type(current).__name__
+
+    return f"{inner_type}," + ",".join(container_chain), is_list_like
+
+
+import numpy as NP
+def get_array_shape_string(arr):
+    """
+    Returns a human-readable description of the list-type provided
+    """
+    # Numpy arrays
+    if isinstance(arr, NP.ndarray):
+        return f"Numpy array with shape: {'x'.join(map(str, arr.shape))}"
+
+    # Dictionaries
+    if isinstance(arr, dict):
+        size = len(arr)
+        # Determine key types
+        key_types = {type(k).__name__ for k in arr.keys()}
+        value_types = {type(v).__name__ for v in arr.values()}
+        key_types_str = ', '.join(sorted(key_types))
+        value_types_str = ', '.join(sorted(value_types))
+        return (
+            f"Dict with {size} entries; "
+            f"key types: {key_types_str}; "
+            f"value types: {value_types_str}"
+        )
+
+    # Traverse nested containers (lists, tuples, sets)
+    shape = []
+    current = arr
+    while isinstance(current, (list, tuple, set)):
+        shape.append(len(current))
+        try:
+            current = next(iter(current))
+        except StopIteration:
+            break  # Empty container
+
+    if len(shape) == 1:
+        return f"Array with shape: 1x{shape[0]}"
+    elif shape:
+        return f"Array with shape: {'x'.join(map(str, shape))}"
+    else:
+        return None

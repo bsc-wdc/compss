@@ -10,6 +10,9 @@
     },
     "simple": {
       "format": "%(name)s %(module)s - %(message)s"
+    },
+    "messageOnly": {
+      "format": "%(message)s"
     }
   },
   "handlers": {
@@ -54,6 +57,16 @@
       "backupCount": 99,
       "encoding": "utf8",
       "delay": "true"
+    },
+    "dp_file_handler": {
+      "class": "logging.handlers.RotatingFileHandler",
+      "level": "INFO",
+      "formatter": "messageOnly",
+      "filename": "binding_dp.out",
+      "maxBytes": 10485760,
+      "backupCount": 20,
+      "encoding": "utf8",
+      "delay": "true"
     }
   },
   "loggers": {
@@ -61,7 +74,8 @@
     "hecuba":   { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "redis":    { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "storage":  { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
-    "user":     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" }
+    "user":     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "dp_logger": { "level": "INFO", "handlers": ["dp_file_handler"], "propagate": "no" }
   },
   "root": {
     "level": "DEBUG"

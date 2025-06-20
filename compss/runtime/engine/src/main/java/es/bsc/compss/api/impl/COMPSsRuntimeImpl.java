@@ -1393,7 +1393,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             StringBuilder taskInfoBuilder = new StringBuilder("Task " + task + " " + signature + " ");
             for (Parameter p : pars) {
                 // TODO: handle return values
-                if (!p.getName().startsWith("$return")) {
+                if (p.getName().startsWith("#kwarg_")) {
+                    taskInfoBuilder.append(StringUtils.removeStart(p.getName(), "#kwarg_")).append(".")
+                        .append(p.getDirection().toString()).append(".").append(p.getType().name()).append("::");
+                } else if (!p.getName().startsWith("$return")) {
                     taskInfoBuilder.append(p.getName()).append(".").append(p.getDirection().toString()).append(".")
                         .append(p.getType().name()).append("::");
                 }
@@ -1638,6 +1641,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         Direction direction, StdIOStream stream, String prefix, String name, String pyType, double weight,
         boolean keepRename, ArrayList<Parameter> pars, int offset, String[] vals) {
         long appId = app.getId();
+        String nameToPrint = name;
+        if (name.startsWith("#kwarg_")) {
+            nameToPrint = StringUtils.removeStart(name, "#kwarg_");
+        }
         switch (type) {
             case DIRECTORY_T:
                 try {
@@ -1650,17 +1657,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     if (DP_ENABLED) {
                         // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
+                        String pathToPrint = finalPath;
                         if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
                             Resource host = Comm.getAppHost();
                             String absolute = dirFile.getAbsolutePath();
                             String fixedFinalPath = "dir://" + host.getName() + absolute;
-                            DP_LOGGER.info(
-                                "parameter " + name + " " + type + " " + fixedFinalPath + " " + direction.toString());
-
-                        } else {
-                            DP_LOGGER
-                                .info("parameter " + name + " " + type + " " + finalPath + " " + direction.toString());
+                            pathToPrint = fixedFinalPath;
                         }
+                        DP_LOGGER.info(
+                            "parameter " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
                     }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
@@ -1679,17 +1684,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         // Log access to file in the dataprovenance.log.
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
                         String finalPath = location.toString();
+                        String pathToPrint = finalPath;
                         if (!finalPath.contains("tmpFiles/pycompss")) {
                             if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
                                 Resource host = Comm.getAppHost();
                                 String absolute = f.getAbsolutePath();
                                 String fixedFinalPath = "file://" + host.getName() + absolute;
-                                DP_LOGGER.info("parameter " + name + " " + type + " " + fixedFinalPath + " "
-                                    + direction.toString());
-
-                            } else {
-                                DP_LOGGER.info(
-                                    "parameter " + name + " " + type + " " + finalPath + " " + direction.toString());
+                                pathToPrint = fixedFinalPath;
+                            }
+                            DP_LOGGER.info("parameter " + nameToPrint + " " + type + " " + pathToPrint + " "
+                                + direction.toString());
+                        } else {
+                            if (!name.startsWith("@")) {
+                                DP_LOGGER.info("parameter " + nameToPrint + " Future "
+                                    + StringUtils.substringAfterLast(content.toString(), "/") + " " + direction);
                             }
                         }
                     }
@@ -1785,6 +1793,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     // of the named collection "collection1"
                     if (!elemName.startsWith("@")) {
                         elemName = "@" + elemName;
+                        if (DP_ENABLED) {
+                            DP_LOGGER
+                                .info("parameter " + nameToPrint + " " + type + " " + collectionId + " " + direction);
+                        }
                     }
                     ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j);
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
@@ -1898,7 +1910,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, pyType,
                     monitor));
                 if (DP_ENABLED) {
-                    DP_LOGGER.info("parameter " + name + " " + type + " " + content + " IN");
+                    if (!name.startsWith("@")) {
+                        DP_LOGGER.info("parameter " + nameToPrint + " " + type + " " + content + " IN");
+                    }
                 }
                 break;
         }

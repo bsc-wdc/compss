@@ -543,6 +543,7 @@ def execute_task(
     out_cache_queue: typing.Any = None,
     cache_ids: typing.Optional[DictProxy] = None,
     cache_profiler: bool = False,
+    task_id: str = None,
 ) -> typing.Tuple[int, list, list, typing.Optional[bool], str]:
     """Execute task main method.
 
@@ -621,6 +622,8 @@ def execute_task(
             cache_ids,
             cache_profiler,
         ),
+        "compss_job_id": task_id,
+        "compss_method_name": method_name,
     }
 
     if __debug__:

@@ -19,6 +19,8 @@ import os
 import uuid
 import subprocess
 import socket
+from typing import Any
+
 import yaml
 
 from pathlib import Path
@@ -64,6 +66,7 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
             data_list.append(
                 ["overall", application_name, "executionTime", str(execution_time)]
             )
+            print(f"Program execution time: {execution_time*0.001} s")
         except TypeError:
             print("PROVENANCE | WARNING: could not retrieve execution time")
 
@@ -158,7 +161,7 @@ def wrroc_create_action(
     info_yaml: str,
     log_dir: Path,
     end_time: datetime,
-) -> tuple:
+) -> tuple[ContextEntity, dict]:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -483,4 +486,4 @@ def wrroc_create_action(
             f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
         )
 
-    return create_action
+    return create_action, agent

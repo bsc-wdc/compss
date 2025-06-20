@@ -714,6 +714,7 @@ def process_task(
         job_id, working_dir, job_out, job_err = current_line[
             1:5
         ]  # 5th is not taken
+        task_id = current_line[6]
         # current_line[5] = <boolean> = tracing
         # current_line[6] = <integer> = task id
         # current_line[7] = <boolean> = debug
@@ -841,6 +842,7 @@ def process_task(
                     out_cache_queue,
                     cache_ids,
                     cache_profiler,
+                    task_id
                 )
 
             # The ignored variable is timed_out

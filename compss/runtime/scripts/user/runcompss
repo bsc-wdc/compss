@@ -305,6 +305,9 @@ get_args() {
           echo "PROVENANCE | Setting 'graph' to 'true' by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
         fi
+        if [ -z "$log_level" ]; then
+          log_level=${LOG_LEVEL_INFO}
+        fi
         ;;
       -)
         # Check more complex arguments
@@ -651,6 +654,9 @@ get_args() {
               echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
             fi
+            if [ -z "$log_level" ]; then
+              log_level=${LOG_LEVEL_INFO}
+            fi
             ;;
           provenance)
             # Enable provenance
@@ -664,6 +670,9 @@ get_args() {
             if [ -z "$graph" ] ; then
               echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
+            fi
+            if [ -z "$log_level" ]; then
+              log_level=${LOG_LEVEL_INFO}
             fi
             ;;
           provenance-folder=*)

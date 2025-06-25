@@ -1,0 +1,126 @@
+variables:
+  DOCKER_WORKING_DIR_VOLUME: "working_dir"
+  DOCKER_WORKING_DIR_MOUNT: "/tmp/COMPSsWorker01/"
+  DOCKER_APP_DIR_VOLUME: "app_dir"
+  DOCKER_APP_DIR_MOUNT: "/home/jenkins/tests/"
+  DOCKER_PYCOMPSS_VOLUME: "pycompss_dir"
+  DOCKER_PYCOMPSS_MOUNT: "/opt/COMPSs/Bindings/python/3/pycompss/"
+
+stages:
+  - rebase_verify
+  - header_setup
+  - submodules
+  - docker_build
+  - tests
+
+rebase_verify:
+  stage: rebase_verify
+  script:
+    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
+    - git checkout ${CI_MERGE_REQUEST_SOURCE_BRANCH}
+    - git rebase origin/${CI_MERGE_REQUEST_TARGET_BRANCH:-trunk}
+    - log=$(git log origin/${CI_MERGE_REQUEST_SOURCE_BRANCH}..${CI_MERGE_REQUEST_SOURCE_BRANCH})
+    - if [ -n "${log}" ]; then
+        echo "Merge request was not rebased, pushing rebase"
+        git push origin ${CI_MERGE_REQUEST_SOURCE_BRANCH}
+        exit 1
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+header_setup:
+  stage: header_setup
+  script:
+    - ./utils/scripts/header_setup/replace_all.sh
+    - cd "${CI_PROJECT_DIR}/maven-plugins" || exit 1
+    - mvn clean install
+    - cd "${CI_PROJECT_DIR}" || exit 1
+    - mvn -U clean validate
+    - git add -u
+    - if git commit -m "Add headers and format code"; then
+        echo "Files with no headers detected, pushing commit"
+        git push origin ${CI_MERGE_REQUEST_SOURCE_BRANCH}
+        exit 1
+      else
+        echo "All files contained headers, proceeding"
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+submodules:
+  stage: submodules
+  script:
+    - rm -rf dependencies/autoparallel dependencies/pluto dependencies/kafka dependencies/extrae
+    - ./submodules_get.sh
+    - if [ -f "./submodules_path.sh" ]; then
+        ./submodules_patch.sh
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+docker_build:
+  stage: docker_build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker rm -f compss_test || true
+    - docker rmi compss || true
+    - if grep "FROM compss/\${BASE}_ci" Dockerfile; then
+        docker build --pull --no-cache --target ci -t compss .
+      else
+        docker build --pull --no-cache -t compss .
+      fi
+    - echo "Image successfully built"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+tests:
+  stage: tests
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
+    - docker volume rm $DOCKER_APP_DIR_VOLUME || true
+    - docker volume rm $DOCKER_PYCOMPSS_VOLUME || true
+    - docker volume create $DOCKER_WORKING_DIR_VOLUME
+    - docker volume create $DOCKER_APP_DIR_VOLUME
+    - docker volume create $DOCKER_PYCOMPSS_VOLUME
+    - docker run -d --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --mount source=$DOCKER_PYCOMPSS_VOLUME,target=$DOCKER_PYCOMPSS_MOUNT \
+        --mount source=$DOCKER_WORKING_DIR_VOLUME,target=$DOCKER_WORKING_DIR_MOUNT \
+        --mount source=$DOCKER_APP_DIR_VOLUME,target=$DOCKER_APP_DIR_MOUNT \
+        -e DOCKER_WORKING_DIR_VOLUME=$DOCKER_WORKING_DIR_VOLUME \
+        -e DOCKER_WORKING_DIR_MOUNT=$DOCKER_WORKING_DIR_MOUNT \
+        -e DOCKER_APP_DIR_VOLUME=$DOCKER_APP_DIR_VOLUME \
+        -e DOCKER_APP_DIR_MOUNT=$DOCKER_APP_DIR_MOUNT \
+        -e DOCKER_PYCOMPSS_VOLUME=$DOCKER_PYCOMPSS_VOLUME \
+        -e DOCKER_PYCOMPSS_MOUNT=$DOCKER_PYCOMPSS_MOUNT \
+        --name=compss_test compss
+    - docker exec compss_test bash -c "sudo /framework/tests/scripts/configure_hosts_insert && chmod a+w $DOCKER_WORKING_DIR_MOUNT && chmod a+w $DOCKER_APP_DIR_MOUNT && chmod a+w $DOCKER_PYCOMPSS_MOUNT && usermod -aG docker jenkins && groupmod -g $(stat -c '%g' /var/run/docker.sock) docker"
+    - docker exec --user jenkins compss_test python3 /framework/tests/scripts/tests.py \
+          -cfg /framework/tests/configurations/NIO_Docker.cfg -FF
+    - docker rm -f compss_test
+    - docker rmi compss
+    - docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
+    - docker volume rm $DOCKER_APP_DIR_VOLUME || true
+    - docker volume rm $DOCKER_PYCOMPSS_VOLUME || true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH

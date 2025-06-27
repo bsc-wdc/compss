@@ -35,6 +35,7 @@ DEFAULT_MEM_SIZE="-1"
 DEFAULT_OS_TYPE="[unassigned]"
 DEFAULT_OS_DISTR="[unassigned]"
 DEFAULT_OS_VERSION="[unassigned]"
+DEFAULT_ARCHITECTURE="[unassigned]"
 
 
 ###############################################
@@ -80,6 +81,8 @@ get_resource_description() {
   local os_distr=${8}
   local os_type=${9}
   local os_version=${10}
+  local architecture=${11}
+
 
   local processors
   processors="${indent}  <processors>"
@@ -88,7 +91,7 @@ get_resource_description() {
 ${indent}    <processor>
 ${indent}      <name>${cpu_name}</name>
 ${indent}      <type>CPU</type>
-${indent}      <architecture>[unassigned]</architecture>
+${indent}      <architecture>${architecture}</architecture>
 ${indent}      <computingUnits>${cpu_count}</computingUnits>
 ${indent}      <internalMemory>-1.0</internalMemory>
 ${indent}      <propName>[unassigned]</propName>
@@ -102,7 +105,7 @@ ${indent}    </processor>"
 ${indent}    <processor>
 ${indent}      <name>gpu</name>
 ${indent}      <type>GPU</type>
-${indent}      <architecture>[unassigned]</architecture>
+${indent}      <architecture>${architecture}</architecture>
 ${indent}      <computingUnits>${gpu_count}</computingUnits>
 ${indent}      <internalMemory>-1.0</internalMemory>
 ${indent}      <propName>[unassigned]</propName>
@@ -116,7 +119,7 @@ ${indent}    </processor>"
 ${indent}    <processor>
 ${indent}      <name>FPGA</name>
 ${indent}      <type>FPGA</type>
-${indent}      <architecture>[unassigned]</architecture>
+${indent}      <architecture>${architecture}</architecture>
 ${indent}      <computingUnits>${fpga_count}</computingUnits>
 ${indent}      <internalMemory>-1.0</internalMemory>
 ${indent}      <propName>[unassigned]</propName>

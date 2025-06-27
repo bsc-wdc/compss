@@ -76,7 +76,8 @@ Interaction details:
 ${ADAPTOR_PROPERTIES_DEBUG} 
 Resource details: 
     Description: 
-        Processors: 
+        Processors:
+            Architecture:     ${resource_architecture}
             CPU:              ${resource_cpu_count} 
             GPU:              ${resource_gpu_count} 
             FPGA:             ${resource_fpga_count} 
@@ -158,6 +159,9 @@ show_resource_opts() {
                                             
     --os_version=<string>                   Version of the operating system managing the resource  
                                             Default: ${DEFAULT_OS_VERSION}
+
+    --arch=<string>                         Hardware architecture of the resource
+                                            Default: ${DEFAULT_ARCHITECTURE}
 EOT
 }
 
@@ -248,6 +252,9 @@ get_args() {
           os_version=*)
             resource_os_version=${OPTARG//os_version=/}
             ;;
+          arch=*)
+            resource_architecture=${OPTARG//arch=/}
+            ;;
           *)
             # Flag didn't match any pattern. Ingoring option 
             display_warning "${UNKNOWN_OPTION} ${OPTARG}"
@@ -308,6 +315,9 @@ check_args() {
   if [ -z "${resource_os_version}" ]; then
     resource_os_version=${DEFAULT_OS_VERSION}
   fi
+  if [ -z "${resource_architecture}" ]; then
+      resource_architecture=${DEFAULT_ARCHITECTURE}
+    fi
 
 }
 
@@ -323,7 +333,7 @@ check_args() {
 # Agent Invocation
 ###############################################
 add_resource() {
-  get_resource_description "    " "${resource_cpu_name}" "${resource_cpu_count}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}"
+  get_resource_description "    " "${resource_cpu_name}" "${resource_cpu_count}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}" "${resource_architecture}"
   local description=${RESOURCE_DESCRIPTION}
 
   ${APP_CMD} "-s" "-XPUT" "http://${agent_node}:${agent_port}/COMPSs/addResources" -H 'content-type: application/xml' -d "\

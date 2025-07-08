@@ -206,13 +206,24 @@ process_pipe_commands() {
                 fi
 
                 # DLB
+                dlbArgs=""
+                dlbPreload=""
+                dlbBaseArgs="--lewi --drom --ompt --ompt-thread-manager=omp5"
+
                 if [ "${COMPSS_WITH_DLB}" == "1" ]; then
-                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
-                    workerCMD="${dlbArgs} ${workerCMD}"
+
+                    dlbArgs="DLB_ARGS=\"${dlbBaseArgs}\""
+                    dlbLib="libdlb.so"
+                    dlbPreload="LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/${dlbLib}\""
+
                 elif [ "${COMPSS_WITH_DLB}" == "2" ]; then
-                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
-                    workerCMD="${dlbArgs} ${workerCMD}"
+
+                    dlbArgs="DLB_ARGS=\"${dlbBaseArgs} --verbose=all\""
+                    dlbLib="libdlb_dbg.so"
+                    dlbPreload="LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/${dlbLib}\""
+
                 fi
+                workerCMD="${dlbArgs} ${dlbPreload} ${workerCMD}"
 
                 echo "LD_PRELOAD bindings_piper.sh: ${LD_PRELOAD}"
                 keepLDPRELOAD="LD_PRELOAD=\"\$LD_PRELOAD\""

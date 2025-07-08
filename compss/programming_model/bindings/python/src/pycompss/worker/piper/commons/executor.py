@@ -319,7 +319,6 @@ def executor(
         if COMPSS_WITH_DLB:
             dlb_affinity.init()
             dlb_affinity.setaffinity([], os.getpid())
-            dlb_affinity.lend()
 
         # Replace Python Worker's SIGTERM handler.
         signal.signal(signal.SIGTERM, shutdown_handler)
@@ -528,6 +527,8 @@ def executor(
                 )
         if __debug__:
             logger.debug("%s[%s] Exiting process ", HEADER, str(process_name))
+        if COMPSS_WITH_DLB:
+            dlb_affinity.finalize()
         # Send quit message back to the runtime
         pipe.write(TAGS.quit)
         pipe.close()
@@ -848,7 +849,6 @@ def process_task(
 
             if COMPSS_WITH_DLB:
                 dlb_affinity.setaffinity([], os.getpid())
-                dlb_affinity.lend()
 
             if exit_value == 0:
                 # Task has finished without exceptions

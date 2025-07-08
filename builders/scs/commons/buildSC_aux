@@ -20,6 +20,7 @@
   #             <c_binding>               Install the C-binding
   #             <extrae_no_mpi>           Extrae without mpi
   #             <r_binding>               Install the R-binding
+  #             <dlb_with_impi>           DLB with impi enabled
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildSC script
@@ -27,7 +28,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding> <extrae_no_mpi> <r_binding>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding> <extrae_no_mpi> <r_binding> <dlb_with_impi>"
     echo " "
     exit 1
   }
@@ -69,7 +70,7 @@
   ####################
 
   # Get parameters
-  if [ $# -ne 18 ]; then
+  if [ $# -ne 19 ]; then
     usage
   fi
 
@@ -92,6 +93,7 @@
   c_binding=${16}
   extrae_no_mpi=${17}
   r_binding=${18}
+  dlb_with_impi=${19}
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   TMP_DIR=${SCRIPT_DIR}/tmp
 
@@ -199,6 +201,21 @@
     module unload impi
   fi
   cd "${SCRIPT_DIR}" || exit 1
+
+  echo "---- Install dlb ----"
+  cd "${TMP_DIR}"/dependencies || exit 1
+  if [ "${dlb_with_impi}" == "true" ]; then
+      module load intel impi mkl #dlb
+      ./install_dlb.sh "${TMP_DIR}"/dependencies/dlb ${targetDir}/Dependencies/dlb
+      ev=$?
+      if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to install dlb dependency"
+          exit 1
+      fi
+      export DLB_HOME=${targetDir}/Dependencies/dlb
+  fi
+  cd "${SCRIPT_DIR}" || exit 1
+
 
   # Streaming dependencies
   cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/

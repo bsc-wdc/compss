@@ -92,15 +92,17 @@ PROCESS_AFFINITY_EXT = Extension(
 # DLB affinity extension
 DLB_HOME = os.environ.get("DLB_HOME", None)
 DLB_AFFINITY_EXT = None
+
 if DLB_HOME is not None:
     DLB_AFFINITY_EXT = Extension(
         "dlb_affinity",
+        language="c",
         include_dirs=[os.path.join(DLB_HOME, "include")],
-        library_dirs=[os.path.join(DLB_HOME, "lib"), os.path.join(DLB_HOME, "lib64")],
+        library_dirs=[os.path.join(DLB_HOME, "lib")],
         libraries=["dlb"],
-        extra_compile_args=["-std=c++11"],
         # extra_compile_args=["-fPIC %s" % (" ".join(GCC_DEBUG_FLAGS.split("\n")))],
-        sources=["src/pycompss/ext/dlb_affinity.c"],
+        extra_compile_args=["-fopenmp", "-std=c11"],
+        sources=["src/pycompss/ext/dlb_affinity.c"]
     )
 
 # EAR extension

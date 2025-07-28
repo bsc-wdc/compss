@@ -29,7 +29,6 @@ source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 # shellcheck disable=SC1090
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/profiler.sh"
 
-
 #---------------------------------------------------
 # CONSTANTS DEFINTION
 #---------------------------------------------------
@@ -311,14 +310,18 @@ get_args() {
         ;;
       z)
         # Zip provenance result
-        if [ -z "$output_profile" ] ; then
+        provenance=true
         zip_provenance=true
         if [ -z "$provenance_yaml" ] ; then
+          echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
           provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         fi
+        if [ -z "$output_profile" ] ; then
+          echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
         fi
         if [ -z "$graph" ] ; then
+          echo "PROVENANCE | Setting 'graph' to 'true' by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
         fi
         ;;

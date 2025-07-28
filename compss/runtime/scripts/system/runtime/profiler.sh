@@ -25,10 +25,6 @@ start_profiling() {
 
 launch_profiling_script() {
   # launch the profiling script
-  OLD_LD_PRELOAD=$LD_PRELOAD
-  unset LD_PRELOAD
   python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
-  LD_PRELOAD=$OLD_LD_PRELOAD
-
   PROFILING_PID=$!
 }

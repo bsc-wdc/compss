@@ -23,12 +23,12 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 # shellcheck source=../system/runtime/compss_setup.sh
 # shellcheck disable=SC1091
+<<<<<<< HEAD
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 # Load profiling script
 # shellcheck disable=SC1090
-source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
-
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/profiler.sh"
 
 #---------------------------------------------------
 # CONSTANTS DEFINTION
@@ -838,10 +838,11 @@ if [ "${provenance}" != false ]; then
 
   # Stop profiling process
   if [ -n "${PROFILING_PID}" ]; then
-    kill $PROFILING_PID
+    kill -SIGUSR1 $PROFILING_PID
   fi
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
+  find "${specific_log_dir}/workers/" -type f -name "*.log" -exec cp {} "${specific_log_dir}/stats/" \;
   for file in "${specific_log_dir}"stats/*.csv; do
     if [[ "$(basename "$file")" == *"${COMPSS_MASTER_NODE}"* ]]; then
       new_name="${file%.csv}-MASTER.csv"

@@ -62,6 +62,11 @@
   touch "${logDir}/binding_worker.out"
   touch "${logDir}/binding_worker.err"
 
+  # Load profiling script
+  # shellcheck disable=SC1090
+  source "${COMPSS_HOME}Runtime/scripts/system/runtime/profiler.sh"
+  start_profiling
+
   export LD_PRELOAD=${LD_PRELOAD}:${AFTER_EXTRAE_LD_PRELOAD}
   # Provide a name for EAR to identify the main worker process
   export EAR_APP_NAME="piper_worker(${hostName})"
@@ -71,12 +76,12 @@
     echo "Log directory: ${logDir}"
   fi
 
-  # START PROFILING
-  # shellcheck disable=SC1090
-  source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
-  start_profiling
-
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
+
+  # Stop profiling process
+  if [ -n "${PROFILING_PID}" ]; then
+    kill -SIGUSR1 $PROFILING_PID
+  fi
 
   exitValue=$?
   if [ "$exitValue" != "0" ]; then
@@ -91,4 +96,3 @@
   fi
 
   exit $exitValue
-

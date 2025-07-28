@@ -18,6 +18,7 @@ import subprocess, os, sys
 import time
 import socket
 from datetime import datetime
+import signal
 
 try:
     import psutil
@@ -34,6 +35,43 @@ PROFILER_CONFIG = (
     "macos",
     "linux-top",
 )
+
+# Flag to control the profiling loop
+profiling_active = True
+# Global variables to store profiling data and file handle
+profiling_data = []
+output_file = None
+log_dir = None
+hostname = None
+
+def end_profiling(sig, frame):
+    global profiling_active, profiling_data, output_file, log_dir, hostname
+    print("Finishing profiling...")
+    profiling_active = False
+
+    # Immediate cleanup - flush and close the main CSV file
+    if output_file and not output_file.closed:
+        try:
+            output_file.flush()
+            output_file.close()
+            print("Data recorded successfully.")
+        except Exception as e:
+            print(f"Warning: Recording data: {e}")
+
+    # Write final summary file
+    if log_dir and hostname:
+        try:
+            with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
+                summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                summary.write(f"Total measurements collected: {len(profiling_data)}\n")
+                summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
+            print("Summary file created successfully.")
+        except Exception as e:
+            print(f"Warning: Could not write summary file: {e}")
+
+    print("Profiling completed. (end_profiling)")
+
+signal.signal(signal.SIGUSR1, end_profiling)
 
 
 def get_cpu_top() -> list:
@@ -113,6 +151,8 @@ def profiling_function(
 
 
 def main():
+    global profiling_active, profiling_data, output_file, log_dir, hostname
+
     log_dir = sys.argv[1]
 
     profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL"))
@@ -161,48 +201,82 @@ def main():
         0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval
     )
     to_write += new_entry
+    profiling_data.append(new_entry.strip())  # Store data for summary
 
     try:
-        with open(f"{log_dir}/resource_profiling_{hostname}.csv", "w") as resource:
-            resource.write(to_write)
-            resource.flush()
+        output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
+        output_file.write(to_write)
+        output_file.flush()
 
-            while True:
-                if system_type == "Linux":
-                    time.sleep(profiling_interval)
-                if current_config != PROFILER_CONFIG[2]:
-                    io_current = psutil.disk_io_counters()
-                    byte_read = io_current.read_bytes - ref_read
-                    byte_write = io_current.write_bytes - ref_write
-                    time_read = io_current.read_time - ref_time_read
-                    time_write = io_current.write_time - ref_time_write
+        while profiling_active:  # Changed from while True to while profiling_active
+            if system_type == "Linux":
+                time.sleep(profiling_interval)
 
-                    ref_read, ref_write, ref_time_read, ref_time_write = (
-                        io_current.read_bytes,
-                        io_current.write_bytes,
-                        io_current.read_time,
-                        io_current.write_time,
-                    )
-                else:
-                    byte_read = byte_write = time_read = time_write = None
+            # Check if we should still be profiling after sleep
+            if not profiling_active:
+                break
 
-                new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                    byte_read,
-                    byte_write,
-                    time_read,
-                    time_write,
-                    ref_byte_sent,
-                    ref_byte_recv,
-                    current_config,
-                    profiling_interval,
+            if current_config != PROFILER_CONFIG[2]:
+                io_current = psutil.disk_io_counters()
+                byte_read = io_current.read_bytes - ref_read
+                byte_write = io_current.write_bytes - ref_write
+                time_read = io_current.read_time - ref_time_read
+                time_write = io_current.write_time - ref_time_write
+
+                ref_read, ref_write, ref_time_read, ref_time_write = (
+                    io_current.read_bytes,
+                    io_current.write_bytes,
+                    io_current.read_time,
+                    io_current.write_time,
                 )
+            else:
+                byte_read = byte_write = time_read = time_write = None
 
-                resource.write(new_entry)
-                resource.flush()
-    except:
-        print(
-            "Profiling completed."
-        )
+            new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
+                byte_read,
+                byte_write,
+                time_read,
+                time_write,
+                ref_byte_sent,
+                ref_byte_recv,
+                current_config,
+                profiling_interval,
+            )
+
+            output_file.write(new_entry)
+            output_file.flush()
+            profiling_data.append(new_entry.strip())  # Store data for summary
+
+    except KeyboardInterrupt:
+        print("Profiling interrupted by user.")
+        # Cleanup for Ctrl+C interruption
+        if output_file and not output_file.closed:
+            try:
+                output_file.flush()
+                output_file.close()
+                print("CSV file closed after interruption.")
+            except Exception as e:
+                print(f"Warning: Error closing file after interruption: {e}")
+    except Exception as e:
+        print(f"Error during profiling: {e}")
+        # Cleanup for unexpected errors
+        if output_file and not output_file.closed:
+            try:
+                output_file.flush()
+                output_file.close()
+                print("CSV file closed after error.")
+            except Exception as e2:
+                print(f"Warning: Error closing file after error: {e2}")
+    finally:
+        # Final safety check - only needed if file wasn't closed already
+        if output_file and not output_file.closed:
+            try:
+                output_file.flush()
+                output_file.close()
+                print("CSV file closed in finally block.")
+            except Exception as e:
+                print(f"Warning: Error in final cleanup: {e}")
+        print("Profiling completed. (main)")
 
 
 if __name__ == "__main__":

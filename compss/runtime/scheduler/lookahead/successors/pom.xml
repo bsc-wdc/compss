@@ -10,7 +10,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-scheduler-lookahead</artifactId>
-        <version>3.3.3.post2508</version>
+        <version>3.3.3.post2509</version>
         <relativePath>..</relativePath>
     </parent>
 

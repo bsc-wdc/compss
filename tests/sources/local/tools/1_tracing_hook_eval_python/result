@@ -104,7 +104,7 @@
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
-  expected_th_enabled=$((elapsed_th_disabled + margin))
+  expected_th_enabled=$((elapsed_th_disabled * margin))
   if [ "${expected_th_enabled}" -lt "${elapsed_th_enabled}" ]; then
     echo "Disabling the tracing hook achieved better performance (more than the margin)." | tee -a "${output_file_enabled}"
     echo "Elapsed time with tracing hook   : ${elapsed_th_enabled}" | tee -a "${output_file_enabled}"

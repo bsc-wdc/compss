@@ -3,14 +3,53 @@
   # Check if an image called 'compss' is available locally
   if [ -z "$(docker images -q compss)" ]; then
       echo "Docker image 'compss' does not exist. Build it before trying to run the tests with:"
-      echo "$ docker build -t compss ."
+      echo "docker build --target=ci -t compss ."
       echo "NOTE: the command should be run at the root of the repo."
       exit 1
   fi
-  
-  # Container can be stopped and give name conflict, so remove it just in case
-  docker rm -f compss_test &> /dev/null  || true # no need to output errors if the container wasn't found
-  docker run -d --name=compss_test compss
-  docker exec compss_test sudo /framework/tests/scripts/configure_hosts_insert
-  
-  docker exec --user jenkins compss_test python3 /framework/tests/scripts/tests.py -FF "$@"
+
+  # Create volumes
+  export DOCKER_WORKING_DIR_VOLUME="working_dir"
+  export DOCKER_WORKING_DIR_MOUNT="/tmp/COMPSsWorker01/"
+  export DOCKER_APP_DIR_VOLUME="app_dir"
+  export DOCKER_APP_DIR_MOUNT="/home/jenkins/tests/"
+  export DOCKER_PYCOMPSS_VOLUME="pycompss_dir"
+  export DOCKER_PYCOMPSS_MOUNT="/opt/COMPSs/Bindings/python/3/pycompss/"
+
+  docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
+  docker volume rm $DOCKER_APP_DIR_VOLUME || true
+  docker volume rm $DOCKER_PYCOMPSS_VOLUME || true
+
+  docker volume create $DOCKER_WORKING_DIR_VOLUME
+  docker volume create $DOCKER_APP_DIR_VOLUME
+  docker volume create $DOCKER_PYCOMPSS_VOLUME
+
+  # Run a container called compss_test
+  docker run -d --rm \
+         -v /var/run/docker.sock:/var/run/docker.sock \
+         --mount source=$DOCKER_PYCOMPSS_VOLUME,target=$DOCKER_PYCOMPSS_MOUNT \
+         --mount source=$DOCKER_WORKING_DIR_VOLUME,target=$DOCKER_WORKING_DIR_MOUNT \
+         --mount source=$DOCKER_APP_DIR_VOLUME,target=$DOCKER_APP_DIR_MOUNT \
+         -e DOCKER_WORKING_DIR_VOLUME=$DOCKER_WORKING_DIR_VOLUME -e DOCKER_WORKING_DIR_MOUNT=$DOCKER_WORKING_DIR_MOUNT \
+         -e DOCKER_APP_DIR_VOLUME=$DOCKER_APP_DIR_VOLUME -e DOCKER_APP_DIR_MOUNT=$DOCKER_APP_DIR_MOUNT \
+         -e DOCKER_PYCOMPSS_VOLUME=$DOCKER_PYCOMPSS_VOLUME -e DOCKER_PYCOMPSS_MOUNT=$DOCKER_PYCOMPSS_MOUNT \
+         --name=compss_test compss
+
+  # Insert hosts for testing
+  docker exec compss_test bash -c "sudo /framework/tests/scripts/configure_hosts_insert && chmod a+w $DOCKER_WORKING_DIR_MOUNT \
+            && chmod a+w $DOCKER_APP_DIR_MOUNT && chmod a+w $DOCKER_PYCOMPSS_MOUNT && usermod -aG docker jenkins \
+            && groupmod -g $(stat -c '%g' /var/run/docker.sock) docker"
+
+  # Run the tests
+  if ! docker exec --user jenkins compss_test python3 /framework/tests/scripts/tests.py \
+                   -cfg /framework/tests/configurations/NIO_Docker.cfg -FF "$@"; then
+    echo "ERROR";
+    echo "If you have changed or added new dependencies or base packages update the base docker image in ./utils/docker/base"
+    exit 1
+  fi
+
+  docker rm -f compss_test
+
+  docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
+  docker volume rm $DOCKER_APP_DIR_VOLUME || true
+  docker volume rm $DOCKER_PYCOMPSS_VOLUME || true

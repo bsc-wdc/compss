@@ -695,7 +695,7 @@ def _execute_test(
     print("[INFO] Executing test " + str(test_name))
 
     target_base_dir = compss_cfg.get_target_base_dir()
-    logs_sanbdox = os.path.join(target_base_dir, "logs")
+    logs_sandbox = os.path.join(target_base_dir, "logs")
 
     max_retries = cmd_args.retry
     retry = 1
@@ -712,18 +712,20 @@ def _execute_test(
                 + str(max_retries)
             )
         # Create logs folder for current retry
-        test_logs_path = os.path.join(logs_sanbdox, test_name + "_" + str(retry))
+        test_logs_path = os.path.join(logs_sandbox, test_name + "_" + str(retry))
         try:
             os.makedirs(test_logs_path)
         except OSError as exc:
             raise TestExecutionError(
                 f"[ERROR] Cannot create application log dir {test_logs_path}"
             ) from exc
+        # Define compss logs folder
+        compss_logs_path = os.path.join(compss_logs_root, test_name)
         # Execute test specific execution file
         test_ev = _execute_test_cmd(
             test_path,
             test_logs_path,
-            compss_logs_root,
+            compss_logs_path,
             retry,
             compss_cfg,
             compss_cfg_sc=compss_cfg_sc,
@@ -741,7 +743,7 @@ def _execute_test(
 
 
 def _execute_test_cmd(
-    test_path, test_logs_path, compss_logs_root, retry, compss_cfg, compss_cfg_sc=None
+    test_path, test_logs_path, compss_logs_path, retry, compss_cfg, compss_cfg_sc=None
 ):
     """
     Executes the execution script of a given test
@@ -750,7 +752,7 @@ def _execute_test_cmd(
         + type: String
     :param test_logs_path: Path to store the execution logs
         + type: String
-    :param compss_logs_root: Path of the root COMPSs log folder
+    :param compss_logs_path: Path of the COMPSs log folder
         + type: String
     :param retry: Retry number
         + type: int
@@ -777,7 +779,7 @@ def _execute_test_cmd(
         str(compss_cfg.get_comm()),
         str(runcompss_user_opts),
         str(test_path),
-        str(compss_logs_root),
+        str(compss_logs_path),
         str(test_logs_path),
         str(retry),
         str(compss_cfg.get_execution_envs_str()),

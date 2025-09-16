@@ -47,8 +47,9 @@ elif command_exists "${extraeDir}/bin/x86_64-linux-gnu-mpi2prv" ; then
   mpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpi2prv"
   mpimpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv"
 else
-  echo "ERROR: Could not find mpi2prv or x86_64-linux-gnu-mpi2prv binary."
-  exit 1
+  mpi2prv_bin="mpi2prv"
+  mpimpi2prv_bin="mpimpi2prv"
+  echo "WARNING: Could not find mpi2prv or x86_64-linux-gnu-mpi2prv binary."
 fi
 
 MIN_MPITS_PARALLEL_MERGE=1000

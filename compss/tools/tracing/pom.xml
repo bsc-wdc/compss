@@ -10,7 +10,6 @@
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-tools</artifactId>
         <version>3.3.3.post2509</version>
-        <relativePath>..</relativePath>
     </parent>
 
 	<!-- PROJECT INFORMATION -->

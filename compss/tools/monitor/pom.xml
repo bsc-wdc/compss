@@ -10,7 +10,6 @@
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-tools</artifactId>
         <version>3.3.3.post2509</version>
-        <relativePath>..</relativePath>
     </parent>
 
 	<!-- PROJECT INFORMATION -->
@@ -66,6 +65,10 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
 			</plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven-war-plugin.version}</version>
+            </plugin>
 		</plugins>
 	</build>
 </project>

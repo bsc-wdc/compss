@@ -9,7 +9,6 @@
         <groupId>es.bsc.compss.tests</groupId>
         <artifactId>compss-tests-fault_tolerance</artifactId>
         <version>3.3.3.post2509</version>
-        <relativePath>..</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->

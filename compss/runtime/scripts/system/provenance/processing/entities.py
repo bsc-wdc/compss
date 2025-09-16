@@ -779,7 +779,7 @@ def search_ror(org_name: str) -> tuple[str, str, str]:
     """
 
     # ROR base URL API for searching
-    url_base = "https://api.ror.org/organizations"
+    url_base = "https://api.ror.org/v1/organizations"
     # Search parameters
     params = {"query": org_name}
 

@@ -2,8 +2,8 @@ FROM compss/compss:permedcoe
 
 EXPOSE 43000-44000
 
-ENV PATH /root/.local/bin:$PATH
-ENV CONTAINER True 
+ENV PATH=/root/.local/bin:$PATH
+ENV CONTAINER=True
 # The CONTAINER variable is used to decide where the assets will be used (/root/assets)
 
 RUN pip2 install --no-cache-dir --upgrade pip && \

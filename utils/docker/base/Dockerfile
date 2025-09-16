@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as base
+FROM ubuntu:22.04 AS base
 LABEL maintainer="COMPSs Support <support-compss@bsc.es>" \
       vendor="Barcelona Supercomputing Center (BSC)" \
       url="http://compss.bsc.es"
@@ -6,43 +6,41 @@ LABEL maintainer="COMPSs Support <support-compss@bsc.es>" \
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH=amd64
 
-FROM base as base_amd64
+FROM base AS base_amd64
 
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
-ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server:$LD_LIRBRARY_PATH
-ENV EXTRAE_MPI_HEADERS /usr/include/x86_64-linux-gnu/mpi
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server
+ENV EXTRAE_MPI_HEADERS=/usr/include/x86_64-linux-gnu/mpi
 
-FROM base as base_arm64
+FROM base AS base_arm64
 
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-arm64/
-ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server:$LD_LIRBRARY_PATH
-ENV EXTRAE_MPI_HEADERS /usr/include/aarch64-linux-gnu/mpi
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64/
+ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server
+ENV EXTRAE_MPI_HEADERS=/usr/include/aarch64-linux-gnu/mpi
 
 
-#FROM base_$TARGETARCH as base_rt
-FROM base_amd64 as base_rt
+#FROM base_$TARGETARCH AS base_rt
+FROM base_amd64 AS base_rt
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openjdk-11-jdk graphviz xdg-utils uuid-runtime && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 
-FROM base_rt as base_bindings
+FROM base_rt AS base_bindings
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends python3 r-base && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 
-FROM base_bindings as base_all
+FROM base_bindings AS base_all
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server jq bc && \
     pip3 --no-cache-dir install pip setuptools wheel --upgrade && \
     pip3 --no-cache-dir install dill guppy3 decorator mpi4py kafka-python3 rocrate==0.9.0 && \
-    wget https://github.com/bsc-dom/dataclay/archive/refs/heads/cyclops.zip && \
-    pip3 --no-cache-dir install cyclops.zip && \
-    rm cyclops.zip && \
+    pip3 --no-cache-dir install dataclay && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 RUN mkdir /run/sshd && \
@@ -51,7 +49,7 @@ RUN mkdir /run/sshd && \
     mkdir -p /dataclay/storage && \
     mkdir -p /dataclay/metadata
 
-FROM base_all as base_tutorial
+FROM base_all AS base_tutorial
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip cmake libopenblas-dev jq curl gnupg && \
@@ -63,7 +61,7 @@ RUN apt-get update && \
     apt-get update && apt-get install -y --no-install-recommends --no-upgrade nodejs python3-tk && \
     apt-get autoclean && rm -rf /var/lib/apt/lists/*
 
-FROM base_tutorial as base_ci
+FROM base_tutorial AS base_ci
 
 RUN apt-get update && \
     # Required for compilation and tests
@@ -88,24 +86,24 @@ RUN pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-clust
     # Docker-CLI
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-   apt-get update && \
-   apt-get install -y docker-ce-cli && \
-   apt-get autoclean && \
-   rm -rf /var/lib/apt/lists/* && \
-   # Geckodriver
-   #curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep "browser_download_url.*linux64.tar.gz" | cut -d : -f 2,3 | tr -d '\"' | head -n 1 | wget -i - && \
-   wget https://github.com/mozilla/geckodriver/releases/download/v0.32.2/geckodriver-v0.32.2-linux64.tar.gz && \
-   tar -xvf *linux64.tar.gz && \
-   rm *linux64.tar.gz && \
-   mv geckodriver /usr/local/bin/ && \
-   # Create Jenkins User
-   useradd jenkins -m -s /bin/bash && \
-   # Add the jenkins user to sudoers
-   echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \
-   # Enable ssh to localhost for user jenkins
-   cp -r /root/.ssh /home/jenkins && \
-   # Make sure jenkins owns his files
-   chown -R jenkins /home/jenkins/ && chgrp -R jenkins /home/jenkins/ && \
-   groupadd docker && \
-   usermod -aG docker jenkins && \
-   newgrp docker
+    apt-get update && \
+    apt-get install -y docker-ce-cli && \
+    apt-get autoclean && \
+    rm -rf /var/lib/apt/lists/* && \
+    # Geckodriver
+    #curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep "browser_download_url.*linux64.tar.gz" | cut -d : -f 2,3 | tr -d '\"' | head -n 1 | wget -i - && \
+    wget https://github.com/mozilla/geckodriver/releases/download/v0.32.2/geckodriver-v0.32.2-linux64.tar.gz && \
+    tar -xvf *linux64.tar.gz && \
+    rm *linux64.tar.gz && \
+    mv geckodriver /usr/local/bin/ && \
+    # Create Jenkins User
+    useradd jenkins -m -s /bin/bash && \
+    # Add the jenkins user to sudoers
+    echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \
+    # Enable ssh to localhost for user jenkins
+    cp -r /root/.ssh /home/jenkins && \
+    # Make sure jenkins owns his files
+    chown -R jenkins /home/jenkins/ && chgrp -R jenkins /home/jenkins/ && \
+    groupadd docker && \
+    usermod -aG docker jenkins && \
+    newgrp docker

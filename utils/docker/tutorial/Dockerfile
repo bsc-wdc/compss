@@ -2,7 +2,7 @@ FROM compss/compss-tutorial:3.1
 
 EXPOSE 43000-44000
 
-ENV PATH /root/.local/bin:$PATH
+ENV PATH=/root/.local/bin:$PATH
 
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir graphviz && \

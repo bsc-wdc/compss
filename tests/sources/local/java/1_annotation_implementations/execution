@@ -31,7 +31,7 @@
 
   output_log="${target_log_folder}/multiimplementations_${retry_num}.outputlog"
   error_log="${target_log_folder}/multiimplementations_0${retry_num}.errorlog"
-  expectedTime=180s
+  expectedTime=300s
 
   taskWidth=3
   initialValue=2

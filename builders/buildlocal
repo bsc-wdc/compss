@@ -801,6 +801,7 @@ install_compss() {
   # Kafka
   if [ "${kafka}" = "true" ]; then
     cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
+    #cp "${TMP_DIR}"/dependencies/gradle.properties ${targetDir}/Dependencies/kafka/.
 
     cd "${targetDir}"/Dependencies/kafka
     if which gradle; then

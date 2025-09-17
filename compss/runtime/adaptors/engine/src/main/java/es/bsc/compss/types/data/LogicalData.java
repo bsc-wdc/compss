@@ -210,25 +210,33 @@ public class LogicalData {
                 master.bindingId = bindingId;
                 slave.bindingId = master.bindingId;
 
-                synchronized (master.locMonitors) {
-                    master.locMonitors.addAll(slave.locMonitors);
+                synchronized (slave.locMonitors) {
+                    synchronized (master.locMonitors) {
+                        master.locMonitors.addAll(slave.locMonitors);
+                    }
+                    slave.locMonitors = master.locMonitors;
                 }
-                slave.locMonitors = master.locMonitors;
 
-                synchronized (master.inProgress) {
-                    master.inProgress.addAll(slave.inProgress);
+                synchronized (slave.inProgress) {
+                    synchronized (master.inProgress) {
+                        master.inProgress.addAll(slave.inProgress);
+                    }
+                    slave.inProgress = master.inProgress;
                 }
-                slave.inProgress = master.inProgress;
 
-                synchronized (master.locations) {
-                    master.locations.addAll(slave.locations);
+                synchronized (slave.locations) {
+                    synchronized (master.locations) {
+                        master.locations.addAll(slave.locations);
+                    }
+                    slave.locations = master.locations;
                 }
-                slave.locations = master.locations;
 
-                synchronized (master.knownAlias) {
-                    master.knownAlias.addAll(slave.knownAlias);
+                synchronized (slave.knownAlias) {
+                    synchronized (master.knownAlias) {
+                        master.knownAlias.addAll(slave.knownAlias);
+                    }
+                    slave.knownAlias = master.knownAlias;
                 }
-                slave.knownAlias = master.knownAlias;
             }
         }
     }

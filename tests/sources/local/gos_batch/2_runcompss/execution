@@ -56,7 +56,7 @@
         HOST)
           HOST=${var[1]}
           ;;
-       REAL_ENVIRONMENT_ENVS)
+      REAL_ENVIRONMENT_ENVS)
          if [ "${var[1]}" = "DEFAULT" ]; then
            REAL_ENVIRONMENT_ENVS=""
          else
@@ -92,7 +92,7 @@
             COMPUTER=${var[1]}
           fi
           ;;
-       APP_DIR)
+      APP_DIR)
           if [ ! "${var[1]}" = "DEFAULT" ]; then
             APP_DIR="${var[1]}/${test_name}"
             CLASSPATH="${APP_DIR}/target/${jar_name}"

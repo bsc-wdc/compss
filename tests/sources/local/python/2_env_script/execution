@@ -29,7 +29,7 @@
   echo "*** RUNNING PYTHON APPLICATION TIME OUT"
 
   for python_interpreter in ${execution_envs}; do
-   if [ "$python_interpreter" == 'python3' ]; then
+  if [ "$python_interpreter" == 'python3' ]; then
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
     error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
@@ -116,7 +116,7 @@
       exit ${exit_value}
     fi
 
-   fi
+  fi
   done
 
   #----------------------------------------------------------------------------------

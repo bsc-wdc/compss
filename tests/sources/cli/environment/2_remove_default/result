@@ -7,21 +7,21 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="ERROR: \`default\` environment is required and cannot be deleted"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="ERROR: \`default\` environment is required and cannot be deleted"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "OUTPUT RESULT NOT AS EXPECTED." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
 
-     # Check if directory `default` exists in `~/.COMPSs/envs`
-     if [ ! -d "${HOME}/.COMPSs/envs/default" ]; then
+    # Check if directory `default` exists in `~/.COMPSs/envs`
+    if [ ! -d "${HOME}/.COMPSs/envs/default" ]; then
          echo "[ERROR] Directory \`default\` has been deleted from \`~/.COMPSs/envs\`" | tee -a "${output_file}"
          exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then

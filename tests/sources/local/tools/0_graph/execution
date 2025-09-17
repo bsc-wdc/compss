@@ -53,7 +53,7 @@
     if [[ "$?" = "124" ]]; then
       # Copy LOG files
       cp -rf "${COMPSs_log_folder}/${app}_0${retry_num}"/* "${appLogFolder}"
-     
+
       # Report time out
       echo "[WARNING] Java Application timed out" >> "${output_log}"
       ev=124

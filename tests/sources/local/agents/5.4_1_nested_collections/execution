@@ -56,9 +56,9 @@ compss_agent_start_service \
   ${runcompss_opts} \
   --project="${base_app_dir}/project.xml" \
   --resources="${base_app_dir}/resources.xml" \
-   --lang="PYTHON" \
-   --method_name="main" \
-   "nested_collection_detection"
+  --lang="PYTHON" \
+  --method_name="main" \
+  "nested_collection_detection"
 
 
   job1_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -c 24- | jq -r '.method_name')

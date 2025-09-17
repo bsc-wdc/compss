@@ -49,7 +49,7 @@
 
     # Sequential execution
     timeout --signal=2 "$expectedTime" \
-       ${python_interpreter} "${base_app_dir}/src/${app_name}" > >(tee "${output_log_seq}") 2> >(tee "${error_log_seq}" >&2)
+      ${python_interpreter} "${base_app_dir}/src/${app_name}" > >(tee "${output_log_seq}") 2> >(tee "${error_log_seq}" >&2)
     seq_exit_value=$?
 
     # Check segmentation fault
@@ -70,8 +70,8 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python3_mpi' ]; then
-       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
-       continue
+      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      continue
     fi
 
     # COMPSs execution

@@ -138,16 +138,16 @@
 
   # Invoking DemoFunction method
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
-   --master_node="127.0.0.1" \
-   --master_port="46101" \
+  --master_node="127.0.0.1" \
+  --master_port="46101" \
     --cei=files.MainItf \
     --stop \
     --forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301" \
     files.Main  > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
-   ev=$?
+  ev=$?
 
 
-   if [ "$ev" != "0" ]; then
+  if [ "$ev" != "0" ]; then
     echo "Could not invoke recursive.Count's main method." > >(tee -a "${error_log}")
     exit $ev
   fi

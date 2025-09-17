@@ -23,8 +23,8 @@
   #----------------------------------------------------------------------------------
   # Check output and runtime.log exist
   if [ ! -f "${output_file}" ]; then
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   if [ ! -f "${runtime_log}" ]; then
     echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
@@ -34,15 +34,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status of simple.ipynb or simpleGAT.ipynb
   if [ -f "${html}" ]; then
-     result_expected="RESULT=EXPECTED"
-     test_result=$(grep -aoE '\bRESULT=\w*' "${html}" | tail -n 1)
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="RESULT=EXPECTED"
+    test_result=$(grep -aoE '\bRESULT=\w*' "${html}" | tail -n 1)
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "SOME ERROR WAS FOUND. HTML FILE NOT EXISTS." | tee -a "${output_file}"
-     exit 1
+    echo "SOME ERROR WAS FOUND. HTML FILE NOT EXISTS." | tee -a "${output_file}"
+    exit 1
   fi
 
   # Check that ErrorManager has not raised any ERROR or FATAL message
@@ -78,8 +78,8 @@
   #----------------------------------------------------------------------------------
   # Check that graph has been generated
   if [ ! -f "${target_log_folder}"/monitor/complete_graph.dot ]; then
-     echo "SOME ERROR WAS FOUND. GRAPH NOT GENERATED." | tee -a "${output_file}"
-     exit 1
+    echo "SOME ERROR WAS FOUND. GRAPH NOT GENERATED." | tee -a "${output_file}"
+    exit 1
   fi
 
   #----------------------------------------------------------------------------------

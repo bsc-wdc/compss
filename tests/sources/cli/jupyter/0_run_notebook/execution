@@ -32,13 +32,13 @@
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
-     # Report time out
-     echo "[WARNING] Deploying App Matmul timed out" >> "${output_log}"
-     exit_value=124
+    # Report time out
+    echo "[WARNING] Deploying App Matmul timed out" >> "${output_log}"
+    exit_value=124
   else
-     # Check result
-     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${base_app_dir}"
-     exit_value=$?
+    # Check result
+    "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${base_app_dir}"
+    exit_value=$?
   fi
   
   #----------------------------------------------------------------------------------

@@ -38,8 +38,8 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python3_mpi' ]; then
-       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
-       continue
+      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      continue
     fi
 
     # shellcheck disable=SC2086

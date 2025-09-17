@@ -7,12 +7,12 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="Environment \`default\` is now active"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="Environment \`default\` is now active"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
 
       # Check if exists a file named `current` in `~/.COMPSs/envs/default`
       if [ ! -f "${HOME}/.COMPSs/envs/default/current" ]; then
@@ -31,8 +31,8 @@
          exit 1
       fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -42,26 +42,26 @@
     fi
   fi
 
-   pycompss environment remove docker_env
-   exit 0
-   # check if directory `docker_env` has been removed from `~/.COMPSs/envs`
-   if [ -d "${HOME}/.COMPSs/envs/docker_env" ]; then
+  pycompss environment remove docker_env
+  exit 0
+  # check if directory `docker_env` has been removed from `~/.COMPSs/envs`
+  if [ -d "${HOME}/.COMPSs/envs/docker_env" ]; then
       echo "[ERROR] Directory `docker_env` not removed from `~/.COMPSs/envs`" | tee -a "${output_file}"
       rm -rf "${HOME}/.COMPSs/envs/docker_env"
       exit 1
-   fi
-   
+  fi
+
    # check if docker container has been removed
-   if [ "$(docker ps -a | grep "pycompss-master-docker_env")" ]; then
+  if [ "$(docker ps -a | grep "pycompss-master-docker_env")" ]; then
       echo "[ERROR] Docker container not removed" | tee -a "${output_file}"
       exit 1
-   fi
+  fi
 
-   env_list_length=$(pycompss env list | grep -o "*" | wc -l)
-   if [ "${env_list_length}" -ne 1 ]; then
+  env_list_length=$(pycompss env list | grep -o "*" | wc -l)
+  if [ "${env_list_length}" -ne 1 ]; then
       echo "[ERROR] Environment list has wrong number of active envs" | tee -a "${output_file}"
       exit 1
-   fi
+  fi
 
     
 

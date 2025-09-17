@@ -40,8 +40,8 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ] || [ "$python_interpreter" == 'python2' ]; then
-       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
-       continue
+      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      continue
     fi
 
     # shellcheck disable=SC2086
@@ -53,9 +53,9 @@
       \
       ${runcompss_opts} \
       \
-     --checkpoint=es.bsc.compss.checkpoint.policies.CheckpointPolicyPeriodicTime \
-     --checkpoint_params=period.time:1s \
-     --checkpoint_folder=/tmp/checkpointing/ \
+    --checkpoint=es.bsc.compss.checkpoint.policies.CheckpointPolicyPeriodicTime \
+    --checkpoint_params=period.time:1s \
+    --checkpoint_folder=/tmp/checkpointing/ \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       ${python_mpi_worker} \
@@ -90,8 +90,8 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ] || [ "$python_interpreter" == 'python2' ]; then
-       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
-       continue
+      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      continue
     fi
 
     # shellcheck disable=SC2086
@@ -101,9 +101,9 @@
       -d \
       --comm="$comm" \
       \
-     --checkpoint=es.bsc.compss.checkpoint.policies.CheckpointPolicyPeriodicTime \
-     --checkpoint_params=period.time:1s \
-     --checkpoint_folder=/tmp/checkpointing/ \
+    --checkpoint=es.bsc.compss.checkpoint.policies.CheckpointPolicyPeriodicTime \
+    --checkpoint_params=period.time:1s \
+    --checkpoint_folder=/tmp/checkpointing/ \
       ${runcompss_opts} \
       \
       --lang=python \

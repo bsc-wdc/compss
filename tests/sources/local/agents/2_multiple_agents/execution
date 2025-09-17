@@ -203,7 +203,7 @@
 
   RESULT=$(grep "test invoked" "${agent1_output_log}")
   if [ -z "${RESULT}" ]; then  
-     echo "Agent 1 failed to start" > >(tee -a "${error_log}")
+    echo "Agent 1 failed to start" > >(tee -a "${error_log}")
      exit 1
   fi
   echo "Agent 1 started" > >(tee -a "${output_log}")

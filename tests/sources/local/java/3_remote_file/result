@@ -12,15 +12,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -51,10 +51,10 @@
 
   # Report result status
   if [ "$final_counter_got" != "$final_counter_expected" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a "${output_file}"
-     echo "GOT:      $final_counter_got" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a "${output_file}"
+    echo "GOT:      $final_counter_got" | tee -a "${output_file}"
+    exit 1
   fi
   
   exit 0

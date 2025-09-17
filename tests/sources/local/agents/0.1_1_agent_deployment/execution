@@ -99,8 +99,8 @@ compss_agent_start \
   sleep 1
   RESULT=$(grep "test invoked" "${agent1_output_log}")
   if [ -z "${RESULT}" ]; then  
-     echo "Agent failed to start" > >(tee -a "${error_log}")
-     exit 1
+    echo "Agent failed to start" > >(tee -a "${error_log}")
+    exit 1
   fi
   echo "Agent started" > >(tee -a "${output_log}")
   sleep 1

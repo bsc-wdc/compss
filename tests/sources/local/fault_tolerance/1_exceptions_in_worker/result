@@ -25,7 +25,7 @@
   # Check that ErrorManager has raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
     if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
-       echo "[RESULT_CHECKER] ErrorManager raised and ERROR as expected" | tee -a "${output_file}"
+      echo "[RESULT_CHECKER] ErrorManager raised and ERROR as expected" | tee -a "${output_file}"
     else
       echo "[ERROR] ErrorManager did not raise any error" | tee -a "${output_file}"
       exit 1

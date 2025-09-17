@@ -42,8 +42,8 @@
   compss_build_app "${app_name}"
   ev=$?
   if [ $ev -ne 0 ]; then
-     echo "[ERROR] Cannot compile C app. See errors above."
-     exit $ev
+    echo "[ERROR] Cannot compile C app. See errors above."
+    exit $ev
   fi
   #----------------------------------------------------------------------------------
   # Run application
@@ -67,15 +67,15 @@
     expectedTime=5
 
     "${COMPSs_exec}" --exec_time=${expectedTime} \
-     --num_nodes=1 \
-     --comm="$comm" \
-     --debug \
-     --worker_in_master_cpus=8 \
-     --job_execution_dir=${master_working_dir} \
-     --worker_working_dir=${worker_working_dir} \
-     --log_dir=${target_log_folder} \
-     ${runcompss_opts} \
-     --appdir="${base_app_dir}" \
-     "${base_app_dir}/master/${app_name}" $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+    --num_nodes=1 \
+    --comm="$comm" \
+    --debug \
+    --worker_in_master_cpus=8 \
+    --job_execution_dir=${master_working_dir} \
+    --worker_working_dir=${worker_working_dir} \
+    --log_dir=${target_log_folder} \
+    ${runcompss_opts} \
+    --appdir="${base_app_dir}" \
+    "${base_app_dir}/master/${app_name}" $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   done

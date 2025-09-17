@@ -37,8 +37,8 @@
     expectedTime=80s
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python3_mpi' ]; then
-       echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
-       continue
+      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
+      continue
     fi
     # Added to allow socker release
     sleep 10s

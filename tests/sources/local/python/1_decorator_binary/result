@@ -113,7 +113,7 @@
     fi
   fi
 
-  if !(grep -q "Hi" src/grepoutfile;) then
+  if ! (grep -q "Hi" src/grepoutfile;) then
     echo "ERROR: TASK FAILED: testFileManagement function failed."  | tee -a "${output_file}"
     exit 1
   else

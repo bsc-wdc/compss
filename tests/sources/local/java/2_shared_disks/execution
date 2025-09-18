@@ -46,19 +46,15 @@
     \
     "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   # Check timeout
   if [[ "$?" = "124" ]]; then
-    # Copy LOG files
-    cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-
      # Report time out
     echo "[WARNING] Java Application timed out" >> "${output_log}"
     rm -rf /tmp/sharedDisk
     exit_value=124
   else
-    # Copy LOG files
-    cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-  
     # Remove shared folder
     rm -rf /tmp/sharedDisk
 

@@ -45,18 +45,14 @@
     \
     "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
+  # Copy LOG files
+  # No need to copy since application is never executed
   # Check timeout
   if [[ "$?" = "124" ]]; then
-    # Copy LOG files
-    # No need to copy since application is never executed
-
      # Report time out
     echo "[WARNING] Java Application timed out" >> "${output_log}"
     exit_value=124
   else
-    # Copy LOG files
-    # No need to copy since application is never executed
-  
     # Check result
     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
     exit_value=$?

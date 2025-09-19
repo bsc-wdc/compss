@@ -43,7 +43,7 @@ DEFAULT_AGENTNAME_PREFIX="127.0.0."
 DEFAULT_INITIAL_PORT=46000
 
 DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
-DEFAULT_LOG_DIR="${HOME}/.COMPSs/$(date +"%Y.%m.%d.%H%M%S")"
+DEFAULT_LOG_DIR="${TEST_HOME:-$HOME/.COMPSs}/$(date +"%Y.%m.%d.%H%M%S")"
 DEFAULT_TOPOLOGY="plain"
 
 NUM_CHECK_RETRIES="10"

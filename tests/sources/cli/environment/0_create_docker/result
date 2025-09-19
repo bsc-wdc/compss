@@ -15,7 +15,7 @@
       fi
 
       # Check if directory `docker_env` exists in `~/.COMPSs/envs`
-      if [ ! -d "${HOME}/.COMPSs/envs/docker_env" ]; then
+      if [ ! -d "${TEST_HOME:-$HOME/.COMPSs}/envs/docker_env" ]; then
             echo "[ERROR] Directory `docker_env` not found in `~/.COMPSs/envs`" | tee -a "${output_file}"
             exit 1
       fi
@@ -33,9 +33,9 @@
 
   pycompss environment remove docker_env
   # check if directory `docker_env` has been removed from `~/.COMPSs/envs`
-  if [ -d "${HOME}/.COMPSs/envs/docker_env" ]; then
+  if [ -d "${TEST_HOME:-$HOME/.COMPSs}/envs/docker_env" ]; then
       echo "[ERROR] Directory `docker_env` not removed from `~/.COMPSs/envs`" | tee -a "${output_file}"
-      rm -rf "${HOME}/.COMPSs/envs/docker_env"
+      rm -rf "${TEST_HOME:-$HOME/.COMPSs}/envs/docker_env"
       exit 1
   fi
 

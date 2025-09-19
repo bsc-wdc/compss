@@ -1122,7 +1122,7 @@ add_launch(){
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
     # ADD STORAGE_INIT, STORAGE_FINISH AND NODES PARSING
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
+storage_conf=${TEST_HOME:-$HOME/.COMPSs}/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
 storage_master_node="\${COMPSS_MASTER_NODE}"
 if [ "${worker_in_master_cpus}" -gt "0" ]; then
   storage_worker_nodes="\${COMPSS_WORKER_NODES} \${COMPSS_MASTER_NODE}"

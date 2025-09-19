@@ -795,6 +795,7 @@ def _execute_test_cmd(
     # Invoke execution script
     try:
         exec_env = os.environ.copy()
+        exec_env["TEST_HOME"] = compss_logs_path
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
         p = subprocess.Popen(cmd, cwd=test_path, env=exec_env)

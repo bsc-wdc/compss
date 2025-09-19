@@ -15,7 +15,7 @@
     fi
 
     # Check if directory `default` exists in `~/.COMPSs/envs`
-    if [ ! -d "${HOME}/.COMPSs/envs/default" ]; then
+    if [ ! -d "${TEST_HOME:-$HOME/.COMPSs}/envs/default" ]; then
          echo "[ERROR] Directory \`default\` has been deleted from \`~/.COMPSs/envs\`" | tee -a "${output_file}"
          exit 1
     fi

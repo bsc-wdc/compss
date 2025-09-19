@@ -216,7 +216,7 @@
   # These paths are needed for COMPSs because the runtime
   # will systematically look for a storage.cfg file here
   # if storage_home has been defined
-  COMPSS_STORAGE_DIR=$HOME/.COMPSs/${jobId}/storage
+  COMPSS_STORAGE_DIR=${TEST_HOME:-$HOME/.COMPSs}/${jobId}/storage
   COMPSS_STORAGE_CFG_DIR=$COMPSS_STORAGE_DIR/cfgfiles
   COMPSS_STORAGE_CFG_FILE=$COMPSS_STORAGE_CFG_DIR/storage.properties
 

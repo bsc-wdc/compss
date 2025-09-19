@@ -73,13 +73,14 @@
   status1=$?
   wait $pid2
   status2=$?
+
+  execNum2=$((retry_num*2))
+  execNum1=$((execNum2 - 1))
   
   # Copy LOG files
   cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum1}"/* "${log_folder_app1}"
   cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum2}"/* "${log_folder_app2}"
   # Check timeout
-  execNum2=$((retry_num*2))
-  execNum1=$((execNum2 - 1))
   if [[ "$status1" = "124" ]] || [[ "$status2" = "124" ]]; then
     # Report time out
     echo "[WARNING] Java Application timed out" >> "${output_log_app1}"

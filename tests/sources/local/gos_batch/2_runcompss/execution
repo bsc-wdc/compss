@@ -56,7 +56,7 @@
         HOST)
           HOST=${var[1]}
           ;;
-       REAL_ENVIRONMENT_ENVS)
+      REAL_ENVIRONMENT_ENVS)
          if [ "${var[1]}" = "DEFAULT" ]; then
            REAL_ENVIRONMENT_ENVS=""
          else
@@ -92,7 +92,7 @@
             COMPUTER=${var[1]}
           fi
           ;;
-       APP_DIR)
+      APP_DIR)
           if [ ! "${var[1]}" = "DEFAULT" ]; then
             APP_DIR="${var[1]}/${test_name}"
             CLASSPATH="${APP_DIR}/target/${jar_name}"
@@ -177,18 +177,14 @@
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
+    # Copy LOG files
+    cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
     # Check timeout
     if [[ "$?" = "124" ]]; then
-      # Copy LOG files
-      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
-
       # Report time out
       echo "[WARNING] Python Application timed out" >> "${output_log}"
       exit_value=124
     else
-      # Copy LOG files
-      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
-
       # Check result
       "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}"
       exit_value=$?

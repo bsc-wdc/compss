@@ -1,7 +1,7 @@
 # =============================================================================
 # Image for building COMPSs
 # =============================================================================
-FROM compss/base18:latest as builder
+FROM compss/base18:latest AS builder
 MAINTAINER COMPSs Support <support-compss@bsc.es>
 
 ENV GRADLE_HOME=/opt/gradle JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/ PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils:/opt/gradle/bin CLASSPATH=$CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server COMPSS_HOME=/opt/COMPSs/
@@ -16,7 +16,7 @@ RUN cd /framework && \
 # =============================================================================
 # Image for running COMPSs agent
 # =============================================================================
-FROM ubuntu:18.04 as base
+FROM ubuntu:18.04 AS base
 MAINTAINER COMPSs Support <support-compss@bsc.es>
 
 RUN apt-get update && \

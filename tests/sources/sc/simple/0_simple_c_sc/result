@@ -47,10 +47,10 @@
 
   # Report result status
   if [ "$final_counter_got" != "$final_counter_expected" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a "${output_file}"
-     echo "GOT:      $final_counter_got" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a "${output_file}"
+    echo "GOT:      $final_counter_got" | tee -a "${output_file}"
+    exit 1
   fi
 
   exit 0

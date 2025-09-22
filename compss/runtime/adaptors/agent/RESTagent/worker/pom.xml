@@ -10,7 +10,6 @@
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-adaptors-agent-rest</artifactId>
         <version>3.3.3.post2509</version>
-        <relativePath>..</relativePath>
     </parent>
 
 
@@ -189,7 +188,7 @@
             <!-- Remove final *.jar from project basedir -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-clean-plugin.version}</version>
+                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-final-jar</id>

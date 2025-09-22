@@ -12,15 +12,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -56,8 +56,8 @@
   remote_increment_local=$(grep "Submitted Task:" "${runtime_log}" | grep "increment_local" | grep "COMPSsWorker01" | wc -l)
   echo "Remote increment_local count: ${remote_increment_local}" | tee -a "${output_file}"
   if [ "${remote_increment_local}" -gt 0 ]; then
-     echo "ERROR: ${remote_increment_local} increment_local tasks have been executed on a remote node." | tee -a "${output_file}"
-     exit 1
+    echo "ERROR: ${remote_increment_local} increment_local tasks have been executed on a remote node." | tee -a "${output_file}"
+    exit 1
   fi
 
   remote_increment_out=$(grep "Submitted Task:" "${runtime_log}" | grep "increment_out" | grep "COMPSsWorker01" | wc -l)

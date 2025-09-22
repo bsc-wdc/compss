@@ -159,7 +159,7 @@ create_exec_folder() {
     if [ -n  "${log_dir}" ]; then
       exec_dir="${log_dir}"
     else
-      exec_dir="${HOME}/.COMPSs"
+      exec_dir="${TEST_HOME:-$HOME/.COMPSs}"
     fi
 
     if ! mkdir -p "${exec_dir}"; then

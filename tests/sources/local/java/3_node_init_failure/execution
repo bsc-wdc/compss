@@ -39,29 +39,24 @@
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
-     --project="${base_app_dir}"/project.xml \
-     --resources="${base_app_dir}"/resources.xml \
-     --shutdown_in_node_failure=false \
-     --comm="$comm" \
-     --debug \
-     ${runcompss_opts} \
-     -g \
-     --classpath="${base_app_dir}/${jar_name}" \
-     \
-     "${app_name}" > >(tee "${output_log_0}") 2> >(tee "${error_log_0}" >&2)
+    --project="${base_app_dir}"/project.xml \
+    --resources="${base_app_dir}"/resources.xml \
+    --shutdown_in_node_failure=false \
+    --comm="$comm" \
+    --debug \
+    ${runcompss_opts} \
+    -g \
+    --classpath="${base_app_dir}/${jar_name}" \
+    \
+    "${app_name}" > >(tee "${output_log_0}") 2> >(tee "${error_log_0}" >&2)
   
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_0}"
   # Check timeout
   if [[ "$?" = "124" ]]; then
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_0}"
-     
      # Report time out
-     echo "[WARNING] Java Application timed out" >> "${output_log_0}"
-     exit_value=124
-  else
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_0}"
-
+    echo "[WARNING] Java Application timed out" >> "${output_log_0}"
+    exit_value=124
   fi
 
   sleep 10s
@@ -76,33 +71,29 @@
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
-     --project="${base_app_dir}"/project.xml \
-     --resources="${base_app_dir}"/resources.xml \
-     --shutdown_in_node_failure=true \
-     --comm="$comm" \
-     --debug \
-     ${runcompss_opts} \
-     -g \
-     --classpath="${base_app_dir}/${jar_name}" \
-     \
-     "${app_name}" > >(tee "${output_log_1}") 2> >(tee "${error_log_1}" >&2)
+    --project="${base_app_dir}"/project.xml \
+    --resources="${base_app_dir}"/resources.xml \
+    --shutdown_in_node_failure=true \
+    --comm="$comm" \
+    --debug \
+    ${runcompss_opts} \
+    -g \
+    --classpath="${base_app_dir}/${jar_name}" \
+    \
+    "${app_name}" > >(tee "${output_log_1}") 2> >(tee "${error_log_1}" >&2)
 
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_1}"
   # Check timeout
   if [[ "$?" = "124" ]]; then
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_1}"
-
-     # Report time out
-     echo "[WARNING] Java Application timed out" >> "${output_log_1}"
-     exit_value=124
+    # Report time out
+    echo "[WARNING] Java Application timed out" >> "${output_log_1}"
+    exit_value=124
   else
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_1}"
-
-     # Check result
-     "${base_app_dir}"/result "${target_log_folder_0}" "${output_log_0}" "${error_log_0}" \
+    # Check result
+    "${base_app_dir}"/result "${target_log_folder_0}" "${output_log_0}" "${error_log_0}" \
                               "${target_log_folder_1}" "${output_log_1}" "${error_log_1}"
-     exit_value=$?
+    exit_value=$?
   fi
 
   #----------------------------------------------------------------------------------

@@ -54,8 +54,8 @@ write_command() {
 get_args "$@"
 
 # Launch one process per CMDPipe
-commandPipe=$HOME/.COMPSs/${appId}/adaptation/command_pipe
-resultPipe=$HOME/.COMPSs/${appId}/adaptation/result_pipe
+commandPipe=${TEST_HOME:-$HOME/.COMPSs}/${appId}/adaptation/command_pipe
+resultPipe=${TEST_HOME:-$HOME/.COMPSs}/${appId}/adaptation/result_pipe
 write_command
 read_result
 

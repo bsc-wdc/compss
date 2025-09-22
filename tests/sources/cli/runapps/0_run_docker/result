@@ -7,16 +7,16 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     test_result=$(cat "${output_file}")
-     # check if the word "ERROR" is in the output
-     if [[ "${test_result}" =~ "ERROR" ]]; then
+    test_result=$(cat "${output_file}")
+    # check if the word "ERROR" is in the output
+    if [[ "${test_result}" =~ "ERROR" ]]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
 
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -26,11 +26,11 @@
     fi
   fi
 
-   pycompss env r docker_run_app
-   if [ -e "$(pwd)/.COMPSs" ]; then
-     echo "ERROR: .COMPSs DIDN'T DELETE" | tee -a "${output_file}"
-     exit 1
-   fi  
+  pycompss env r docker_run_app
+  if [ -e "$(pwd)/.COMPSs" ]; then
+    echo "ERROR: .COMPSs DIDN'T DELETE" | tee -a "${output_file}"
+    exit 1
+  fi
 
 
   #----------------------------------------------------------------------------------

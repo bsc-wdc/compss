@@ -12,15 +12,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -51,10 +51,10 @@
 
   # Report result status
   if [ "$final_counter_got1" != "$final_counter_expected1" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected1" | tee -a "${output_file}"
-     echo "GOT:      $final_counter_got1" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected1" | tee -a "${output_file}"
+    echo "GOT:      $final_counter_got1" | tee -a "${output_file}"
+    exit 1
   fi
   
   #---------------------------------------------------------------------------------- 
@@ -65,10 +65,10 @@
 
   # Report result status
   if [ "$final_counter_got2" != "$final_counter_expected2" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected2" | tee -a "${output_file}"
-     echo "GOT:      $final_counter_got2" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected2" | tee -a "${output_file}"
+    echo "GOT:      $final_counter_got2" | tee -a "${output_file}"
+    exit 1
   fi
 
   #---------------------------------------------------------------------------------- 
@@ -79,10 +79,10 @@
 
   # Report result status
   if [ "$final_counter_got3" != "$final_counter_expected3" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected3" | tee -a "${output_file}"
-     echo "GOT:      $final_counter_got3" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected3" | tee -a "${output_file}"
+    echo "GOT:      $final_counter_got3" | tee -a "${output_file}"
+    exit 1
   fi
   
   #---------------------------------------------------------------------------------- 
@@ -90,10 +90,10 @@
   barrier=$(grep -E -o "Creating task|Barrier" "${output_file}")
   expectedBarrier=$'Creating task\nBarrier\nCreating task\nBarrier\nCreating task\nBarrier'
   if [ "$barrier" != "$expectedBarrier" ]; then
-     echo "ERROR ON BARRIER" | tee -a "${output_file}"
-     echo "EXPECTED: $expectedBarrier" | tee -a "${output_file}"
-     echo "GOT:      $barrier" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON BARRIER" | tee -a "${output_file}"
+    echo "EXPECTED: $expectedBarrier" | tee -a "${output_file}"
+    echo "GOT:      $barrier" | tee -a "${output_file}"
+    exit 1
   fi
 
   #---------------------------------------------------------------------------------- 

@@ -13,15 +13,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -65,9 +65,9 @@
   # Report result status
   # Notice that the 3 first tasks can be scheduled anywhere (there are 4 free workers)
   if [ "$resultAllGotIsExpected" -gt 3 ] || [ "$resultAllExpectedIsGot" -gt 3 ]; then
-     echo "ERROR: Task schedule do not respect score values." | tee -a "${output_file}"
-     echo "Check logs/java_dataLocality.complexTest_expected.out and logs/java_dataLocality.complexTest_got.out" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR: Task schedule do not respect score values." | tee -a "${output_file}"
+    echo "Check logs/java_dataLocality.complexTest_expected.out and logs/java_dataLocality.complexTest_got.out" | tee -a "${output_file}"
+    exit 1
   fi
   echo "[LOG] Success"
   

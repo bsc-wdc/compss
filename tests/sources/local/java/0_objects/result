@@ -12,15 +12,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -63,8 +63,8 @@
   log_B_value=$(grep "Updated B" "${output_file}" | cut -c 11-)
 
   if [ "$j2_A_value" != "$j2_A_expected" ] || [ "$j2_B_value" != "$j2_B_expected" ] || [ "$j4_params_value" != "$j4_params_expected" ] || [ "$j5_A_value" != "$j5_A_expected" ] || [ "$j5_B_value" != "$j5_B_expected" ] || [ "$log_A_value" != "$log_A_expected" ] || [ "$log_B_value" != "$log_B_expected" ]; then
-     echo "ERROR ON TEST USER OBJECTS" | tee -a "${output_file}"
-     exitValue=1
+    echo "ERROR ON TEST USER OBJECTS" | tee -a "${output_file}"
+    exitValue=1
   else
     echo "[RESULT_CHECK] User objects passed" | tee -a "${output_file}"
   fi
@@ -80,8 +80,8 @@
   log_B_value=$(grep "String value:" "${output_file}" | cut -c 15-)
 
   if [ "$j8_types_value" != "$j8_types_expected" ] || [ "$j8_params_value" != "$j8_params_expected" ] || [ "$log_A_value" != "$log_A_expected" ] || [ "$log_B_value" != "$log_B_expected" ]; then
-     echo "ERROR ON IMMUTABLE OBJECTS" | tee -a "${output_file}"
-     exitValue=1
+    echo "ERROR ON IMMUTABLE OBJECTS" | tee -a "${output_file}"
+    exitValue=1
   else
     echo "[RESULT_CHECK] Immutable objects passed" | tee -a "${output_file}"
   fi
@@ -97,8 +97,8 @@
   log_after_string_value=$(grep "String after:" "${output_file}" | cut -c 15-)
 
   if [ "$log_before_int_value" != "$log_before_int_expected" ] || [ "$log_before_string_value" != "$log_before_string_expected" ] || [ "$log_after_int_value" != "$log_after_int_expected" ] || [ "$log_after_string_value" != "$log_after_string_expected" ]; then
-     echo "ERROR ON TARGET OBJECTS" | tee -a "${output_file}"
-     exitValue=1
+    echo "ERROR ON TARGET OBJECTS" | tee -a "${output_file}"
+    exitValue=1
   else
     echo "[RESULT_CHECK] Target objects passed" | tee -a "${output_file}"
   fi
@@ -110,8 +110,8 @@
   log_square_5_value=$(grep "Square of 5" "${output_file}" | cut -c 16-)
 
   if [ "$log_square_4_value" != "$log_square_4_expected" ] || [ "$log_square_5_value" != "$log_square_5_expected" ]; then
-     echo "ERROR ON PRIMITIVE RETURN" | tee -a "${output_file}"
-     exitValue=1
+    echo "ERROR ON PRIMITIVE RETURN" | tee -a "${output_file}"
+    exitValue=1
   else
     echo "[RESULT_CHECK] Primitive return objects passed" | tee -a "${output_file}"
   fi
@@ -123,8 +123,8 @@
   log_constructor_app_value=$(grep "In app," "${output_file}")
 
   if [ "$log_constructor_c_value" != "$log_constructor_c_expected" ] || [ "$log_constructor_app_value" != "$log_constructor_app_expected" ]; then
-     echo "ERROR ON CONSTRUCTOR" | tee -a "${output_file}"
-     exitValue=1
+    echo "ERROR ON CONSTRUCTOR" | tee -a "${output_file}"
+    exitValue=1
   else
     echo "[RESULT_CHECK] Constructor passed" | tee -a "${output_file}"
   fi
@@ -138,8 +138,8 @@
   log_second_array_after=$(grep "Second array: 11 99" "${target_log_folder}"/jobs/job18_NEW.out)
 
   if [ -z "$log_first_array_before" ] || [ -z "$log_second_array_before" ]  || [ -z "$log_element1" ] || [ -z "$log_element10" ] || [ -z "$log_first_array_after" ] || [ -z "$log_second_array_after" ]; then
-     echo "ERROR ON ARRAYS" | tee -a "${output_file}"
-     exitValue=1
+    echo "ERROR ON ARRAYS" | tee -a "${output_file}"
+    exitValue=1
   else
     echo "[RESULT_CHECK] Arrays passed" | tee -a "${output_file}"
   fi

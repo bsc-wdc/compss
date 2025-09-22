@@ -36,33 +36,29 @@
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
-     --project="${base_app_dir}"/project.xml \
-     --resources="${base_app_dir}"/resources.xml \
-     \
-     --comm="$comm" \
-     \
-     --debug \
-     ${runcompss_opts} \
-     -g \
-     --classpath="${base_app_dir}/${jar_name}" \
-     \
-     "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+    --project="${base_app_dir}"/project.xml \
+    --resources="${base_app_dir}"/resources.xml \
+    \
+    --comm="$comm" \
+    \
+    --debug \
+    ${runcompss_opts} \
+    -g \
+    --classpath="${base_app_dir}/${jar_name}" \
+    \
+    "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   # Check timeout
   if [[ "$?" = "124" ]]; then
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-     
      # Report time out
-     echo "[WARNING] Java Application timed out" >> "${output_log}"
-     exit_value=124
+    echo "[WARNING] Java Application timed out" >> "${output_log}"
+    exit_value=124
   else
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-  
-     # Check result
-     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${final_graph_expected}"
-     exit_value=$?
+    # Check result
+    "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${final_graph_expected}"
+    exit_value=$?
   fi
   
   #----------------------------------------------------------------------------------

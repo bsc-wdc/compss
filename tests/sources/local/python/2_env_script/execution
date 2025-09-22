@@ -29,7 +29,7 @@
   echo "*** RUNNING PYTHON APPLICATION TIME OUT"
 
   for python_interpreter in ${execution_envs}; do
-   if [ "$python_interpreter" == 'python3' ]; then
+  if [ "$python_interpreter" == 'python3' ]; then
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
     error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
@@ -57,18 +57,14 @@
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
+    # Copy LOG files
+    cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
     # Check timeout
     if [[ "$?" = "124" ]]; then
-      # Copy LOG files
-      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
-
       # Report time out
       echo "[WARNING] Python Application timed out" >> "${output_log}"
       exit_value=124
     else
-      # Copy LOG files
-      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
-
       # Check result
       "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}" 
       exit_value=$?
@@ -103,18 +99,14 @@
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
     
+    # Copy LOG files
+    cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
     # Check timeout
     if [[ "$?" = "124" ]]; then
-      # Copy LOG files
-      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
-
       # Report time out
       echo "[WARNING] Python Application timed out" >> "${output_log}"
       exit_value=124
     else
-      # Copy LOG files
-      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
-
       # Check result
       "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}"
       exit_value=$?
@@ -124,7 +116,7 @@
       exit ${exit_value}
     fi
 
-   fi
+  fi
   done
 
   #----------------------------------------------------------------------------------

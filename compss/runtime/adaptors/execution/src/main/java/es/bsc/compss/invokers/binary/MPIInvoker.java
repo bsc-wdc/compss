@@ -40,6 +40,7 @@ import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class MPIInvoker extends Invoker {
@@ -203,7 +204,7 @@ public class MPIInvoker extends Invoker {
             if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
                 numOptions += 4;
             }
-            cmdLength += numOptions;
+            cmdLength += container.getEngine().equals(SINGULARITY) ? numOptions : numOptions + 1;
         }
 
         if (isOnContainer()) {
@@ -239,7 +240,12 @@ public class MPIInvoker extends Invoker {
         if (container != null) {
             // mpirun -H COMPSsWorker01,COMPSsWorker02 -n 2 <engine> <exec_command> <options> <image> binary args
             cmd[pos++] = container.getEngine().name().toLowerCase();
-            cmd[pos++] = container.getEngine().equals(SINGULARITY) ? "exec" : "run";
+            if (container.getEngine().equals(SINGULARITY)) {
+                cmd[pos++] = "exec";
+            } else {
+                cmd[pos++] = "run";
+                cmd[pos++] = "--rm";
+            }
             // Check options
             pos = ContainerInvoker.addContainerOptions(cmd, pos, options);
             // todo: nm: if the env variable is defined, use that

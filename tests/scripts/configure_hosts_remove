@@ -5,16 +5,16 @@
   # Check that backup is existing
   echo "** Checking that a backup exists"
   if [ -f "${SCRIPT_DIR}"/hosts.backup ]; then
-     # Setup backup hosts
-     echo "** Restoring backup file for /etc/hosts"
-     cp -f "${SCRIPT_DIR}"/hosts.backup /etc/hosts
+    # Setup backup hosts
+    echo "** Restoring backup file for /etc/hosts"
+    cp -f "${SCRIPT_DIR}"/hosts.backup /etc/hosts
 
-     # Prompt result
-     echo "** All done. Final status OK"
-     exit 0
+    # Prompt result
+    echo "** All done. Final status OK"
+    exit 0
   else
-     echo "ERROR : BACKUP FILE DOES NOT EXIST"
-     exit 1
+    echo "ERROR : BACKUP FILE DOES NOT EXIST"
+    exit 1
   fi
 
   exit 1

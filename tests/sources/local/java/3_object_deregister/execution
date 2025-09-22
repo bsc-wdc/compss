@@ -35,46 +35,42 @@
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
-     --project="${base_app_dir}"/project.xml \
-     --resources="${base_app_dir}"/resources.xml \
-     \
-     --jvm_master_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
-     \
-     --jvm_workers_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
-     \
-     --comm="$comm" \
-     \
-     --debug \
-     --summary \
-     ${runcompss_opts} \
-     \
-     --classpath="${base_app_dir}/${jar_name}" \
-     \
-     "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+    --project="${base_app_dir}"/project.xml \
+    --resources="${base_app_dir}"/resources.xml \
+    \
+    --jvm_master_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
+    \
+    --jvm_workers_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
+    \
+    --comm="$comm" \
+    \
+    --debug \
+    --summary \
+    ${runcompss_opts} \
+    \
+    --classpath="${base_app_dir}/${jar_name}" \
+    \
+    "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
   # For checking JVM: 
-     #--jmx_port=9011
-     #--jvm_master_opts="-Dcom.sun.management.jmxremote,\
-     #-Dcom.sun.management.jmxremote.port=9011,-Dcom.sun.management.jmxremote.local.only=false,\
-     #-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"\
-     
+    #--jmx_port=9011
+    #--jvm_master_opts="-Dcom.sun.management.jmxremote,\
+    #-Dcom.sun.management.jmxremote.port=9011,-Dcom.sun.management.jmxremote.local.only=false,\
+    #-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"\
+
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   # Check timeout
   res=$?
-  
+
   if [[ "$res" = "124" ]]; then
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-     
      # Report time out
-     echo "[WARNING] Java Application timed out" >> "${output_log}"
-     exit_value=124
+    echo "[WARNING] Java Application timed out" >> "${output_log}"
+    exit_value=124
   else
-     # Copy LOG files
-     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-  
-     # Check result
-     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
-     exit_value=$?
+    # Check result
+    "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+    exit_value=$?
   fi
   
   #----------------------------------------------------------------------------------

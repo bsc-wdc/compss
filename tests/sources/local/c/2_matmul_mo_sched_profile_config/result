@@ -11,15 +11,15 @@
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
-     result_expected="------------------------------------------------------------"
-     test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
-     fi
+    fi
   else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -59,43 +59,43 @@
 
   # Report result status
   if [ "$result" != "$expected_result" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
-     echo "EXPECTED RESULT: $expected_result" | tee -a "${output_file}"
-     echo "GOT: $result" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED RESULT: $expected_result" | tee -a "${output_file}"
+    echo "GOT: $result" | tee -a "${output_file}"
+    exit 1
   fi
 
   # Check if config is loaded
   result_config=$(grep -c "Reading Multi-objective from file mo_config.properties" "${runtime_log}")
   expected_config=1
   if [ "$result_config" != "$expected_config" ]; then
-     echo "ERROR CONFIG NOT LOADED" | tee -a "${output_file}"
-     echo "EXPECTED RESULT: $expected_config" | tee -a "${output_file}"
-     echo "GOT: $result_config" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR CONFIG NOT LOADED" | tee -a "${output_file}"
+    echo "EXPECTED RESULT: $expected_config" | tee -a "${output_file}"
+    echo "GOT: $result_config" | tee -a "${output_file}"
+    exit 1
   fi
   # Check loaded params
   result_op_loaded=$(grep -c "LOADED OPTIMIZATION_PARAMETER\\: ENERGY" "${runtime_log}")
   result_bound_loaded=$(grep -c "LOADED BOUNDARIES: \\[200, 500, 5, 500000, 20\\]" "${runtime_log}")
   if [ "$result_op_loaded" != "$expected_config" ]; then
-     echo "ERROR INCORRECT OPTIMIZATION PARAMETER" | tee -a "${output_file}"
-     echo "EXPECTED RESULT: $expected_config" | tee -a "${output_file}"
-     echo "GOT: $result_op_loaded" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR INCORRECT OPTIMIZATION PARAMETER" | tee -a "${output_file}"
+    echo "EXPECTED RESULT: $expected_config" | tee -a "${output_file}"
+    echo "GOT: $result_op_loaded" | tee -a "${output_file}"
+    exit 1
   fi
   if [ "$result_bound_loaded" != "$expected_config" ]; then
-     echo "ERROR INCORRECT BOUNDARIES" | tee -a "${output_file}"
-     echo "EXPECTED RESULT: $expected_config" | tee -a"${output_file}"
-     echo "GOT: $result_bound_loaded" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR INCORRECT BOUNDARIES" | tee -a "${output_file}"
+    echo "EXPECTED RESULT: $expected_config" | tee -a"${output_file}"
+    echo "GOT: $result_bound_loaded" | tee -a "${output_file}"
+    exit 1
   fi
   # Check loaded params
   result_profile_loaded=$(grep -c "Input profile detected. Reading from file matmul_mo_in.profile" "${runtime_log}")
   if [ "$result_profile_loaded" != "$expected_config" ]; then
-     echo "ERROR INCORRECT OPTIMIZATION PARAMETER" | tee -a "${output_file}"
-     echo "EXPECTED RESULT: $expected_config" | tee -a "${output_file}"
-     echo "GOT: $result_profile_loaded" | tee -a "${output_file}"
-     exit 1
+    echo "ERROR INCORRECT OPTIMIZATION PARAMETER" | tee -a "${output_file}"
+    echo "EXPECTED RESULT: $expected_config" | tee -a "${output_file}"
+    echo "GOT: $result_profile_loaded" | tee -a "${output_file}"
+    exit 1
   fi
   if [ ! -f matmul_mo_out.profile ]; then
         echo "ERROR out profile not found." | tee -a "${output_file}"

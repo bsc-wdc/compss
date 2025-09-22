@@ -127,7 +127,7 @@
   ############################
 
   # Create storage sandboxes
-  baseSandbox=$HOME/.COMPSs/${jobId}/storage
+  baseSandbox=${TEST_HOME:-$HOME/.COMPSs}/${jobId}/storage
   cfgDir=${baseSandbox}/cfgfiles
   stubsDir=${baseSandbox}/stubs
   mkdir -p ${baseSandbox}

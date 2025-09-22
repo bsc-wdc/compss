@@ -47,7 +47,7 @@ of applications at execution time.
   * **builders**: Packages, scripts for local installations, scripts for supercomputers
    installation and package building scripts
   * **compss** : Programming Model, Bindings and Runtime source code
-  * **dependencies** : Embeded dependencies
+  * **dependencies** : Embedded dependencies
   * **files** : Dependency files (i.e. paraver configurations)
   * **tests** : Integration tests
   * **utils** : Misc utils (i.e. OVA scripts, Docker generation, Storage implementations)
@@ -55,7 +55,7 @@ of applications at execution time.
 
 ## Supported Systems
 
-COMPSs/PyCOMPSs fully supports Linux systems for x86_64, amd64, ppc64, arm64 and riscv64 architectures. macOS systems are also supported with some limitations. 
+COMPSs/PyCOMPSs fully supports Linux systems for amd64, ppc64, arm64 and riscv64 architectures. macOS systems are also supported with some limitations. 
 
 
 <!-- BUILDING COMPSS -->
@@ -96,7 +96,7 @@ cd builders/
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
-For macOS visit the [Buidling from sources section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/02_Building_from_sources.html) of the COMPSs documentation website.
+For macOS visit the [Building from sources section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/02_Building_from_sources.html) of the COMPSs documentation website.
 
 
 Many COMPSs modules can be activated/deactivated during the build using different options in the `buildlocal` command. You may check the available options by running the following command:
@@ -124,7 +124,7 @@ Add user to docker group to run docker as non-root user.
 
 ### 2. Build the docker image
 
-Run the following command at the root of the project to build the image that will used for testing. The command create an image named **compss** and install the current branch into the image.
+Run the following command at the root of the project to build the image that will be used for testing. The command create an image named **compss** and install the current branch into the image.
 
 ```
 docker build --target=ci -t compss .
@@ -133,20 +133,23 @@ docker build --target=ci -t compss .
 
 ### 3. Run the tests
 
-To run the tests inside the docker image use the script found in `./tests/scripts/docker_main`. This command is a wrapper for the `./main` test command
-so it has de the syntax and options. For example, you can run the first test without retrials as follows:
+To run the tests inside the docker image use the `./tests/scripts/docker_test` script. For example, you can run the first test without retrials as follows:
 
 ```
-./docker_main -R -t 1
+./tests/scripts/docker_test -R -t 1
 ```
+
+**Tip**: for viewing all options use: `./tests/scripts/docker_test -h`.
 
 The docker main command creates a new docker container each time you run it (replacing the last one used). It copies the current framework inside it
-and runs its tests. **Note**: the testing scripts assumes you have named the testing image `compss`.
+and runs its tests.
+
+**Note**: the testing scripts assumes you have named the testing image `compss`.
 
 **Please be aware that:**
 
 * Code changes affecting the tests sources, config files (e.g. `local.cfg`, and scripts (like `./local`) __will be__ visible inside the newly created container.
-* Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in step 3.
+* Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in [step 2](#2-build-the-docker-image).
 * If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual.
 * To delete the created image issue `docker rmi compss`
 * To delete the compss_test container use `docker rm -f compss_test`.

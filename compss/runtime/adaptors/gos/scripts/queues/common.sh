@@ -1056,7 +1056,7 @@ add_launch(){
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
     # ADD STORAGE_INIT, STORAGE_FINISH AND NODES PARSING
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
+storage_conf=${TEST_HOME:-$HOME/.COMPSs}/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
 storage_master_node="\${master_node}"
 
 # The storage_init.sh can put environment variables in the temporary file which will be sourced afterwards

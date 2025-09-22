@@ -74,7 +74,9 @@
       --ExecutePreprocessor.kernel_name=${kernel} \
       --execute "${base_app_dir}/src/${app_ipynb}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-    mv "${COMPSs_log_folder}/${app_name}_01" "${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    # Jupyter tests write directly into .COMPSs. So we need to create the test number folder and move it
+    mkdir -p "${COMPSs_log_folder}"
+    mv "${COMPSs_log_folder%/*}/${app_name}_01" "${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
 
     # Copy LOG files
     cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"

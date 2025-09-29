@@ -84,7 +84,7 @@
                 <executions>
                     <execution>
                         <id>copy</id>
-                        <phase>packaging</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>

@@ -478,7 +478,7 @@ check_setup() {
     comm_port_msg="(comm: ${agent_comm_port})"
   fi
   if [ -n "${agent_rest_port}" ]; then
-    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTAgent/worker/compss-adaptors-agent-rest-worker.jar"
+    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/worker/compss-adaptors-agent-rest-worker.jar"
     rest_port_msg="(rest: ${agent_rest_port})"
   fi
 

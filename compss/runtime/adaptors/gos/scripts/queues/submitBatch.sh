@@ -181,7 +181,7 @@ get_response_file(){
     COMPSS_HOME="${COMPSS_HOME}/"
   fi
   export COMPSS_HOME=${COMPSS_HOME}
-  GOS_SCRIPTS_DIR="${COMPSS_HOME}Runtime/scripts/system/adaptors/gos/"
+  GOS_SCRIPTS_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gos/"
 
   # shellcheck source=common.sh
   # shellcheck disable=SC1091
@@ -202,7 +202,7 @@ get_response_file(){
      # shellcheck source=../supercomputers/default.cfg
      # shellcheck disable=SC1091
      # shellcheck disable=SC2154
-     source "${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${sc_cfg}"
+     source "${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${sc_cfg}"
   fi
 
 
@@ -214,7 +214,7 @@ get_response_file(){
   # Load specific queue system flags
   # shellcheck source=../queue_systems/slurm.cfg
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
+  source "${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
 
   get_task_launch_parameters
 

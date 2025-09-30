@@ -11,10 +11,10 @@ export COMPSS_HOME=${COMPSS_HOME}
 
 # shellcheck source=../system/runtime/tracing.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/tracing.sh"
 # shellcheck source=../system/runtime/adaptors.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/adaptors.sh"
 
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION

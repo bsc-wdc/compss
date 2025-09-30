@@ -13,7 +13,7 @@ fi
 # Load auxiliar scripts
 # shellcheck source=./logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION

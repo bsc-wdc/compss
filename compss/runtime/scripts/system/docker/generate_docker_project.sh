@@ -18,7 +18,7 @@
 
   # shellcheck source=../xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
 
   # Init project file
   init "${project_file}"

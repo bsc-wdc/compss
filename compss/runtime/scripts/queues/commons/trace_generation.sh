@@ -13,19 +13,19 @@ fi
 # Load auxiliar scripts
 # shellcheck source=../system/commons/version.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 # shellcheck source=../system/commons/logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # shellcheck source=../system/commons/utils.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 # shellcheck source=./job_submission.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/queues/commons/job_submission.sh"
+source "${COMPSS_HOME}/Runtime/scripts/queues/commons/job_submission.sh"
 # shellcheck source=../system/runtime/compss_setup.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
@@ -316,7 +316,7 @@ create_trace_submit_script(){
 
   append_submission_headers_to_script "${submit_script}"
   cat >>${submit_script} << EOT
-  ${COMPSS_HOME}Runtime/scripts/user/compss_gentrace${gen_trace_opts} ${in_dir}
+  ${COMPSS_HOME}/Runtime/scripts/user/compss_gentrace${gen_trace_opts} ${in_dir}
 EOT
 }
 

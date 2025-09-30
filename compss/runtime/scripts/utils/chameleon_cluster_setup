@@ -137,8 +137,8 @@
   ##########################################################
   # Update COMPSs project / resources files
   echo "* Updating COMPSs project and resources files..."
-  project="${COMPSS_HOME}Runtime/configuration/xml/projects/default_project.xml"
-  resources="${COMPSS_HOME}Runtime/configuration/xml/resources/default_resources.xml"
+  project="${COMPSS_HOME}/Runtime/configuration/xml/projects/default_project.xml"
+  resources="${COMPSS_HOME}/Runtime/configuration/xml/resources/default_resources.xml"
 
   echo ""
   read -rp "Provide the application path: " appDir
@@ -146,7 +146,7 @@
   #
   # PROJECT.XML
   #
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
 
   # Init project file
   init "${project}"
@@ -165,7 +165,7 @@
   #
   # RESOURCES.XML
   #
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_resources.sh"
 
   # Init resources file
   init "${resources}"

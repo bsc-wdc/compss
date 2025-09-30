@@ -10,11 +10,11 @@
 
   # Create volumes
   export DOCKER_WORKING_DIR_VOLUME="working_dir"
-  export DOCKER_WORKING_DIR_MOUNT="/tmp/COMPSsWorker01/"
+  export DOCKER_WORKING_DIR_MOUNT="/tmp/COMPSsWorker01"
   export DOCKER_APP_DIR_VOLUME="app_dir"
-  export DOCKER_APP_DIR_MOUNT="/home/jenkins/tests/"
+  export DOCKER_APP_DIR_MOUNT="/home/jenkins/tests"
   export DOCKER_PYCOMPSS_VOLUME="pycompss_dir"
-  export DOCKER_PYCOMPSS_MOUNT="/opt/COMPSs/Bindings/python/3/pycompss/"
+  export DOCKER_PYCOMPSS_MOUNT="/opt/COMPSs/Bindings/python/3/pycompss"
 
   docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
   docker volume rm $DOCKER_APP_DIR_VOLUME || true

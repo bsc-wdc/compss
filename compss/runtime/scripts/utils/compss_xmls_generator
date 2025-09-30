@@ -12,7 +12,7 @@
   # Import launch_compss to  avoid replicating code
   # shellcheck source=../user/launch_compss
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/user/launch_compss"
+  source "${COMPSS_HOME}/Runtime/scripts/user/launch_compss"
 
   # Get command args (defined in launch_compss)
   get_args "$@"

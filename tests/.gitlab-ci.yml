@@ -1,10 +1,10 @@
 variables:
   DOCKER_WORKING_DIR_VOLUME: "working_dir"
-  DOCKER_WORKING_DIR_MOUNT: "/tmp/COMPSsWorker01/"
+  DOCKER_WORKING_DIR_MOUNT: "/tmp/COMPSsWorker01"
   DOCKER_APP_DIR_VOLUME: "app_dir"
-  DOCKER_APP_DIR_MOUNT: "/home/jenkins/tests/"
+  DOCKER_APP_DIR_MOUNT: "/home/jenkins/tests"
   DOCKER_PYCOMPSS_VOLUME: "pycompss_dir"
-  DOCKER_PYCOMPSS_MOUNT: "/opt/COMPSs/Bindings/python/3/pycompss/"
+  DOCKER_PYCOMPSS_MOUNT: "/opt/COMPSs/Bindings/python/3/pycompss"
 
 stages:
   - rebase_verify

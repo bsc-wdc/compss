@@ -14,7 +14,7 @@ fi
 # Load auxiliar scripts
 # shellcheck source=../commons/java.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/java.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/java.sh"
 
 ###############################################
 ###############################################

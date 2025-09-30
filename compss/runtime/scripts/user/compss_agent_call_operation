@@ -13,16 +13,16 @@ export COMPSS_HOME=${COMPSS_HOME}
 
 # shellcheck source=../system/commons/logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 # shellcheck source=../system/commons/version.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 
 
 # shellcheck source=../system/agents/commons.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/agents/commons.sh"
 
 
 ###############################################

@@ -13,16 +13,16 @@ export COMPSS_HOME=${COMPSS_HOME}
 # Load auxiliar scripts
 # shellcheck source=../system/commons/logger.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # shellcheck source=../system/commons/version.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 # shellcheck source=../system/commons/utils.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 # shellcheck source=../system/runtime/compss_setup.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 
 #---------------------------------------------------
@@ -780,9 +780,9 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
   echo "PROVENANCE | Destination folder: ${provenance_dest_path}"
   echo "PROVENANCE | If needed, Provenance generation can be triggered by hand using the following commands:"
-  echo -e "\t${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
-  echo -e "\texport PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:\$PYTHONPATH"
-  echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir} ${provenance_dest_path}"
+  echo -e "\t${COMPSS_HOME}/Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
+  echo -e "\texport PYTHONPATH=${COMPSS_HOME}/Runtime/scripts/system/:\$PYTHONPATH"
+  echo -e "\tpython3 ${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir} ${provenance_dest_path}"
   if [ ! -z "${BSC_MACHINE}" ]; then
     echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc --account=<your_group> --qos=gp_debug -p interactive"
   fi
@@ -791,7 +791,7 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | Number of edges in the graph: ${edges}"
   if [ ${edges} -lt 6500 ]; then
     start=`date +%s`
-    "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
+    "${COMPSS_HOME}/Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
     end=`date +%s`
     echo "PROVENANCE | Ended generating graph for Workflow Provenance. TIME: $(( end - start )) s"
   else
@@ -799,11 +799,11 @@ if [ ${provenance} ]; then
   fi
 
   echo "PROVENANCE | STARTING RO-CRATE GENERATION SCRIPT"
-  export PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:${PYTHONPATH}
+  export PYTHONPATH=${COMPSS_HOME}/Runtime/scripts/system/:${PYTHONPATH}
   if [ ! -z "${COMPSS_PROV_DEBUG}" ]; then
-    python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
+    python3 "${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
   else
-    python3 -O "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
+    python3 -O "${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
   fi
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it

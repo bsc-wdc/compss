@@ -199,7 +199,7 @@ public class MPIInvoker extends Invoker {
                     BinaryRunner.buildAppParams(this.invocation.getParams(), container.getOptions(), pythonInterpreter);
                 numOptions = options.length;
             }
-            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
+            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir"
             String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
             if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
                 numOptions += 4;
@@ -249,7 +249,7 @@ public class MPIInvoker extends Invoker {
             // Check options
             pos = ContainerInvoker.addContainerOptions(cmd, pos, options);
             // todo: nm: if the env variable is defined, use that
-            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
+            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir"
             String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
             if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
                 cmd[pos++] = "-e";

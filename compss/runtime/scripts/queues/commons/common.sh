@@ -524,7 +524,7 @@ get_args() {
             args_pass="$args_pass --$OPTARG"
             ;;
           pre_env_script=*)
-            if [ -z ${pre_env_script}]; then
+            if [ -z ${pre_env_script} ]; then
                 pre_env_script=${OPTARG//pre_env_script=/}
             else
                 pre_env_script="${pre_env_script}:${OPTARG//pre_env_script=/}"

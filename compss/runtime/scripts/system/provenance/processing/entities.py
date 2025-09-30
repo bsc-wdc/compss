@@ -17,6 +17,7 @@
 import os
 import typing
 import requests
+import unicodedata
 
 from pathlib import Path
 
@@ -88,7 +89,7 @@ def add_person_definition(
 
     if not "orcid" in yaml_author:
         print(
-            f"PROVENANCE | ERROR in your {info_yaml} file. A 'Person' is ignored, since it has no 'orcid' defined"
+            f"PROVENANCE | \tERROR in your {info_yaml} file. A 'Person' is ignored, since it has no 'orcid' defined"
         )
         return False, yaml_author
 
@@ -617,6 +618,13 @@ def get_manually_defined_software_requirements(
     return software_requirements_list
 
 
+def normalize_string(s: str) -> str:
+    # Normalize the string to NFKD form, which separates base characters from diacritics
+    nfkd_form = unicodedata.normalize("NFKD", s)
+    # Remove all diacritic marks (characters with Unicode category "Mn" = Nonspacing_Mark)
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)]).lower()
+
+
 def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     """
     Search at orcid.org the first ORCID matching the person's name
@@ -631,7 +639,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     # Request headers
     headers = {"Accept": "application/json"}
     # Search parameters
-    params = {"q": person_name, "rows": 1}
+    params = {"q": person_name, "rows": 1000}
 
     if not person_name:
         return None, None
@@ -651,6 +659,10 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
             # if 'num-found' in list_of_results:
             #    print(f"PROVENANCE | Records found: {list_of_results['num-found']}")
             if "expanded-result" in list_of_results:
+                # if __debug__:
+                print(
+                    f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
+                )
                 for result in list_of_results["expanded-result"]:
                     orcid = "https://orcid.org/" + result.get("orcid-id")
                     list_institutions = result.get("institution-name")
@@ -666,33 +678,35 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                     )
                     list_emails = result.get("email")
                     e_mail = list_emails[0] if list_emails else None
-                    if obtained_full_name.lower() == person_name.lower():
+                    if normalize_string(obtained_full_name) == normalize_string(
+                        person_name
+                    ):
                         print(
-                            f"PROVENANCE | Fetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
+                            f"PROVENANCE | \tFetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
                         )
+                        break
                     else:
                         print(
-                            f"PROVENANCE | Fetched name '{obtained_full_name}' does not match specified name '{person_name}'"
+                            f"PROVENANCE | \tFetched name '{obtained_full_name}' does not match specified name '{person_name}'"
                         )
                         orcid = None
                         res_institution = None
-                    break
             else:
                 print(
-                    f"PROVENANCE | Searching ORCID for person '{person_name}'. No records where found"
+                    f"PROVENANCE | \tSearching ORCID for person '{person_name}'. No records where found"
                 )
         else:
             print(
-                f"PROVENANCE | Searching ORCID for person '{person_name}'. Request error {response.status_code}"
+                f"PROVENANCE | \tSearching ORCID for person '{person_name}'. Request error {response.status_code}"
             )
         return orcid, res_institution, e_mail, all_names
     except requests.exceptions.Timeout:
         print(
-            f"PROVENANCE | Searching ORCID for person '{person_name}'. Request timeout"
+            f"PROVENANCE | \tSearching ORCID for person '{person_name}'. Request timeout"
         )
     except requests.exceptions.RequestException as e:
         print(
-            f"PROVENANCE | Searching ORCID for person '{person_name}'. Request exception: {e}"
+            f"PROVENANCE | \tSearching ORCID for person '{person_name}'. Request exception: {e}"
         )
     return orcid, res_institution, e_mail, all_names
 
@@ -748,23 +762,23 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
                     list_emails = result.get("email")
                     e_mail = list_emails[0] if list_emails else None
                     print(
-                        f"PROVENANCE | Fetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, Organisation: {res_institution}, e-Mail: {e_mail}"
+                        f"PROVENANCE | \tFetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, Organisation: {res_institution}, e-Mail: {e_mail}"
                     )
                     break
             else:
                 print(
-                    f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. No records where found"
+                    f"PROVENANCE | \tSearching Name for ORCID '{orcid_str}'. No records where found"
                 )
         else:
             print(
-                f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request error {response.status_code}"
+                f"PROVENANCE | \tSearching Name for ORCID '{orcid_str}'. Request error {response.status_code}"
             )
         return obtained_full_name, res_institution, e_mail, all_names
     except requests.exceptions.Timeout:
-        print(f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request timeout")
+        print(f"PROVENANCE | \tSearching Name for ORCID '{orcid_str}'. Request timeout")
     except requests.exceptions.RequestException as e:
         print(
-            f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request exception: {e}"
+            f"PROVENANCE | \tSearching Name for ORCID '{orcid_str}'. Request exception: {e}"
         )
     return obtained_full_name, res_institution, e_mail, all_names
 
@@ -779,7 +793,7 @@ def search_ror(org_name: str) -> tuple[str, str, str]:
     """
 
     # ROR base URL API for searching
-    url_base = "https://api.ror.org/v1/organizations"
+    url_base = "https://api.ror.org/v2/organizations"
     # Search parameters
     params = {"query": org_name}
 
@@ -796,31 +810,73 @@ def search_ror(org_name: str) -> tuple[str, str, str]:
             list_of_results = response.json()
             # import json
             # print(json.dumps(list_of_results, indent=4, sort_keys=True))
+            if __debug__:
+                print(
+                    f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('number_of_results')}. Time taken: {list_of_results.get('time_taken')} ms"
+                )
             if "items" in list_of_results and list_of_results["items"]:
                 for result in list_of_results["items"]:
                     obtained_ror = result.get("id")
                     obtained_org_name = result.get("name")
                     links = result.get("links")
-                    obtained_url = links[0] if links else None
-                    if obtained_org_name.lower() == org_name.lower():
+                    if isinstance(links, list) and links:
+                        if isinstance(links[0], dict):
+                            obtained_url = links[0].get("value")
+                        else:
+                            obtained_url = links[0]
+                    else:
+                        obtained_url = None
+
+                    search_norm = normalize_string(org_name)
+                    candidates = []
+
+                    # Main name for v1 API
+                    if obtained_org_name:
+                        candidates.append(normalize_string(obtained_org_name))
+
+                    # Get all set names (acronyms, ...) (only ROR API v2)
+                    if "names" in result:
+                        for n in result["names"]:
+                            val = n.get("value")
+                            if val:
+                                candidates.append(normalize_string(val))
+                                # Use 'ror_display' if it has been set
+                                if not obtained_org_name and "ror_display" in n.get(
+                                    "types", []
+                                ):
+                                    obtained_org_name = val
+
+                    # aliases v1
+                    aliases = result.get("aliases", [])
+                    candidates.extend(
+                        [normalize_string(alias) for alias in aliases if alias]
+                    )
+
+                    # acronyms v1
+                    acronyms = result.get("acronyms", [])
+                    candidates.extend(
+                        [normalize_string(acr) for acr in acronyms if acr]
+                    )
+
+                    if search_norm in candidates:
                         print(
-                            f"PROVENANCE | Fetched data. Organisation: {obtained_org_name}, ROR: {obtained_ror}, URL: {obtained_url}"
+                            f"PROVENANCE | \tFound match. Official name: {obtained_org_name}, ROR: {obtained_ror}, URL: {obtained_url}"
                         )
                     else:
                         print(
-                            f"PROVENANCE | Fetched name '{obtained_org_name}' does not match specified name '{org_name}'"
+                            f"PROVENANCE | \tNone of the fetched names '{candidates}' match the specified name '{org_name}'"
                         )
                         obtained_ror = None
                         obtained_org_name = None
                         obtained_url = None
-                    break
+                    break  # We only check out the first result, since it is the most relevant and something will already match
             else:
                 print(
-                    f"PROVENANCE | Searching ROR for organisation '{org_name}'. No records where found"
+                    f"PROVENANCE | \tSearching ROR for organisation '{org_name}'. No records where found"
                 )
         else:
             print(
-                f"PROVENANCE | Searching ROR for organisation '{org_name}'. Request error {response.status_code}"
+                f"PROVENANCE | \tSearching ROR for organisation '{org_name}'. Request error {response.status_code}"
             )
         return obtained_ror, obtained_org_name, obtained_url
     except requests.exceptions.Timeout:
@@ -844,7 +900,7 @@ def search_by_ror(org_ror: str) -> tuple[str, str]:
     """
 
     # ROR base URL API for searching
-    url_base = "https://api.ror.org/organizations"
+    url_base = "https://api.ror.org/v2/organizations"
     # Search parameters
     params = {"query": org_ror}
 
@@ -859,41 +915,62 @@ def search_by_ror(org_ror: str) -> tuple[str, str]:
         response = requests.get(url_base, params=params, timeout=5)
         if response.status_code == 200:
             list_of_results = response.json()
+            if __debug__:
+                print(
+                    f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('number_of_results')}. Time taken: {list_of_results.get('time_taken')} ms"
+                )
             # import json
             # print(json.dumps(list_of_results, indent=4, sort_keys=True))
             if "items" in list_of_results and list_of_results["items"]:
                 for result in list_of_results["items"]:
                     obtained_ror = result.get("id")
+
+                    # v1: 'name' is a string, v2: 'names' is a list of dicts with 'value'
                     obtained_org_name = result.get("name")
+                    if not obtained_org_name and "names" in result:
+                        for n in result["names"]:
+                            if "ror_display" in n.get("types", []):
+                                obtained_org_name = n.get("value")
+                                break
+                        # If no ror_display, get first one
+                        if not obtained_org_name and result["names"]:
+                            obtained_org_name = result["names"][0].get("value")
+
                     links = result.get("links")
-                    obtained_url = links[0] if links else None
+                    if isinstance(links, list) and links:
+                        if isinstance(links[0], dict):
+                            obtained_url = links[0].get("value")
+                        else:
+                            obtained_url = links[0]
+                    else:
+                        obtained_url = None
                     if obtained_ror == org_ror:
                         print(
-                            f"PROVENANCE | Fetched data. Organisation: {obtained_org_name}, ROR: {obtained_ror}, URL: {obtained_url}"
+                            f"PROVENANCE | \tFound match. Official name: {obtained_org_name}, ROR: {obtained_ror}, URL: {obtained_url}"
                         )
                     else:
                         print(
-                            f"PROVENANCE | Fetched ROR '{obtained_ror}' does not match specified name '{org_ror}'"
+                            f"PROVENANCE | \tFetched ROR '{obtained_ror}' does not match specified ROR '{org_ror}'"
                         )
                         obtained_ror = None
                         obtained_org_name = None
                         obtained_url = None
-                    break
+                    break  # We only check out the first result, since it is the most relevant and something will already match
             else:
                 print(
-                    f"PROVENANCE | Searching Name for organisation '{org_ror}'. No records where found"
+                    f"PROVENANCE | \tSearching Name for organisation '{org_ror}'. No records where found"
                 )
         else:
             print(
-                f"PROVENANCE | Searching Name for organisation '{org_ror}'. Request error {response.status_code}"
+                f"PROVENANCE | \tSearching Name for organisation '{org_ror}'. Request error {response.status_code}"
             )
         return obtained_org_name, obtained_url
     except requests.exceptions.Timeout:
         print(
-            f"PROVENANCE | Searching Name for organisation '{org_ror}'. Request timeout"
+            f"PROVENANCE | \tSearching Name for organisation '{org_ror}'. Request timeout"
         )
     except requests.exceptions.RequestException as e:
         print(
-            f"PROVENANCE | Searching Name for organisation '{org_ror}'. Request exception: {e}"
+            f"PROVENANCE | \tSearching Name for organisation '{org_ror}'. Request exception: {e}"
         )
     return obtained_org_name, obtained_url

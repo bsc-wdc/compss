@@ -36,4 +36,4 @@ if [ -z "$COMPSS_LOG_LEVEL" ]; then
    export COMPSS_LOG_LEVEL=off
 fi
 
-"${COMPSS_HOME}/Runtime/scripts/user/launch_compss" "--log_level=${COMPSS_LOG_LEVEL}" "--master_node=${master_node}" "--worker_nodes=${worker_nodes}" "--sc_cfg=default.cfg" "--command" $@
+"${COMPSS_HOME}/Runtime/scripts/user/launch_compss" "--log_level=${COMPSS_LOG_LEVEL}" "--master_node=${master_node}" "--worker_nodes=${worker_nodes}" "--sc_cfg=default.cfg" "--command" "$@"

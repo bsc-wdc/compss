@@ -6,4 +6,4 @@ if [ -z "${COMPSS_HOME}" ]; then
 fi
 
 # Run the energy merger tool
-python3 ${COMPSS_HOME}/Runtime/scripts/system/trace/energy_merger.py $@
+python3 ${COMPSS_HOME}/Runtime/scripts/system/trace/energy_merger.py "$@"

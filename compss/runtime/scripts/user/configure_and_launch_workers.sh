@@ -2,12 +2,8 @@
 
 # Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 fi
-if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-  COMPSS_HOME="${COMPSS_HOME}/"
-fi
-export COMPSS_HOME=${COMPSS_HOME}
 
 if [ -z "${COMPSS_SC_CFG}" ]; then
 	COMPSS_SC_CFG="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg"

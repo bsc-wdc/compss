@@ -175,12 +175,8 @@ get_response_file(){
   all_args=$*
 
   if [ -z "${COMPSS_HOME}" ]; then
-    COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../../../.. && pwd )/"
+    export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../../../.. && pwd )"
   fi
-  if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-    COMPSS_HOME="${COMPSS_HOME}/"
-  fi
-  export COMPSS_HOME=${COMPSS_HOME}
   GOS_SCRIPTS_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gos/"
 
   # shellcheck source=common.sh

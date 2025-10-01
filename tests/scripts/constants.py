@@ -51,7 +51,7 @@ else:
     DEFAULT_CFG_FILE = "NIO.cfg"
 DEFAULT_SC_CFG_FILE = "MN.cfg"
 DEFAULT_CFG_EXTENSION = ".cfg"
-DEFAULT_COMPSS_HOME = "/opt/COMPSs/"
+DEFAULT_COMPSS_HOME = "/opt/COMPSs"
 DEFAULT_REL_COMPSS_LOG_DIR = ".COMPSs"
 DEFAULT_REL_TARGET_TESTS_DIR = "tests_execution_sandbox"
 DEFAULT_COMM = "es.bsc.compss.nio.master.NIOAdaptor"
@@ -62,7 +62,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = os.path.join(SCRIPT_DIR, "../sources/local")
 TESTS_CLI_DIR = os.path.join(SCRIPT_DIR, "../sources/cli")
 TESTS_SC_DIR = os.path.join(SCRIPT_DIR, "../sources/sc")
-REMOTE_SCRIPTS_REL_PATH = "remote_sc/"
+REMOTE_SCRIPTS_REL_PATH = "remote_sc"
 CONFIGURATIONS_DIR = os.path.join(SCRIPT_DIR, "../configurations")
 PYCOMPSS_SRC_DIR = os.path.join(
     SCRIPT_DIR, "../../compss/programming_model/bindings/python/src"
@@ -70,4 +70,4 @@ PYCOMPSS_SRC_DIR = os.path.join(
 RUNCOMPSS_REL_PATH = "Runtime/scripts/user/runcompss"
 ENQUEUE_COMPSS_REL_PATH = "Runtime/scripts/user/enqueue_compss"
 CLEAN_PROCS_REL_PATH = "Runtime/scripts/utils/compss_clean_procs"
-JACOCO_LIB_REL_PATH = "Tools/jacoco/lib/"
+JACOCO_LIB_REL_PATH = "Tools/jacoco/lib"

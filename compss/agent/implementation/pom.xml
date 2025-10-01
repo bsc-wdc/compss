@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-agent</artifactId>
-        <version>3.3.3.post2509</version>
+        <version>3.3.3.post2510</version>
     </parent>
 
     <!-- PROJECT INFORMATION -->

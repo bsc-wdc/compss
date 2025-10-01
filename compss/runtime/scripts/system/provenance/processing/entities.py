@@ -249,6 +249,7 @@ def root_entity(
         crate_org_list.append({"@id": org_ror})
 
     # publisher is SHOULD in RO-Crate 1.1. Preferably an Organisation, but could be a Person
+    # This is replaced by Agent details if Agent exists, when the main create action is generated
     if not crate_org_list:
         # Empty list of organisations, add authors as publishers
         if crate_author_list and not len(crate_author_list) == 0:
@@ -659,10 +660,10 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
             # if 'num-found' in list_of_results:
             #    print(f"PROVENANCE | Records found: {list_of_results['num-found']}")
             if "expanded-result" in list_of_results:
-                # if __debug__:
-                print(
-                    f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
-                )
+                if __debug__:
+                    print(
+                        f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
+                    )
                 for result in list_of_results["expanded-result"]:
                     orcid = "https://orcid.org/" + result.get("orcid-id")
                     list_institutions = result.get("institution-name")
@@ -684,7 +685,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                         print(
                             f"PROVENANCE | \tFetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
                         )
-                        break
+                        break  # Need to iterate until we find a match
                     else:
                         print(
                             f"PROVENANCE | \tFetched name '{obtained_full_name}' does not match specified name '{person_name}'"

@@ -82,3 +82,7 @@ def set_profile_details(compss_crate: ROCrate) -> None:
     compss_crate.metadata.extra_contexts.append(
         "https://w3id.org/ro/terms/workflow-run"
     )
+
+    # Add 'keywords', useful mainly for Zenodo exports
+    compss_crate.root_dataset["keywords"] = ["COMPSs", "RO-Crate"]
+

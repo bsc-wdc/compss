@@ -216,7 +216,8 @@ show_opts() {
                                             Default: ro-crate-info.yaml
     --provenance-folder=<path>              Path where the workflow provenance will be generated
                                             Default: COMPSs_RO-Crate_[timestamp]
-
+    --zip-provenance, -z                    Zip the resulting COMPSs RO-Crate
+                                            Default: COMPSs_RO-Crate_[timestamp].zip
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -260,7 +261,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdpz-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -290,9 +291,26 @@ get_args() {
         ;;
       p)
         # Enable provenance
+        provenance=true
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
+        if [ -z "$output_profile" ] ; then
+          echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+          output_profile="${PWD}/App_Profile.json"
+        fi
+        if [ -z "$graph" ] ; then
+          echo "PROVENANCE | Setting 'graph' to 'true' by default"
+          graph=${DEFAULT_GRAPH_ARGUMENT}
+        fi
+        ;;
+      z)
+        # Zip provenance result
         provenance=true
+        zip_provenance=true
+        if [ -z "$provenance_yaml" ] ; then
+          echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
+          provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+        fi
         if [ -z "$output_profile" ] ; then
           echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
@@ -636,9 +654,9 @@ get_args() {
             ;;
           provenance=*)
             # Enable provenance, YAML file specified as parameter
+            provenance=true
             provenance_yaml=${OPTARG//provenance=/}
             echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -650,9 +668,9 @@ get_args() {
             ;;
           provenance)
             # Enable provenance
+            provenance=true
             provenance_yaml=${DEFAULT_PROVENANCE_YAML}
             echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -664,9 +682,26 @@ get_args() {
             ;;
           provenance-folder=*)
             # Generate provenance in a specified directory
+            provenance=true
             provenance_dest_path=${OPTARG//provenance-folder=/}
             echo "PROVENANCE | Setting provenance folder to '${provenance_dest_path}'"
+            ;;
+          zip-provenance)
+            # Zip provenance result
             provenance=true
+            zip_provenance=true
+            if [ -z "$provenance_yaml" ] ; then
+              echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
+              provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+            fi
+            if [ -z "$output_profile" ] ; then
+              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+              output_profile="${PWD}/App_Profile.json"
+            fi
+            if [ -z "$graph" ] ; then
+              echo "PROVENANCE | Setting 'graph' to 'true' by default"
+              graph=${DEFAULT_GRAPH_ARGUMENT}
+            fi
             ;;
           *)
             # Flag didn't match any patern. Raise exception
@@ -773,12 +808,17 @@ if [ ${provenance} ]; then
       provenance_dest_path="COMPSs_RO-Crate_${timestamp}/"
   fi
 
+  if [ -z "${zip_provenance}" ]; then
+      zip_provenance=false
+  fi
+
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
   echo "PROVENANCE | Destination folder: ${provenance_dest_path}"
   echo "PROVENANCE | If needed, Provenance generation can be triggered by hand using the following commands:"
-  echo -e "\t${COMPSS_HOME}/Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
-  echo -e "\texport PYTHONPATH=${COMPSS_HOME}/Runtime/scripts/system/:\$PYTHONPATH"
-  echo -e "\tpython3 ${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir} ${provenance_dest_path}"
+  echo -e "\t${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
+  echo -e "\texport PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:\$PYTHONPATH"
+  echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir} ${provenance_dest_path} ${zip_provenance}"
+
   if [ ! -z "${BSC_MACHINE}" ]; then
     echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc --account=<your_group> --qos=gp_debug -p interactive"
   fi
@@ -797,9 +837,9 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | STARTING RO-CRATE GENERATION SCRIPT"
   export PYTHONPATH=${COMPSS_HOME}/Runtime/scripts/system/:${PYTHONPATH}
   if [ ! -z "${COMPSS_PROV_DEBUG}" ]; then
-    python3 "${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
+    python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}" "${zip_provenance}"
   else
-    python3 -O "${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
+    python3 -O "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}" "${zip_provenance}"
   fi
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it

@@ -640,7 +640,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     # Request headers
     headers = {"Accept": "application/json"}
     # Search parameters
-    params = {"q": person_name, "rows": 1000}
+    params = {"q": person_name, "rows": 1000}  # Maximum number per query
 
     if not person_name:
         return None, None
@@ -664,6 +664,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                     print(
                         f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
                     )
+                
                 for result in list_of_results["expanded-result"]:
                     orcid = "https://orcid.org/" + result.get("orcid-id")
                     list_institutions = result.get("institution-name")
@@ -687,9 +688,10 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                         )
                         break  # Need to iterate until we find a match
                     else:
-                        print(
-                            f"PROVENANCE | \tFetched name '{obtained_full_name}' does not match specified name '{person_name}'"
-                        )
+                        if __debug__:
+                            print(
+                                f"PROVENANCE DEBUG | \tFetched name '{obtained_full_name}' does not match specified name '{person_name}'"
+                            )
                         orcid = None
                         res_institution = None
             else:
@@ -731,7 +733,7 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
     # Request headers
     headers = {"Accept": "application/json"}
     # Search parameters
-    params = {"q": query_str, "rows": 1}
+    params = {"q": query_str, "rows": 5}
 
     res_institution = None
     obtained_full_name = None

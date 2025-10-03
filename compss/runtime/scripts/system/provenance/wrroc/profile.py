@@ -85,4 +85,3 @@ def set_profile_details(compss_crate: ROCrate) -> None:
 
     # Add 'keywords', useful mainly for Zenodo exports
     compss_crate.root_dataset["keywords"] = ["COMPSs", "RO-Crate"]
-

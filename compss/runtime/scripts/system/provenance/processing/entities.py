@@ -640,6 +640,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     # Request headers
     headers = {"Accept": "application/json"}
     # Search parameters
+    # query = f'{person_name} AND affiliation-org-name:"Barcelona Supercomputing Center"'  # Cannot search with org-name, does not find persons without org defined
     params = {"q": person_name, "rows": 1000}  # Maximum number per query
 
     if not person_name:
@@ -657,14 +658,14 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
         response = requests.get(url_base, headers=headers, params=params, timeout=5)
         if response.status_code == 200:
             list_of_results = response.json()
-            # if 'num-found' in list_of_results:
-            #    print(f"PROVENANCE | Records found: {list_of_results['num-found']}")
-            if "expanded-result" in list_of_results:
+            if (
+                "expanded-result" in list_of_results
+                and list_of_results.get("num-found") != 0
+            ):
                 if __debug__:
                     print(
                         f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
                     )
-                
                 for result in list_of_results["expanded-result"]:
                     orcid = "https://orcid.org/" + result.get("orcid-id")
                     list_institutions = result.get("institution-name")
@@ -728,7 +729,8 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
     if not orcid_str:
         return None, None
     # Get info from a specific ORCID
-    query_str = '"' + orcid_str.split("/")[-1] + '"'
+    # query_str = '"' + orcid_str.split("/")[-1] + '"'
+    query_str = orcid_str.split("/")[-1]
     url_base = "https://pub.orcid.org/v3.0/expanded-search"
     # Request headers
     headers = {"Accept": "application/json"}
@@ -739,6 +741,7 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
     obtained_full_name = None
     e_mail = None
     all_names = {}
+    found_orcid = False
     # Submit the GET request
     try:
         print(
@@ -749,8 +752,23 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
             list_of_results = response.json()
             # import json
             # print(json.dumps(list_of_results, indent=4, sort_keys=True))
-            if "expanded-result" in list_of_results:
+            if (
+                "expanded-result" in list_of_results
+                and list_of_results.get("num-found") != 0
+            ):
+                if __debug__:
+                    print(
+                        f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
+                    )
                 for result in list_of_results["expanded-result"]:
+                    fetched_orcid = result.get("orcid-id")
+                    if fetched_orcid != query_str:
+                        if __debug__:
+                            print(
+                                f"PROVENANCE DEBUG | \tFetched ORCID '{fetched_orcid}' does not match specified ORCID '{query_str}'"
+                            )
+                        continue
+                    found_orcid = True
                     list_institutions = result.get("institution-name")
                     res_institution = (
                         list_institutions[0] if len(list_institutions) > 0 else None
@@ -768,9 +786,13 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
                         f"PROVENANCE | \tFetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, Organisation: {res_institution}, e-Mail: {e_mail}"
                     )
                     break
+                if not found_orcid:
+                    print(
+                        f"PROVENANCE | \tWARNING: user defined ORCID '{orcid_str}' has not been found at orcid.org"
+                    )
             else:
                 print(
-                    f"PROVENANCE | \tSearching Name for ORCID '{orcid_str}'. No records where found"
+                    f"PROVENANCE | \tNo matching records while searching Name for ORCID '{orcid_str}'"
                 )
         else:
             print(

@@ -199,7 +199,7 @@ def main():
     # folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     sys.stdout.flush()  # All pending stdout to the log file
     if ZIP_PROVENANCE:
-        compss_crate.write_zip(DEST_FOLDER.rstrip('/'))
+        compss_crate.write_zip(DEST_FOLDER.rstrip("/"))
     else:
         compss_crate.write(DEST_FOLDER)
     print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
@@ -214,6 +214,7 @@ def main():
         print(
             f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
         )
+
 
 if __name__ == "__main__":
 

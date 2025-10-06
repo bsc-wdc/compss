@@ -44,8 +44,9 @@ def add_person_definition(
     """
 
     # Expected Person fields
-    # orcid - Mandatory in RO-Crate 1.1
+    # orcid - Recommended in RO-Crate
     # name - Mandatory in WorkflowHub
+    # familyName - Mandatory in Zenodo
     # e-mail - Optional
     #
     # ror - Optional
@@ -89,7 +90,7 @@ def add_person_definition(
 
     if not "orcid" in yaml_author:
         print(
-            f"PROVENANCE | \tERROR in your {info_yaml} file. A 'Person' is ignored, since it has no 'orcid' defined"
+            f"PROVENANCE | \tWARNING in your {info_yaml} file. A 'Person' has no 'orcid' defined"
         )
         return False, yaml_author
 
@@ -102,7 +103,8 @@ def add_person_definition(
         mail_dict["contactType"] = contact_type
         mail_dict["email"] = yaml_author["e-mail"]
         mail_dict["identifier"] = yaml_author["e-mail"]
-        mail_dict["url"] = yaml_author["orcid"]
+        if "orcid" in yaml_author:
+            mail_dict["url"] = yaml_author["orcid"]
         compss_crate.add(
             ContextEntity(compss_crate, "mailto:" + yaml_author["e-mail"], mail_dict)
         )
@@ -173,7 +175,8 @@ def add_person_definition(
     if searched_author or remote_org_name:
         yaml_author["Updated"] = True
 
-    compss_crate.add(Person(compss_crate, yaml_author["orcid"], person_dict))
+    if "orcid" in yaml_author:
+        compss_crate.add(Person(compss_crate, yaml_author["orcid"], person_dict))
 
     return True, yaml_author
 
@@ -232,12 +235,18 @@ def root_entity(
             author_list.append(author["orcid"])
             if "ror" in author and author["ror"] not in org_list:
                 org_list.append(author["ror"])
+        else:
+            # Set the 'name' string as a string for an 'author' directly
+            author_list.append(author["name"])
 
     # Generate 'author', 'creator' and 'publisher' terms
     crate_author_list = []
     crate_org_list = []
-    for author_orcid in author_list:
-        crate_author_list.append({"@id": author_orcid})
+    for author_orcid_or_str in author_list:
+        if author_orcid_or_str.startswith("https://orcid.org"):
+            crate_author_list.append({"@id": author_orcid_or_str})
+        else:
+            crate_author_list.append(author_orcid_or_str)
     if crate_author_list:
         compss_crate.root_dataset["author"] = (
             crate_author_list  # As specified in RO-Crate 1.1
@@ -644,11 +653,12 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     params = {"q": person_name, "rows": 1000}  # Maximum number per query
 
     if not person_name:
-        return None, None
+        return None, None, None, None
     res_institution = None
     orcid = None
     e_mail = None
     all_names = {}
+    found_orcid = False
     # Submit the GET request
 
     try:
@@ -687,6 +697,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                         print(
                             f"PROVENANCE | \tFetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
                         )
+                        found_orcid = True
                         break  # Need to iterate until we find a match
                     else:
                         if __debug__:
@@ -695,6 +706,11 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                             )
                         orcid = None
                         res_institution = None
+                if not found_orcid:
+                    print(
+                        f"PROVENANCE | \tWARNING: user defined Name '{person_name}' has not been found at orcid.org"
+                    )
+                    return None, None, None, None
             else:
                 print(
                     f"PROVENANCE | \tSearching ORCID for person '{person_name}'. No records where found"
@@ -729,13 +745,13 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
     if not orcid_str:
         return None, None
     # Get info from a specific ORCID
-    # query_str = '"' + orcid_str.split("/")[-1] + '"'
-    query_str = orcid_str.split("/")[-1]
+    # query_str = '"' + orcid_str.split("/")[-1] + '"'  # Exact match with "" fails for non-existing ORCIDs
+    query_str = orcid_str.split("/")[-1]  # Does not find a single result, but eventually finds the ORCID
     url_base = "https://pub.orcid.org/v3.0/expanded-search"
     # Request headers
     headers = {"Accept": "application/json"}
     # Search parameters
-    params = {"q": query_str, "rows": 5}
+    params = {"q": query_str, "rows": 1000}
 
     res_institution = None
     obtained_full_name = None

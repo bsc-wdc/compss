@@ -352,7 +352,7 @@ public class WorkerStarter {
         ProcessOut processOut = new ProcessOut();
         String[] cmd = this.nw.getConfiguration().getRemoteExecutionCommand(user, resource, command);
         if (cmd == null) {
-            LOGGER.warn("Worker configured to be sarted by queue system.");
+            LOGGER.warn("Worker configured to be stared by queue system.");
             return null;
         }
         // Log command
@@ -415,7 +415,7 @@ public class WorkerStarter {
                 // Regular clean up
                 String sandboxWorkingDir = this.nw.getWorkingDir();
                 String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
-                LOGGER.info("getCleanWorkerWorkingDir generated this: " + command);
+                LOGGER.info("getCleanWorkerWorkingDir generated this: " + String.join(" ", command));
                 if (command != null) {
                     executeCommand(this.nw.getUser(), this.nw.getName(), command);
                 }

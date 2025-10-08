@@ -537,7 +537,7 @@ get_command(){
     local worker_jar=${SCRIPT_DIR}/../../../../adaptors/gos/worker/compss-adaptors-gos-worker.jar
     local main_worker_class=es.bsc.compss.gos.worker.GOSWorker
 
-    perf_jvm_flags="-XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC"
+    perf_jvm_flags="-Djdk.lang.Process.launchMechanism=fork -XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC"
 
     compss_jvm_flags="-Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
     -Dcompss.streaming=${streaming} \

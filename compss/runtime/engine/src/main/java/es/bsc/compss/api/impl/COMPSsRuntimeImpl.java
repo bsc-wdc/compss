@@ -530,15 +530,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
 
                 LOGGER.debug("Stopping Comm...");
-                Comm.stop(CoreManager.getSignaturesToCEIds());
-                LOGGER.debug("Runtime stopped");
-                stopped = true;
+                Comm.stop();
                 // LOGGER.debug("Releasing all barriers...");
                 // In some case, when runtime is stop because an error the java process is not stopped
                 // because some threads are blocked at barriers waiting for the end of tasks
                 for (Application app : Application.getApplications()) {
                     app.getBaseTaskGroup().releaseBarrier();
                 }
+                if (Tracer.isActivated()) {
+                    LOGGER.debug("Stopping tracing...");
+                    Comm.stopTracing(CoreManager.getSignaturesToCEIds());
+                }
+                LOGGER.debug("Runtime stopped");
+                stopped = true;
             } else {
                 LOGGER.debug("Duplicated Stop");
                 throw (new RuntimeException("Runtime already stopped"));

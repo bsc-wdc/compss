@@ -484,6 +484,7 @@ def create_init_config_file(
     temp_fd, temp_path = mkstemp()
     with open(temp_path, "w") as jvm_options_file:
         # JVM GENERAL OPTIONS
+        jvm_options_file.write("-Djdk.lang.Process.launchMechanism=fork\n")
         jvm_options_file.write("-XX:+PerfDisableSharedMem\n")
         jvm_options_file.write("-XX:-UsePerfData\n")
         jvm_options_file.write("-XX:+UseG1GC\n")

@@ -30,6 +30,7 @@ def test_jvm_parser():
     jvm_opt_file = tempfile.NamedTemporaryFile(delete=False).name
     temp_folder = tempfile.mkdtemp()
     jvm_expected_result = {
+        "-Djdk.lang.Process.launchMechanism": "fork",
         "+PerfDisableSharedMem": True,
         "-UsePerfData": True,
         "+UseG1GC": True,
@@ -89,7 +90,8 @@ def test_jvm_parser():
     }
     with open(jvm_opt_file, "w") as f_jvm:
         f_jvm.write(
-            """-XX:+PerfDisableSharedMem
+            """-Djdk.lang.Process.launchMechanism=fork
+-XX:+PerfDisableSharedMem
 -XX:-UsePerfData
 -XX:+UseG1GC
 -XX:+UseThreadPriorities

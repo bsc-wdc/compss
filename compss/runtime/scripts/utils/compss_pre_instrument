@@ -22,6 +22,7 @@
  
   # shellcheck disable=SC2068 
   java \
+    -Djdk.lang.Process.launchMechanism=fork \
     -XX:+PerfDisableSharedMem \
     -XX:-UsePerfData \
     -XX:+UseG1GC \

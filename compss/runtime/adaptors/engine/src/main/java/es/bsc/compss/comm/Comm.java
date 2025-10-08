@@ -302,10 +302,8 @@ public class Comm {
 
     /**
      * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob.
-     *
-     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    public static void stop(Map<String, Integer> runtimeEvents) {
+    public static void stop() {
         appHost.deleteIntermediate();
         for (CommAdaptor adaptor : ADAPTORS.values()) {
             adaptor.stop();
@@ -352,7 +350,16 @@ public class Comm {
         if (Tracer.isActivated()) {
             // Emit last EVENT_END event for STOP
             Tracer.emitEventEnd(TraceEvent.STOP);
+        }
+    }
 
+    /**
+     * Stops the tracing.
+     *
+     * @param runtimeEvents label-Id pairs for the runtimeEvents
+     */
+    public static void stopTracing(Map<String, Integer> runtimeEvents) {
+        if (Tracer.isActivated()) {
             // Stop tracing system
             Tracer.fini(runtimeEvents);
 

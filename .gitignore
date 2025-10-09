@@ -1,10 +1,4 @@
-# Ignore java compiled folders
-target/
-builders/tmp/
-
-# Ignore maven files
-dependency-reduced-pom.xml
-pom.xml.versionsBackup
+# ========== IDE ignores =================
 
 # Ignore eclipse files
 .classpath
@@ -21,6 +15,9 @@ pom.xml.versionsBackup
 .idea/
 *.iml
 
+
+# ========== Building ignores =================
+
 # Ignore packages
 builders/packages/*
 
@@ -29,6 +26,14 @@ utils/storage/redisPSCO/COMPSs-Redis-bundle
 
 
 # ========== Java ignores =================
+
+# Ignore java compiled folders
+target/
+builders/tmp/
+
+# Ignore maven files
+dependency-reduced-pom.xml
+pom.xml.versionsBackup
 
 # Compiled class file
 *.class
@@ -154,9 +159,27 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+
+# ========== Fortran ignores =================
+
 # Fortran module files
 *.mod
 *.smod
+
+
+# ========== Runtime ignores =================
+
+# Do ignore JAVA_GAT compiled files
+!dependencies/JAVA_GAT/api-src.zip
+!dependencies/JAVA_GAT/lib/
+!dependencies/JAVA_GAT/**/*.jar
+
+# Ignore JAXB files
+compss/runtime/config/xml/monitor/src/main/
+compss/runtime/config/xml/projects/src/main/java/META-INF/
+compss/runtime/config/xml/projects/src/main/java/es/bsc/compss/types/project/jaxb/
+compss/runtime/config/xml/resources/src/main/java/META-INF/
+compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/jaxb/
 
 # Ignore configuration files
 tests/configurations/*.cfg

@@ -74,8 +74,8 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     print("[INFO] Cleaning deployment structure...")
     target_base_dir = compss_cfg.get_target_base_dir()
     try:
-        print(f"[WARN] Script is attempting to erase {target_base_dir}")
-        print("[WARN] You have 5s to abort...")
+        # print(f"[WARN] Script is attempting to erase {target_base_dir}")
+        # print("[WARN] You have 5s to abort...")
         # time.sleep(5) #  uncomment
         print(f"[WARN] Erasing deployment structure {target_base_dir}")
         shutil.rmtree(target_base_dir)
@@ -84,8 +84,8 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
         print("         Trying to proceed anyways...")
     compss_log_dir = compss_cfg.get_compss_log_dir()
     try:
-        print(f"[WARN] Script is attempting to erase {compss_log_dir}")
-        print("[WARN] You have 5s to abort...")
+        # print(f"[WARN] Script is attempting to erase {compss_log_dir}")
+        # print("[WARN] You have 5s to abort...")
         # time.sleep(5) #  uncomment
         print(f"[WARN] Erasing COMPSs log root directory {compss_log_dir}")
         shutil.rmtree(compss_log_dir)

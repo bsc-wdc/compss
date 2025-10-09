@@ -1,6 +1,5 @@
 # Ignore java compiled folders
 target/
-*.jar
 builders/tmp/
 
 # Ignore maven files
@@ -22,9 +21,6 @@ pom.xml.versionsBackup
 .idea/
 *.iml
 
-# Ignore Python binding build
-build/
-
 # Ignore packages
 builders/packages/*
 
@@ -45,9 +41,6 @@ utils/storage/redisPSCO/COMPSs-Redis-bundle
 *.tar.gz
 *.rar
 
-# Ignore java compiled folders
-target/
-
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
@@ -58,9 +51,6 @@ hs_err_pid*
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
-*.so
 
 # Distribution / packaging
 .Python
@@ -105,9 +95,6 @@ coverage.xml
 # Translations
 *.mo
 *.pot
-
-# PyBuilder
-target/
 
 # Jupyter Notebook
 .ipynb_checkpoints

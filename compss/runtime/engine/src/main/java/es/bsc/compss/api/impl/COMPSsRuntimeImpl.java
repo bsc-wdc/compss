@@ -97,6 +97,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -477,7 +478,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             DP_LOGGER.info(COMPSs_VERSION);
             DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
             DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
-            DP_LOGGER.info(Instant.now().toString());
+            DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
         }
     }
 
@@ -553,7 +554,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.warn("Execution Finished");
 
         if (DP_ENABLED) {
-            DP_LOGGER.info(Instant.now().toString());
+            DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
         }
 
     }

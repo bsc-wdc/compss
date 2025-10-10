@@ -29,7 +29,7 @@
 </p>
 
 <p align="center"><b>
-    <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •  
+    <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •
     <a href="https://compss-doc.readthedocs.io/en/latest/">Documentation</a> •
     <a href="https://github.com/bsc-wdc/compss/releasess">Releases</a> •
     <a href="https://bit.ly/bsc-wdc-community">Slack</a> •
@@ -44,19 +44,17 @@ of applications at execution time.
 <!-- SOURCES STRUCTURE -->
 ## Repository Structure
 
-  * **builders**: Packages, scripts for local installations, scripts for supercomputers
+* **builders**: Packages, scripts for local installations, scripts for supercomputers
    installation and package building scripts
-  * **compss** : Programming Model, Bindings and Runtime source code
-  * **dependencies** : Embedded dependencies
-  * **files** : Dependency files (i.e. paraver configurations)
-  * **tests** : Integration tests
-  * **utils** : Misc utils (i.e. OVA scripts, Docker generation, Storage implementations)
-
+* **compss** : Programming Model, Bindings and Runtime source code
+* **dependencies** : Embedded dependencies
+* **files** : Dependency files (i.e. PARAVER configurations)
+* **tests** : Integration tests
+* **utils** : Misc utils (i.e. OVA scripts, Docker generation, Storage implementations)
 
 ## Supported Systems
 
 COMPSs/PyCOMPSs fully supports Linux systems for amd64, ppc64, arm64 and riscv64 architectures. macOS systems are also supported with some limitations.
-
 
 <!-- BUILDING COMPSS -->
 ## Building From Sources
@@ -67,12 +65,11 @@ Follow the next steps to build COMPSs in your current machine.
 
 For an updated list of COMPSs dependencies and how to install them for different systems visit the [dependencies section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/01_Dependencies.html) of the COMPSs documentation website.
 
-
 ### 2. Get GIT submodules
 
 Before installing COMPSs you need to download the git submodules that contain its dependencies. To do that execute the following two commands at the root of the repository.
 
-```
+```bash
 ./submodules_get.sh
 ```
 
@@ -82,7 +79,7 @@ Before installing COMPSs you need to download the git submodules that contain it
 
 * Building COMPSs for all users (not supported in macOS)
 
-```
+```bash
 cd builders/
 INSTALL_DIR=/opt/COMPSs/
 sudo -E ./buildlocal [options] ${INSTALL_DIR}
@@ -90,18 +87,18 @@ sudo -E ./buildlocal [options] ${INSTALL_DIR}
 
 * Building COMPSs for current user
 
-```
+```bash
 cd builders/
 
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
-For macOS visit the [Building from sources section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/02_Building_from_sources.html) of the COMPSs documentation website.
 
+For macOS visit the [Building from sources section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/02_Building_from_sources.html) of the COMPSs documentation website.
 
 Many COMPSs modules can be activated/deactivated during the build using different options in the `buildlocal` command. You may check the available options by running the following command:
 
-```
+```bash
 cd builders
 ./buildlocal -h
 ```
@@ -113,29 +110,27 @@ cd builders
 
 Follow these instructions
 
- - [Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac). Or, if you prefer to use [Homebrew](https://brew.sh/).
- - [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1).
- - [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
+* [Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac). Or, if you prefer to use [Homebrew](https://brew.sh/).
+* [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1).
+* [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
 
 Add user to docker group to run docker as non-root user.
 
- - [Instructions](https://docs.docker.com/install/linux/linux-postinstall/).
-
+* [Instructions](https://docs.docker.com/install/linux/linux-postinstall/).
 
 ### 2. Build the docker image
 
 Run the following command at the root of the project to build the image that will be used for testing. The command create an image named **compss** and install the current branch into the image.
 
-```
+```bash
 docker build --target=ci -t compss .
 ```
-
 
 ### 3. Run the tests
 
 To run the tests inside the docker image use the `./tests/scripts/docker_test` script. For example, you can run the first test without retrials as follows:
 
-```
+```bash
 ./tests/scripts/docker_test -R -t 1
 ```
 
@@ -145,7 +140,7 @@ The docker main command creates a new docker container, copies the current frame
 
 **Note**: you can change the COMPSs image used and the name of the container setting the following environment variables (showing defaults):
 
-```
+```bash
 export COMPSS_IMAGE=compss
 export COMPSS_CONTAINER=compss_test
 ```
@@ -162,7 +157,7 @@ export COMPSS_CONTAINER=compss_test
 
 In order to run the tests locally on macOS, GNU sed (gsed) is needed. To install it, use:
 
-```
+```bash
 brew install gsed
 ```
 
@@ -171,10 +166,9 @@ This will install gsed at `/opt/homebrew/bin/gsed`.
 Finally, the `NIO_mac.cfg` file needs to be updated with any specific features of the local macOS environment, commonly variables such as the `java_home`, `compss_home` and `runcompss_opts` parameters should be updated.
 
 <!-- CONTACT -->
+
 ## Support
-For support please send and e-mail to support-compss@bsc.es
+
+For support please send and e-mail to <support-compss@bsc.es>
 
 (c) Workflows and Distributed Computing Group (WDC) - Department of Computer Science (CS) - Barcelona Supercomputing Center (BSC)
-
-
-

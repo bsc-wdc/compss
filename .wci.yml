@@ -21,8 +21,8 @@ language:  # will attempt to fetch GitHub repository main language if not provid
 
 documentation: # nothing will be used if not provided
   general: https://compss-doc.readthedocs.io/en/stable/
-  installation: https://compss-doc.readthedocs.io/en/stable/Sections/00_Quickstart.html
-  tutorial: https://compss-doc.readthedocs.io/en/stable/Sections/10_Tutorial.html
+  installation: https://compss-doc.readthedocs.io/en/stable/Sections/01_Installation_Configuration.html
+  tutorial: https://compss-doc.readthedocs.io/en/stable/Sections/08_Tutorial.html
 
 social: # nothing will be used if not provided
   twitter: bsc_compss

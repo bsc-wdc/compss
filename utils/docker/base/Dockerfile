@@ -8,13 +8,13 @@ ARG TARGETARCH=amd64
 
 FROM base AS base_amd64
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server
 ENV EXTRAE_MPI_HEADERS=/usr/include/x86_64-linux-gnu/mpi
 
 FROM base AS base_arm64
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64/
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
 ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server
 ENV EXTRAE_MPI_HEADERS=/usr/include/aarch64-linux-gnu/mpi
 
@@ -23,7 +23,7 @@ ENV EXTRAE_MPI_HEADERS=/usr/include/aarch64-linux-gnu/mpi
 FROM base_amd64 AS base_rt
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openjdk-11-jdk graphviz xdg-utils uuid-runtime && \
+    apt-get install -y --no-install-recommends openjdk-21-jdk graphviz xdg-utils uuid-runtime && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 

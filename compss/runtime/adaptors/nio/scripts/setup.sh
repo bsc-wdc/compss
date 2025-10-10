@@ -142,11 +142,11 @@
       echo "- Streaming Type:      ${streaming}"
       echo "- Streaming Port:      ${streaming_port}"
 
-      echo "- Computing Units CPU: ${cusCPU}"
-      echo "- Computing Units GPU: ${cusGPU}"
-      echo "- Computing Units GPU: ${cusFPGA}"
-      echo "- Limit Of Tasks:      ${lot}"
-      echo "- JVM Opts:            $jvmFlags"
+      echo "- Computing Units CPU:  ${cusCPU}"
+      echo "- Computing Units GPU:  ${cusGPU}"
+      echo "- Computing Units FPGA: ${cusFPGA}"
+      echo "- Limit Of Tasks:       ${lot}"
+      echo "- JVM Opts:             $jvmFlags"
 
       echo "- AppUUID:             ${appUuid}"
       echo "- Lang:                ${lang}"
@@ -333,7 +333,7 @@
     local JAVA=java
     worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
     local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
-    perf_jvm_flags="-XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC -XX:ParallelGCThreads=1"  # -XX:+UseSerialGC"
+    perf_jvm_flags="-Djdk.lang.Process.launchMechanism=fork -XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC -XX:ParallelGCThreads=1"  # -XX:+UseSerialGC"
     compss_jvm_flags="-Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
     -Dcompss.streaming=${streaming} \
     -Dcompss.python.interpreter=${pythonInterpreter} \

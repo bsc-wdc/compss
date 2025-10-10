@@ -82,6 +82,7 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
@@ -841,7 +842,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // cd to the folder and cp every file onto static_${file} and removes the original file
         String cmd = "cd " + folderPath + " && for file in *; do cp ${file} static_${file} && rm -rf ${file}; done";
         WORKER_LOGGER.debug("Executing: " + cmd.toString());
-        int exitCode = new ProcessBuilder("/bin/bash", "-c", cmd.toString()).inheritIO().start().waitFor();
+        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd.toString());
+        Tracer.prepareEnvironment(pb.environment(), false);
+        int exitCode = pb.inheritIO().start().waitFor();
         if (exitCode != 0) {
             throw new Exception("freezeFolderFailed");
         }
@@ -871,14 +874,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // inside the tar
         freezeFolderFiles(sourceFolder);
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder cmd = new StringBuilder();
         // need to cd to the analysis director in order for the tar to contain relative paths
-        sb.append("cd " + sourceFolder + " && ");
-        // we only want to make the tar if we can get into the apropiate folder
-        sb.append("tar -czf " + tarTargetPath + " " + ".");
+        cmd.append("cd " + sourceFolder + " && ");
+        // we only want to make the tar if we can get into the appropriate folder
+        cmd.append("tar -czf " + tarTargetPath + " " + ".");
 
-        WORKER_LOGGER.debug("Executing: " + sb.toString());
-        int exitCode = new ProcessBuilder("/bin/bash", "-c", sb.toString()).inheritIO().start().waitFor();
+        WORKER_LOGGER.debug("Executing: " + cmd.toString());
+        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd.toString());
+        Tracer.prepareEnvironment(pb.environment(), false);
+        int exitCode = pb.inheritIO().start().waitFor();
         if (exitCode != 0) {
             throw new Exception("package from folder creation returned not 0 exit code");
         }
@@ -901,7 +906,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // logFilesPaths = generatePackageFromFolder(this.getLogDir(), tarTargetPath);
         // } catch (Exception e) {
         // // If it runs out of space to do the tar.gz package sends the paths to the files
-        // WORKER_LOGGER.warn("Something failed while generatin tar.gz package with the contents of the debug folder.",
+        // WORKER_LOGGER.warn("Something failed while generating tar.gz package with the contents of the debug folder.",
         // e);
         // logFilesPaths = getFilesPathFromFolder(this.getLogDir());
         // }

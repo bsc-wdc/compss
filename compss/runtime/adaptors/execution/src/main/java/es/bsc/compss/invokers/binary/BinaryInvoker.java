@@ -163,10 +163,10 @@ public class BinaryInvoker extends Invoker {
                     BinaryRunner.buildAppParams(this.invocation.getParams(), container.getOptions(), pythonInterpreter);
                 numOptions = options.length;
             }
-            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
-            String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
-            if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
-                numOptions += 4;
+            // -e COMPSS_CONTAINER=${COMPSS_CONTAINER}
+            String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
+            if (compssContainer != null && !compssContainer.isEmpty()) {
+                numOptions += 2;
             }
             cmdLength += numOptions;
         }
@@ -182,14 +182,11 @@ public class BinaryInvoker extends Invoker {
             // Check options
             pos = ContainerInvoker.addContainerOptions(cmd, pos, options);
 
-            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
-            String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
-            if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
+            // -e COMPSS_CONTAINER=${COMPSS_CONTAINER}
+            String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
+            if (compssContainer != null && !compssContainer.isEmpty()) {
                 cmd[pos++] = "-e";
-                cmd[pos++] = COMPSsConstants.DOCKER_WORKING_DIR_VOLUME + "=\"" + dockerWorkDirVolume + "\"";
-                String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
-                cmd[pos++] = "-e";
-                cmd[pos++] = COMPSsConstants.DOCKER_WORKING_DIR_MOUNT + "=\"" + dockerWorkDirMount + "\"";
+                cmd[pos++] = COMPSsConstants.COMPSS_CONTAINER + "=\"" + compssContainer + "\"";
             }
             cmd[pos++] = container.getImage();
         }
@@ -209,15 +206,15 @@ public class BinaryInvoker extends Invoker {
 
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = this.context.getThreadOutStream();
-            outLog.println("");
+            outLog.println();
             outLog.println("[BINARY INVOKER] Begin binary call to " + this.binary);
             outLog.println("[BINARY INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[BINARY INVOKER] BINARY CMD: ");
-            for (int i = 0; i < cmd.length; ++i) {
-                outLog.print(cmd[i] + " ");
+            for (String s : cmd) {
+                outLog.print(s + " ");
             }
-            outLog.println("");
+            outLog.println();
             outLog.println("[BINARY INVOKER] Binary STDIN: " + streamValues.getStdIn());
             outLog.println("[BINARY INVOKER] Binary STDOUT: " + streamValues.getStdOut());
             outLog.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());

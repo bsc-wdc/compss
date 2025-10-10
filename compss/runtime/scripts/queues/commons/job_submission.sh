@@ -13,7 +13,7 @@ fi
 
 # shellcheck source=./logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 
 
@@ -58,10 +58,10 @@ load_SC_config(){
      # shellcheck source=../supercomputers/default.cfg
      # shellcheck disable=SC1091
      # shellcheck disable=SC2154
-    if  [ -f "${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${config_file}" ]; then
-      source "${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${config_file}"
-    elif [ -f "${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${config_file}.cfg" ]; then
-      source "${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${config_file}.cfg"
+    if  [ -f "${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${config_file}" ]; then
+      source "${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${config_file}"
+    elif [ -f "${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${config_file}.cfg" ]; then
+      source "${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${config_file}.cfg"
     else
      fatal_error "${ERROR_CFG_SC}" 1
     fi
@@ -69,11 +69,11 @@ load_SC_config(){
   fi
 
   # Load SC Queue System options
-  if [ -f "${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg" ]; then
+  if [ -f "${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg" ]; then
     # Load specific queue system flags
     # shellcheck source=../queue_systems/slurm.cfg
     # shellcheck disable=SC1091
-    source "${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
+    source "${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   else
     fatal_error "${ERROR_CFG_Q}"
   fi
@@ -639,7 +639,7 @@ append_master_and_worker_nodes(){
   # Host list parsing
   cat >> "${submit_script}" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${COMPSS_HOME}Runtime/scripts/queues/${HOSTLIST_CMD}"
+    source "${COMPSS_HOME}/Runtime/scripts/queues/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     master_node=\$(${MASTER_NAME_CMD})
@@ -659,7 +659,7 @@ append_only_master_node(){
   # Host list parsing
   cat >> "${submit_script}" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${COMPSS_HOME}Runtime/scripts/queues/${HOSTLIST_CMD}"
+    source "${COMPSS_HOME}/Runtime/scripts/queues/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     master_node=\$(${MASTER_NAME_CMD})
@@ -680,7 +680,7 @@ append_only_worker_nodes(){
 
   cat >> "${submit_script}" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${COMPSS_HOME}Runtime/scripts/queues/${HOSTLIST_CMD}"
+    source "${COMPSS_HOME}/Runtime/scripts/queues/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST}${env_var_suffix} ${HOSTLIST_TREATMENT})
     worker_nodes=\$(echo \${host_list})

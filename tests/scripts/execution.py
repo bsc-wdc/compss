@@ -234,7 +234,7 @@ def execute_tests(cmd_args, compss_cfg):
     target_base_dir = compss_cfg.get_target_base_dir()
     execution_sanbdox = os.path.join(target_base_dir, "apps")
     coverage_path = os.path.join(target_base_dir, "coverage")
-    jaccoco_lib_path = compss_cfg.get_compss_home() + JACOCO_LIB_REL_PATH
+    jaccoco_lib_path = os.path.join(compss_cfg.get_compss_home(), JACOCO_LIB_REL_PATH)
 
     if cmd_args.coverage:
         print("[INFO] Coverage mode enabled")
@@ -547,7 +547,7 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
     target_base_dir = compss_cfg.get_target_base_dir()
     execution_sanbdox = os.path.join(target_base_dir, "apps")
     coverage_path = os.path.join(target_base_dir, "coverage")
-    jaccoco_lib_path = compss_cfg.get_compss_home() + JACOCO_LIB_REL_PATH
+    jaccoco_lib_path = os.path.join(compss_cfg.get_compss_home(), JACOCO_LIB_REL_PATH)
 
     if cmd_args.coverage:
         print("[INFO] Coverage mode enabled")
@@ -769,7 +769,7 @@ def _execute_test_cmd(
             "[ERROR] Cannot find execution script " + str(execution_script_path)
         )
 
-    runcompss_bin = compss_cfg.get_compss_home() + RUNCOMPSS_REL_PATH
+    runcompss_bin = os.path.join(compss_cfg.get_compss_home(), RUNCOMPSS_REL_PATH)
     runcompss_user_opts = compss_cfg.get_runcompss_opts()
     if runcompss_user_opts is None:
         runcompss_user_opts = ""
@@ -825,7 +825,7 @@ def _clean_procs(compss_cfg):
         + type: COMPSsConfiguration
     :return:
     """
-    clean_procs_bin = compss_cfg.get_compss_home() + CLEAN_PROCS_REL_PATH
+    clean_procs_bin = os.path.join(compss_cfg.get_compss_home(), CLEAN_PROCS_REL_PATH)
     cmd = [clean_procs_bin]
 
     try:

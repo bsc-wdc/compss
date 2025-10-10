@@ -336,6 +336,7 @@ ${jvm_master_opts}
 EOT
   if [ "$(uname -m)" != "riscv64" ]; then
      cat >> "${jvm_options_file}" << EOT
+-Djdk.lang.Process.launchMechanism=fork
 -XX:+PerfDisableSharedMem
 -XX:-UsePerfData
 -XX:+UseG1GC
@@ -553,7 +554,7 @@ start_compss_agent() {
   local java_opts
   local JAVACMD
   java_opts=$(tr "\\n" " " < "${jvm_options_file}")
-  JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar:${COMPSS_HOME}/Runtime/compss-agent-impl.jar ${java_opts}"
+  JAVACMD=$JAVA" -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar:${COMPSS_HOME}/Runtime/compss-agent-impl.jar ${java_opts}"
   # Launch application
   start_tracing
 
@@ -600,7 +601,8 @@ exec_java() {
   local java_opts
   local JAVACMD
   java_opts=$(tr "\\n" " " < "${jvm_options_file}")
-  JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
+  # JAVACMD=$JAVA" -Xdebug -Xrunjdwp:transport=dt_socket,address=8998,server=y  -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
+  JAVACMD=$JAVA" -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
 
   # Launch application
   start_tracing

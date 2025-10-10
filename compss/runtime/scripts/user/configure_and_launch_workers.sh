@@ -2,12 +2,8 @@
 
 # Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 fi
-if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-  COMPSS_HOME="${COMPSS_HOME}/"
-fi
-export COMPSS_HOME=${COMPSS_HOME}
 
 if [ -z "${COMPSS_SC_CFG}" ]; then
 	COMPSS_SC_CFG="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg"
@@ -40,4 +36,4 @@ if [ -z "$COMPSS_LOG_LEVEL" ]; then
    export COMPSS_LOG_LEVEL=off
 fi
 
-"${COMPSS_HOME}/Runtime/scripts/user/launch_compss" "--log_level=${COMPSS_LOG_LEVEL}" "--master_node=${master_node}" "--worker_nodes=${worker_nodes}" "--sc_cfg=default.cfg" "--command" $@
+"${COMPSS_HOME}/Runtime/scripts/user/launch_compss" "--log_level=${COMPSS_LOG_LEVEL}" "--master_node=${master_node}" "--worker_nodes=${worker_nodes}" "--sc_cfg=default.cfg" "--command" "$@"

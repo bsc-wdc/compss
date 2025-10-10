@@ -77,11 +77,11 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg="${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
+  local defaultSC_cfg="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
   # shellcheck source=../supercomputers/default.cfg
   # shellcheck disable=SC1091
   source "${defaultSC_cfg}"
-  local defaultQS_cfg="${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
+  local defaultQS_cfg="${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   # shellcheck source=../queue_systems/slurm.cfg
   # shellcheck disable=SC1091
   source "${defaultQS_cfg}"
@@ -524,7 +524,7 @@ get_args() {
             args_pass="$args_pass --$OPTARG"
             ;;
           pre_env_script=*)
-            if [ -z ${pre_env_script}]; then
+            if [ -z ${pre_env_script} ]; then
                 pre_env_script=${OPTARG//pre_env_script=/}
             else
                 pre_env_script="${pre_env_script}:${OPTARG//pre_env_script=/}"

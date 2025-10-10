@@ -136,6 +136,23 @@ public abstract class Tracer {
     }
 
     /**
+     * Checks and removes the environment variables for tracing. In particular, removes the content of the variables
+     * defined in REMOVE_ENVIRONMENT_VARIABLES and also removes any link to extrae from CLEAN_ENVIRONMENT_VARIABLES.
+     *
+     * @param env Environment to clean from tracing.
+     */
+    public static void disableExtraeFromEnvironment(Map<String, String> env) {
+        // Remove all unnecessary environment variables.
+        for (String envVar : Tracer.REMOVE_ENVIRONMENT_VARIABLES) {
+            env.remove(envVar);
+        }
+        // Remove all unnecessary links to extrae
+        for (String envVar : Tracer.CLEAN_ENVIRONMENT_VARIABLES) {
+            env.remove(envVar);
+        }
+    }
+
+    /**
      * Initializes tracer creating the trace folder.If tracing is used then the current node (master) sets its nodeID
      * (taskID) to 0, and its number of tasks to 1 (a single program).
      *
@@ -487,6 +504,26 @@ public abstract class Tracer {
                 LOGGER.debug("[Tracer] Finishing extrae");
             }
             Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+        }
+    }
+
+    /**
+     * Shuts down tracing. Disables the instrumentation until the next call to Restart().
+     */
+    public static void shutdownWrapper() {
+        synchronized (Tracer.class) {
+            LOGGER.debug("[Tracer] Shutdown");
+            Wrapper.Shutdown();
+        }
+    }
+
+    /**
+     * Restart tracing. Resumes the instrumentation from the previous Shutdown() call.
+     */
+    public static void restartWrapper() {
+        synchronized (Tracer.class) {
+            LOGGER.debug("[Tracer] Restart");
+            Wrapper.Restart();
         }
     }
 

@@ -43,18 +43,13 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python3_mpi' ]; then
-      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      echo "WARN: Test not required for ${python_interpreter}" | tee -a "${output_log}"
       continue
     fi
 
   cat > "${base_app_dir}/env_script.sh" << EOT
 export COMPSS_MPIRUN_TYPE=openmpi
-export DOCKER_WORKING_DIR_VOLUME=$DOCKER_WORKING_DIR_VOLUME
-export DOCKER_WORKING_DIR_MOUNT=$DOCKER_WORKING_DIR_MOUNT
-export DOCKER_APP_DIR_VOLUME=$DOCKER_APP_DIR_VOLUME
-export DOCKER_APP_DIR_MOUNT=$DOCKER_APP_DIR_MOUNT
-export DOCKER_PYCOMPSS_VOLUME=$DOCKER_PYCOMPSS_VOLUME
-export DOCKER_PYCOMPSS_MOUNT=$DOCKER_PYCOMPSS_MOUNT
+export COMPSS_CONTAINER=${COMPSS_CONTAINER}
 EOT
 
     cat "${base_app_dir}/env_script.sh" > >(tee "${output_log}")

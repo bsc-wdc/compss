@@ -1,11 +1,4 @@
-# Ignore java compiled folders
-target/
-*.jar
-builders/tmp/
-
-# Ignore maven files
-dependency-reduced-pom.xml
-pom.xml.versionsBackup
+# ========== IDE ignores =================
 
 # Ignore eclipse files
 .classpath
@@ -22,8 +15,8 @@ pom.xml.versionsBackup
 .idea/
 *.iml
 
-# Ignore Python binding build
-build/
+
+# ========== Building ignores =================
 
 # Ignore packages
 builders/packages/*
@@ -33,6 +26,14 @@ utils/storage/redisPSCO/COMPSs-Redis-bundle
 
 
 # ========== Java ignores =================
+
+# Ignore java compiled folders
+target/
+builders/tmp/
+
+# Ignore maven files
+dependency-reduced-pom.xml
+pom.xml.versionsBackup
 
 # Compiled class file
 *.class
@@ -45,9 +46,6 @@ utils/storage/redisPSCO/COMPSs-Redis-bundle
 *.tar.gz
 *.rar
 
-# Ignore java compiled folders
-target/
-
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
@@ -58,9 +56,6 @@ hs_err_pid*
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
-*.so
 
 # Distribution / packaging
 .Python
@@ -105,9 +100,6 @@ coverage.xml
 # Translations
 *.mo
 *.pot
-
-# PyBuilder
-target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -167,9 +159,15 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+
+# ========== Fortran ignores =================
+
 # Fortran module files
 *.mod
 *.smod
+
+
+# ========== Runtime ignores =================
 
 # Do ignore JAVA_GAT compiled files
 !dependencies/JAVA_GAT/api-src.zip

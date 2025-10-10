@@ -40,7 +40,7 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ] || [ "$python_interpreter" == 'python2' ]; then
-      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      echo "WARN: Test not required for ${python_interpreter}" | tee -a "${output_log}"
       continue
     fi
 
@@ -90,7 +90,7 @@
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ] || [ "$python_interpreter" == 'python2' ]; then
-      echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+      echo "WARN: Test not required for ${python_interpreter}" | tee -a "${output_log}"
       continue
     fi
 

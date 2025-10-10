@@ -2,23 +2,19 @@
 
 # Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 fi
-if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-  COMPSS_HOME="${COMPSS_HOME}/"
-fi
-export COMPSS_HOME=${COMPSS_HOME}
 
 # Load auxiliar scripts
 # shellcheck source=../system/commons/version.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 # shellcheck source=../system/commons/logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # shellcheck source=../queues/commons/trace_generation.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/queues/commons/trace_generation.sh"
+source "${COMPSS_HOME}/Runtime/scripts/queues/commons/trace_generation.sh"
 
 
 #---------------------------------------------------

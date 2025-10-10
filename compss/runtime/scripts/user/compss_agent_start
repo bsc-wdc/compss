@@ -2,34 +2,30 @@
 
 # Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 fi
-if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-  COMPSS_HOME="${COMPSS_HOME}/"
-fi
-export COMPSS_HOME=${COMPSS_HOME}
 
 # Load auxiliar scripts
 
 # shellcheck source=../system/commons/logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 # shellcheck source=../system/commons/utils.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 
 # shellcheck source=../system/commons/version.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 
 # shellcheck source=../system/runtime/compss_setup.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 # shellcheck source=../system/agents/commons.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/agents/commons.sh"
 
 
 ###############################################
@@ -474,11 +470,11 @@ check_setup() {
   fi
 
   if [ -n "${agent_comm_port}" ]; then
-    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/CommAgent/worker/compss-adaptors-agent-comm-worker.jar"
+    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/CommAgent/worker/compss-adaptors-agent-comm-worker.jar"
     comm_port_msg="(comm: ${agent_comm_port})"
   fi
   if [ -n "${agent_rest_port}" ]; then
-    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/RESTAgent/worker/compss-adaptors-agent-rest-worker.jar"
+    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/worker/compss-adaptors-agent-rest-worker.jar"
     rest_port_msg="(rest: ${agent_rest_port})"
   fi
 

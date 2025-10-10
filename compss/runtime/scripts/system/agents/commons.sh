@@ -17,8 +17,8 @@ fi
 ###############################################
 DEFAULT_COMMUNICATION_ADAPTOR=${COMM_AGENT_ADAPTOR}
 
-DEFAULT_RESOURCES="${COMPSS_HOME}Runtime/configuration/xml/resources/examples/local/resources.xml"
-DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
+DEFAULT_RESOURCES="${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml"
+DEFAULT_PROJECT="${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml"
 
 ###############################################
 # Default values definitions

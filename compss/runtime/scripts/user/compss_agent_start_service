@@ -2,47 +2,43 @@
 
 # Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 fi
-if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-  COMPSS_HOME="${COMPSS_HOME}/"
-fi
-export COMPSS_HOME=${COMPSS_HOME}
 
 # Load auxiliar scripts
 
 # shellcheck source=../system/commons/logger.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 # shellcheck source=../system/commons/utils.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 
 # shellcheck source=../system/commons/version.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/version.sh"
 
 # shellcheck source=../system/runtime/compss_setup.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 # shellcheck source=../system/agents/commons.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/agents/commons.sh"
 
 
 
 ###############################################
 # SCRIPT CONSTANTS DECLARATION
 ###############################################
-AGENTS_SCRIPTS_HOME="${COMPSS_HOME}Runtime/scripts/user/"
+AGENTS_SCRIPTS_HOME="${COMPSS_HOME}/Runtime/scripts/user/"
 DEFAULT_NUM_AGENTS=1
 
 DEFAULT_AGENTNAME_PREFIX="127.0.0."
 DEFAULT_INITIAL_PORT=46000
 
-DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
+DEFAULT_PROJECT="${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml"
 DEFAULT_LOG_DIR="${TEST_HOME:-$HOME/.COMPSs}/$(date +"%Y.%m.%d.%H%M%S")"
 DEFAULT_TOPOLOGY="plain"
 

@@ -11,10 +11,10 @@
 #
 
 kill_recursive() {
-  if [ $1 -gt 0 ]; then 
+  if [ $1 -gt 0 ]; then
      # Active processes
      to_kill=$(ps --ppid "$1" -o pid= | awk '{ print $1 }' | tr '\n' ' ')
- 
+
      # Kill each child process of the parent
      for fn in $to_kill; do
         kill_recursive "$fn"

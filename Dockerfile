@@ -4,11 +4,10 @@ ARG BASE=base22
 ARG BASE_VERSION=latest
 
 FROM compss/${BASE}_ci:${BASE_VERSION} AS ci
-ENV GRADLE_HOME=/opt/gradle
-ENV PATH=$PATH:/opt/gradle/bin
 
 COPY . /framework
 
+ENV GRADLE_HOME=/opt/gradle
 ENV PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils:/opt/gradle/bin
 ENV CLASSPATH=/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
@@ -23,7 +22,6 @@ RUN cd /framework && \
     chown -R jenkins: /framework && \
     chown -R jenkins: /home/jenkins/ && \
     python3 -m pip install --no-cache-dir rocrate==0.9.0 roc-validator==0.4.2
-
 
 # Expose SSH port and run SSHD
 EXPOSE 22

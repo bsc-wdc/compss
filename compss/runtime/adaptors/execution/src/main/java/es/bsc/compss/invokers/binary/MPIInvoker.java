@@ -199,10 +199,10 @@ public class MPIInvoker extends Invoker {
                     BinaryRunner.buildAppParams(this.invocation.getParams(), container.getOptions(), pythonInterpreter);
                 numOptions = options.length;
             }
-            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
-            String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
-            if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
-                numOptions += 4;
+            // -e COMPSS_CONTAINER=${COMPSS_CONTAINER}
+            String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
+            if (compssContainer != null && !compssContainer.isEmpty()) {
+                numOptions += 2;
             }
             cmdLength += container.getEngine().equals(SINGULARITY) ? numOptions : numOptions + 1;
         }
@@ -249,14 +249,12 @@ public class MPIInvoker extends Invoker {
             // Check options
             pos = ContainerInvoker.addContainerOptions(cmd, pos, options);
             // todo: nm: if the env variable is defined, use that
-            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
-            String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
-            if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
-                cmd[pos++] = "-e";
-                cmd[pos++] = COMPSsConstants.DOCKER_WORKING_DIR_VOLUME + "=\"" + dockerWorkDirVolume + "\"";
-                String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
-                cmd[pos++] = "-e";
-                cmd[pos++] = COMPSsConstants.DOCKER_WORKING_DIR_MOUNT + "=\"" + dockerWorkDirMount + "\"";
+            // -e COMPSS_CONTAINER=${COMPSS_CONTAINER}
+            String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
+            LOGGER.info("COMPSs docker container: {}", compssContainer);
+            if (compssContainer != null && !compssContainer.isEmpty()) {
+                cmd[pos++] = "--volumes-from";
+                cmd[pos++] = compssContainer;
             }
             cmd[pos++] = container.getImage();
         }
@@ -277,7 +275,7 @@ public class MPIInvoker extends Invoker {
         // Prepare environment
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
-            outLog.println("");
+            outLog.println();
             outLog.println("[MPI INVOKER] Begin MPI call to " + this.mpiDef.getBinary());
             outLog.println("[MPI INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
@@ -285,7 +283,7 @@ public class MPIInvoker extends Invoker {
             for (String s : cmd) {
                 outLog.print(s + " ");
             }
-            outLog.println("");
+            outLog.println();
             outLog.println("[MPI INVOKER] MPI STDIN: " + streamValues.getStdIn());
             outLog.println("[MPI INVOKER] MPI STDOUT: " + streamValues.getStdOut());
             outLog.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());

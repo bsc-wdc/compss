@@ -97,6 +97,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -477,7 +478,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             DP_LOGGER.info(COMPSs_VERSION);
             DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
             DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
-            DP_LOGGER.info(Instant.now().toString());
+            DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
         }
     }
 
@@ -530,15 +531,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
 
                 LOGGER.debug("Stopping Comm...");
-                Comm.stop(CoreManager.getSignaturesToCEIds());
-                LOGGER.debug("Runtime stopped");
-                stopped = true;
+                Comm.stop();
                 // LOGGER.debug("Releasing all barriers...");
                 // In some case, when runtime is stop because an error the java process is not stopped
                 // because some threads are blocked at barriers waiting for the end of tasks
                 for (Application app : Application.getApplications()) {
                     app.getBaseTaskGroup().releaseBarrier();
                 }
+                if (Tracer.isActivated()) {
+                    LOGGER.debug("Stopping tracing...");
+                    Comm.stopTracing(CoreManager.getSignaturesToCEIds());
+                }
+                LOGGER.debug("Runtime stopped");
+                stopped = true;
             } else {
                 LOGGER.debug("Duplicated Stop");
                 throw (new RuntimeException("Runtime already stopped"));
@@ -549,7 +554,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.warn("Execution Finished");
 
         if (DP_ENABLED) {
-            DP_LOGGER.info(Instant.now().toString());
+            DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
         }
 
     }

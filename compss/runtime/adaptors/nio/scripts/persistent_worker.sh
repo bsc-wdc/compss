@@ -50,7 +50,7 @@
       export NX_ARGS="--summary"
       export NANOS6=debug
 
-      echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
+      echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName} from PID: $$"
       echo "Calling NIOWorker"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
@@ -77,8 +77,8 @@
 
   # Exit
   if [ $exitValue -eq 0 ]; then
-	exit 0
+	  exit 0
   else
-	echo 1>&2 "[persistent_worker.sh] Worker could not be initalized"
-	exit 7
+	  echo 1>&2 "[persistent_worker.sh] Worker could not be initalized"
+	  exit 7
   fi

@@ -2,22 +2,18 @@
 
 # Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
-  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  export COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 fi
-if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-  COMPSS_HOME="${COMPSS_HOME}/"
-fi
-export COMPSS_HOME=${COMPSS_HOME}
 
 # shellcheck source=../system/runtime/tracing.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/tracing.sh"
 # shellcheck source=../system/runtime/adaptors.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/adaptors.sh"
 # shellcheck source=../system/runtime/scheduler.sh
 # shellcheck disable=SC109
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/scheduler.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/scheduler.sh"
 
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
@@ -145,11 +141,11 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg="${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
+  local defaultSC_cfg="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
   # shellcheck source=../queues/supercomputers/default.cfg
   # shellcheck disable=SC1091
   source "${defaultSC_cfg}"
-  local defaultQS_cfg="${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
+  local defaultQS_cfg="${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   # shellcheck source=../queues/queue_systems/slurm.cfg
   # shellcheck disable=SC1091
   source "${defaultQS_cfg}"
@@ -227,7 +223,7 @@ EOT
   export DEFAULT_GENERATE_TRACE="false"
   export DEFAULT_TRACING_DELETE_PACKAGES="false"
 
-  "${COMPSS_HOME}Runtime/scripts/user/runcompss" --opts
+  "${COMPSS_HOME}/Runtime/scripts/user/runcompss" --opts
 
   exit "$exitValue"
 }
@@ -238,7 +234,7 @@ EOT
 display_version() {
   local exitValue=$1
 
-  "${COMPSS_HOME}Runtime/scripts/user/runcompss" --version
+  "${COMPSS_HOME}/Runtime/scripts/user/runcompss" --version
 
   exit "$exitValue"
 }
@@ -836,7 +832,7 @@ create_xml_files() {
   # Generate project file
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
   PROJECT_FILE=${worker_working_dir}/project_$sec.xml
   if [ "${log_level}" != "off" ]; then
      echo "[LAUNCH_COMPSS] XML - Generating project at ${PROJECT_FILE}"
@@ -855,7 +851,7 @@ create_xml_files() {
     # Generate file
     # shellcheck source=../system/xmls/generate_resources.sh
     # shellcheck disable=SC1091
-    source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
+    source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_resources.sh"
     RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
     if [ "${log_level}" != "off" ]; then
         echo "[LAUNCH_COMPSS] XML - Generating resources at ${RESOURCES_FILE}"
@@ -890,7 +886,7 @@ init_het_xml_files() {
   # GENERATE PROJECT FILE
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
   if [ "${log_level}" != "off" ]; then
@@ -915,7 +911,7 @@ init_het_xml_files() {
   # GENERATE RESOURCES FILE
   # shellcheck source=../system/xmls/generate_resources.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_resources.sh"
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
   if [ "${log_level}" != "off" ]; then
@@ -951,7 +947,7 @@ add_het_xml_files() {
   # GENERATE PROJECT FILE
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
   if [ "${log_level}" != "off" ]; then
@@ -965,7 +961,7 @@ add_het_xml_files() {
   # GENERATE RESOURCES FILE
   # shellcheck source=../system/xmls/generate_resources.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_resources.sh"
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
   if [ "${log_level}" != "off" ]; then
@@ -992,7 +988,7 @@ fini_het_xml_files() {
   # GENERATE PROJECT FILE
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
   if [ "${log_level}" != "off" ]; then
@@ -1009,7 +1005,7 @@ fini_het_xml_files() {
   # GENERATE RESOURCES FILE
   # shellcheck source=../system/xmls/generate_resources.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_resources.sh"
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
   if [ "${log_level}" != "off" ]; then
@@ -1499,7 +1495,7 @@ check_args() {
         sc_cfg=${sc_cfg}.cfg
      fi
 
-     local scCfgFullPath="${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${sc_cfg}"
+     local scCfgFullPath="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${sc_cfg}"
 
      if [ ! -f "${scCfgFullPath}" ]; then
         # CFG file doesn't exist
@@ -1513,7 +1509,7 @@ check_args() {
   source "${scCfgFullPath}"
 
   # Check queue configuration env
-  local queueCfgFullPath="${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
+  local queueCfgFullPath="${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
     display_error "${ERROR_CFG_Q}"

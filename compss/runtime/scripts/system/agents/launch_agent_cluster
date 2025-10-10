@@ -6,7 +6,7 @@
 SHARED_DISK_NAME="shared_disk"
 # shellcheck source=../comons/common.sh
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 ###############################################
 # Identifies other agents which it may interact
@@ -142,7 +142,7 @@ xml_project_add_child_agents() {
 generate_project() {
   # shellcheck source=../xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_project.sh"
   echo "[XML] Generating project at ${PROJECT_FILE}"
   xml_project_setup
 
@@ -188,7 +188,7 @@ xml_project_setup() {
 generate_resources() {
   # shellcheck source=../xmls/generate_resources.sh
   # shellcheck disable=SC1091
-  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/xmls/generate_resources.sh"
   
   echo "[XML] Generating resources at ${RESOURCES_FILE}"
   xml_resources_setup

@@ -4,9 +4,9 @@ if [ -n "${LOADED_SYSTEM_COMMONS_VERSION}" ]; then
   return 0
 fi
 
-VERSION=$(cat "${COMPSS_HOME}Runtime/scripts/system/commons/VERSION")
-VERSION_NAME=$(cat "${COMPSS_HOME}Runtime/scripts/system/commons/VERSION_NAME")
-VERSION_FLOWER=$(cat "${COMPSS_HOME}Runtime/scripts/system/commons/VERSION_FLOWER")
+VERSION=$(cat "${COMPSS_HOME}/Runtime/scripts/system/commons/VERSION")
+VERSION_NAME=$(cat "${COMPSS_HOME}/Runtime/scripts/system/commons/VERSION_NAME")
+VERSION_FLOWER=$(cat "${COMPSS_HOME}/Runtime/scripts/system/commons/VERSION_FLOWER")
 
 ###############################################
 # Displays version

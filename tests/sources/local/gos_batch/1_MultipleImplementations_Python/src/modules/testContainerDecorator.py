@@ -64,14 +64,14 @@ def task_binary_std(stdout, stderr):
 # Python Tasks definition
 #
 @container(engine="DOCKER",
-           image="compss/compss")
+           image="${COMPSS_IMAGE}")
 @task()
 def task_python_empty():
     print("Hello from Task Python EMPTY")
 
 
 @container(engine="DOCKER",
-           image="compss/compss")
+           image="${COMPSS_IMAGE}")
 @task(num=IN, in_str=IN, fin=FILE_IN)
 def task_python_args(num, in_str, fin):
     print("Hello from Task Python ARGS")
@@ -83,7 +83,7 @@ def task_python_args(num, in_str, fin):
 
 
 @container(engine="DOCKER",
-           image="compss/compss")
+           image="${COMPSS_IMAGE}")
 @task(returns=1)
 def task_python_return_int():
     print("Hello from Task Python RETURN")
@@ -91,7 +91,7 @@ def task_python_return_int():
 
 
 @container(engine="DOCKER",
-           image="compss/compss")
+           image="${COMPSS_IMAGE}")
 @task(returns=1, num=IN, in_str=IN, fin=FILE_IN)
 def task_python_return_str(num, in_str, fin):
     print("Hello from Task Python RETURN")
@@ -102,7 +102,7 @@ def task_python_return_str(num, in_str, fin):
 
 
 @container(engine="DOCKER",
-           image="compss/compss")
+           image="${COMPSS_IMAGE}")
 @task(finout=FILE_INOUT)
 def task_python_inout(finout):
     print("Hello from Task Python ARGS")

@@ -1,6 +1,6 @@
 {
     "container": {
         "engine": "DOCKER",
-        "image": "compss/compss"
+        "image": "${COMPSS_IMAGE}"
     }
 }

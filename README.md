@@ -55,7 +55,7 @@ of applications at execution time.
 
 ## Supported Systems
 
-COMPSs/PyCOMPSs fully supports Linux systems for amd64, ppc64, arm64 and riscv64 architectures. macOS systems are also supported with some limitations. 
+COMPSs/PyCOMPSs fully supports Linux systems for amd64, ppc64, arm64 and riscv64 architectures. macOS systems are also supported with some limitations.
 
 
 <!-- BUILDING COMPSS -->
@@ -141,22 +141,26 @@ To run the tests inside the docker image use the `./tests/scripts/docker_test` s
 
 **Tip**: for viewing all options use: `./tests/scripts/docker_test -h`.
 
-The docker main command creates a new docker container each time you run it (replacing the last one used). It copies the current framework inside it
-and runs its tests.
+The docker main command creates a new docker container, copies the current framework inside it and runs its tests.
 
-**Note**: the testing scripts assumes you have named the testing image `compss`.
+**Note**: you can change the COMPSs image used and the name of the container setting the following environment variables (showing defaults):
+
+```
+export COMPSS_IMAGE=compss
+export COMPSS_CONTAINER=compss_test
+```
 
 **Please be aware that:**
 
 * Code changes affecting the tests sources, config files (e.g. `local.cfg`, and scripts (like `./local`) __will be__ visible inside the newly created container.
 * Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in [step 2](#2-build-the-docker-image).
 * If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual.
+* You must remove the container before running again docker tests: `docker rm -fv compss_test`.
 * To delete the created image issue `docker rmi compss`
-* To delete the compss_test container use `docker rm -f compss_test`.
 
 ### 4. Run the tests locally on macOS
 
-In order to run Jenkins tests locally on macOS, GNU sed (gsed) is needed. To install it, use:
+In order to run the tests locally on macOS, GNU sed (gsed) is needed. To install it, use:
 
 ```
 brew install gsed

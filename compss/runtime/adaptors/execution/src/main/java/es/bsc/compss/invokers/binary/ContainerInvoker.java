@@ -49,8 +49,8 @@ import java.util.List;
 
 public class ContainerInvoker extends Invoker {
 
-    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 25;
-    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 12;
+    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 21;
+    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 10;
     private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 24;
@@ -87,7 +87,7 @@ public class ContainerInvoker extends Invoker {
         super(context, invocation, sandbox, assignedResources);
 
         // Get method definition properties
-        ContainerDefinition containerImpl = null;
+        ContainerDefinition containerImpl;
         try {
             containerImpl = (ContainerDefinition) invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
@@ -269,37 +269,40 @@ public class ContainerInvoker extends Invoker {
         int numOptions = 0;
         String[] options = null;
         String optionsStr = this.container.getOptions().trim();
-        if (optionsStr != null && !optionsStr.isEmpty() && !optionsStr.equals(Constants.UNASSIGNED)) {
+        if (!optionsStr.isEmpty() && !optionsStr.equals(Constants.UNASSIGNED)) {
             options = BinaryRunner.buildAppParams(this.invocation.getParams(), optionsStr, pythonInterpreter);
             numOptions = options.length;
         }
-        int numCmdArgs = 0;
+        String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
+        LOGGER.info("COMPSs docker container: {}", compssContainer);
+        boolean insideContainer = compssContainer != null && !compssContainer.isEmpty();
+        int numCmdArgs = numOptions + containerCallParams.size() + (insideContainer ? 0 : 2);
         switch (this.container.getEngine()) {
             case DOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
+                        numCmdArgs += NUM_BASE_DOCKER_PYTHON_ARGS;
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
+                        numCmdArgs += NUM_BASE_DOCKER_BINARY_ARGS;
                 }
                 break;
             case SINGULARITY:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_SINGULARITY_PYTHON_ARGS + numOptions + containerCallParams.size();
+                        numCmdArgs += NUM_BASE_SINGULARITY_PYTHON_ARGS;
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + numOptions + containerCallParams.size();
+                        numCmdArgs += NUM_BASE_SINGULARITY_BINARY_ARGS;
                 }
                 break;
             case UDOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_UDOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
+                        numCmdArgs += NUM_BASE_UDOCKER_PYTHON_ARGS;
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_UDOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
+                        numCmdArgs += NUM_BASE_UDOCKER_BINARY_ARGS;
                 }
                 break;
         }
@@ -314,39 +317,22 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "run";
                 cmd[cmdIndex++] = "-i";
                 cmd[cmdIndex++] = "--rm";
-                cmd[cmdIndex++] = "-v";
                 // todo: nm: if the env variable is defined, use that
                 // nm: for the app dir, we need exactly the same as this, but it goes inside case CET_PYTHON..
-                String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
-                LOGGER.info("Docker Working Dir Volume: {}", dockerWorkDirVolume);
-                if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
-                    String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
-                    cmd[cmdIndex++] = dockerWorkDirVolume + ":" + dockerWorkDirMount;
+                if (insideContainer) {
+                    cmd[cmdIndex++] = "--volumes-from";
+                    cmd[cmdIndex++] = compssContainer;
                 } else {
+                    cmd[cmdIndex++] = "-v";
                     cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
-                }
-                // mount the app dir
-                cmd[cmdIndex++] = "-v";
-                String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
-                LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);
-                if (appDirVolume != null && !appDirVolume.isEmpty()) {
-                    String dockerAppDirMount = System.getenv(COMPSsConstants.DOCKER_APP_DIR_MOUNT);
-                    LOGGER.info("Docker APP Dir mount: {}", dockerAppDirMount);
-                    cmd[cmdIndex++] = appDirVolume + ":" + dockerAppDirMount;
-                } else {
+                    cmd[cmdIndex++] = "-v";
                     cmd[cmdIndex++] = appDir + ":" + appDir;
                 }
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         // mount the pycompss dir
-                        cmd[cmdIndex++] = "-v";
-                        String pycompssVol = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_VOLUME);
-                        LOGGER.info("Docker PYCOMPSS Dir Volume: {}", pycompssVol);
-                        if (pycompssVol != null && !pycompssVol.isEmpty()) {
-                            String pycompssMount = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_MOUNT);
-                            LOGGER.info("Docker pycompss mount: {}", pycompssMount);
-                            cmd[cmdIndex++] = pycompssVol + ":" + pycompssMount;
-                        } else {
+                        if (!insideContainer) {
+                            cmd[cmdIndex++] = "-v";
                             cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":"
                                 + pyCompssDir + File.separator + "pycompss";
                         }
@@ -446,14 +432,14 @@ public class ContainerInvoker extends Invoker {
         }
 
         // Prepare command - Prepare user arguments
-        for (int i = 0; i < containerCallParams.size(); ++i) {
-            cmd[cmdIndex++] = containerCallParams.get(i); // 9:
+        for (String containerCallParam : containerCallParams) {
+            cmd[cmdIndex++] = containerCallParam; // 9:
         }
 
         // Debug information
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = this.context.getThreadOutStream();
-            outLog.println("");
+            outLog.println();
             outLog.println("[CONTAINER INVOKER] Begin binary call to container execution");
             outLog.println("[CONTAINER INVOKER] Engine: " + this.container.getEngine().toString());
             outLog.println("[CONTAINER INVOKER] Image: " + this.container.getImage());
@@ -463,10 +449,10 @@ public class ContainerInvoker extends Invoker {
             outLog.println("[CONTAINER INVOKER] On WorkingDir : " + workingDir);
             // Debug command
             outLog.print("[CONTAINER INVOKER] BINARY CMD: ");
-            for (int i = 0; i < cmd.length; ++i) {
-                outLog.print(cmd[i] + " ");
+            for (String s : cmd) {
+                outLog.print(s + " ");
             }
-            outLog.println("");
+            outLog.println();
             outLog.println("[CONTAINER INVOKER] Binary STDIN: " + streamValues.getStdIn());
             outLog.println("[CONTAINER INVOKER] Binary STDOUT: " + streamValues.getStdOut());
             outLog.println("[CONTAINER INVOKER] Binary STDERR: " + streamValues.getStdErr());
@@ -594,7 +580,7 @@ public class ContainerInvoker extends Invoker {
         if (new File(pathToWrite).exists()) {
             LOGGER.debug("Collection file " + pathToWrite + " already written");
         } else {
-            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
+            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8")) {
                 for (InvocationParam subParam : ipc.getCollectionParameters()) {
                     int subParamType = subParam.getType().ordinal();
                     Object subParamValue = subParam.getValue();

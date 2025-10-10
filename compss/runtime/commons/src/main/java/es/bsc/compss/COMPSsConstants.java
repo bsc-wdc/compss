@@ -191,13 +191,8 @@ public class COMPSsConstants {
     public static final String LOG4J = "log4j.configurationFile";
 
     // Docker execution related variable names
-
-    public static final String DOCKER_APP_DIR_VOLUME = "DOCKER_APP_DIR_VOLUME";
-    public static final String DOCKER_APP_DIR_MOUNT = "DOCKER_APP_DIR_MOUNT";
-    public static final String DOCKER_PYCOMPSS_VOLUME = "DOCKER_PYCOMPSS_VOLUME";
-    public static final String DOCKER_PYCOMPSS_MOUNT = "DOCKER_PYCOMPSS_MOUNT";
-    public static final String DOCKER_WORKING_DIR_VOLUME = "DOCKER_WORKING_DIR_VOLUME";
-    public static final String DOCKER_WORKING_DIR_MOUNT = "DOCKER_WORKING_DIR_MOUNT";
+    public static final String COMPSS_IMAGE = "COMPSS_IMAGE";
+    public static final String COMPSS_CONTAINER = "COMPSS_CONTAINER";
 
     public static final String COMPSS_CONTAINER_ENGINE = "COMPSS_CONTAINER_ENGINE";
     public static final String MASTER_CONTAINER_IMAGE = "MASTER_CONTAINER_IMAGE";

@@ -650,6 +650,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
     headers = {"Accept": "application/json"}
     # Search parameters
     # query = f'{person_name} AND affiliation-org-name:"Barcelona Supercomputing Center"'  # Cannot search with org-name, does not find persons without org defined
+
     params = {"q": person_name, "rows": 1000}  # Maximum number per query
 
     if not person_name:
@@ -676,6 +677,7 @@ def search_orcid(person_name: str) -> tuple[str, str, str, dict]:
                     print(
                         f"PROVENANCE DEBUG | Obtained results: {list_of_results.get('num-found')}."
                     )
+
                 for result in list_of_results["expanded-result"]:
                     orcid = "https://orcid.org/" + result.get("orcid-id")
                     list_institutions = result.get("institution-name")
@@ -746,7 +748,9 @@ def search_by_orcid(orcid_str: str) -> tuple[str, str, str, dict]:
         return None, None
     # Get info from a specific ORCID
     # query_str = '"' + orcid_str.split("/")[-1] + '"'  # Exact match with "" fails for non-existing ORCIDs
-    query_str = orcid_str.split("/")[-1]  # Does not find a single result, but eventually finds the ORCID
+    query_str = orcid_str.split("/")[
+        -1
+    ]  # Does not find a single result, but eventually finds the ORCID
     url_base = "https://pub.orcid.org/v3.0/expanded-search"
     # Request headers
     headers = {"Accept": "application/json"}

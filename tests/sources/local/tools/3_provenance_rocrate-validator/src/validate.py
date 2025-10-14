@@ -8,12 +8,13 @@ def configure_validation(crate, profile_string):
     # Create an instance of `ValidationSettings` class to configure the validation
     settings = services.ValidationSettings(
         # Set the path to the RO-Crate root directory
-        data_path = crate,
+        rocrate_uri = crate,
         # Set the identifier of the RO-Crate profile to use for validation.
         # If not set, the system will attempt to automatically determine the appropriate validation profile.
-        profile_identifier=profile_string,
+        profile_identifier = profile_string,
         # Set the requirement level for the validation
-        requirement_severity=models.Severity.REQUIRED,
+        requirement_severity = models.Severity.REQUIRED,
+        # exclude_checks=["ro-crate-1.1_12.1"],
     )
     return settings
 

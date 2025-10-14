@@ -1,0 +1,65 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycompss-cli"
+authors = [
+  { name="Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)", email="compss@bsc.es" },
+]
+maintainers = [
+  { name="Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)", email="support-compss@bsc.es" },
+]
+description = "Command Line Interface (CLI) for PyCOMPSs. Enables to run PyCOMPSs applications in different environments (docker, cluster, local) from a single command line."
+requires-python = ">=3.7"
+license = { file = "LICENSE.txt" }
+keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "CLI"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Topic :: System :: Distributed Computing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dynamic = ["version", "readme"] 
+
+dependencies = [
+    "setuptools",
+    "rocrate",
+]
+
+[project.optional-dependencies]
+
+docker = [
+    "docker",
+]
+
+[project.scripts]
+pycompss = "pycompss_cli.cli.pycompss:main"
+
+[tool.setuptools]
+packages = ["pycompss_cli"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { file = "VERSION.txt" }
+readme = { file = "README.rst", content-type = "text/x-rst" }

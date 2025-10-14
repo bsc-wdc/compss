@@ -20,7 +20,6 @@ import os
 import sys
 import tarfile
 import tempfile
-import shutil
 from uuid import uuid4
 import subprocess
 
@@ -41,7 +40,7 @@ default_image_file = "image"
 default_image = default_workdir + default_image_file
 
 
-IMAGE_NAME = "compss/compss:3.2"  # Update when releasing new version
+IMAGE_NAME = "compss/compss:3.3.3"  # Update when releasing new version
 DOCKER_AVAILABALE = True
 
 try:
@@ -56,6 +55,29 @@ except ImportError:
 # API FUNCTIONS #
 # ############# #
 
+class DockerClient():
+    def __init__(self):
+        self._client = None
+        self._error_message = None
+
+        if DOCKER_AVAILABALE:
+            try:
+                self._client = docker.from_env()
+            except DockerException:
+                self._error_message = 'ERROR: Docker service is not running\n\tPlease, start docker service and try again'
+        else:
+            self._error_message = 'ERROR: Pip package `docker` is required for creating docker environments.'
+
+    def __getattribute__(self, name):
+        client = super().__getattribute__('_client')
+        error_message = super().__getattribute__('_error_message')
+
+        if client is None:
+            print(error_message, file=sys.stderr)
+            sys.exit(1)
+            
+        return super().__getattribute__('_client').__getattribute__(name)
+
 class ErrorContainerNotRunning(Exception):
     pass
 
@@ -63,34 +85,23 @@ class DockerCmd(object):
     def __init__(self, env_id) -> None:
         self.env_id = env_id
 
-        if not DOCKER_AVAILABALE:
-            print('ERROR: Pip package `docker` is required for creating docker environments.')
-            exit(1)
-        
         super().__init__()
 
-        try:
-            docker.APIClient(base_url="unix://var/run/docker.sock")
-            self.client = docker.from_env()
-        except DockerException:
-            print("ERROR: Docker service is not running", file=sys.stderr)
-            print("       Please, start docker service and try again", file=sys.stderr)
-            exit(1)
+        self.client = DockerClient()
 
         self.master_name = master_name + "-" + self.env_id
         self.worker_name = worker_name + "-" + self.env_id
-        self.__setup_image_name()
 
-    def __setup_image_name(self):
-        global IMAGE_NAME
+
+    def __get_image_name(self):
         if os.environ.get("DEFAULT_DISLIB_DOCKER_IMAGE") is not None:
             # This environment variable will be defined by the dislib script.
             # It can be overriden by the COMPSS_DOCKER_IMAGE or the -i flag
             # when running init.
-            IMAGE_NAME = os.environ["DEFAULT_DISLIB_DOCKER_IMAGE"]
+            return os.environ["DEFAULT_DISLIB_DOCKER_IMAGE"]
         elif os.environ.get("COMPSS_DOCKER_IMAGE") is not None:
             # If specified in an environment variable, take it
-            IMAGE_NAME = os.environ["COMPSS_DOCKER_IMAGE"]
+            return os.environ["COMPSS_DOCKER_IMAGE"]
         elif len(self.client.containers.list(filters={"name": self.master_name})) > 0:
             # Condition equivalent to: is_running(master_name):
             # But since it is undefined yet, we do it explicitly.
@@ -99,7 +110,8 @@ class DockerCmd(object):
             # Command equivalent to: master = _get_master()
             # But since it is undefined yet, we do it explicitly.
 
-            IMAGE_NAME = master.image.attrs["Id"][7:7+12]
+            return master.image.attrs["Id"][7:7+12]
+        
 
     def docker_deploy_compss(self, working_dir: str,
                             log_dir: str,
@@ -120,7 +132,7 @@ class DockerCmd(object):
         if image:
             docker_image = image
         else:
-            docker_image = IMAGE_NAME
+            docker_image = self.__get_image_name()
 
         masters = self.client.containers.list(filters={"name": self.master_name},
                                         all=True)
@@ -154,7 +166,6 @@ class DockerCmd(object):
                         '","resources":"","project":""}'
             tmp_path, cfg_file = self._store_temp_cfg(cfg_content)
             self._copy_file(cfg_file, default_cfg)
-            shutil.rmtree(tmp_path)
 
     
     def docker_start_compss(self):
@@ -518,7 +529,6 @@ class DockerCmd(object):
                     '","project":"' + new_proj_cfg + '"}'
         tmp_path, cfg_file = self._store_temp_cfg(cfg_content)
         self._copy_file(cfg_file, default_cfg)
-        shutil.rmtree(tmp_path)
 
 
     def _add_custom_worker(self, custom_cfg: str) -> None:
@@ -574,7 +584,7 @@ class DockerCmd(object):
         mounts = self._get_mounts(user_working_dir=cfg["working_dir"])
         for _ in range(num_workers):
             worker_id = worker_name + "-" + uuid4().hex[:8]
-            self.client.containers.run(image=IMAGE_NAME, name=worker_id,
+            self.client.containers.run(image=self._get_image_name(), name=worker_id,
                                 mounts=mounts, detach=True, auto_remove=True)
         ips = self._get_worker_ips()
         self._update_cfg(master, cfg, ips, cpus)

@@ -44,14 +44,16 @@ def remote_deploy_compss(env_id: str, login_info: str, modules, envars=[]) -> No
 
     subprocess.run(f"ssh {login_info} 'mkdir -p ~/.COMPSs'", shell=True)
 
-    if isinstance(modules, str):
+    if isinstance(modules, str) and os.path.isfile(modules):
         modules_file = modules
     else:
+        if not isinstance(modules, list):
+            modules = [modules]
         tmp_modules = tempfile.NamedTemporaryFile(delete=False)
         env_vars = '\n'.join([f'export {var}' for var in envars])
         mod_script = '\n'.join([f'module load {m}' for m in modules])
-        tmp_modules.write((env_vars + '\n').encode())
-        tmp_modules.write((mod_script + '\n').encode())
+        tmp_modules.write((env_vars + '\n').encode().strip())
+        tmp_modules.write((mod_script + '\n').encode().strip())
         tmp_modules.close()
         modules_file = tmp_modules.name
 

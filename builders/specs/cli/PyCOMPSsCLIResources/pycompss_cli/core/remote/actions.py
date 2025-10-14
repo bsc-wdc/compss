@@ -76,7 +76,7 @@ class RemoteActions(Actions):
         env_id = self.arguments.name
         envars = []
         if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
-            envars.append('COMPSS_PYTHON_VERSION=3.7.4')
+            envars.append('COMPSS_PYTHON_VERSION=3')
         
         try:
             remote_deploy_compss(env_id, self.arguments.login, self.arguments.modules, envars=envars)
@@ -155,7 +155,25 @@ class RemoteActions(Actions):
         modules = self.__get_modules()
         env_vars = [item for sublist in self.arguments.env_var for item in sublist]
         if 'COMPSS_PYTHON_VERSION' not in ''.join(env_vars):
-            env_vars = ['COMPSS_PYTHON_VERSION=3.7.4'] + env_vars
+            env_vars = ['COMPSS_PYTHON_VERSION=3'] + env_vars
+
+        interactive_port = None
+        for arg in app_args:
+            if '--interactive_port=' in arg:
+                interactive_port = int(arg.split('=')[1].strip())
+                app_args.remove(arg)
+                break
+
+        reverse_port = None
+        for arg in app_args:
+            if '--reverse_port=' in arg:
+                reverse_port = int(arg.split('=')[1].strip())
+                app_args.remove(arg)
+                break
+        
+        if interactive_port and reverse_port:
+            print('ERROR: Setting both `interactive_port` and `reverse_port` arguments are not allowed')
+            exit(1)
         
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars, debug=self.debug)
 
@@ -163,11 +181,34 @@ class RemoteActions(Actions):
             'app_name': app_name,
             'env_vars': '; '.join(env_vars) if env_vars else 'None',
             'enqueue_args': app_args,
-            'timestamp': str(datetime.datetime.utcnow())[:-7] + ' UTC'
+            'timestamp': str(datetime.datetime.now(datetime.timezone.utc))[:-7] + ' UTC'
         }
 
         with open(self.env_conf['env_path'] + '/jobs.json', 'w') as f:
             json.dump(self.past_jobs, f)
+
+        if interactive_port is not None or reverse_port is not None:
+            scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
+
+            print('Waiting for job to start...')
+            job_job_status = defaults.NOT_RUNNING_KEYWORD
+            try:
+                while job_job_status != 'RUNNING':
+                    job_job_status = core.job_status(scripts_path, job_id, login_info, modules, debug=self.debug)
+            except:
+                print('ERROR while waiting for job to start')
+                core.cancel_job(scripts_path, [job_id], login_info, modules, debug=self.debug)
+                exit(1)
+            else:
+                print('Job started')
+
+                print('Connecting to job server...')
+                time.sleep(5)
+
+                core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=interactive_port, reverse_port=reverse_port, debug=self.debug)
+                
+                core.cancel_job(scripts_path, [job_id], login_info, modules, debug=self.debug)
+
 
     def job_history(self):
         job_id = self.arguments.job_id
@@ -367,18 +408,9 @@ class RemoteActions(Actions):
                     f'--pythonpath={remote_dir}']
         app_args += self.arguments.rest_args
 
-        port = '8888'
-        for arg in app_args:
-            if '--port=' in arg:
-                port = arg.split('=')[1]
-                app_args.remove(arg)
-                break
-
         app_args = ' '.join(app_args)
         modules = self.__get_modules()
         envars = []
-        if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
-            envars.append('COMPSS_PYTHON_VERSION=3.7.4')
 
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars, debug=self.debug)
 
@@ -399,6 +431,16 @@ class RemoteActions(Actions):
             print('Connecting to jupyter server...')
             time.sleep(5)
 
+            port = '8888'
+            for arg in app_args:
+                if '--port=' in arg:
+                    port = arg.split('=')[1]
+                    app_args.remove(arg)
+                    break
+
             core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=port, web_browser=None, debug=self.debug)
             
             core.cancel_job(scripts_path, [job_id], login_info, modules, debug=self.debug)
+
+    def inspect(self):
+        raise NotImplementedError("inspect not implemented for remote environment")

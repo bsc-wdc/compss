@@ -21,7 +21,6 @@ import subprocess
 import re
 import time
 import signal
-import getpass
 from pycompss_cli.core import utils
 
 from pycompss_cli.core.remote.interactive_sc.defaults import INTERPRETER
@@ -179,7 +178,7 @@ def job_list(scripts_path, login_info, modules, debug=False):
     else:
         __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
-def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forward='8888', web_browser='firefox', debug=False):
+def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forward='8888', reverse_port=None, web_browser=None, debug=False):
     """
     Establish the connection with an existing notebook.
     :param scripts_path: Remote helper scripts path
@@ -220,9 +219,16 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
     else:
         __display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
 
-    cmd = ['-L', f'{port_forward}:localhost:{port_forward}',
-           'ssh', node,
-           '-L', f'{port_forward}:localhost:8888']
+    random_intermediate_port = random.randint(10000, 20000)
+
+    if port_forward:
+        cmd = ['-L', f'{port_forward}:localhost:{random_intermediate_port}',
+            'ssh', node,
+            '-L', f'{random_intermediate_port}:localhost:{port_forward}']
+    elif reverse_port:
+        cmd = ['-R', f'{random_intermediate_port}:localhost:{reverse_port}',
+            'ssh', node,
+            '-R', f'{reverse_port}:localhost:{random_intermediate_port}']
 
     if debug:
         print('****** DEBUG ******')
@@ -235,7 +241,8 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
 
     if web_browser is None:
         print(INFO_CONNECTION_ESTABLISHED)
-        print(CONNECTION_URL.replace(':8888', f':{port_forward}') + token)
+        if port_forward:
+            print(CONNECTION_URL.replace(':8888', f':{port_forward}') + token)
     else:
         print("Opening the " + web_browser + " browser with the connection URL.")
         if is_windows():

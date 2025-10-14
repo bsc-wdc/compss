@@ -27,7 +27,7 @@ class ActionsDispatcher(object):
         self.home_path = str(Path.home())
 
     def run_action(self, arguments):
-        self.__ensure_default_env
+        self.__ensure_default_env()
 
         if arguments.version:
             exit_code = command_runner(["runcompss", "-v"], silent=True)

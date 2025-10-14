@@ -239,3 +239,6 @@ class DockerActions(Actions):
     def job(self):
         print("ERROR: Wrong Environment! Try using a `remote` environment")
         exit(1)
+
+    def inspect(self):
+        raise NotImplementedError("inspect not implemented for docker environment")

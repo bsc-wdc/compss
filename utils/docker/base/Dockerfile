@@ -4,7 +4,7 @@ LABEL maintainer="COMPSs Support <support-compss@bsc.es>" \
       url="http://compss.bsc.es"
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 
 FROM base AS base_amd64
 
@@ -18,9 +18,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
 ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server
 ENV EXTRAE_MPI_HEADERS=/usr/include/aarch64-linux-gnu/mpi
 
-
-#FROM base_$TARGETARCH AS base_rt
-FROM base_amd64 AS base_rt
+FROM base_${TARGETARCH} AS base_rt
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openjdk-21-jdk graphviz xdg-utils uuid-runtime && \
@@ -39,7 +37,7 @@ FROM base_bindings AS base_all
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server jq bc && \
     pip3 --no-cache-dir install pip setuptools wheel --upgrade && \
-    pip3 --no-cache-dir install dill guppy3 decorator mpi4py kafka-python3 rocrate==0.9.0 && \
+    pip3 --no-cache-dir install dill guppy3 decorator mpi4py kafka-python3 rocrate==0.14.0 && \
     pip3 --no-cache-dir install dataclay && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
@@ -79,6 +77,7 @@ RUN pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-clust
     # for fixing a nbcovert jinja2 compatibility problem
     pip3 --no-cache-dir install jinja2==3.0.3 && \
     pip3 --no-cache-dir install mypy==0.990 mypy-extensions==0.4.3 py types-tabulate types-decorator && \
+    pip3 --no-cache-dir install roc-validator==0.7.3 && \
     wget https://services.gradle.org/distributions/gradle-8.7-bin.zip && \
     unzip -d /opt gradle-8.7-bin.zip && \
     rm gradle-8.7-bin.zip && \

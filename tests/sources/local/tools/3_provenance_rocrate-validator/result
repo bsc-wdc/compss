@@ -69,6 +69,12 @@
     else
       echo "PROVENANCE application_sources/ DIRECTORY EXISTS" | tee -a "${output_file}"
     fi
+    if [ ! -d "${prov_dir}dataset/" ]; then
+      echo "PROVENANCE dataset/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE dataset/ DIRECTORY EXISTS" | tee -a "${output_file}"
+    fi
     if [ ! -f "${prov_dir}App_Profile.json" ]; then
       echo "PROVENANCE App_Profile.json FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1

@@ -19,9 +19,7 @@ RUN cd /framework && \
     python3 -m pip --no-cache-dir install pip wheel setuptools --upgrade && \
     /framework/builders/buildlocal --rcompss /opt/COMPSs && \
     mv /root/.m2 /home/jenkins && \
-    chown -R jenkins: /framework && \
-    chown -R jenkins: /home/jenkins/ && \
-    python3 -m pip install --no-cache-dir rocrate==0.9.0 roc-validator==0.4.2
+    chown -R jenkins: /framework /home/jenkins/
 
 # Expose SSH port and run SSHD
 EXPOSE 22
@@ -34,7 +32,7 @@ COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor
 COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
-ENV CLASSPATH=$CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV CLASSPATH=/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 
@@ -48,7 +46,7 @@ COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor
 COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils:/root/.local/bin
-ENV CLASSPATH=$CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV CLASSPATH=/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
@@ -71,7 +69,7 @@ COPY --from=ci /opt/COMPSs /opt/COMPSs
 COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
-ENV CLASSPATH=$CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV CLASSPATH=/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 
@@ -83,6 +81,6 @@ COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor
 COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
-ENV CLASSPATH=$CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV CLASSPATH=/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/

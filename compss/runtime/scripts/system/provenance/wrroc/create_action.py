@@ -298,6 +298,14 @@ def wrroc_create_action(
             print(
                 f"PROVENANCE | WARNING: No 'Authors' or 'Agent' specified in {info_yaml}"
             )
+    else:
+        # Update publisher with Agent details, rather than first author
+        if "ror" in agent_entity:
+            compss_crate.publisher = {"@id": agent_entity["ror"]}
+        else:
+            if "orcid" in agent_entity:
+                compss_crate.publisher = {"@id": agent_entity["orcid"]}
+            #  else the main author info stays
 
     if "Agent" in yaml_content and "Updated" in agent_entity:
         # Write updated YAML to disk

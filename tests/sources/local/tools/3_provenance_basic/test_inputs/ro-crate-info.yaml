@@ -4,7 +4,7 @@ COMPSs Workflow Information:
   license: Apache-2.0 #Provide better a URL, but these strings are accepted: 
                     # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
   sources: [src/matmul_files.py, src/matmul_tasks.py]
-  data_persistence: True
+  data_persistence: False
 
 Authors:
   - name: Raül Sirvent

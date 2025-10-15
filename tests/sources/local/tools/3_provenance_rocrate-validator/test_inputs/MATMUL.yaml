@@ -4,7 +4,7 @@ COMPSs Workflow Information:
   license: Apache-2.0 #Provide better a URL, but these strings are accepted: 
                     # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
   files: [matmul_files.py, matmul_tasks.py]
-  data_persistence: False
+  data_persistence: True
 
 Authors:
   - name: Rosa M Badia

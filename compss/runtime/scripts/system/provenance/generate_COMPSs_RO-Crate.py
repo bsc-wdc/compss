@@ -206,7 +206,7 @@ def main():
     # folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     sys.stdout.flush()  # All pending stdout to the log file
     if ZIP_PROVENANCE:
-        compss_crate.write_zip(DEST_FOLDER.rstrip("/"))
+        compss_crate.write_zip(f"{DEST_FOLDER.rstrip('/')}.zip")
     else:
         compss_crate.write(DEST_FOLDER)
     store_data(DEST_FOLDER, STATS_PATH, compss_crate)

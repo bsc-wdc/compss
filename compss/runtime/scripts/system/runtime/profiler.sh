@@ -2,12 +2,10 @@
 
 start_profiling() {
   if [ "${provenance}" != false ]; then
-    # specific_log_dir=$(pwd)
-    # profiling_status=$(echo "${specific_log_dir}/.status_profiling")
-
     if [ -z "${COMPSS_PROFILING_INTERVAL}" ]; then
       export COMPSS_PROFILING_INTERVAL=5
     fi
+    echo "PROVENANCE | Profiling interval set to ${COMPSS_PROFILING_INTERVAL} seconds"
 
     if [ -z "${logDir}" ]; then
       working_directory="$(dirname ${wdir_in_master})/stats"
@@ -25,6 +23,6 @@ start_profiling() {
 
 launch_profiling_script() {
   # launch the profiling script
-  python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
+  python3 "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
   PROFILING_PID=$!
 }

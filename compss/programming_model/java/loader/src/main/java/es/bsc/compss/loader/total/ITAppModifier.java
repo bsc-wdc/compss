@@ -49,7 +49,7 @@ public final class ITAppModifier {
 
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
-            && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true");
+        && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true");
 
     private static final long WALL_CLOCK_LIMIT =
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));

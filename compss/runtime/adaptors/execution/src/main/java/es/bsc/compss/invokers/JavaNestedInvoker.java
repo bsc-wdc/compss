@@ -109,9 +109,9 @@ public class JavaNestedInvoker extends JavaInvoker {
 
                 // Find the corresponding method
                 method = ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.warn("Could not instrument the method to detect nested tasks.", e);
-                method = super.findMethod();
+                throw new JobExecutionException("Could not instrument the method to detect nested tasks.", e);
             } finally {
 
                 if (Tracer.isActivated()) {

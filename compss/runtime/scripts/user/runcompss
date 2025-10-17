@@ -10,6 +10,9 @@ is_yaml_default=true
 is_output_profile_default=true
 is_graph_default=true
 provenance=false
+if [ -z "${zip_provenance}" ]; then
+  zip_provenance=false
+fi
 
 # Load auxiliar scripts
 # shellcheck source=../system/commons/logger.sh
@@ -27,7 +30,7 @@ source "${COMPSS_HOME}/Runtime/scripts/system/runtime/compss_setup.sh"
 
 # Load profiling script
 # shellcheck disable=SC1090
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/profiler.sh"
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/profiler.sh"
 
 #---------------------------------------------------
 # CONSTANTS DEFINTION
@@ -313,16 +316,16 @@ get_args() {
         provenance=true
         zip_provenance=true
         if [ -z "$provenance_yaml" ] ; then
-          echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
           provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+          is_yaml_default=true
         fi
         if [ -z "$output_profile" ] ; then
-          echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
+          is_output_profile_default=true
         fi
         if [ -z "$graph" ] ; then
-          echo "PROVENANCE | Setting 'graph' to 'true' by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
+          is_graph_default=true
         fi
         ;;
       -)
@@ -662,6 +665,7 @@ get_args() {
           provenance=*)
             provenance_arg=${OPTARG//provenance=/}
             if [ "${provenance_arg}" != false ]; then
+              provenance=true
               # Enable provenance, YAML file specified as parameter
               if [[ "${provenance_arg}" == *.yaml ]]; then
                 provenance_yaml="${provenance_arg}"
@@ -669,7 +673,6 @@ get_args() {
               else
                 provenance_yaml="${DEFAULT_PROVENANCE_YAML}"
               fi
-              provenance=true
               if [ -z "$output_profile" ] ; then
                 output_profile="${PWD}/App_Profile.json"
               fi
@@ -700,17 +703,18 @@ get_args() {
             provenance=true
             zip_provenance=true
             if [ -z "$provenance_yaml" ] ; then
-              echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
               provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+              is_yaml_default=true
             fi
             if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
+              is_output_profile_default=true
             fi
             if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
+              is_graph_default=true
             fi
+            ;;
           *)
             # Flag didn't match any patern. Raise exception
             arguments_error "Bad argument: $OPTARG"
@@ -740,6 +744,9 @@ get_args() {
       echo "PROVENANCE | Setting 'graph' to 'true' by default"
     else
       echo "PROVENANCE | Setting 'graph' to '${graph}'"
+    fi
+    if [ "${zip_provenance}" = true ]; then
+      echo "PROVENANCE | Zipping the resulting COMPSs RO-Crate"
     fi
   fi
 
@@ -858,10 +865,6 @@ if [ "${provenance}" != false ]; then
       timestamp=$(date +%Y%m%d_%H%M%S)
       # Set the variable with the desired naming scheme
       provenance_dest_path="COMPSs_RO-Crate_${timestamp}/"
-  fi
-
-  if [ -z "${zip_provenance}" ]; then
-      zip_provenance=false
   fi
 
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"

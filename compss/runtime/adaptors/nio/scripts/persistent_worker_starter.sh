@@ -64,7 +64,7 @@
 
   # Load profiling script
   # shellcheck disable=SC1090
-  source "${COMPSS_HOME}Runtime/scripts/system/runtime/profiler.sh"
+  source "${COMPSS_HOME}/Runtime/scripts/system/runtime/profiler.sh"
   start_profiling
 
   export LD_PRELOAD=${LD_PRELOAD}:${AFTER_EXTRAE_LD_PRELOAD}

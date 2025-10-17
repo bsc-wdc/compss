@@ -696,7 +696,6 @@ get_args() {
             # Generate provenance in a specified directory
             provenance=true
             provenance_dest_path=${OPTARG//provenance-folder=/}
-            echo "PROVENANCE | Setting provenance folder to '${provenance_dest_path}'"
             ;;
           zip-provenance)
             # Zip provenance result
@@ -747,6 +746,9 @@ get_args() {
     fi
     if [ "${zip_provenance}" = true ]; then
       echo "PROVENANCE | Zipping the resulting COMPSs RO-Crate"
+    fi
+    if [ -n "${provenance_dest_path}" ]; then
+      echo "PROVENANCE | Setting provenance folder to '${provenance_dest_path}'"
     fi
   fi
 

@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-./build.sh
-
 echo "Installing..."
 
-python3 setup.py install --record installed_files.txt --user
+python3 -m pip install . --user
 
 echo "----- Installation finished -----"

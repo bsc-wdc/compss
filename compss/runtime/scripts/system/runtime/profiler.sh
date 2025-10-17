@@ -5,7 +5,7 @@ start_profiling() {
     if [ -z "${COMPSS_PROFILING_INTERVAL}" ]; then
       export COMPSS_PROFILING_INTERVAL=5
     fi
-    echo "PROVENANCE | Profiling interval set to ${COMPSS_PROFILING_INTERVAL} seconds"
+    echo "PROVENANCE | Profiling interval set to ${COMPSS_PROFILING_INTERVAL} second(s)"
 
     if [ -z "${logDir}" ]; then
       working_directory="$(dirname ${wdir_in_master})/stats"

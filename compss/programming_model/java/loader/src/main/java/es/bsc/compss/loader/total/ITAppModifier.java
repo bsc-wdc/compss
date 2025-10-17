@@ -23,7 +23,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -50,7 +49,7 @@ public final class ITAppModifier {
 
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
-        && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true") ? true : false;
+            && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true");
 
     private static final long WALL_CLOCK_LIMIT =
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
@@ -77,6 +76,7 @@ public final class ITAppModifier {
         String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
         String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
         String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+        addFields(classPool, appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
 
         // Use thread ID for instrumentation
         String instrumentationAppId;
@@ -87,7 +87,7 @@ public final class ITAppModifier {
         }
 
         // Instrument class
-        addVariables(classPool, appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
+
         instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instrumentationAppId,
             originalClassName, isMainClass);
         addModifyVariablesMethods(appClass, itApiVar, itSRVar, itORVar, itAppIdVar, instrumentationAppId, isMainClass);
@@ -166,27 +166,21 @@ public final class ITAppModifier {
     /**
      * Add main variables to the instrumented class.
      */
-    private static void addVariables(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar,
+    private static void addFields(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar,
         String itAppIdVar) throws NotFoundException, CannotCompileException {
-        CtClass itApiClass = cp.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
-        CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
-        itApiField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(itApiField);
 
-        CtClass itSRClass = cp.get(LoaderConstants.CLASS_STREAM_REGISTRY);
-        CtField itSRField = new CtField(itSRClass, itSRVar, appClass);
-        itSRField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(itSRField);
+        addField(cp, appClass, LoaderConstants.CLASS_COMPSSRUNTIME_API, itApiVar);
+        addField(cp, appClass, LoaderConstants.CLASS_STREAM_REGISTRY, itSRVar);
+        addField(cp, appClass, LoaderConstants.CLASS_OBJECT_REGISTRY, itORVar);
+        addField(cp, appClass, LoaderConstants.CLASS_APP_ID, itAppIdVar);
+    }
 
-        CtClass itORClass = cp.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
-        CtField itORField = new CtField(itORClass, itORVar, appClass);
-        itORField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(itORField);
-
-        CtClass appIdClass = cp.get(LoaderConstants.CLASS_APP_ID);
-        CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
-        appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(appIdField);
+    private static void addField(ClassPool cp, CtClass appClass, String fieldClassName, String fieldName)
+        throws NotFoundException, CannotCompileException {
+        CtClass fieldClass = cp.get(fieldClassName);
+        CtField field = new CtField(fieldClass, fieldName, appClass);
+        field.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
+        appClass.addField(field);
     }
 
     /*

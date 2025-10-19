@@ -22,7 +22,11 @@ import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -69,9 +73,6 @@ public final class ITAppModifier {
         CtClass appClass = classPool.get(appName);
         appClass.defrost();
         String varName = LoaderUtils.randomName(5, LoaderConstants.STR_COMPSS_PREFIX);
-        if (useNewAppClassName) {
-            appClass.setName(appName + "_" + varName);
-        }
         String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
         String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
         String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
@@ -112,20 +113,41 @@ public final class ITAppModifier {
      */
     public static Class<?> modifyToMemory(String appName, String originalClassName, Class<?> annotItf,
         boolean threadIdAsAppId, boolean useNewAppClassName, boolean returnOrigClass, boolean isMainClass)
-        throws NotFoundException, CannotCompileException, ClassNotFoundException {
+        throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
         CtClass appClass =
             modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);
+        byte[] bytecode = appClass.toBytecode();
+        ClassLoader loader = new CustomClassLoader(appName, bytecode);
+        Class<?> clazz = loader.loadClass(appName);
+        return clazz;
+    }
 
-        // Return original method class
-        if (returnOrigClass) {
-            Class<?> origClass = Class.forName(appName);
-            Class<?> methodClass = appClass.toClass(origClass);
-            appClass.defrost();
-            return methodClass;
-        } else {
-            return appClass.toClass(annotItf);
+
+    /**
+     * Custom class loader for defining the instrumented version of the class.
+     */
+    private static class CustomClassLoader extends ClassLoader {
+
+        private final String className;
+        private final byte[] bytecode;
+
+
+        public CustomClassLoader(String className, byte[] bytecode) {
+            super(ITAppModifier.class.getClassLoader());
+            this.className = className;
+            this.bytecode = bytecode;
+        }
+
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+            if (name.equals(className)) {
+                // define from bytecode without delegating to parent
+                return defineClass(name, bytecode, 0, bytecode.length);
+            }
+            return super.loadClass(name);
         }
     }
+
 
     /**
      * Write the modified class to disk.
@@ -153,8 +175,7 @@ public final class ITAppModifier {
 
     /** Create new ClassPool object and load packages into it. */
     private static ClassPool getClassPool() {
-        ClassPool cp = new ClassPool();
-        cp.appendSystemPath();
+        ClassPool cp = new ClassPool(true);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_ROOT);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API_IMPL);
@@ -198,8 +219,6 @@ public final class ITAppModifier {
 
         ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
             itAppIdVar, appClass, originalClassName);
-        // itAppEditor.setAppId(itAppIdVar);
-        // itAppEditor.setAppClass(appClass);
 
         /*
          * Create Code Converter

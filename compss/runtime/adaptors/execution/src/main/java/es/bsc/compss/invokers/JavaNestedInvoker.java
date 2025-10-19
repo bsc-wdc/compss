@@ -90,7 +90,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             try {
                 // Call class modifier
                 LOGGER.debug("Modifying application " + className);
-                methodClass = ITAppModifier.modifyToMemory(className, className, ceiClass, false, true, true, false);
+                methodClass = ITAppModifier.modifyToMemory(className, className, ceiClass, false, false);
 
                 // Find the corresponding method
                 method = ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());

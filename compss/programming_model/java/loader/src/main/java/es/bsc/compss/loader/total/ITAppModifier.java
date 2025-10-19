@@ -66,13 +66,12 @@ public final class ITAppModifier {
      * Modify method.
      */
     private static CtClass modify(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
-        boolean useNewAppClassName, boolean isMainClass)
-        throws NotFoundException, CannotCompileException, ClassNotFoundException {
+        boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException {
         // Use the application editor to include the COMPSs API calls on the application code
         ClassPool classPool = getClassPool();
         CtClass appClass = classPool.get(appName);
         appClass.defrost();
-        String varName = LoaderUtils.randomName(5, LoaderConstants.STR_COMPSS_PREFIX);
+        String varName = "COMPSs_";
         String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
         String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
         String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
@@ -104,18 +103,14 @@ public final class ITAppModifier {
      * @param originalClassName Original class name
      * @param annotItf Annotated interface class
      * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
-     *            otherwise uses the same "compssXXXXXAppId"
-     * @param useNewAppClassName Use a different name for appClass with additional numbers appended to appName (used by
-     *            nested)
-     * @param returnOrigClass Whether to return or not the original class (used by nested)
+     *            otherwise uses the same "compssAppId"
      * @param isMainClass Whether the calling class is the main application class
      * @return Instrumented class
      */
     public static Class<?> modifyToMemory(String appName, String originalClassName, Class<?> annotItf,
-        boolean threadIdAsAppId, boolean useNewAppClassName, boolean returnOrigClass, boolean isMainClass)
+        boolean threadIdAsAppId, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
-        CtClass appClass =
-            modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);
+        CtClass appClass = modify(appName, originalClassName, annotItf, threadIdAsAppId, isMainClass);
         byte[] bytecode = appClass.toBytecode();
         ClassLoader loader = new CustomClassLoader(appName, bytecode);
         Class<?> clazz = loader.loadClass(appName);
@@ -157,15 +152,12 @@ public final class ITAppModifier {
      * @param annotItf Annotated interface class
      * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
      *            otherwise uses the same "compssXXXXXAppId"
-     * @param useNewAppClassName Use a different name for appClass with additional numbers appended to appName (used by
-     *            nested)
      * @param isMainClass Whether the calling class is the main application class
      */
     public static void modifyToFile(String appName, String originalClassName, Class<?> annotItf,
-        boolean threadIdAsAppId, boolean useNewAppClassName, boolean isMainClass)
+        boolean threadIdAsAppId, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
-        CtClass appClass =
-            modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);
+        CtClass appClass = modify(appName, originalClassName, annotItf, threadIdAsAppId, isMainClass);
         try {
             appClass.writeFile();
         } catch (Exception e) {

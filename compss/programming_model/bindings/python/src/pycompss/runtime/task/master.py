@@ -1930,10 +1930,10 @@ class TaskMaster:
                 # Parse code AST (it is not a task defined within a class)
                 for i in lines:
                     try:
-                        if "elts" in code[i].value.__dict__:  # noqa
+                        if "elts" in code[i].value.__dict__:  # type: ignore
                             has_multireturn = True
                             num_returns = len(
-                                code[i].value.__dict__["elts"]
+                                code[i].value.__dict__["elts"]  # type: ignore
                             )  # noqa
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns

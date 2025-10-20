@@ -24,9 +24,8 @@ import es.bsc.compss.util.ErrorManager;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -57,6 +56,8 @@ public final class ITAppModifier {
 
     private static final long WALL_CLOCK_LIMIT =
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
+
+    private static final Map<String, byte[]> CACHE = new ConcurrentHashMap<>();
 
 
     private ITAppModifier() {
@@ -107,8 +108,16 @@ public final class ITAppModifier {
      */
     public static Class<?> modifyToMemory(String appName, Class<?> annotItf, boolean threadIdAsAppId,
         boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
-        CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
-        byte[] bytecode = appClass.toBytecode();
+        String cacheKey = appName + "-itf-" + annotItf.getName();
+        byte[] bytecode = CACHE.get(cacheKey);
+        if (bytecode == null) {
+            LOGGER.info("Instrumenting class " + appName + " according to interface " + annotItf.getName());
+            CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
+            bytecode = appClass.toBytecode();
+            CACHE.put(cacheKey, bytecode);
+        } else {
+            LOGGER.info("Using cached class " + appName + " instrumented according to interface " + annotItf.getName());
+        }
         ClassLoader loader = new CustomClassLoader(appName, bytecode);
         Class<?> clazz = loader.loadClass(appName);
         return clazz;
@@ -162,7 +171,9 @@ public final class ITAppModifier {
         }
     }
 
-    /** Create new ClassPool object and load packages into it. */
+    /**
+     * Create new ClassPool object and load packages into it.
+     */
     private static ClassPool getClassPool() {
         ClassPool cp = new ClassPool(true);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_ROOT);

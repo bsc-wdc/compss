@@ -206,12 +206,6 @@ public final class ITAppModifier {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
 
-        // Candidates to be instrumented if they are not remote
-        CtMethod[] instrCandidates = appClass.getDeclaredMethods();
-
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
-            itAppIdVar, appClass, originalClassName);
-
         /*
          * Create Code Converter
          */
@@ -228,53 +222,56 @@ public final class ITAppModifier {
         if (DEBUG) {
             LOGGER.debug("Flags: isWS: " + IS_WS_CLASS + " isMainClass: " + isMainClass);
         }
+        // Candidates to be instrumented if they are not remote
+        CtMethod[] instrCandidates = appClass.getDeclaredMethods();
+
+        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
+            itAppIdVar, appClass, originalClassName);
+
         for (CtMethod m : instrCandidates) {
-            if (LoaderUtils.checkRemote(m, remoteMethods, null, null) == null) {
-                // Not a remote method, we must instrument it
-                if (DEBUG) {
-                    LOGGER.debug("Instrumenting method " + m.getName());
-                }
-                StringBuilder toInsertAfter = new StringBuilder();
-
-                boolean isMainProgram = LoaderUtils.isMainMethod(m);
-                boolean isOrchestration = LoaderUtils.isOrchestration(m);
-
-                if ((isMainProgram && isMainClass) || (isOrchestration && IS_WS_CLASS)) {
-                    LOGGER.debug("Inserting calls at the beginning and at the end of main");
-                    if (!IS_WS_CLASS) { // Main program
-                        LOGGER.debug("Inserting call stopIT at the end of main");
-                        toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
-                    }
-                    LOGGER.debug("Inserting call noMoreTasks at the end of main");
-                    toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
-
-                    // Do insertions
-                    if (IS_WS_CLASS) {
-                        m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
-                    } else { // Main program
-                        m.insertAfter(toInsertAfter.toString(), true); // no matter what
-                    }
-                } else {
-                    if (IS_WS_CLASS) {
-                        // If we're instrumenting a service class, only instrument private methods, public might be
-                        // non-OE operations
-                        if (!Modifier.isPrivate(m.getModifiers())) {
-                            continue;
-                        }
-                    }
-                }
-
-                /*
-                 * Instrumenting first the array accesses makes each array access become a call to a black box method of
-                 * class ArrayAccessWatcher, whose parameters include the array. For the second round of
-                 * instrumentation, the synchronization by transition to black box automatically synchronizes the arrays
-                 * accessed. TODO: Change the order of instrumentation, so that we have more control about the
-                 * synchronization, and we can distinguish between a write access and a read access (now it's read/write
-                 * access by default, because it goes into the black box).
-                 */
-                m.instrument(converter);
-                m.instrument(itAppEditor);
+            if (DEBUG) {
+                LOGGER.debug("Instrumenting method " + m.getName());
             }
+            StringBuilder toInsertAfter = new StringBuilder();
+
+            boolean isMainMethod = LoaderUtils.isMainMethod(m);
+            boolean isOrchestration = LoaderUtils.isOrchestration(m);
+
+            if ((isMainMethod && isMainClass) || (isOrchestration && IS_WS_CLASS)) {
+                LOGGER.debug("Inserting calls at the beginning and at the end of main");
+                if (!IS_WS_CLASS) { // Main program
+                    LOGGER.debug("Inserting call stopIT at the end of main");
+                    toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
+                }
+                LOGGER.debug("Inserting call noMoreTasks at the end of main");
+                toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
+
+                // Do insertions
+                if (IS_WS_CLASS) {
+                    m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
+                } else { // Main program
+                    m.insertAfter(toInsertAfter.toString(), true); // no matter what
+                }
+            } else {
+                if (IS_WS_CLASS) {
+                    // If we're instrumenting a service class, only instrument private methods, public might be
+                    // non-OE operations
+                    if (!Modifier.isPrivate(m.getModifiers())) {
+                        continue;
+                    }
+                }
+            }
+
+            /*
+             * Instrumenting first the array accesses makes each array access become a call to a black box method of
+             * class ArrayAccessWatcher, whose parameters include the array. For the second round of instrumentation,
+             * the synchronization by transition to black box automatically synchronizes the arrays accessed. TODO:
+             * Change the order of instrumentation, so that we have more control about the synchronization, and we can
+             * distinguish between a write access and a read access (now it's read/write access by default, because it
+             * goes into the black box).
+             */
+            m.instrument(converter);
+            m.instrument(itAppEditor);
         }
 
         // Instrument constructors

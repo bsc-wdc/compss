@@ -121,9 +121,9 @@
   job3_method=$( grep "\"method_name\"" "${agent1_log_dir}/COMPSsWorker01/jobs/job3_NEW.out" | cut -c 24- | jq -r '.method_name')
   job4_method=$( grep "\"method_name\"" "${agent1_log_dir}/COMPSsWorker01/jobs/job4_NEW.out" | cut -c 24- | jq -r '.method_name')
 
-  job2_value=$( grep -v "\[" "${agent1_log_dir}/COMPSsWorker01/jobs/job2_NEW.out" | tail -n 1)
-  job3_value=$( grep -v "\[" "${agent1_log_dir}/COMPSsWorker01/jobs/job3_NEW.out" | tail -n 1)
-  job4_value=$( grep -v "\[" "${agent1_log_dir}/COMPSsWorker01/jobs/job4_NEW.out" | tail -n 1)
+  job2_value=$( grep "Current value:" "${agent1_log_dir}/COMPSsWorker01/jobs/job2_NEW.out" | tail -n 1| cut -d " " -f3)
+  job3_value=$( grep "Current value:" "${agent1_log_dir}/COMPSsWorker01/jobs/job3_NEW.out" | tail -n 1| cut -d " " -f3)
+  job4_value=$( grep "Current value:" "${agent1_log_dir}/COMPSsWorker01/jobs/job4_NEW.out" | tail -n 1| cut -d " " -f3)
   if [ ! "${job2_method}" == "count" ]; then
     echo "Unexpected method (${job2_method}) for job 2." > >(tee -a "${error_log}")
     exit 1

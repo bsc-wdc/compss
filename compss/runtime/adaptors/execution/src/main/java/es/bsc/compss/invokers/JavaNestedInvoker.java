@@ -79,7 +79,6 @@ public class JavaNestedInvoker extends JavaInvoker {
             ceiClass = null;
         }
         this.ceiClass = ceiClass;
-
         Method method;
         if (ceiClass == null) {
             method = super.findMethod();
@@ -91,7 +90,6 @@ public class JavaNestedInvoker extends JavaInvoker {
                 // Call class modifier
                 LOGGER.debug("Modifying application " + className);
                 methodClass = ITAppModifier.modifyToMemory(className, className, ceiClass, false, false);
-
                 // Find the corresponding method
                 method = ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());
             } catch (Throwable e) {

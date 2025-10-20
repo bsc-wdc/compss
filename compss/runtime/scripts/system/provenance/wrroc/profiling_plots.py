@@ -336,31 +336,31 @@ def plot_results(folder_pathname) -> str:
         plt.savefig(output_path + "/mem.svg", format='svg')
         plt.close()
 
-        if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
-            plot_bytes(
-                time_list=timestamps,
-                first_df=byte_sent,
-                first_df_name="Bytes sent",
-                second_df=byte_recv,
-                second_df_name="Bytes received",
-                num_entries=df_length,
-                title=f"Network usage of {machine_name}",
-            )
-            plt.savefig(output_path + "/network_usage.svg", format='svg')
-            plt.close()
-
-        if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
-            plot_bytes(
-                time_list=timestamps,
-                first_df=byte_write_disk,
-                first_df_name="Bytes written",
-                second_df=byte_read_disk,
-                second_df_name="Bytes read",
-                num_entries=df_length,
-                title=f"Disk usage of {machine_name}",
-            )
-            plt.savefig(output_path + "/disk_usage.svg", format='svg')
-            plt.close()
+        # if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
+        #     plot_bytes(
+        #         time_list=timestamps,
+        #         first_df=byte_sent,
+        #         first_df_name="Bytes sent",
+        #         second_df=byte_recv,
+        #         second_df_name="Bytes received",
+        #         num_entries=df_length,
+        #         title=f"Network usage of {machine_name}",
+        #     )
+        #     plt.savefig(output_path + "/network_usage.svg", format='svg')
+        #     plt.close()
+        #
+        # if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
+        #     plot_bytes(
+        #         time_list=timestamps,
+        #         first_df=byte_write_disk,
+        #         first_df_name="Bytes written",
+        #         second_df=byte_read_disk,
+        #         second_df_name="Bytes read",
+        #         num_entries=df_length,
+        #         title=f"Disk usage of {machine_name}",
+        #     )
+        #     plt.savefig(output_path + "/disk_usage.svg", format='svg')
+        #     plt.close()
 
     if num_files > 1:
         plt.style.use("ggplot")

@@ -317,15 +317,12 @@ get_args() {
         zip_provenance=true
         if [ -z "$provenance_yaml" ] ; then
           provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-          is_yaml_default=true
         fi
         if [ -z "$output_profile" ] ; then
           output_profile="${PWD}/App_Profile.json"
-          is_output_profile_default=true
         fi
         if [ -z "$graph" ] ; then
           graph=${DEFAULT_GRAPH_ARGUMENT}
-          is_graph_default=true
         fi
         ;;
       -)
@@ -703,15 +700,12 @@ get_args() {
             zip_provenance=true
             if [ -z "$provenance_yaml" ] ; then
               provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-              is_yaml_default=true
             fi
             if [ -z "$output_profile" ] ; then
               output_profile="${PWD}/App_Profile.json"
-              is_output_profile_default=true
             fi
             if [ -z "$graph" ] ; then
               graph=${DEFAULT_GRAPH_ARGUMENT}
-              is_graph_default=true
             fi
             ;;
           *)

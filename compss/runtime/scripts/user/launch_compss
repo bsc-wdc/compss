@@ -1045,7 +1045,7 @@ get_args() {
   fi
 
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdpz-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -1423,11 +1423,11 @@ get_args() {
           ;;
         provenance-folder=*)
           provenance=true
-          export provenance_folder=${OPTARG//provenance-folder=/}
+          provenance_dest_path=${OPTARG//provenance-folder=/}
           ;;
         zip-provenance)
           provenance=true
-          export zip_provenance=true
+          zip_provenance=true
           ;;
         command)
           run_command=true
@@ -1994,6 +1994,16 @@ set_variables() {
 
       worker_install_dir=${container_compss_path}/
       cont_COMPSS_HOME=${container_compss_path}/
+    fi
+  fi
+
+  # Export provenance variables
+  if [ "${provenance}" = true ]; then
+    if [ -n "${provenance_dest_path}" ]; then
+      export provenance_dest_path
+    fi
+    if [ -n "${zip_provenance}" ]; then
+      export zip_provenance
     fi
   fi
 

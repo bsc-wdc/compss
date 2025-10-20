@@ -104,8 +104,8 @@ public class LoaderUtils {
      * @return The remote method if it is a remote method or {@code null} otherwise.
      * @throws NotFoundException When the parameter types of a CtClass cannot be found.
      */
-    public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods,
-        String originalClassName, String renamedClassName) throws NotFoundException {
+    public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods)
+        throws NotFoundException {
         LOGGER.info("Checking Method " + method.getName());
 
         for (java.lang.reflect.Method remoteMethod : remoteMethods) {
@@ -114,7 +114,7 @@ public class LoaderUtils {
                 // METHOD
                 Method remoteMethodAnnotation = remoteMethod.getAnnotation(Method.class);
                 if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                    remoteMethodAnnotation.name(), originalClassName, renamedClassName)) {
+                    remoteMethodAnnotation.name())) {
                     return remoteMethod;
                 }
             }
@@ -155,7 +155,7 @@ public class LoaderUtils {
                 // MultiNode
                 MultiNode remoteMethodAnnotation = remoteMethod.getAnnotation(MultiNode.class);
                 if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                    remoteMethodAnnotation.name(), originalClassName, renamedClassName)) {
+                    remoteMethodAnnotation.name())) {
                     return remoteMethod;
                 }
             }
@@ -183,7 +183,7 @@ public class LoaderUtils {
                 Methods methodsAnnotation = remoteMethod.getAnnotation(Methods.class);
                 for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
                     if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                        remoteMethodAnnotation.name(), originalClassName, renamedClassName)) {
+                        remoteMethodAnnotation.name())) {
                         return remoteMethod;
                     }
                 }
@@ -223,7 +223,7 @@ public class LoaderUtils {
                 MultiMultiNode methodsAnnotation = remoteMethod.getAnnotation(MultiMultiNode.class);
                 for (MultiNode remoteMethodAnnotation : methodsAnnotation.value()) {
                     if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                        remoteMethodAnnotation.name(), originalClassName, renamedClassName)) {
+                        remoteMethodAnnotation.name())) {
                         return remoteMethod;
                     }
                 }
@@ -247,7 +247,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, String remoteMethodClass,
-        String remoteMethodName, String originalClassName, String renamedClassName) throws NotFoundException {
+        String remoteMethodName) throws NotFoundException {
         // Patch remote method name if required
         if (remoteMethodName == null || remoteMethodName.isEmpty() || remoteMethodName.equals(Constants.UNASSIGNED)) {
             remoteMethodName = remote.getName();
@@ -261,16 +261,11 @@ public class LoaderUtils {
 
         // Check if methods belong to the same class
         LOGGER.debug("  - Checking classes " + method.getDeclaringClass().getName() + " against " + remoteMethodClass);
-        if (renamedClassName != null && renamedClassName.equals(method.getDeclaringClass().getName())) {
-            if (!remoteMethodClass.equals(originalClassName)) {
-                return false;
-            }
-        } else {
-            boolean matchesClass = remoteMethodClass.equals(method.getDeclaringClass().getName());
-            if (!matchesClass) {
-                return false;
-            }
+        boolean matchesClass = remoteMethodClass.equals(method.getDeclaringClass().getName());
+        if (!matchesClass) {
+            return false;
         }
+
         // Check that methods have the same number of parameters
         CtClass[] paramClassCurrent = method.getParameterTypes();
         Class<?>[] paramClassRemote = remote.getParameterTypes();

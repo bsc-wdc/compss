@@ -65,8 +65,8 @@ public final class ITAppModifier {
     /**
      * Modify method.
      */
-    private static CtClass modify(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
-        boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException {
+    private static CtClass modify(String appName, Class<?> annotItf, boolean threadIdAsAppId, boolean isMainClass)
+        throws NotFoundException, CannotCompileException, ClassNotFoundException {
         // Use the application editor to include the COMPSs API calls on the application code
         ClassPool classPool = getClassPool();
         CtClass appClass = classPool.get(appName);
@@ -88,8 +88,7 @@ public final class ITAppModifier {
 
         // Instrument class
 
-        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instrumentationAppId,
-            originalClassName, isMainClass);
+        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instrumentationAppId, isMainClass);
         addModifyVariablesMethods(appClass, itApiVar, itSRVar, itORVar, itAppIdVar, instrumentationAppId, isMainClass);
 
         return appClass;
@@ -100,17 +99,15 @@ public final class ITAppModifier {
      * modifications can be performed on it.
      *
      * @param appName Application name
-     * @param originalClassName Original class name
      * @param annotItf Annotated interface class
      * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
      *            otherwise uses the same "compssAppId"
      * @param isMainClass Whether the calling class is the main application class
      * @return Instrumented class
      */
-    public static Class<?> modifyToMemory(String appName, String originalClassName, Class<?> annotItf,
-        boolean threadIdAsAppId, boolean isMainClass)
-        throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
-        CtClass appClass = modify(appName, originalClassName, annotItf, threadIdAsAppId, isMainClass);
+    public static Class<?> modifyToMemory(String appName, Class<?> annotItf, boolean threadIdAsAppId,
+        boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
+        CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
         byte[] bytecode = appClass.toBytecode();
         ClassLoader loader = new CustomClassLoader(appName, bytecode);
         Class<?> clazz = loader.loadClass(appName);
@@ -157,7 +154,7 @@ public final class ITAppModifier {
     public static void modifyToFile(String appName, String originalClassName, Class<?> annotItf,
         boolean threadIdAsAppId, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
-        CtClass appClass = modify(appName, originalClassName, annotItf, threadIdAsAppId, isMainClass);
+        CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
         try {
             appClass.writeFile();
         } catch (Exception e) {
@@ -201,7 +198,7 @@ public final class ITAppModifier {
      * orchestration method, or a web service method.
      */
     private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
-        String itSRVar, String itORVar, String itAppIdVar, String originalClassName, boolean isMainClass)
+        String itSRVar, String itORVar, String itAppIdVar, boolean isMainClass)
         throws NotFoundException, CannotCompileException {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
@@ -225,8 +222,8 @@ public final class ITAppModifier {
         // Candidates to be instrumented if they are not remote
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
-            itAppIdVar, appClass, originalClassName);
+        ITAppEditor itAppEditor =
+            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
 
         for (CtMethod m : instrCandidates) {
             if (DEBUG) {

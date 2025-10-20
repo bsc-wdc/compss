@@ -287,6 +287,11 @@ public class FakeInvocationContext implements InvocationContext {
         return false;
     }
 
+    @Override
+    public boolean getDataProvenance() {
+        return false;
+    }
+
 
     public static class Builder {
 

@@ -67,6 +67,7 @@ DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_IPYTHON=false
 DEFAULT_EAR=false
+DEFAULT_PROVENANCE=false
 DEFAULT_SHARED_DISK_SCHEDULER=${LA_MT_SUCC_FIFO_SCHEDULER}
 DEFAULT_LOCAL_DISK_SCHEDULER=${LA_MT_SUCC_LOCALITY_SCHEDULER}
 
@@ -368,6 +369,7 @@ worker_cmd() {
   local lot=${15}
   local streaming_backend=${16}
   local streaming_master_port=${17}
+  local provenance=${18}
 
   if [ -z "${streaming_master_port}" ] || [ "${streaming_master_port}" == "null" ]; then
     # Value will be ignored, just add a random number so that the parser does not complain
@@ -444,7 +446,8 @@ worker_cmd() {
             ${python_mpi_worker} \
             ${python_worker_cache} \
             ${python_cache_profiler} \
-            ${ear}"
+            ${ear} \
+            ${provenance}"
 }
 
 ###############################################
@@ -470,7 +473,8 @@ master_cmd() {
             --streaming_master_port=${streaming_master_port} \
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
-            --jvm_workers_opts=${jvm_workers_opts}"
+            --jvm_workers_opts=${jvm_workers_opts} \
+            --provenance=${provenance}"
   if [ -n "${master_working_dir}" ]; then
     MCMD="$MCMD --master_working_dir=${master_working_dir}"
   fi
@@ -1041,7 +1045,7 @@ get_args() {
   fi
 
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdpz-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -1410,6 +1414,20 @@ get_args() {
           # Added for EAR integration
           ear=true
           ear_flags=${OPTARG//ear=/}
+          ;;
+        provenance=*)
+          provenance=${OPTARG//provenance=/}
+          ;;
+        provenance)
+          provenance=true
+          ;;
+        provenance-folder=*)
+          provenance=true
+          provenance_dest_path=${OPTARG//provenance-folder=/}
+          ;;
+        zip-provenance)
+          provenance=true
+          zip_provenance=true
           ;;
         command)
           run_command=true
@@ -1797,6 +1815,10 @@ check_args() {
     ear=${DEFAULT_EAR}
   fi
 
+  if [ -z "${provenance}" ]; then
+      provenance=${DEFAULT_PROVENANCE}
+    fi
+
   if [ -z "${run_command}" ]; then
     run_command=false
   fi
@@ -1975,6 +1997,16 @@ set_variables() {
     fi
   fi
 
+  # Export provenance variables
+  if [ "${provenance}" = true ]; then
+    if [ -n "${provenance_dest_path}" ]; then
+      export provenance_dest_path
+    fi
+    if [ -n "${zip_provenance}" ]; then
+      export zip_provenance
+    fi
+  fi
+
   # Create .COMPSs log dir for application execution
   if [ -z "${log_dir}" ]; then
         log_dir=$HOME
@@ -2127,6 +2159,7 @@ log_variables() {
   echo "Python worker cache        ${python_worker_cache}"
   echo "Python profiler cache      ${python_cache_profiler}"
   echo "EAR                        ${ear_flags}"
+  echo "Provenance:                ${provenance}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"
@@ -2224,6 +2257,7 @@ launch() {
     fi
     if [ ! -z "${master_node}" ]; then
       if [ "${worker_in_master_cpus}" -ne 0 ]; then
+        export worker_in_master_cpus
         # Worker in master node
         local jvm_worker_in_master_opts_str
         local jvm_worker_in_master_opts_size
@@ -2234,7 +2268,7 @@ launch() {
         fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
         fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
+        worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${provenance}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
@@ -2287,7 +2321,7 @@ launch() {
       fi
       for node in ${worker_nodes}; do
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
+        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${provenance}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
             node=$(${NODE_NAME_QUEUE} ${node})

@@ -538,4 +538,8 @@ public class GATWorker implements InvocationContext {
         return false;
     }
 
+    @Override
+    public boolean getDataProvenance() {
+        return false;
+    }
 }

@@ -150,6 +150,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private final LanguageParams[] langParams;
 
     private final boolean ear;
+    private final boolean dataProvenance;
 
     // Transfer times
     private final Map<Integer, Long> transferStartTimes;
@@ -209,13 +210,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param cParams C specific parameters.
      * @param lang Language.
      * @param ear Ear energy and power measurement.
+     * @param dataProvenance Check if provenance is enabled.
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
         int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
         String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
         String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
         boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
-        PythonParams pyParams, CParams cParams, RParams rParams, String lang, boolean ear) {
+        PythonParams pyParams, CParams cParams, RParams rParams, String lang, boolean ear, boolean dataProvenance) {
 
         super(snd, rcv, masterPort);
 
@@ -254,6 +256,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.langParams[Lang.R.ordinal()] = rParams;
 
         this.ear = ear;
+        this.dataProvenance = dataProvenance;
 
         this.transferStartTimes = new HashMap<>();
 
@@ -1212,6 +1215,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonCacheProfiler = args[38];
 
         boolean ear = Boolean.parseBoolean(args[39]);
+        boolean dataProvenance = Boolean.parseBoolean(args[40]);
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
@@ -1270,6 +1274,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Python use cache profiler: " + pythonCacheProfiler);
 
             WORKER_LOGGER.debug("Ear: " + ear);
+            WORKER_LOGGER.debug("Provenance: " + dataProvenance);
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + REMOVE_WD);
         }
@@ -1292,7 +1297,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
             computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
             traceHost, traceTaskDependencies, storageConf, executionType, persistentC, workingDir, installDir, appDir,
-            javaParams, pyParams, cParams, rParams, lang, ear);
+            javaParams, pyParams, cParams, rParams, lang, ear, dataProvenance);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 
@@ -1503,6 +1508,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public boolean getEar() {
         return this.ear;
+    }
+
+    @Override
+    public boolean getDataProvenance() {
+        return this.dataProvenance;
     }
 
     /**

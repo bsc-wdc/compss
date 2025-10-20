@@ -43,6 +43,8 @@ from provenance.file_adding.datasets import (
 )
 from provenance.wrroc.create_action import wrroc_create_action
 from provenance.wrroc.profile import set_profile_details
+from provenance.wrroc.store_data import store_data
+from provenance.wrroc.profiling_plots import generate_plots
 
 
 def main():
@@ -58,6 +60,8 @@ def main():
     yaml_template = get_yaml_template()
     compss_crate = ROCrate()
     end_time = iso_now()
+
+    generate_plots(STATS_PATH)
 
     # First, read values defined by user from ro-crate-info.yaml
     run_uuid = str(uuid.uuid4())
@@ -100,6 +104,7 @@ def main():
     # This must be done before adding the Workflow to the RO-Crate
     ins, outs = process_accessed_files(DP_LOG)
 
+    auxiliary_file_list = []
     # Add application source files to the RO-Crate, that will also be physically in the crate
     add_application_source_files(
         compss_crate,
@@ -109,6 +114,7 @@ def main():
         out_profile,
         INFO_YAML,
         COMPLETE_GRAPH,
+        auxiliary_file_list,
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -181,6 +187,7 @@ def main():
         path_log,
         datetime.fromisoformat(end_time),
         run_uuid,
+        auxiliary_file_list,
     )
     print(
         f"PROVENANCE | RO-Crate adding CreateAction TIME: "
@@ -199,9 +206,11 @@ def main():
     # folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     sys.stdout.flush()  # All pending stdout to the log file
     if ZIP_PROVENANCE:
-        compss_crate.write_zip(DEST_FOLDER.rstrip("/"))
+        compss_crate.write_zip(f"{DEST_FOLDER.rstrip('/')}.zip")
     else:
         compss_crate.write(DEST_FOLDER)
+    store_data(DEST_FOLDER, STATS_PATH, compss_crate)
+
     print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
     print(
         f"PROVENANCE | Workflow Provenance generation TOTAL EXECUTION TIME: {time.time() - exec_time} s"
@@ -232,5 +241,7 @@ if __name__ == "__main__":
         ZIP_PROVENANCE = True if sys.argv[4] == "true" else False
         DP_LOG = path_log / "dataprovenance.log"
         COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
-
+        ENERGY_PATH = path_log / "energy/"
+        STATS_PATH = path_log / "stats/"
+        PLOTS_PATH = path_log / "stats/plots/"
     main()

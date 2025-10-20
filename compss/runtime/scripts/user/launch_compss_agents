@@ -298,7 +298,7 @@ get_args() {
   fi
 
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdpz-: flag; do
     # Treat the argument
     case "$flag" in
       h)

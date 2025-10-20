@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>1_1_agent_compss</artifactId>
+	<artifactId>1.1_1_agent_10000_tasks</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>

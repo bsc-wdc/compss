@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="bsc/1.0 java-openjdk/11.0.18+10 papi/7.1.0"
+  modules="bsc/1.0 papi/7.1.0"
   unload_before_python=""
   # Plain python modules:
   run_before_py3_modules="ignore"
@@ -39,7 +39,7 @@
 
   # DEFINE CONFIGURATION PARAMETERS
   # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
-  additionalExports='export CFLAGS="-I/usr/include/libxml2/ $CFLAGS"'
+  additionalExports='export JAVA_HOME=/gpfs/apps/QUANTUM/COMPSs/Java/jdk-21.0.1/ CFLAGS="-I/usr/include/libxml2/ $CFLAGS"'
 
   additional_module_use_folder="ignore"
   queues_cfg="mn_ona.cfg"

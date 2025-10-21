@@ -14,8 +14,8 @@
   AGENT_PIDS=""
   exit_value=0
   NUM_RETRIES="50"
-  jar_name="1_1_agent_compss.jar"
-  app_name="1_1_agent_compss"
+  jar_name="1.0_1_agent_compss.jar"
+  app_name="1.0_1_agent_compss"
 
   # Traps and Handlers
   function kill_agents() {

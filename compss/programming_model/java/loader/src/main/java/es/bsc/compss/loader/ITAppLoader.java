@@ -49,7 +49,7 @@ public class ITAppLoader {
             LOGGER.debug("Modifying application " + appName);
             // Get annotated interface and run main modify method
             Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
-            Class<?> modAppClass = ITAppModifier.modifyToMemory(appName, null, annotItf, true, false, false, true);
+            Class<?> modAppClass = ITAppModifier.modifyToMemory(appName, annotItf, true, true);
             if (modAppClass != null) { // if null, the modified app has been written to a file, and thus we're done
                 LOGGER.debug("Application " + appName + " instrumented, executing...");
                 // Start runtime

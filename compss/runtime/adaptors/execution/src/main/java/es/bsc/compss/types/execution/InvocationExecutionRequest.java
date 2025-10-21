@@ -61,7 +61,7 @@ public class InvocationExecutionRequest extends ExecutorRequest {
             this.listener.notifyEnd(this.invocation, true, null);
         } catch (COMPSsException ce) {
             this.listener.notifyEnd(this.invocation, false, ce);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             this.listener.notifyEnd(this.invocation, false, null);
         }
     }

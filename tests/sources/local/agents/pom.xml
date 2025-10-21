@@ -33,7 +33,8 @@
 	<modules>
 		<module>0.1_1_agent_deployment</module>
 		<module>0.2_1_agent_stop</module>
-		<module>1_1_agent_compss</module>
+		<module>1.0_1_agent_compss</module>
+		<module>1.1_1_agent_10000_tasks</module>
 		<module>2_multiple_agents</module>
 		<module>3_multiple_sources</module>
 		<module>4.0_1_agent_nested</module>

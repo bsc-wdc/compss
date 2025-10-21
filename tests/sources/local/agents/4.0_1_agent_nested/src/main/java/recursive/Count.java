@@ -30,7 +30,7 @@ public class Count {
         if (N > 1) {
             count(N - 1);
         }
-        System.out.println(N);
+        System.out.println("Current value: " + N);
     }
 
     /**

@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.invokers;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
@@ -35,19 +34,10 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
 
 
 public class JavaNestedInvoker extends JavaInvoker {
-
-    private static final String ENGINE_PATH;
-
-    static {
-        String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
-        ENGINE_PATH = "file:" + compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH;
-    }
 
     private String ceiName;
     private Class<?> ceiClass;
@@ -89,7 +79,6 @@ public class JavaNestedInvoker extends JavaInvoker {
             ceiClass = null;
         }
         this.ceiClass = ceiClass;
-
         Method method;
         if (ceiClass == null) {
             method = super.findMethod();
@@ -98,20 +87,14 @@ public class JavaNestedInvoker extends JavaInvoker {
                 Tracer.emitEvent(TraceEvent.INSTRUMENTING_CLASS);
             }
             try {
-                // Add the jars that the custom class loader needs
-                ClassLoader myLoader = new URLClassLoader(new URL[] { new URL(ENGINE_PATH) });
-
-                Thread.currentThread().setContextClassLoader(myLoader);
-
                 // Call class modifier
                 LOGGER.debug("Modifying application " + className);
-                methodClass = ITAppModifier.modifyToMemory(className, className, ceiClass, false, true, true, false);
-
+                methodClass = ITAppModifier.modifyToMemory(className, ceiClass, false, false);
                 // Find the corresponding method
                 method = ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.warn("Could not instrument the method to detect nested tasks.", e);
-                method = super.findMethod();
+                throw new JobExecutionException("Could not instrument the method to detect nested tasks.", e);
             } finally {
 
                 if (Tracer.isActivated()) {

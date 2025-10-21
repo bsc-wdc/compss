@@ -24,6 +24,7 @@ import es.bsc.compss.util.ErrorManager;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,7 +58,7 @@ public final class ITAppModifier {
     private static final long WALL_CLOCK_LIMIT =
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
 
-    private static final Map<String, byte[]> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, byte[]>> CACHE = new ConcurrentHashMap<>();
 
 
     private ITAppModifier() {
@@ -109,17 +110,23 @@ public final class ITAppModifier {
     public static Class<?> modifyToMemory(String appName, Class<?> annotItf, boolean threadIdAsAppId,
         boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
         String cacheKey = appName + "-itf-" + annotItf.getName();
-        byte[] bytecode = CACHE.get(cacheKey);
-        if (bytecode == null) {
+        Map<String, byte[]> bytecodeMap = CACHE.get(cacheKey);
+        if (bytecodeMap == null) {
+            bytecodeMap = new HashMap<>();
             LOGGER.info("Instrumenting class " + appName + " according to interface " + annotItf.getName());
             CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
-            bytecode = appClass.toBytecode();
-            CACHE.put(cacheKey, bytecode);
+            byte[] bytecode = appClass.toBytecode();
+            bytecodeMap.put(appClass.getName(), bytecode);
+            for (CtClass inner : appClass.getNestedClasses()) {
+                bytecodeMap.put(inner.getName(), inner.toBytecode());
+            }
+            CACHE.put(cacheKey, bytecodeMap);
         } else {
-            LOGGER.info("Using cached class " + appName + " instrumented according to interface " + annotItf.getName());
+            LOGGER.info("Using cached classes");
         }
-        ClassLoader loader = new CustomClassLoader(appName, bytecode);
+        ClassLoader loader = new CustomClassLoader(bytecodeMap);
         Class<?> clazz = loader.loadClass(appName);
+        Thread.currentThread().setContextClassLoader(loader);
         return clazz;
     }
 
@@ -129,19 +136,18 @@ public final class ITAppModifier {
      */
     private static class CustomClassLoader extends ClassLoader {
 
-        private final String className;
-        private final byte[] bytecode;
+        private final Map<String, byte[]> bytecodeMap;
 
 
-        public CustomClassLoader(String className, byte[] bytecode) {
+        public CustomClassLoader(Map<String, byte[]> bytecodeMap) {
             super(ITAppModifier.class.getClassLoader());
-            this.className = className;
-            this.bytecode = bytecode;
+            this.bytecodeMap = bytecodeMap;
         }
 
         @Override
         public Class<?> loadClass(String name) throws ClassNotFoundException {
-            if (name.equals(className)) {
+            byte[] bytecode = bytecodeMap.get(name);
+            if (bytecode != null) {
                 // define from bytecode without delegating to parent
                 return defineClass(name, bytecode, 0, bytecode.length);
             }
@@ -154,13 +160,12 @@ public final class ITAppModifier {
      * Write the modified class to disk.
      *
      * @param appName Application name
-     * @param originalClassName Original class name
      * @param annotItf Annotated interface class
      * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
-     *            otherwise uses the same "compssXXXXXAppId"
+     *            otherwise uses the same "compssAppId"
      * @param isMainClass Whether the calling class is the main application class
      */
-    public static void modifyToFile(String appName, String originalClassName, Class<?> annotItf,
+    public static void modifyToFile(String appName, Class<?> annotItf,
         boolean threadIdAsAppId, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
         CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);

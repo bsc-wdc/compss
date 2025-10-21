@@ -1415,15 +1415,17 @@ get_args() {
           ear=true
           ear_flags=${OPTARG//ear=/}
           ;;
+        provenance-folder=*)
+          # Generate provenance in a specified directory
+          provenance=true
+          provenance_dest_path=${OPTARG//provenance-folder=/}
+          ;;
         provenance=*)
-          provenance=${OPTARG//provenance=/}
+          provenance=true
+          provenance_arg=${OPTARG//provenance=/}
           ;;
         provenance)
           provenance=true
-          ;;
-        provenance-folder=*)
-          provenance=true
-          provenance_dest_path=${OPTARG//provenance-folder=/}
           ;;
         zip-provenance)
           provenance=true
@@ -2004,6 +2006,9 @@ set_variables() {
     fi
     if [ -n "${zip_provenance}" ]; then
       export zip_provenance
+    fi
+    if [ -n "${provenance_arg}" ]; then
+      export provenance_arg
     fi
   fi
 

@@ -660,7 +660,9 @@ get_args() {
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
           provenance=*)
-            provenance_arg=${OPTARG//provenance=/}
+            if [ -z "${provenance_arg}" ]; then
+              provenance_arg=${OPTARG//provenance=/}
+            fi
             if [ "${provenance_arg}" != false ]; then
               provenance=true
               # Enable provenance, YAML file specified as parameter

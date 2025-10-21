@@ -23,14 +23,14 @@ try:
     from matplotlib.lines import Line2D
 except:
     print(
-        "Error: matplotlib is not installed. Please install it using 'pip install matplotlib'."
+        "PROVENANCE | ERROR: matplotlib is not installed. Please install it using 'pip install matplotlib'."
     )
     exit(1)
 try:
     import pandas as pd
 except:
     print(
-        "Error: pandas is not installed. Please install it using 'pip install pandas'."
+        "PROVENANCE | ERROR: pandas is not installed. Please install it using 'pip install pandas'."
     )
     exit(1)
 
@@ -273,7 +273,7 @@ def plot_results(folder_pathname) -> str:
     """
     folder_pathname = str(folder_pathname)
     if not os.path.exists(folder_pathname):
-        print("Error: stats folder does not exist")
+        print("PROVENANCE | ERROR: stats folder does not exist")
         exit(1)
 
     plots_pathname = folder_pathname + "/plots/"

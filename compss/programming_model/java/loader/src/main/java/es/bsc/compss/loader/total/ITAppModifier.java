@@ -165,8 +165,7 @@ public final class ITAppModifier {
      *            otherwise uses the same "compssAppId"
      * @param isMainClass Whether the calling class is the main application class
      */
-    public static void modifyToFile(String appName, Class<?> annotItf,
-        boolean threadIdAsAppId, boolean isMainClass)
+    public static void modifyToFile(String appName, Class<?> annotItf, boolean threadIdAsAppId, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
         CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
         try {

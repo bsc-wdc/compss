@@ -22,6 +22,7 @@ import socket
 import yaml
 import statistics as st
 from hashlib import sha256
+
 try:
     import matplotlib.pyplot as plt
 except:
@@ -83,6 +84,7 @@ def get_description_plot(metric, node_name="unknown node"):
     }
 
     return description_plots[metric]
+
 
 def process_log(dp_path: str, data_list: list) -> tuple:
     """
@@ -248,7 +250,7 @@ def build_info_dict_ear(measure_name: str, value: typing.Union[float, int]) -> d
 
 
 def build_info_dict_resource_usage(
-        measure_name: str, value: typing.Union[float, int]
+    measure_name: str, value: typing.Union[float, int]
 ) -> dict:
     """
     Build the dictionary of resource property
@@ -615,9 +617,9 @@ def wrroc_create_action(
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
-            if i == 3:
+            if i == 2:
                 try:
-                    clean_time = line.strip().replace('Z', '+0000')[:26] + '+0000'
+                    clean_time = line.strip().replace("Z", "+0000")[:26] + "+0000"
                     start_time = datetime.strptime(clean_time, "%Y-%m-%dT%H:%M:%S.%f%z")
                     create_action_properties["startTime"] = start_time.replace(
                         microsecond=0
@@ -715,7 +717,9 @@ def wrroc_create_action(
                     id_measure_list.append({"@id": measure_id})
 
         id_name_list.extend(id_measure_list)
-        print(f"PROVENANCE | Added resource profiling information TIME: {time.time() - stat_data_time} s")
+        print(
+            f"PROVENANCE | Added resource profiling information TIME: {time.time() - stat_data_time} s"
+        )
 
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")

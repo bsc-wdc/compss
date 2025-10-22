@@ -641,10 +641,7 @@ get_args() {
           provenance=*)
             provenance=true
             # Enable provenance, YAML file specified as parameter
-            provenance_arg=${OPTARG//provenance=/}
-            if [ -z "${provenance_arg}" ]; then
-              provenance_yaml="${provenance_arg}"
-            fi
+            provenance_yaml=${OPTARG//provenance=/}
             ;;
           provenance)
             # Enable provenance

@@ -39,7 +39,6 @@ def add_file_to_crate(
     file_name: str,
     compss_ver: str,
     main_entity: str,
-    out_profile: str,
     in_sources_dir: str,
     complete_graph: Path,
     info_yaml: str,
@@ -53,7 +52,6 @@ def add_file_to_crate(
     :param file_name: File to be added physically to the Crate, full path resolved
     :param compss_ver: COMPSs version number
     :param main_entity: COMPSs file with the main code, full path resolved
-    :param out_profile: COMPSs application profile output
     :param in_sources_dir: Path to the defined sources_dir. May be passed empty, so there is no sub-folder structure
         to be respected
     :param complete_graph: Path object to the file containing the workflow diagram
@@ -323,7 +321,6 @@ def add_application_source_files(
     compss_wf_info: dict,
     compss_ver: str,
     main_entity: str,
-    out_profile: str,
     info_yaml: str,
     complete_graph: str,
     auxiliary_file_list: list,
@@ -336,7 +333,6 @@ def add_application_source_files(
     :param compss_wf_info: YAML dict to extract info form the application, as specified by the user
     :param compss_ver: COMPSs version number
     :param main_entity: COMPSs file with the main code, full path resolved
-    :param out_profile: COMPSs application profile output file
     :param info_yaml: Name of the YAML file specified by the user
     :param complete_graph: Full path to the file containing the workflow diagram
     :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
@@ -423,7 +419,6 @@ def add_application_source_files(
                             resolved_file,
                             compss_ver,
                             main_entity,
-                            out_profile,
                             resolved_source,
                             complete_graph,
                             info_yaml,
@@ -452,7 +447,6 @@ def add_application_source_files(
                             str(git_keep),
                             compss_ver,
                             main_entity,
-                            out_profile,
                             resolved_source,
                             complete_graph,
                             info_yaml,
@@ -473,7 +467,6 @@ def add_application_source_files(
                     str(git_keep),
                     compss_ver,
                     main_entity,
-                    out_profile,
                     resolved_source,
                     complete_graph,
                     info_yaml,
@@ -487,7 +480,6 @@ def add_application_source_files(
                     resolved_source,
                     compss_ver,
                     main_entity,
-                    out_profile,
                     "",
                     complete_graph,
                     info_yaml,
@@ -512,7 +504,6 @@ def add_application_source_files(
             main_entity,
             compss_ver,
             main_entity,
-            out_profile,
             "",
             complete_graph,
             info_yaml,

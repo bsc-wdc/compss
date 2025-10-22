@@ -279,7 +279,7 @@ def root_entity(
 
 def get_main_entities(
     wf_info: dict, info_yaml: str, dp_log: Path
-) -> typing.Tuple[str, str, str, dict]:
+) -> typing.Tuple[str, str, dict]:
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
     3 First lines expected format: compss_version_number\n main_entity\n output_profile_file\n
@@ -290,7 +290,7 @@ def get_main_entities(
     :param info_yaml: Name of the YAML file specified by the user
     :param dp_log: Path object to the dataprovenance.log file
 
-    :returns: COMPSs version, main COMPSs file name, COMPSs profile file name, updated wf_info
+    :returns: COMPSs version, main COMPSs file name, updated wf_info
     """
 
     # Build the whole source files list in list_of_sources, and get a backup main entity, in case we can't find one
@@ -346,8 +346,6 @@ def get_main_entities(
             detected_app = me_sub_path + ".java"  # Was detected_app
         if __debug__:
             print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
-        third_line = next(dp_file).rstrip()
-        out_profile_fn = Path(third_line)
 
     # Find a backup_main_entity while building the full list of source files
     for source in yaml_sources_list:
@@ -564,11 +562,9 @@ def get_main_entities(
             f"of application files provided in {info_yaml}. Setting {main_entity} as mainEntity"
         )
 
-    print(
-        f"PROVENANCE | COMPSs version: '{compss_v}', out_profile: '{out_profile_fn.name}', main_entity: '{main_entity}'"
-    )
+    print(f"PROVENANCE | COMPSs version: '{compss_v}', main_entity: '{main_entity}'")
 
-    return compss_v, main_entity, out_profile_fn.name, wf_info
+    return compss_v, main_entity, wf_info
 
 
 def get_manually_defined_software_requirements(

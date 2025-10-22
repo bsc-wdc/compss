@@ -96,7 +96,7 @@ def main():
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
 
     # Get mainEntity from COMPSs runtime log dataprovenance.log
-    compss_ver, main_entity, out_profile, compss_wf_info = get_main_entities(
+    compss_ver, main_entity, compss_wf_info = get_main_entities(
         compss_wf_info, INFO_YAML, DP_LOG
     )
 
@@ -111,7 +111,6 @@ def main():
         compss_wf_info,
         compss_ver,
         main_entity,
-        out_profile,
         INFO_YAML,
         COMPLETE_GRAPH,
         auxiliary_file_list,

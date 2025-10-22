@@ -6,13 +6,8 @@ if [ -z "${COMPSS_HOME}" ]; then
 fi
 
 # Variables for showing the provenance log
-is_yaml_default=true
-is_output_profile_default=true
-is_graph_default=true
 provenance=false
-if [ -z "${zip_provenance}" ]; then
-  zip_provenance=false
-fi
+zip_provenance=false
 
 # Load auxiliar scripts
 # shellcheck source=../system/commons/logger.sh
@@ -37,7 +32,7 @@ source "${COMPSS_HOME}/Runtime/scripts/system/runtime/profiler.sh"
 #---------------------------------------------------
 # Default value for those parameters with a quick-enabling option (e.g., --monitoring=<int> | -m).
 DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
-DEFAULT_GRAPH_ARGUMENT=true
+DEFAULT_GRAPH_ARGUMENT=false
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
@@ -303,27 +298,11 @@ get_args() {
       p)
         # Enable provenance
         provenance=true
-        provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-        if [ -z "$output_profile" ] ; then
-          output_profile="${PWD}/App_Profile.json"
-        fi
-        if [ -z "$graph" ] ; then
-          graph=${DEFAULT_GRAPH_ARGUMENT}
-        fi
         ;;
       z)
         # Zip provenance result
         provenance=true
         zip_provenance=true
-        if [ -z "$provenance_yaml" ] ; then
-          provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-        fi
-        if [ -z "$output_profile" ] ; then
-          output_profile="${PWD}/App_Profile.json"
-        fi
-        if [ -z "$graph" ] ; then
-          graph=${DEFAULT_GRAPH_ARGUMENT}
-        fi
         ;;
       -)
         # Check more complex arguments
@@ -660,36 +639,16 @@ get_args() {
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
           provenance=*)
+            provenance=true
+            # Enable provenance, YAML file specified as parameter
+            provenance_arg=${OPTARG//provenance=/}
             if [ -z "${provenance_arg}" ]; then
-              provenance_arg=${OPTARG//provenance=/}
-            fi
-            if [ "${provenance_arg}" != false ]; then
-              provenance=true
-              # Enable provenance, YAML file specified as parameter
-              if [[ "${provenance_arg}" == *.yaml ]]; then
-                provenance_yaml="${provenance_arg}"
-                is_yaml_default=false
-              else
-                provenance_yaml="${DEFAULT_PROVENANCE_YAML}"
-              fi
-              if [ -z "$output_profile" ] ; then
-                output_profile="${PWD}/App_Profile.json"
-              fi
-              if [ -z "$graph" ] ; then
-                graph=${DEFAULT_GRAPH_ARGUMENT}
-              fi
+              provenance_yaml="${provenance_arg}"
             fi
             ;;
           provenance)
             # Enable provenance
             provenance=true
-            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            if [ -z "$output_profile" ] ; then
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
             ;;
           provenance-folder=*)
             # Generate provenance in a specified directory
@@ -700,15 +659,6 @@ get_args() {
             # Zip provenance result
             provenance=true
             zip_provenance=true
-            if [ -z "$provenance_yaml" ] ; then
-              provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            fi
-            if [ -z "$output_profile" ] ; then
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
             ;;
           *)
             # Flag didn't match any patern. Raise exception
@@ -723,23 +673,16 @@ get_args() {
     esac
   done
 
-  if [ "${provenance}" != false ]; then
-    # Show log provenance
-    if [ "${is_yaml_default}" = true ]; then
-      echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-    else
-      echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
+  if [ "${provenance}" = true ]; then
+    if [ -z "${provenance_yaml}" ]; then
+      provenance_yaml="${DEFAULT_PROVENANCE_YAML}"
     fi
-    if [ "${is_output_profile_default}" = true ]; then
-      echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
-    else
-      echo "PROVENANCE | Setting 'output_profile' to '${output_profile}'"
-    fi
-    if [ "${is_graph_default}" = true ]; then
+    if [ -z "${graph}" ] ; then
+      graph=true
       echo "PROVENANCE | Setting 'graph' to 'true' by default"
-    else
-      echo "PROVENANCE | Setting 'graph' to '${graph}'"
     fi
+    # Show log provenance
+    echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
     if [ "${zip_provenance}" = true ]; then
       echo "PROVENANCE | Zipping the resulting COMPSs RO-Crate"
     fi

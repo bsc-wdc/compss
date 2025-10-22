@@ -25,6 +25,7 @@
 #include <iomanip>
 
 #include "common.h"
+#include "compss_interface.h"
 #include "compss_pipes.h"
 #include "param_metadata.h"
 #include "BindingDataManager.h"
@@ -73,14 +74,6 @@ string read_result_from_pipe(){
 			clearerr(result_pipe_stream);
 		}
 	}
-}
-
-
-void PIPE_set_pipes(char* comPipe, char* resPipe){
-	init_env_vars();
-	command_pipe = strdup(comPipe);
-	result_pipe = strdup(resPipe);
-    result_pipe_stream = fopen(result_pipe , "r");
 }
 
 void PIPE_read_command(char** command){
@@ -465,6 +458,16 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
 
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Task processed.\n");
 }
+
+
+void PIPE_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
+                         int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+
+    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
+    debug_printf ("[BINDING-COMMONS] NOT YET IMPLEMENTED")
+}
+
+
 
 void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numArgs, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - ceSignature:     %s\n", ceSignature);
@@ -867,4 +870,45 @@ void PIPE_FreeResources(long appId, int numResources, char* groupName) {
 
 void PIPE_set_wall_clock(long appId, long wcl, int stopRT){
 	debug_printf ("[BINDING-COMMONS] - @PIPE_set_wall_clock NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
+}
+
+
+CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
+	init_env_vars();
+	command_pipe = strdup(comPipe);
+	result_pipe = strdup(resPipe);
+    result_pipe_stream = fopen(result_pipe , "r");
+
+    CompssInterface *iface = (CompssInterface *)malloc(sizeof(CompssInterface));
+    iface->On = PIPE_On;
+    iface->Off = PIPE_Off;
+    iface->read_command = PIPE_read_command;
+    iface->RegisterCE = PIPE_RegisterCE;
+    iface->ExecuteTask = PIPE_ExecuteTask;
+    iface->ExecuteTaskNew = PIPE_ExecuteTaskNew;
+    iface->ExecuteHttpTask = PIPE_ExecuteHttpTask;
+    iface->Cancel_Application_Tasks = PIPE_Cancel_Application_Tasks;
+    iface->Accessed_File = PIPE_Accessed_File;
+    iface->Open_File = PIPE_Open_File;
+    iface->Close_File = PIPE_Close_File;
+    iface->Delete_File = PIPE_Delete_File;
+    iface->Get_File = PIPE_Get_File;
+    iface->Get_Directory = PIPE_Get_Directory;
+    iface->Barrier = PIPE_Barrier;
+    iface->BarrierNew = PIPE_BarrierNew;
+    iface->BarrierGroup = PIPE_BarrierGroup;
+    iface->OpenTaskGroup = PIPE_OpenTaskGroup;
+    iface->CloseTaskGroup = PIPE_CloseTaskGroup;
+    iface->CancelTaskGroup = PIPE_CancelTaskGroup;
+    iface->Snapshot = PIPE_Snapshot;
+    iface->GetNumberOfResources = PIPE_GetNumberOfResources;
+    iface->RequestResources = PIPE_RequestResources;
+    iface->FreeResources = PIPE_FreeResources;
+    iface->Get_AppDir = PIPE_Get_AppDir;
+    iface->Get_MasterWorkingDir = PIPE_Get_MasterWorkingDir;
+    iface->EmitEvent = PIPE_EmitEvent;
+    iface->Get_Object = PIPE_Get_Object;
+    iface->Delete_Object = PIPE_Delete_Object;
+    iface->Set_wall_clock = PIPE_set_wall_clock;
+    return *iface;
 }

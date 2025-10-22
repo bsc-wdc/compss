@@ -349,7 +349,7 @@ EOT
 -Dcompss.to.file=false
 -Dcompss.appName=${appName}
 -Dcompss.exec.label=${exec_label}
--Dcompss.data_provenance=${provenance}
+-Dcompss.data_provenance=${provenance_worker}
 -Dcompss.uuid=${uuid}
 -Dcompss.shutdown_in_node_failure=${shutdown_in_node_failure}
 -Dcompss.master.workingDir=${wdir_in_master}

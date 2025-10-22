@@ -125,7 +125,7 @@
     pythonWorkerCache=${38}
     pythonCacheProfiler=${39}
     ear=${40}
-    provenance=${41}
+    provenance_worker=${41}
 
     #This decides where the worker.* files are stored
     #NIOWorker.java getLogDir decides where the binding_worker.* files are stored
@@ -172,7 +172,7 @@
       echo "- ExecType:            ${execType}"
       echo "- Persistent:          ${persistentBinding}"
       echo "- Ear:                 ${ear}"
-      echo "- Provenance           ${provenance}"
+      echo "- Provenance           ${provenance_worker}"
     fi
 
     # Calculate Log4j file
@@ -344,7 +344,7 @@
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
     -Dcompss.extrae.file.python=${pythonExtraeFile} \
     -Dcompss.ear=${ear} \
-    -Dcompss.data_provenance=${provenance} \
+    -Dcompss.data_provenance=${provenance_worker} \
     -Djava.library.path=$LD_LIBRARY_PATH"
     if [ "$(uname -m)" == "riscv64" ]; then
       worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"

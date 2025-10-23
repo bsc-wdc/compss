@@ -473,8 +473,7 @@ master_cmd() {
             --streaming_master_port=${streaming_master_port} \
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
-            --jvm_workers_opts=${jvm_workers_opts} \
-            --provenance=${provenance}"
+            --jvm_workers_opts=${jvm_workers_opts}"
   if [ -n "${master_working_dir}" ]; then
     MCMD="$MCMD --master_working_dir=${master_working_dir}"
   fi

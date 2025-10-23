@@ -10,6 +10,7 @@
       "worker_c"
       "runcompss"
       "pycompss/runtime/launch.py"
+      "scripts/system/profiling/profiler.py"
     )
 
     killtree() {
@@ -26,6 +27,6 @@
       done
     done
   else
-    ps -elfa | grep -E "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c|runcompss|pycompss/runtime/launch.py" | grep -v "grep" | awk '{ print $4 }' | xargs -r kill -9
+    ps -elfa | grep -E "COMPSsWorker|pipers|worker.py|nio_worker_c|worker_c|runcompss|pycompss/runtime/launch.py|scripts/system/profiling/profiler.py" | grep -v "grep" | awk '{ print $4 }' | xargs -r kill -9
   fi
 

@@ -76,8 +76,11 @@ Interaction details:
 ${ADAPTOR_PROPERTIES_DEBUG} 
 Resource details: 
     Description: 
-        Processors: 
-            CPU:              ${resource_cpu_count} 
+        Processors:
+            CPU:
+                Name:         ${resource_cpu_name} 
+                Architecture: ${resource_cpu_arch} 
+                #Cores:       ${resource_cpu_count} 
             GPU:              ${resource_gpu_count} 
             FPGA:             ${resource_fpga_count} 
         Memory: 
@@ -137,6 +140,9 @@ show_resource_opts() {
 
     --cpu_name=<string>                     Name of the cpu processor available on the resource
                                             Default: ${DEFAULT_CPU_NAME}
+
+    --cpu_arch=<string>                     Hardware architecture of the resource
+                                            Default: ${DEFAULT_ARCHITECTURE}
 
     --gpu=<integer>                         Number of gpus devices available on the resource 
                                             Default: ${DEFAULT_GPU_COUNT}
@@ -227,6 +233,9 @@ get_args() {
           cpu_name=*)
             resource_cpu_name=${OPTARG//cpu_name=/}
             ;;
+          cpu_arch=*)
+            resource_cpu_arch=${OPTARG//cpu_arch=/}
+            ;;
           gpu=*)
             resource_gpu_count=${OPTARG//gpu=/}
             ;;
@@ -281,6 +290,10 @@ check_args() {
   if [ -z "${resource_cpu_count}" ]; then
     resource_cpu_count=${DEFAULT_CPU_COUNT}
   fi
+  if [ -z "${resource_cpu_arch}" ]; then
+      resource_cpu_arch=${DEFAULT_ARCHITECTURE}
+  fi
+
   if [ -z "${resource_gpu_count}" ]; then
     resource_gpu_count=${DEFAULT_GPU_COUNT}
   fi
@@ -308,7 +321,6 @@ check_args() {
   if [ -z "${resource_os_version}" ]; then
     resource_os_version=${DEFAULT_OS_VERSION}
   fi
-
 }
 
 
@@ -323,7 +335,7 @@ check_args() {
 # Agent Invocation
 ###############################################
 add_resource() {
-  get_resource_description "    " "${resource_cpu_name}" "${resource_cpu_count}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}"
+  get_resource_description "    " "${resource_cpu_name}" "${resource_cpu_count}" "${resource_cpu_arch}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}" 
   local description=${RESOURCE_DESCRIPTION}
 
   ${APP_CMD} "-s" "-XPUT" "http://${agent_node}:${agent_port}/COMPSs/addResources" -H 'content-type: application/xml' -d "\

@@ -328,7 +328,7 @@
   # ---------------------------------------
   # ------- TESTING COMM INTERFACE --------
   # ---------------------------------------
-
+  
   # Afegir un nou worker Comm agent adaptor
   echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
@@ -336,6 +336,7 @@
     --agent_port="46101" \
     --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
     --cpu=1 \
+    --cpu_arch="amd64" \
     "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
   
@@ -390,6 +391,11 @@
   CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "1" ]; then
     echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ARCHITECTURE=$(echo "${DESCRIPTION}" | jq -r '.processors[] | select(.name=="MainProcessor") | .architecture')
+  if [ "${ARCHITECTURE}" != "amd64" ]; then
+    echo "Wrong architecture configured for Agent 2. Found ${ARCHITECTURE}; expected amd64." > >(tee -a "${error_log}")
     exit 1
   fi
 
@@ -452,7 +458,6 @@
   validate_parallel_running_tasks "${starts}" "${ends}" "1" "1"
   echo  "Task executions properly scheduled and executed." > >(tee -a "${output_log}")
 
-
   # Removing local resources
   echo "Removing remote resource." > >(tee -a "${output_log}")
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_reduce_resources" \
@@ -487,8 +492,6 @@
   fi
 
   echo "Resource properly removed."
-
-
 
   # ---------------------------------------
   # ----- TESTING HOTPLUG DYNAMICITY ------
@@ -541,7 +544,8 @@
     --agent_port="46101" \
     --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
     --cpu=1 \
-    "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+    --cpu_arch="amd64" \
+    "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
   sleep 1
   
 # CHECK WHETHER THE Worker was properly set on AGENT 1
@@ -595,6 +599,11 @@
   CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "1" ]; then
     echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ARCHITECTURE=$(echo "${DESCRIPTION}" | jq -r '.processors[] | select(.name=="MainProcessor") | .architecture')
+  if [ "${ARCHITECTURE}" != "amd64" ]; then
+    echo "Wrong architecture configured for Agent 2. Found ${ARCHITECTURE}; expected amd64." > >(tee -a "${error_log}")
     exit 1
   fi
 
@@ -677,6 +686,7 @@
     --agent_port="46101" \
     --comm="es.bsc.compss.agent.rest.master.Adaptor" \
     --cpu=1 \
+    --cpu_arch="amd64" \
     "COMPSsWorker04" "Port=46401" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
 
@@ -733,6 +743,11 @@
   CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "1" ]; then
     echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ARCHITECTURE=$(echo "${DESCRIPTION}" | jq -r '.processors[] | select(.name=="MainProcessor") | .architecture')
+  if [ "${ARCHITECTURE}" != "amd64" ]; then
+    echo "Wrong architecture configured for Agent 2. Found ${ARCHITECTURE}; expected amd64." > >(tee -a "${error_log}")
     exit 1
   fi
 

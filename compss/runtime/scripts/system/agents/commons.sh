@@ -35,6 +35,7 @@ DEFAULT_MEM_SIZE="-1"
 DEFAULT_OS_TYPE="[unassigned]"
 DEFAULT_OS_DISTR="[unassigned]"
 DEFAULT_OS_VERSION="[unassigned]"
+DEFAULT_ARCHITECTURE="[unassigned]"
 
 
 ###############################################
@@ -73,13 +74,15 @@ get_resource_description() {
   local indent=${1}
   local cpu_name=${2}
   local cpu_count=${3}
-  local gpu_count=${4}
-  local fpga_count=${5}
-  local mem_size=${6}
-  local mem_type=${7}
-  local os_distr=${8}
-  local os_type=${9}
-  local os_version=${10}
+  local cpu_architecture=${4}
+  local gpu_count=${5}
+  local fpga_count=${6}
+  local mem_size=${7}
+  local mem_type=${8}
+  local os_distr=${9}
+  local os_type=${10}
+  local os_version=${11}
+
 
   local processors
   processors="${indent}  <processors>"
@@ -88,7 +91,7 @@ get_resource_description() {
 ${indent}    <processor>
 ${indent}      <name>${cpu_name}</name>
 ${indent}      <type>CPU</type>
-${indent}      <architecture>[unassigned]</architecture>
+${indent}      <architecture>${cpu_architecture}</architecture>
 ${indent}      <computingUnits>${cpu_count}</computingUnits>
 ${indent}      <internalMemory>-1.0</internalMemory>
 ${indent}      <propName>[unassigned]</propName>
@@ -102,7 +105,7 @@ ${indent}    </processor>"
 ${indent}    <processor>
 ${indent}      <name>gpu</name>
 ${indent}      <type>GPU</type>
-${indent}      <architecture>[unassigned]</architecture>
+${indent}      <architecture>${DEFAULT_ARCHITECTURE}</architecture>
 ${indent}      <computingUnits>${gpu_count}</computingUnits>
 ${indent}      <internalMemory>-1.0</internalMemory>
 ${indent}      <propName>[unassigned]</propName>
@@ -116,7 +119,7 @@ ${indent}    </processor>"
 ${indent}    <processor>
 ${indent}      <name>FPGA</name>
 ${indent}      <type>FPGA</type>
-${indent}      <architecture>[unassigned]</architecture>
+${indent}      <architecture>${DEFAULT_ARCHITECTURE}</architecture>
 ${indent}      <computingUnits>${fpga_count}</computingUnits>
 ${indent}      <internalMemory>-1.0</internalMemory>
 ${indent}      <propName>[unassigned]</propName>

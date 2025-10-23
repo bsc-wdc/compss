@@ -131,14 +131,14 @@ get_implementation_parameters() {
     pythonVirtualEnvironment=$7
     pythonPropagateVirtualEnvironment=$8
     pythonExtraeFile=$9
-    provenance_worker=${10}
+    provenance=${10}
     # Added to support coverage
     if [[ "${pythonInterpreter}" = coverage* ]]; then
          pythonInterpreter=$(echo ${pythonInterpreter} | tr "#" " " )
     fi
     langFlags=("${persistentBinding}" "${lang}" "${taskSandboxWorkingDir}" "${cp}" "${pythonpath}" "${pythonInterpreter}"
                   "${pythonVersion}" "${pythonVirtualEnvironment}" "${pythonPropagateVirtualEnvironment}"
-                  "${pythonExtraeFile}" "${provenance_worker}")
+                  "${pythonExtraeFile}" "${provenance}")
     # Shit all parameters except method ones
     shift 9
 
@@ -343,7 +343,7 @@ printLangParams(){
   echo "[WORKER_COMMONS.SH]         - pythonVirtualEnvironment           = ${pythonVirtualEnvironment}"
   echo "[WORKER_COMMONS.SH]         - pythonPropagateVirtualEnvironment  = ${pythonPropagateVirtualEnvironment}"
   echo "[WORKER_COMMONS.SH]         - pythonExtraeFile                   = ${pythonExtraeFile}"
-  echo "[WORKER_COMMONS.SH]         - provenance                         = ${provenance_worker}"
+  echo "[WORKER_COMMONS.SH]         - provenance                         = ${provenance}"
   echo "${langFlags[*]}"
 
 }
@@ -548,7 +548,7 @@ get_command(){
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
     -Dcompss.extrae.file.python=${pythonExtraeFile} \
-    -Dcompss.data_provenance=${provenance_worker}"
+    -Dcompss.data_provenance=${provenance}"
      #\
     #-Djava.library.path=$LD_LIBRARY_PATH"
 

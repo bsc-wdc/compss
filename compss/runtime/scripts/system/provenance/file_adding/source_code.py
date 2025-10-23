@@ -102,7 +102,7 @@ def add_file_to_crate(
             )
         else:  # .py, .java, .c, .cc, .cpp
             file_properties["encodingFormat"] = "text/plain"
-        if complete_graph.exists():
+        if complete_graph.exists() and complete_graph.stat().st_size > 0:
             file_properties["image"] = {
                 "@id": "complete_graph.svg"
             }  # Name as generated
@@ -217,7 +217,8 @@ def add_file_to_crate(
         )
 
         # complete_graph.svg
-        if complete_graph.exists():
+        # When dot is not found, it may create the file, but be empty
+        if complete_graph.exists() and complete_graph.stat().st_size > 0:
             file_properties = {}
             file_properties["name"] = "complete_graph.svg"
             file_properties["contentSize"] = complete_graph.stat().st_size

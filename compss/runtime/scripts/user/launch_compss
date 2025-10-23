@@ -1426,25 +1426,24 @@ get_args() {
           ear_flags=${OPTARG//ear=/}
           ;;
         provenance-folder=*)
-          # Generate provenance in a specified directory
           provenance=true
-          #Keep it for runcompss (to add them to master)
-          args_pass="$args_pass -$flag"
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         provenance=*)
           provenance=true
-          #Keep it for runcompss (to add them to master)
-          args_pass="$args_pass -$flag"
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         provenance)
           provenance=true
-          #Keep it for runcompss (to add them to master)
-          args_pass="$args_pass -$flag"
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         zip-provenance)
           provenance=true
-          #Keep it for runcompss (to add them to master)
-          args_pass="$args_pass -$flag"
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         command)
           run_command=true

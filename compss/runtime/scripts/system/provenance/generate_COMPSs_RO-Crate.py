@@ -239,6 +239,11 @@ if __name__ == "__main__":
         DEST_FOLDER = sys.argv[3]
         ZIP_PROVENANCE = True if sys.argv[4] == "true" else False
         DP_LOG = path_log / "dataprovenance.log"
+        if not DP_LOG.exists() or DP_LOG.stat().st_size == 0:
+            print(
+                f"PROVENANCE | ERROR: the dataprovenance.log file is empty. Provenance information has not been correctly generated from the COMPSs runtime"
+            )
+            sys.exit()
         COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
         ENERGY_PATH = path_log / "energy/"
         STATS_PATH = path_log / "stats/"

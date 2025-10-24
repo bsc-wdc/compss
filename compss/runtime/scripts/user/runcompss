@@ -6,13 +6,8 @@ if [ -z "${COMPSS_HOME}" ]; then
 fi
 
 # Variables for showing the provenance log
-is_yaml_default=true
-is_output_profile_default=true
-is_graph_default=true
 provenance=false
-if [ -z "${zip_provenance}" ]; then
-  zip_provenance=false
-fi
+zip_provenance=false
 
 # Load auxiliar scripts
 # shellcheck source=../system/commons/logger.sh
@@ -223,7 +218,7 @@ show_opts() {
                                             Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
-    --provenance=<yaml>, --provenance, -p   Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph and --output_profile.
+    --provenance=<yaml>, --provenance, -p   Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph.
                                             Default: ro-crate-info.yaml
     --provenance-folder=<path>              Path where the workflow provenance will be generated
                                             Default: COMPSs_RO-Crate_[timestamp]
@@ -303,27 +298,11 @@ get_args() {
       p)
         # Enable provenance
         provenance=true
-        provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-        if [ -z "$output_profile" ] ; then
-          output_profile="${PWD}/App_Profile.json"
-        fi
-        if [ -z "$graph" ] ; then
-          graph=${DEFAULT_GRAPH_ARGUMENT}
-        fi
         ;;
       z)
         # Zip provenance result
         provenance=true
         zip_provenance=true
-        if [ -z "$provenance_yaml" ] ; then
-          provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-        fi
-        if [ -z "$output_profile" ] ; then
-          output_profile="${PWD}/App_Profile.json"
-        fi
-        if [ -z "$graph" ] ; then
-          graph=${DEFAULT_GRAPH_ARGUMENT}
-        fi
         ;;
       -)
         # Check more complex arguments
@@ -660,34 +639,13 @@ get_args() {
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
           provenance=*)
-            provenance_arg=${OPTARG//provenance=/}
-            if [ "${provenance_arg}" != false ]; then
-              provenance=true
-              # Enable provenance, YAML file specified as parameter
-              if [[ "${provenance_arg}" == *.yaml ]]; then
-                provenance_yaml="${provenance_arg}"
-                is_yaml_default=false
-              else
-                provenance_yaml="${DEFAULT_PROVENANCE_YAML}"
-              fi
-              if [ -z "$output_profile" ] ; then
-                output_profile="${PWD}/App_Profile.json"
-              fi
-              if [ -z "$graph" ] ; then
-                graph=${DEFAULT_GRAPH_ARGUMENT}
-              fi
-            fi
+            provenance=true
+            # Enable provenance, YAML file specified as parameter
+            provenance_yaml=${OPTARG//provenance=/}
             ;;
           provenance)
             # Enable provenance
             provenance=true
-            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            if [ -z "$output_profile" ] ; then
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
             ;;
           provenance-folder=*)
             # Generate provenance in a specified directory
@@ -698,15 +656,6 @@ get_args() {
             # Zip provenance result
             provenance=true
             zip_provenance=true
-            if [ -z "$provenance_yaml" ] ; then
-              provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            fi
-            if [ -z "$output_profile" ] ; then
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
             ;;
           *)
             # Flag didn't match any patern. Raise exception
@@ -721,23 +670,16 @@ get_args() {
     esac
   done
 
-  if [ "${provenance}" != false ]; then
-    # Show log provenance
-    if [ "${is_yaml_default}" = true ]; then
-      echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-    else
-      echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
+  if [ "${provenance}" = true ]; then
+    if [ -z "${provenance_yaml}" ]; then
+      provenance_yaml="${DEFAULT_PROVENANCE_YAML}"
     fi
-    if [ "${is_output_profile_default}" = true ]; then
-      echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
-    else
-      echo "PROVENANCE | Setting 'output_profile' to '${output_profile}'"
-    fi
-    if [ "${is_graph_default}" = true ]; then
+    if [ -z "${graph}" ] ; then
+      graph=true
       echo "PROVENANCE | Setting 'graph' to 'true' by default"
-    else
-      echo "PROVENANCE | Setting 'graph' to '${graph}'"
     fi
+    # Show log provenance
+    echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
     if [ "${zip_provenance}" = true ]; then
       echo "PROVENANCE | Zipping the resulting COMPSs RO-Crate"
     fi
@@ -893,14 +835,10 @@ if [ "${provenance}" != false ]; then
     python3 -O "${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}" "${zip_provenance}"
   fi
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
-    if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it
-      rm -f "${PWD}/App_Profile.json" .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
-    else
-      rm -f .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
-    fi
+    rm -f .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
   else
     echo "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED"
-    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json .compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
+    echo "PROVENANCE | Temporary files have not been erased: .compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
   fi
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi

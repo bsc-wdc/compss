@@ -26,7 +26,7 @@ try:
     psutil_imported = True
 except ImportError:
     print(
-        "Error: psutil is not installed. Install it, if you want to monitor all the resources status during the execution."
+        "PROVENANCE | ERROR: psutil is not installed. Install it, if you want to monitor all the resources status during the execution."
     )
     psutil_imported = False
 
@@ -46,7 +46,7 @@ hostname = None
 
 def end_profiling(sig, frame):
     global profiling_active, profiling_data, output_file, log_dir, hostname
-    print("Finishing profiling...")
+    print("PROVENANCE | Finishing profiling...")
     profiling_active = False
 
     # Immediate cleanup - flush and close the main CSV file
@@ -54,9 +54,9 @@ def end_profiling(sig, frame):
         try:
             output_file.flush()
             output_file.close()
-            print("Data recorded successfully.")
+            print("PROVENANCE | Data recorded successfully.")
         except Exception as e:
-            print(f"Warning: Recording data: {e}")
+            print(f"PROVENANCE | Warning: Recording data: {e}")
 
     # Write final summary file
     if log_dir and hostname:
@@ -65,11 +65,11 @@ def end_profiling(sig, frame):
                 summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 summary.write(f"Total measurements collected: {len(profiling_data)}\n")
                 summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
-            print("Summary file created successfully.")
+            print("PROVENANCE | Summary file created successfully.")
         except Exception as e:
-            print(f"Warning: Could not write summary file: {e}")
+            print(f"PROVENANCE | Warning: Could not write summary file: {e}")
 
-    print("Profiling completed. (end_profiling)")
+    print("PROVENANCE | Profiling completed. (end_profiling)")
 
 signal.signal(signal.SIGUSR1, end_profiling)
 
@@ -175,7 +175,7 @@ def main():
     current_config = config_map.get(system_type, None)
 
     if current_config is None:
-        print("Error: it is not possible to monitor the resources on this system")
+        print("PROVENANCE | ERROR: it is not possible to monitor the resources on this system")
         exit(1)
 
     is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
@@ -248,35 +248,35 @@ def main():
             profiling_data.append(new_entry.strip())  # Store data for summary
 
     except KeyboardInterrupt:
-        print("Profiling interrupted by user.")
+        print("PROVENANCE | Profiling interrupted by user.")
         # Cleanup for Ctrl+C interruption
         if output_file and not output_file.closed:
             try:
                 output_file.flush()
                 output_file.close()
-                print("CSV file closed after interruption.")
+                print("PROVENANCE | CSV file closed after interruption.")
             except Exception as e:
-                print(f"Warning: Error closing file after interruption: {e}")
+                print(f"PROVENANCE | Warning: Error closing file after interruption: {e}")
     except Exception as e:
-        print(f"Error during profiling: {e}")
+        print(f"PROVENANCE | Error during profiling: {e}")
         # Cleanup for unexpected errors
         if output_file and not output_file.closed:
             try:
                 output_file.flush()
                 output_file.close()
-                print("CSV file closed after error.")
+                print("PROVENANCE | CSV file closed after error.")
             except Exception as e2:
-                print(f"Warning: Error closing file after error: {e2}")
+                print(f"PROVENANCE | Warning: Error closing file after error: {e2}")
     finally:
         # Final safety check - only needed if file wasn't closed already
         if output_file and not output_file.closed:
             try:
                 output_file.flush()
                 output_file.close()
-                print("CSV file closed in finally block.")
+                print("PROVENANCE | CSV file closed in finally block.")
             except Exception as e:
-                print(f"Warning: Error in final cleanup: {e}")
-        print("Profiling completed. (main)")
+                print(f"PROVENANCE | Warning: Error in final cleanup: {e}")
+        print("PROVENANCE | Profiling completed. (main)")
 
 
 if __name__ == "__main__":

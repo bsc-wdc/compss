@@ -473,8 +473,7 @@ master_cmd() {
             --streaming_master_port=${streaming_master_port} \
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
-            --jvm_workers_opts=${jvm_workers_opts} \
-            --provenance=${provenance}"
+            --jvm_workers_opts=${jvm_workers_opts}"
   if [ -n "${master_working_dir}" ]; then
     MCMD="$MCMD --master_working_dir=${master_working_dir}"
   fi
@@ -1066,6 +1065,16 @@ get_args() {
         #Keep it for runcompss (to add them to master)
         args_pass="$args_pass -$flag"
         ;;
+      p)
+        provenance=true
+        #Keep it for runcompss (to add them to master)
+        args_pass="$args_pass -$flag"
+        ;;
+      z)
+        provenance=true
+        #Keep it for runcompss (to add them to master)
+        args_pass="$args_pass -$flag"
+        ;;
       -)
       # Check more complex arguments
       case "$OPTARG" in
@@ -1415,19 +1424,25 @@ get_args() {
           ear=true
           ear_flags=${OPTARG//ear=/}
           ;;
+        provenance-folder=*)
+          provenance=true
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         provenance=*)
-          provenance=${OPTARG//provenance=/}
+          provenance=true
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         provenance)
           provenance=true
-          ;;
-        provenance-folder=*)
-          provenance=true
-          provenance_dest_path=${OPTARG//provenance-folder=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         zip-provenance)
           provenance=true
-          zip_provenance=true
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         command)
           run_command=true
@@ -1998,14 +2013,17 @@ set_variables() {
   fi
 
   # Export provenance variables
-  if [ "${provenance}" = true ]; then
-    if [ -n "${provenance_dest_path}" ]; then
-      export provenance_dest_path
-    fi
-    if [ -n "${zip_provenance}" ]; then
-      export zip_provenance
-    fi
-  fi
+  # if [ "${provenance}" = true ]; then
+  #   if [ -n "${provenance_dest_path}" ]; then
+  #     export provenance_dest_path
+  #   fi
+  #   if [ -n "${zip_provenance}" ]; then
+  #     export zip_provenance
+  #   fi
+  #   if [ -n "${provenance_arg}" ]; then
+  #     export provenance_arg
+  #   fi
+  # fi
 
   # Create .COMPSs log dir for application execution
   if [ -z "${log_dir}" ]; then

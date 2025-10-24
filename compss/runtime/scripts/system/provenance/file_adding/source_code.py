@@ -39,7 +39,6 @@ def add_file_to_crate(
     file_name: str,
     compss_ver: str,
     main_entity: str,
-    out_profile: str,
     in_sources_dir: str,
     complete_graph: Path,
     info_yaml: str,
@@ -53,7 +52,6 @@ def add_file_to_crate(
     :param file_name: File to be added physically to the Crate, full path resolved
     :param compss_ver: COMPSs version number
     :param main_entity: COMPSs file with the main code, full path resolved
-    :param out_profile: COMPSs application profile output
     :param in_sources_dir: Path to the defined sources_dir. May be passed empty, so there is no sub-folder structure
         to be respected
     :param complete_graph: Path object to the file containing the workflow diagram
@@ -104,7 +102,7 @@ def add_file_to_crate(
             )
         else:  # .py, .java, .c, .cc, .cpp
             file_properties["encodingFormat"] = "text/plain"
-        if complete_graph.exists():
+        if complete_graph.exists() and complete_graph.stat().st_size > 0:
             file_properties["image"] = {
                 "@id": "complete_graph.svg"
             }  # Name as generated
@@ -219,7 +217,8 @@ def add_file_to_crate(
         )
 
         # complete_graph.svg
-        if complete_graph.exists():
+        # When dot is not found, it may create the file, but be empty
+        if complete_graph.exists() and complete_graph.stat().st_size > 0:
             file_properties = {}
             file_properties["name"] = "complete_graph.svg"
             file_properties["contentSize"] = complete_graph.stat().st_size
@@ -277,71 +276,6 @@ def add_file_to_crate(
                 "\tProvenance will be generated without image property"
             )
 
-        # out_profile
-        if os.path.exists(out_profile):
-            if out_profile.split("/")[-1] != "App_Profile.json":
-                file_properties = {}
-                file_properties["name"] = out_profile
-                file_properties["contentSize"] = os.path.getsize(out_profile)
-                file_properties["description"] = "COMPSs application Tasks profile"
-                file_properties["encodingFormat"] = [
-                    "application/json",
-                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
-                ]
-
-                # Fix COMPSs crappy format of JSON files
-                with open(out_profile, encoding="UTF-8") as op_file:
-                    op_json = json.load(op_file)
-                with open(out_profile, "w", encoding="UTF-8") as op_file:
-                    json.dump(op_json, op_file, indent=1)
-
-                # Add JSON as ContextEntity
-                compss_crate.add(
-                    ContextEntity(
-                        compss_crate,
-                        "https://www.nationalarchives.gov.uk/PRONOM/fmt/817",
-                        {"@type": "WebSite", "name": "JSON Data Interchange Format"},
-                    )
-                )
-
-                # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
-                with open(out_profile) as file, mmap(
-                    file.fileno(), 0, access=ACCESS_READ
-                ) as file:
-                    file_properties["sha256"] = sha256(file).hexdigest()
-
-                compss_crate.add_file(out_profile, properties=file_properties)
-        else:
-            print(
-                "PROVENANCE | WARNING: COMPSs application profile has not been generated.\n"
-                "\tMake sure you use runcompss with --output_profile=file_name\n"
-                "\tProvenance will be generated without profiling information"
-            )
-
-        # compss_submission_command_line.txt. Old compss_command_line_arguments.txt
-        # if os.path.exists("compss_submission_command_line.txt"):
-        #     file_properties = {}
-        #     file_properties["name"] = "compss_submission_command_line.txt"
-        #     file_properties["contentSize"] = os.path.getsize(
-        #         "compss_submission_command_line.txt"
-        #     )
-        #     file_properties["description"] = (
-        #         "COMPSs submission command line (runcompss / enqueue_compss), including flags and parameters passed to the application"
-        #     )
-        #     file_properties["encodingFormat"] = "text/plain"
-        #     with open("compss_submission_command_line.txt") as file, mmap(
-        #         file.fileno(), 0, access=ACCESS_READ
-        #     ) as file:
-        #         file_properties["sha256"] = sha256(file).hexdigest()
-        #     compss_crate.add_file(
-        #         "compss_submission_command_line.txt", properties=file_properties
-        #     )
-        # else:
-        #     print(
-        #         "PROVENANCE | WARNING: COMPSs submission command line has not been generated.\n"
-        #         "\tProvenance will be generated without submission information"
-        #     )
-
         # ro-crate-info.yaml
         if os.path.exists(info_yaml):
             yaml_path = Path(info_yaml)
@@ -388,7 +322,6 @@ def add_application_source_files(
     compss_wf_info: dict,
     compss_ver: str,
     main_entity: str,
-    out_profile: str,
     info_yaml: str,
     complete_graph: str,
     auxiliary_file_list: list,
@@ -401,7 +334,6 @@ def add_application_source_files(
     :param compss_wf_info: YAML dict to extract info form the application, as specified by the user
     :param compss_ver: COMPSs version number
     :param main_entity: COMPSs file with the main code, full path resolved
-    :param out_profile: COMPSs application profile output file
     :param info_yaml: Name of the YAML file specified by the user
     :param complete_graph: Full path to the file containing the workflow diagram
     :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
@@ -488,7 +420,6 @@ def add_application_source_files(
                             resolved_file,
                             compss_ver,
                             main_entity,
-                            out_profile,
                             resolved_source,
                             complete_graph,
                             info_yaml,
@@ -517,7 +448,6 @@ def add_application_source_files(
                             str(git_keep),
                             compss_ver,
                             main_entity,
-                            out_profile,
                             resolved_source,
                             complete_graph,
                             info_yaml,
@@ -538,7 +468,6 @@ def add_application_source_files(
                     str(git_keep),
                     compss_ver,
                     main_entity,
-                    out_profile,
                     resolved_source,
                     complete_graph,
                     info_yaml,
@@ -552,7 +481,6 @@ def add_application_source_files(
                     resolved_source,
                     compss_ver,
                     main_entity,
-                    out_profile,
                     "",
                     complete_graph,
                     info_yaml,
@@ -577,7 +505,6 @@ def add_application_source_files(
             main_entity,
             compss_ver,
             main_entity,
-            out_profile,
             "",
             complete_graph,
             info_yaml,

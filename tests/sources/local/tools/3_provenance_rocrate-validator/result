@@ -62,48 +62,57 @@
 
   if [ -d "${prov_dir}" ]; then
     echo "PROVENANCE DIRECTORY ${prov_dir} EXISTS"
-    # Test all directories/files inside the provenance directory exist
+    
+    # Test all directories inside the provenance directory exist
+    
     if [ ! -d "${prov_dir}application_sources/" ]; then
-      echo "PROVENANCE application_sources/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      echo "application_sources/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
-      echo "PROVENANCE application_sources/ DIRECTORY EXISTS" | tee -a "${output_file}"
+      echo "application_sources/ DIRECTORY EXISTS" | tee -a "${output_file}"
     fi
     if [ ! -d "${prov_dir}dataset/" ]; then
-      echo "PROVENANCE dataset/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      echo "dataset/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
-      echo "PROVENANCE dataset/ DIRECTORY EXISTS" | tee -a "${output_file}"
+      echo "dataset/ DIRECTORY EXISTS" | tee -a "${output_file}"
     fi
-#    if [ ! -f "${prov_dir}App_Profile.json" ]; then
-#      echo "PROVENANCE App_Profile.json FILE DOES NOT EXIST" | tee -a "${output_file}"
-#      exit 1
-#    else
-#      echo "PROVENANCE App_Profile.json FILE EXISTS" | tee -a "${output_file}"
-#    fi
+    if [ ! -d "${prov_dir}profiling/" ]; then
+      echo "profiling/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "profiling/ DIRECTORY EXISTS" | tee -a "${output_file}"
+    fi
+    
+    # Test all files inside the provenance directory exist
+    
     if [ ! -f "${prov_dir}complete_graph.svg" ]; then
-      echo "PROVENANCE complete_graph.svg FILE DOES NOT EXIST" | tee -a "${output_file}"
+      echo "complete_graph.svg FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
-      echo "PROVENANCE complete_graph.svg FILE EXISTS" | tee -a "${output_file}"
+      echo "complete_graph.svg FILE EXISTS" | tee -a "${output_file}"
     fi
-#    if [ ! -f "${prov_dir}compss_submission_command_line.txt" ]; then
-#      echo "PROVENANCE compss_submission_command_line.txt FILE DOES NOT EXIST" | tee -a "${output_file}"
-#      exit 1
-#    else
-#      echo "PROVENANCE compss_submission_command_line.txt FILE EXISTS" | tee -a "${output_file}"
-#    fi
     if [ ! -f "${prov_dir}MATMUL.yaml" ]; then
-      echo "PROVENANCE MATMUL.yaml FILE DOES NOT EXIST" | tee -a "${output_file}"
+      echo "MATMUL.yaml FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
-      echo "PROVENANCE MATMUL.yaml FILE EXISTS" | tee -a "${output_file}"
+      echo "MATMUL.yaml FILE EXISTS" | tee -a "${output_file}"
     fi
     if [ ! -f "${prov_dir}ro-crate-metadata.json" ]; then
-      echo "PROVENANCE ro-crate-metadata.json FILE DOES NOT EXIST" | tee -a "${output_file}"
+      echo "ro-crate-metadata.json FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
     else
-      echo "PROVENANCE ro-crate-metadata.json FILE EXISTS" | tee -a "${output_file}"
+      echo "ro-crate-metadata.json FILE EXISTS" | tee -a "${output_file}"
+    fi
+
+    # Check ro-crate-metadata.json content
+
+    authors=$(grep author -A 7 "${prov_dir}ro-crate-metadata.json" | grep orcid | wc -l)
+    if [ "${authors}" -ne 1 ]; then
+      echo "ro-crate-metadata.json: Authors NOT FOUND" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "ro-crate-metadata.json: Authors FOUND" | tee -a "${output_file}"
     fi
 
   else

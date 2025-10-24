@@ -13,7 +13,7 @@ import os
 
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
+from pycompss.api.api import compss_barrier, compss_open, compss_wait_on, compss_wait_on_file
 from pycompss.api.mpi import mpi
 from pycompss.api.constraint import constraint
 
@@ -121,7 +121,7 @@ def create_file_in_wd(fayl):
     pass
 
 
-@mpi(runner="mpirun", binary="touch", args="holalaa", working_dir="/tmp")
+@mpi(runner="mpirun", binary="rm", args="{{fayl}}", working_dir="/tmp")
 @task(returns=1, fayl=FILE_IN)
 def file_in_wd(fayl):
     pass
@@ -134,7 +134,7 @@ class testMpiDecorator(unittest.TestCase):
         res = compss_wait_on(create_file_in_wd(new_file))
         self.assertEqual(res, 0, "Failed to create a new file in working dir")
         ret = compss_wait_on(file_in_wd(new_file))
-        compss_barrier()
+        compss_wait_on_file(new_file)
         self.assertTrue(os.path.isfile(new_file), "FILE_IN from working dir "
                                                   "has been removed.")
 

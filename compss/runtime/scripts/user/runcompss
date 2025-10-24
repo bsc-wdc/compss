@@ -32,7 +32,7 @@ source "${COMPSS_HOME}/Runtime/scripts/system/runtime/profiler.sh"
 #---------------------------------------------------
 # Default value for those parameters with a quick-enabling option (e.g., --monitoring=<int> | -m).
 DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
-DEFAULT_GRAPH_ARGUMENT=false
+DEFAULT_GRAPH_ARGUMENT=true
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
@@ -218,7 +218,7 @@ show_opts() {
                                             Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
-    --provenance=<yaml>, --provenance, -p   Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph and --output_profile.
+    --provenance=<yaml>, --provenance, -p   Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph.
                                             Default: ro-crate-info.yaml
     --provenance-folder=<path>              Path where the workflow provenance will be generated
                                             Default: COMPSs_RO-Crate_[timestamp]

@@ -690,16 +690,16 @@ def process_task(
             #   - 0,1 = gpu 1 and 2 assigned => 0011 == 3 (decimal)
             #   - 2,3 = gpu 3 and 4 assigned => 1100 == 12 (decimal)
             #   - 0,1,3,4 = gpu 1, 2,3 and 4 assigned => 1111 == 15 (decimal)
-            gpu_mask_list = [0] * 4
             if "," in gpus:
                 # There are more than one gpus assigned.
-                gpus_list = gpus.split(",")
-                for i in range(len(gpus_list)):
-                    gpu_mask_list[int(i)] = 1
+                gpus_list = list(map(int, gpus.split(",")))
             else:
                 # It is a single gpu where gpus identify which gpu has been
                 # assigned (0, 1, 2, or 3).
-                gpu_mask_list[int(gpus)] = 1
+                gpus_list = [int(gpus)]
+            gpu_mask_list = [0] * (max(gpus_list) + 1)
+            for i in gpus_list:
+                gpu_mask_list[i] = 1
             gpu_mask_list.reverse()
             gpu_mask = "".join(map(str, gpu_mask_list))
             assigned_gpus = int(gpu_mask, 2)  # convert base 2 to decimal

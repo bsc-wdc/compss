@@ -44,7 +44,7 @@
   additionalExports=""
 
   additional_module_use_folder="ignore"
-  queues_cfg="mn4.cfg"
+  queues_cfg="nord4.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="true"

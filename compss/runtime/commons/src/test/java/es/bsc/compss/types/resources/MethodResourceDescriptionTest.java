@@ -20,10 +20,10 @@ import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.types.resources.components.Processor;
 
-import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
 
 public class MethodResourceDescriptionTest {
@@ -38,21 +38,10 @@ public class MethodResourceDescriptionTest {
         "processors : [" + "{processorType : GPU, ComputingUnits : 1, processorInternalMemorySize:20},"
             + "{processorType : CPU, ComputingUnits : 8}];";
 
-    @ClassRule
-    public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
+    @Rule
+    public EnvironmentVariablesRule ENVIRONMENT_VARIABLES =
+        new EnvironmentVariablesRule("processorArchitecture", "x86_64", "cu", "2", "gpus", "3");
 
-
-    /**
-     * Setup environment before tests execution.
-     * 
-     * @throws Exception Error when environment cannot be setup.
-     */
-    @Before
-    public void setUp() throws Exception {
-        ENVIRONMENT_VARIABLES.set("processorArchitecture", "x86_64");
-        ENVIRONMENT_VARIABLES.set("cu", "2");
-        ENVIRONMENT_VARIABLES.set("gpus", "3");
-    }
 
     @Test
     public void testC1() {

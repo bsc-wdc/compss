@@ -20,10 +20,10 @@ import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.util.EnvironmentLoader;
 
-import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
 
 /**
@@ -36,21 +36,10 @@ public class EnvironmentLoaderTest {
     private static final String PATH1 = "/tmp/";
     private static final String PATH2 = "try/";
 
-    @ClassRule
-    public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
+    @Rule
+    public EnvironmentVariablesRule ENVIRONMENT_VARIABLES =
+        new EnvironmentVariablesRule("var", VALUE1, "var1", VALUE1, "var2", VALUE2);
 
-
-    /**
-     * Setup environment before tests execution.
-     * 
-     * @throws Exception Error when environment cannot be setup.
-     */
-    @Before
-    public void setUp() throws Exception {
-        ENVIRONMENT_VARIABLES.set("var", VALUE1);
-        ENVIRONMENT_VARIABLES.set("var1", VALUE1);
-        ENVIRONMENT_VARIABLES.set("var2", VALUE2);
-    }
 
     @Test
     public void noEnv() {

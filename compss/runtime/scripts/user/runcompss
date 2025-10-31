@@ -766,7 +766,7 @@ if [ -n "${env_script_path}" ]; then
 fi
 
 # Start the profiling process
-start_profiling
+start_profiling "$( [ "${log_level}" == "${DEFAULT_LOG_LEVEL_ARGUMENT}" ] && echo "true" || echo "false" )"
 
 # Real runtime execution
 start_compss_app

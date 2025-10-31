@@ -54,7 +54,8 @@ def end_profiling(sig, frame):
         try:
             output_file.flush()
             output_file.close()
-            print("PROVENANCE | Data recorded successfully.")
+            if __debug__:
+                print("PROVENANCE DEBUG | Data recorded successfully.")
         except Exception as e:
             print(f"PROVENANCE | Warning: Recording data: {e}")
 
@@ -65,13 +66,26 @@ def end_profiling(sig, frame):
                 summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 summary.write(f"Total measurements collected: {len(profiling_data)}\n")
                 summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
-            print("PROVENANCE | Summary file created successfully.")
+            if __debug__:
+                print("PROVENANCE DEBUG | Summary file created successfully.")
         except Exception as e:
             print(f"PROVENANCE | Warning: Could not write summary file: {e}")
 
-    print("PROVENANCE | Profiling completed. (end_profiling)")
+    print("PROVENANCE | Profiling completed.")
 
-signal.signal(signal.SIGUSR1, end_profiling)
+
+def setup_signal_handlers():
+    """Setup handlers for various termination signals"""
+    signals_to_handle = [
+        signal.SIGTERM,  # Termination signal
+        signal.SIGINT,   # Ctrl+C
+        signal.SIGHUP,   # Hangup
+        signal.SIGQUIT,  # Quit
+        signal.SIGUSR1,  # User-defined signal 1
+    ]
+
+    for sig in signals_to_handle:
+        signal.signal(sig, end_profiling)
 
 
 def get_cpu_top() -> list:
@@ -152,6 +166,9 @@ def profiling_function(
 
 def main():
     global profiling_active, profiling_data, output_file, log_dir, hostname
+
+    # Setup signal handlers first
+    setup_signal_handlers()
 
     log_dir = sys.argv[1]
 
@@ -249,34 +266,19 @@ def main():
 
     except KeyboardInterrupt:
         print("PROVENANCE | Profiling interrupted by user.")
-        # Cleanup for Ctrl+C interruption
-        if output_file and not output_file.closed:
-            try:
-                output_file.flush()
-                output_file.close()
-                print("PROVENANCE | CSV file closed after interruption.")
-            except Exception as e:
-                print(f"PROVENANCE | Warning: Error closing file after interruption: {e}")
+        end_profiling(None, None)  # Call cleanup explicitly
     except Exception as e:
         print(f"PROVENANCE | Error during profiling: {e}")
-        # Cleanup for unexpected errors
-        if output_file and not output_file.closed:
-            try:
-                output_file.flush()
-                output_file.close()
-                print("PROVENANCE | CSV file closed after error.")
-            except Exception as e2:
-                print(f"PROVENANCE | Warning: Error closing file after error: {e2}")
+        end_profiling(None, None)  # Call cleanup explicitly
     finally:
-        # Final safety check - only needed if file wasn't closed already
+        # Safety check - only close if not already closed
         if output_file and not output_file.closed:
             try:
-                output_file.flush()
                 output_file.close()
-                print("PROVENANCE | CSV file closed in finally block.")
+                if __debug__:
+                    print("PROVENANCE DEBUG | CSV file closed in finally block.")
             except Exception as e:
                 print(f"PROVENANCE | Warning: Error in final cleanup: {e}")
-        print("PROVENANCE | Profiling completed. (main)")
 
 
 if __name__ == "__main__":

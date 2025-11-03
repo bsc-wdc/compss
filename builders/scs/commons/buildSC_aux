@@ -20,7 +20,7 @@
   #             <c_binding>               Install the C-binding
   #             <extrae_no_mpi>           Extrae without mpi
   #             <r_binding>               Install the R-binding
-  #             <dlb_with_impi>           DLB with impi enabled
+  #             <dlb>                     DLB enabled
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildSC script
@@ -28,7 +28,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding> <extrae_no_mpi> <r_binding> <dlb_with_impi>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding> <extrae_no_mpi> <r_binding> <dlb>"
     echo " "
     exit 1
   }
@@ -93,7 +93,7 @@
   c_binding=${16}
   extrae_no_mpi=${17}
   r_binding=${18}
-  dlb_with_impi=${19}
+  dlb=${19}
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   TMP_DIR=${SCRIPT_DIR}/tmp
 
@@ -203,16 +203,31 @@
   cd "${SCRIPT_DIR}" || exit 1
 
   echo "---- Install dlb ----"
-  cd "${TMP_DIR}"/dependencies || exit 1
-  if [ "${dlb_with_impi}" == "true" ]; then
-      module load intel impi mkl #dlb
-      ./install_dlb.sh "${TMP_DIR}"/dependencies/dlb ${targetDir}/Dependencies/dlb
-      ev=$?
-      if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to install dlb dependency"
-          exit 1
+  cd "${TMP_DIR}/dependencies" || exit 1
+  if [ "${dlb}" == "true" ]; then
+    using_dlb_module=false
+
+    if module avail dlb &>/dev/null; then
+      module load dlb &>/dev/null
+      min_dlb_version="3.6"
+      dlb_version=$(dlb -v | head -n1 | awk '{print $2}' | grep -oE '^[0-9]+\.[0-9]+')
+      echo "Detected DLB version: $dlb_version"
+      if printf '%s\n' "$min_dlb_version" "$dlb_version" | sort -V -c >/dev/null 2>&1; then
+        using_dlb_module=true
       fi
-      export DLB_HOME=${targetDir}/Dependencies/dlb
+    fi
+
+    if [ "$using_dlb_module" = false ]; then
+      echo "Installing DLB from source..."
+      module unload dlb 2>/dev/null
+      module load intel ${py3_modules}
+      ./install_dlb.sh "${TMP_DIR}/dependencies/dlb" "${targetDir}/Dependencies/dlb"
+      if [ $? -ne 0 ]; then
+        echo "ERROR: Failed to install DLB dependency"
+        exit 1
+      fi
+      module unload ${py3_modules}
+    fi
   fi
   cd "${SCRIPT_DIR}" || exit 1
 

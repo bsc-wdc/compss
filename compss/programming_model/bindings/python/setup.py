@@ -89,22 +89,6 @@ PROCESS_AFFINITY_EXT = Extension(
     sources=["src/pycompss/ext/process_affinity.cc"],
 )
 
-# DLB affinity extension
-DLB_HOME = os.environ.get("DLB_HOME", None)
-DLB_AFFINITY_EXT = None
-
-if DLB_HOME is not None:
-    DLB_AFFINITY_EXT = Extension(
-        "dlb_affinity",
-        language="c",
-        include_dirs=[os.path.join(DLB_HOME, "include")],
-        library_dirs=[os.path.join(DLB_HOME, "lib")],
-        libraries=["dlb"],
-        # extra_compile_args=["-fPIC %s" % (" ".join(GCC_DEBUG_FLAGS.split("\n")))],
-        extra_compile_args=["-fopenmp", "-std=c11"],
-        sources=["src/pycompss/ext/dlb_affinity.c"]
-    )
-
 # EAR extension
 EAR_HOME = os.environ.get("EAR_INSTALL_PATH", None)
 EAR_EXT = None
@@ -120,10 +104,7 @@ if EAR_HOME is not None:
     )
 
 if TARGET_OS == "Linux":
-    if DLB_HOME is None:
-        OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT]
-    else:
-        OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT, DLB_AFFINITY_EXT]
+    OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT]
     if EAR_HOME is not None:
         OS_MODULES += [EAR_EXT]
 elif TARGET_OS == "Darwin":

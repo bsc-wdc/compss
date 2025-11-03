@@ -206,24 +206,31 @@ process_pipe_commands() {
                 fi
 
                 # DLB
-                dlbArgs=""
-                dlbPreload=""
-                dlbBaseArgs="--lewi --drom --ompt --ompt-thread-manager=omp5"
+                if [ "${COMPSS_WITH_DLB}" != "0" ]; then
+                    using_dlb_module=false
 
-                if [ "${COMPSS_WITH_DLB}" == "1" ]; then
+                    if module avail dlb &>/dev/null; then
+                        module load dlb &>/dev/null
+                        min_dlb_version="3.6"
+                        dlb_version=$(dlb -v | head -n1 | awk '{print $2}' | grep -oE '^[0-9]+\.[0-9]+')
+                        if printf '%s\n' "$min_dlb_version" "$dlb_version" | sort -V -c >/dev/null 2>&1; then
+                            using_dlb_module=true
+                        fi
+                    fi
 
-                    dlbArgs="DLB_ARGS=\"${dlbBaseArgs}\""
-                    dlbLib="libdlb.so"
-                    dlbPreload="LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/${dlbLib}\""
+                    if [ "$using_dlb_module" = false ]; then
+                        module unload dlb &>/dev/null
+                        python_version=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')")
+                        export DLB_HOME="${SCRIPT_DIR}/../../../../../../Dependencies/dlb"
+                        export PYTHONPATH="${DLB_HOME}/lib/${python_version}/site-packages${PYTHONPATH:+:$PYTHONPATH}"
+                    fi
 
-                elif [ "${COMPSS_WITH_DLB}" == "2" ]; then
-
-                    dlbArgs="DLB_ARGS=\"${dlbBaseArgs} --verbose=all\""
-                    dlbLib="libdlb_dbg.so"
-                    dlbPreload="LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/${dlbLib}\""
-
+                    dlbArgs="--quiet"
+                    if [ "${COMPSS_WITH_DLB}" == "2" ]; then
+                        dlbArgs="--verbose=all"
+                    fi
+                    workerCMD="DLB_ARGS=\"${dlbArgs}\" ${workerCMD}"
                 fi
-                workerCMD="${dlbArgs} ${dlbPreload} ${workerCMD}"
 
                 echo "LD_PRELOAD bindings_piper.sh: ${LD_PRELOAD}"
                 keepLDPRELOAD="LD_PRELOAD=\"\$LD_PRELOAD\""

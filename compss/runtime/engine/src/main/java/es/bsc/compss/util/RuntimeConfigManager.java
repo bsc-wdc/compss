@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.BuilderParameters;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -36,66 +37,267 @@ import org.apache.commons.configuration2.io.FileHandler;
  */
 public class RuntimeConfigManager {
 
+    private static final String WARN_IT_FILE_NOT_READ = "WARNING: COMPSs Properties file could not be read";
+    private static final String WARN_FILE_EMPTY_DEFAULT =
+        "WARNING: COMPSs Properties file is null." + " Setting default values";
+
     private final PropertiesConfiguration config;
 
 
     /**
-     * Loads the runtime configuration found in path {@code pathToConfigFile}.
-     * 
-     * @param pathToConfigFile Path to configuration file.
-     * @throws ConfigurationException Exception when parsing the configuration file.
+     * Sets up all the properties of the JVM that will be required during the runtime execution.
      */
-    public RuntimeConfigManager(String pathToConfigFile) throws ConfigurationException {
-        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
-            new FileBasedConfigurationBuilder<PropertiesConfiguration>(PropertiesConfiguration.class)
-                .configure(new Parameters().properties().setFileName(pathToConfigFile));
-        this.config = builder.getConfiguration();
+    public static void setProperties() {
+
+        // Load Runtime configuration parameters
+        String propertiesLoc = System.getProperty(COMPSsConstants.COMPSS_CONFIG_LOCATION);
+        if (propertiesLoc == null) {
+            InputStream stream = findPropertiesConfigFile();
+            if (stream != null) {
+                try {
+                    setPropertiesFromRuntime(new RuntimeConfigManager(stream));
+                } catch (Exception e) {
+                    System.err.println(WARN_IT_FILE_NOT_READ); // NOSONAR
+                    e.printStackTrace();// NOSONAR
+                }
+            } else {
+                setDefaultProperties();
+            }
+        } else {
+            try {
+                setPropertiesFromRuntime(new RuntimeConfigManager(propertiesLoc));
+            } catch (Exception e) {
+                System.err.println(WARN_IT_FILE_NOT_READ); // NOSONAR
+                e.printStackTrace(); // NOSONAR
+            }
+        }
+    }
+
+    private static InputStream findPropertiesConfigFile() {
+        final Class<?> clazz = RuntimeConfigManager.class;
+        // Try to get as resource from class
+        InputStream stream = clazz.getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
+        if (stream == null) {
+            stream = clazz.getResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
+        }
+
+        // From the loader that loaded this class
+        ClassLoader clazzLoader = null;
+        if (stream == null) {
+            clazzLoader = clazz.getClassLoader();
+            stream = clazzLoader.getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
+            if (stream == null) {
+                stream = clazzLoader.getResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
+            }
+        }
+
+        // IT properties file not found. Looking at parent ClassLoader
+        ClassLoader clazzLoaderParent = null;
+        if (stream == null) {
+            clazzLoaderParent = clazzLoader.getParent();
+            stream = clazzLoaderParent.getResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
+            if (stream == null) {
+                stream = clazzLoaderParent.getResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
+            }
+        }
+
+        // IT properties file not found in classloader. Looking at system resources
+        if (stream == null) {
+            stream = ClassLoader.getSystemResourceAsStream(COMPSsConstants.COMPSS_CONFIG);
+            if (stream == null) {
+                stream = ClassLoader.getSystemResourceAsStream(File.separator + COMPSsConstants.COMPSS_CONFIG);
+            }
+        }
+
+        return stream;
+    }
+
+    private static void setPropertyFromRuntime(String propertyName, String managerValue) {
+        if (managerValue != null && System.getProperty(propertyName) == null) {
+            System.setProperty(propertyName, managerValue);
+        }
+    }
+
+    // Code Added to support configuration files
+    private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
+        try {
+            if (manager != null) {
+                setPropertyFromRuntime(COMPSsConstants.DEPLOYMENT_ID, manager.getDeploymentId());
+                setPropertyFromRuntime(COMPSsConstants.MASTER_NAME, manager.getMasterName());
+                setPropertyFromRuntime(COMPSsConstants.MASTER_PORT, manager.getMasterPort());
+                setPropertyFromRuntime(COMPSsConstants.APP_NAME, manager.getAppName());
+                setPropertyFromRuntime(COMPSsConstants.TASK_SUMMARY, manager.getTaskSummary());
+                setPropertyFromRuntime(COMPSsConstants.LOG_DIR, manager.getLogDir());
+                setPropertyFromRuntime(COMPSsConstants.WORKING_DIR, manager.getWorkingDir());
+                setPropertyFromRuntime(COMPSsConstants.LOG4J, manager.getLog4jConfiguration());
+                setPropertyFromRuntime(COMPSsConstants.RES_FILE, manager.getResourcesFile());
+                setPropertyFromRuntime(COMPSsConstants.RES_SCHEMA, manager.getResourcesSchema());
+                setPropertyFromRuntime(COMPSsConstants.PROJ_FILE, manager.getProjectFile());
+                setPropertyFromRuntime(COMPSsConstants.PROJ_SCHEMA, manager.getProjectSchema());
+                setPropertyFromRuntime(COMPSsConstants.SCHEDULER, manager.getScheduler());
+                setPropertyFromRuntime(COMPSsConstants.MONITOR, Long.toString(manager.getMonitorInterval()));
+                setPropertyFromRuntime(COMPSsConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
+                setPropertyFromRuntime(COMPSsConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
+                setPropertyFromRuntime(COMPSsConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
+                if (System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK) == null
+                    || System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK).isEmpty()) {
+                    System.setProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK,
+                        Boolean.toString(manager.getReuseResourcesOnBlock()));
+                }
+                if (System.getProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION) == null
+                    || System.getProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION).isEmpty()) {
+                    System.setProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
+                        Boolean.toString(manager.isNestedDetectionEnabled()));
+                }
+                setPropertyFromRuntime(COMPSsConstants.WORKER_CP, manager.getWorkerCP());
+                setPropertyFromRuntime(COMPSsConstants.WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
+
+                if (System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) == null
+                    || System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty()) {
+                    System.setProperty(COMPSsConstants.WORKER_CPU_AFFINITY,
+                        Boolean.toString(manager.isWorkerCPUAffinityEnabled()));
+                }
+                if (System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) == null
+                    || System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty()) {
+                    System.setProperty(COMPSsConstants.WORKER_GPU_AFFINITY,
+                        Boolean.toString(manager.isWorkerGPUAffinityEnabled()));
+                }
+
+                setPropertyFromRuntime(COMPSsConstants.SERVICE_NAME, manager.getServiceName());
+                if (System.getProperty(COMPSsConstants.COMM_ADAPTOR) == null) {
+                    if (manager.getCommAdaptor() != null) {
+                        System.setProperty(COMPSsConstants.COMM_ADAPTOR, manager.getCommAdaptor());
+                    } else {
+                        System.setProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
+                    }
+                }
+                if (System.getProperty(COMPSsConstants.CONN) == null) {
+                    if (manager.getConn() != null) {
+                        System.setProperty(COMPSsConstants.CONN, manager.getConn());
+                    } else {
+                        System.setProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
+                    }
+                }
+                if (System.getProperty(COMPSsConstants.GAT_DEBUG) == null) {
+                    System.setProperty(COMPSsConstants.GAT_DEBUG, Boolean.toString(manager.isGATDebug()));
+                }
+                if (System.getProperty(COMPSsConstants.LANG) == null) {
+                    System.setProperty(COMPSsConstants.LANG, manager.getLang());
+                }
+                if (System.getProperty(COMPSsConstants.GRAPH) == null) {
+                    System.setProperty(COMPSsConstants.GRAPH, Boolean.toString(manager.isGraph()));
+                }
+                if (System.getProperty(COMPSsConstants.TRACING) == null) {
+                    System.setProperty(COMPSsConstants.TRACING, String.valueOf(manager.getTracing()));
+                }
+                if (System.getProperty(COMPSsConstants.EXTRAE_WORKING_DIR) == null) {
+                    System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, manager.getExtraeWDir());
+                }
+                if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null) {
+                    System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
+                }
+                if (System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES) == null) {
+                    System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES,
+                        String.valueOf(manager.getTracingTaskDep()));
+                }
+                if (System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE) == null) {
+                    System.setProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE, manager.getCustomExtraeFilePython());
+                }
+                if (System.getProperty(COMPSsConstants.TASK_EXECUTION) == null
+                    || System.getProperty(COMPSsConstants.TASK_EXECUTION).equals("")) {
+                    System.setProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
+                }
+
+                if (manager.getContext() != null) {
+                    System.setProperty(COMPSsConstants.COMPSS_CONTEXT, manager.getContext());
+                }
+                System.setProperty(COMPSsConstants.COMPSS_TO_FILE, Boolean.toString(manager.isToFile()));
+
+            } else {
+                setDefaultProperties();
+            }
+        } catch (Exception e) {
+            System.err.println(WARN_IT_FILE_NOT_READ); // NOSONAR
+            e.printStackTrace();// NOSONAR
+        }
+    }
+
+    private static void setDefaultProperties() {
+        System.err.println(WARN_FILE_EMPTY_DEFAULT);
+        setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsDefaults.DEPLOYMENT_ID);
+        setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsPaths.LOCAL_RES_SCHEMA);
+        setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsPaths.LOCAL_PROJECT_SCHEMA);
+        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsPaths.GAT_ADAPTOR_LOCATION);
+        setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
+        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsDefaults.REUSE_RESOURCES_ON_BLOCK);
+        setDefaultProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
+            COMPSsDefaults.ENABLED_NESTED_TASKS_DETECTION);
+        setDefaultProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
+        setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsDefaults.SCHEDULER);
+        setDefaultProperty(COMPSsConstants.TRACING, COMPSsDefaults.TRACING);
+        setDefaultProperty(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
+        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
+        setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
+    }
+
+    private static void setDefaultProperty(String propertyName, String defaultValue) {
+        String propertyValue = System.getProperty(propertyName);
+        if (propertyValue == null || propertyValue.isEmpty()) {
+            System.setProperty(propertyName, defaultValue);
+        }
     }
 
     /**
-     * Loads the runtime configuration found in URL {@code pathToConfigFile}.
-     * 
-     * @param pathToConfigFile URL path to configuration file.
+     * Loads the runtime configuration found in path {@code pathToConfigFile}.
+     *
+     * @param pathToConfigFile Path to configuration file.
      * @throws ConfigurationException Exception when parsing the configuration file.
      */
-    public RuntimeConfigManager(URL pathToConfigFile) throws ConfigurationException {
-        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
-            new FileBasedConfigurationBuilder<PropertiesConfiguration>(PropertiesConfiguration.class)
-                .configure(new Parameters().properties().setURL(pathToConfigFile));
-        this.config = builder.getConfiguration();
+    private RuntimeConfigManager(String pathToConfigFile) throws ConfigurationException {
+        this(new Parameters().properties().setFileName(pathToConfigFile));
     }
 
     /**
      * Loads the runtime configuration from an input stream {@code stream}.
-     * 
+     *
      * @param stream Stream to configuration file.
      * @throws ConfigurationException Exception when parsing the configuration file.
      */
-    public RuntimeConfigManager(InputStream stream) throws ConfigurationException {
-        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
-            new FileBasedConfigurationBuilder<PropertiesConfiguration>(PropertiesConfiguration.class)
-                .configure(new Parameters().properties());
-        this.config = builder.getConfiguration();
+    private RuntimeConfigManager(InputStream stream) throws ConfigurationException {
+        this(new Parameters().properties());
         FileHandler handler = new FileHandler(this.config);
         handler.load(stream);
     }
 
     /**
+     * Loads the runtime configuration found in URL {@code pathToConfigFile}.
+     *
+     * @param pathToConfigFile URL path to configuration file.
+     * @throws ConfigurationException Exception when parsing the configuration file.
+     */
+    private RuntimeConfigManager(URL pathToConfigFile) throws ConfigurationException {
+        this(new Parameters().properties().setURL(pathToConfigFile));
+    }
+
+    /**
      * Loads the runtime configuration from a file {@code file}.
-     * 
+     *
      * @param file File object pointing to the configuration file.
      * @throws ConfigurationException Exception when parsing the configuration file.
      */
-    public RuntimeConfigManager(File file) throws ConfigurationException {
+    private RuntimeConfigManager(File file) throws ConfigurationException {
+        this(new Parameters().properties().setFile(file));
+    }
+
+    private RuntimeConfigManager(BuilderParameters... params) throws ConfigurationException {
         FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
-            new FileBasedConfigurationBuilder<PropertiesConfiguration>(PropertiesConfiguration.class)
-                .configure(new Parameters().properties().setFile(file));
+            new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class).configure(params);
         this.config = builder.getConfiguration();
     }
 
     /**
      * Returns the deployment id.
-     * 
+     *
      * @return The deployment id.
      */
     public String getDeploymentId() {
@@ -104,7 +306,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the deployment id.
-     * 
+     *
      * @param uuid New deployment id value.
      */
     public void setDeploymentId(String uuid) {
@@ -113,7 +315,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the master node name.
-     * 
+     *
      * @return The master node name.
      */
     public String getMasterName() {
@@ -122,7 +324,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the master node name.
-     * 
+     *
      * @param name New value for the master node name.
      */
     public void setMasterName(String name) {
@@ -131,7 +333,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the master node port.
-     * 
+     *
      * @return The master node port.
      */
     public String getMasterPort() {
@@ -140,7 +342,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the master node port.
-     * 
+     *
      * @param port New value for the master node port.
      */
     public void setMasterPort(String port) {
@@ -149,7 +351,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the application name.
-     * 
+     *
      * @return The application name.
      */
     public String getAppName() {
@@ -158,7 +360,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new name for the application.
-     * 
+     *
      * @param name New application name.
      */
     public void setAppName(String name) {
@@ -167,7 +369,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the task summary flag value.
-     * 
+     *
      * @return The task summary flag value.
      */
     public String getTaskSummary() {
@@ -176,7 +378,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the task summary flag.
-     * 
+     *
      * @param value New value for the task summary flag.
      */
     public void setTaskSummary(String value) {
@@ -203,7 +405,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the project file.
-     * 
+     *
      * @return The project file.
      */
     public String getProjectFile() {
@@ -212,7 +414,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the project file.
-     * 
+     *
      * @param location New value for the project file.
      */
     public void setProjectFile(String location) {
@@ -221,7 +423,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the project schema.
-     * 
+     *
      * @return The project schema.
      */
     public String getProjectSchema() {
@@ -230,7 +432,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the project schema.
-     * 
+     *
      * @param location New value for the project schema.
      */
     public void setProjectSchema(String location) {
@@ -239,7 +441,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the resources file.
-     * 
+     *
      * @return The resources file.
      */
     public String getResourcesFile() {
@@ -248,7 +450,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new value for the resources file.
-     * 
+     *
      * @param location New value for the resources file.
      */
     public void setResourcesFile(String location) {
@@ -257,7 +459,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the resources schema.
-     * 
+     *
      * @return The resources schema.
      */
     public String getResourcesSchema() {
@@ -266,7 +468,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new location for the resources schema.
-     * 
+     *
      * @param location New location for the resources schema.
      */
     public void setResourcesSchema(String location) {
@@ -275,7 +477,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the scheduler to load.
-     * 
+     *
      * @return The scheduler to load.
      */
     public String getScheduler() {
@@ -284,7 +486,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new implementing class for the scheduler.
-     * 
+     *
      * @param implementingClass New implementing class for the scheduler.
      */
     public void setScheduler(String implementingClass) {
@@ -293,7 +495,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the log4j configuration file location.
-     * 
+     *
      * @return The log4j configuration file location.
      */
     public String getLog4jConfiguration() {
@@ -302,7 +504,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new location for the log4j configuration file.
-     * 
+     *
      * @param location New location for the log4j configuration file.
      */
     public void setLog4jConfiguration(String location) {
@@ -311,7 +513,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the COMM Adaptor implementing class.
-     * 
+     *
      * @return The COMM Adaptor implementing class.
      */
     public String getCommAdaptor() {
@@ -320,7 +522,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new implementing class for the COMM adaptor.
-     * 
+     *
      * @param adaptor New implementing class for the COMM adaptor.
      */
     public void setCommAdaptor(String adaptor) {
@@ -329,7 +531,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the CONN implementing class.
-     * 
+     *
      * @return The CONN implementing class.
      */
     public String getConn() {
@@ -338,7 +540,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new implementing class for the CONN.
-     * 
+     *
      * @param connector New implementing class for the CONN.
      */
     public void setConn(String connector) {
@@ -347,7 +549,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the GAT context.
-     * 
+     *
      * @return The GAT context.
      */
     public String getContext() {
@@ -356,7 +558,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new GAT context.
-     * 
+     *
      * @param context New GAT context.
      */
     public void setContext(String context) {
@@ -365,7 +567,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the specific GAT adaptor path.
-     * 
+     *
      * @return The specific GAT adaptor path.
      */
     public String getGATAdaptor() {
@@ -374,7 +576,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new location for the GAT Adaptor.
-     * 
+     *
      * @param adaptorPath New location for the GAT Adaptor.
      */
     public void setGATAdaptor(String adaptorPath) {
@@ -383,7 +585,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns if the GAT Adaptor is in debug mode or not.
-     * 
+     *
      * @return {@code true} if the GAT Adaptor is in debug mode, {@code false} otherwise.
      */
     public boolean isGATDebug() {
@@ -392,7 +594,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new debug mode for the GAT Adaptor.
-     * 
+     *
      * @param debug New debug mode for the GAT Adaptor.
      */
     public void setGATDebug(boolean debug) {
@@ -401,7 +603,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the GAT Broker Adaptor class.
-     * 
+     *
      * @return The GAT Broker Adaptor class.
      */
     public String getGATBrokerAdaptor() {
@@ -410,7 +612,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new GAT Broker Adaptor class.
-     * 
+     *
      * @param adaptor New GAT Broker Adaptor class.
      */
     public void setGATBrokerAdaptor(String adaptor) {
@@ -419,7 +621,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the GAT File Adaptor.
-     * 
+     *
      * @return The GAT File Adaptor.
      */
     public String getGATFileAdaptor() {
@@ -428,7 +630,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new GAT File Adaptor class.
-     * 
+     *
      * @param adaptor New GAT File Adaptor class.
      */
     public void setGATFileAdaptor(String adaptor) {
@@ -437,7 +639,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns whether the resources assigned to an execution should be reused when it stalls.
-     * 
+     *
      * @return {@literal true} if the resources assigned to an execution should be reused when it stalls;
      *         {@literal false}, otherwise.
      */
@@ -447,7 +649,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets whether the resources assigned to an execution should be reused when it stalls.
-     * 
+     *
      * @param reuse {@literal true} if the resources assigned to an execution should be reused when it stalls;
      *            {@literal false}, otherwise.
      */
@@ -478,7 +680,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets the new CPU Affinity for the Workers.
-     * 
+     *
      * @param isAffinityEnabled New CPU Affinity for the Workers.
      */
     public void setWorkerCPUAffinity(boolean isAffinityEnabled) {
@@ -487,7 +689,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the Workers CPU Affinity flag value.
-     * 
+     *
      * @return The Workers CPU Affinity flag value.
      */
     public boolean isWorkerCPUAffinityEnabled() {
@@ -496,7 +698,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets the new GPU Affinity for the Workers.
-     * 
+     *
      * @param isAffinityEnabled New GPU Affinity for the Workers.
      */
     public void setWorkerGPUAffinity(boolean isAffinityEnabled) {
@@ -505,7 +707,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the Workers GPU Affinity flag value.
-     * 
+     *
      * @return The Workers GPU Affinity flag value.
      */
     public boolean isWorkerGPUAffinityEnabled() {
@@ -514,7 +716,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the graph flag value.
-     * 
+     *
      * @return The graph flag value.
      */
     public boolean isGraph() {
@@ -523,7 +725,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new graph value.
-     * 
+     *
      * @param graph New graph value.
      */
     public void setGraph(boolean graph) {
@@ -532,7 +734,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the tracing flag value.
-     * 
+     *
      * @return The tracing flag value.
      */
     public boolean getTracing() {
@@ -541,7 +743,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new tracing flag value.
-     * 
+     *
      * @param tracing New tracing flag value.
      */
     public void setTracing(boolean tracing) {
@@ -572,7 +774,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the custom Extrae configuration file path.
-     * 
+     *
      * @return The custom Extrae configuration file path.
      */
     public String getCustomExtraeFile() {
@@ -581,7 +783,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new custom Extrae configuration file path.
-     * 
+     *
      * @param extraeFilePath New custom Extrae configuration file path.
      */
     public void setCustomExtraeFile(String extraeFilePath) {
@@ -590,7 +792,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the custom Extrae configuration file path for python worker.
-     * 
+     *
      * @return The custom Extrae configuration file path for python worker.
      */
     public String getCustomExtraeFilePython() {
@@ -599,7 +801,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new custom Extrae configuration file path for python worker.
-     * 
+     *
      * @param extraeFilePathPython New custom Extrae configuration file path for python worker.
      */
     public void setCustomExtraeFilePython(String extraeFilePathPython) {
@@ -608,7 +810,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the monitor interval value.
-     * 
+     *
      * @return The monitor interval value.
      */
     public long getMonitorInterval() {
@@ -617,7 +819,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new monitor interval.
-     * 
+     *
      * @param seconds New monitor interval.
      */
     public void setMonitorInterval(long seconds) {
@@ -626,7 +828,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the lang value.
-     * 
+     *
      * @return The lang value.
      */
     public String getLang() {
@@ -635,7 +837,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new language value.
-     * 
+     *
      * @param lang New language value.
      */
     public void setLang(String lang) {
@@ -644,7 +846,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the worker classpath.
-     * 
+     *
      * @return The worker classpath.
      */
     public String getWorkerCP() {
@@ -653,7 +855,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new worker classpath.
-     * 
+     *
      * @param classpath New worker classpath.
      */
     public void setWorkerCP(String classpath) {
@@ -662,7 +864,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the service name.
-     * 
+     *
      * @return The service name.
      */
     public String getServiceName() {
@@ -671,7 +873,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets a new service name.
-     * 
+     *
      * @param serviceName New service name.
      */
     public void setServiceName(String serviceName) {
@@ -680,7 +882,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the service name.
-     * 
+     *
      * @return The service name.
      */
     public String getWorkerJVMOpts() {
@@ -689,7 +891,7 @@ public class RuntimeConfigManager {
 
     /**
      * Sets new JVM Options for the workers.
-     * 
+     *
      * @param jvmOpts New JVM options for the workers.
      */
     public void setWorkerJVMOpts(String jvmOpts) {
@@ -698,7 +900,7 @@ public class RuntimeConfigManager {
 
     /**
      * Saves the current configuration.
-     * 
+     *
      * @throws ConfigurationException Exception when configuration cannot be saved.
      */
     public void save() throws ConfigurationException {
@@ -708,7 +910,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns if the configuration must be stored to file or not.
-     * 
+     *
      * @return {@code true} if the configuration must be stored to file, {@code false} otherwise.
      */
     public boolean isToFile() {
@@ -717,7 +919,7 @@ public class RuntimeConfigManager {
 
     /**
      * Returns the value of a generic property {@code propertyName} from the configuration.
-     * 
+     *
      * @param propertyName Name of a generic property.
      * @return The value associated with the given property name {@code propertyName}.
      */

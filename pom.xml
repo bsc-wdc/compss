@@ -63,10 +63,10 @@
         <junit.rules.version>1.16.1</junit.rules.version>
 
         <!-- Apache commons versions -->
-	<apache-commons-configuration.version>2.10.1</apache-commons-configuration.version>
-	<!-- Beanutils version is related with configuration one -->
-	<apache-commons-beanutils.version>1.9.4</apache-commons-beanutils.version>
-	<apache-commons-io.version>2.6</apache-commons-io.version>
+        <apache-commons-configuration.version>2.10.1</apache-commons-configuration.version>
+        <!-- Beanutils version is related with configuration one -->
+        <apache-commons-beanutils.version>1.9.4</apache-commons-beanutils.version>
+        <apache-commons-io.version>2.6</apache-commons-io.version>
 
         <!-- Javassist -->
         <javassist.version>3.30.2-GA</javassist.version>
@@ -86,6 +86,7 @@
         <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
         <maven-jaxb2-plugin.version>4.0.11</maven-jaxb2-plugin.version>
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 
         <!-- Project encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -193,11 +194,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
                 <version>${apache-commons-configuration.version}</version>
-	    </dependency>
+            </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
-		<artifactId>commons-beanutils</artifactId>
-		<version>${apache-commons-beanutils.version}</version>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${apache-commons-beanutils.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>

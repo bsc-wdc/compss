@@ -124,8 +124,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static final String WARN_NULL_PARAM = "WARNING: Optional parameter: ";
 
     // COMPSS Version and buildnumber attributes
-    private static String COMPSs_VERSION = null;
-    private static String COMPSs_BUILDNUMBER = null;
+    private static final String COMPSs_VERSION;
+    private static final String COMPSs_BUILDNUMBER;
 
     // Boolean for initialization
     private static boolean initialized = false;
@@ -158,6 +158,23 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     static {
+        // Load COMPSS version and buildNumber
+        String version = null;
+        String buildNum = null;
+        try {
+            Properties props = new Properties();
+            props.load(COMPSsRuntimeImpl.class.getResourceAsStream("/version.properties"));
+            version = props.getProperty("compss.version");
+            buildNum = props.getProperty("compss.build");
+            if (buildNum.endsWith("rnull")) {
+                buildNum = buildNum.substring(0, buildNum.length() - 6);
+            }
+        } catch (IOException | NullPointerException e) {
+            LOGGER.warn(WARN_VERSION_PROPERTIES);
+        }
+        COMPSs_VERSION = version;
+        COMPSs_BUILDNUMBER = buildNum;
+
         String defaultLang = System.getProperty(COMPSsConstants.LANG);
         Lang lang;
         if (defaultLang == null) {
@@ -377,28 +394,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * Creates a new COMPSs Runtime instance.
      */
     public COMPSsRuntimeImpl() {
-        // Load COMPSS version and buildNumber
-        try {
-            Properties props = new Properties();
-            props.load(this.getClass().getResourceAsStream("/version.properties"));
-            COMPSs_VERSION = props.getProperty("compss.version");
-            COMPSs_BUILDNUMBER = props.getProperty("compss.build");
-        } catch (IOException e) {
-            LOGGER.warn(WARN_VERSION_PROPERTIES);
-        }
-
         if (COMPSs_VERSION == null) {
             LOGGER.debug("Deploying COMPSs Runtime");
         } else {
             if (COMPSs_BUILDNUMBER == null) {
                 LOGGER.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION);
             } else {
-                if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
-                    COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-                    LOGGER.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-                } else {
-                    LOGGER.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-                }
+                LOGGER.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
             }
         }
         ErrorManager.init(this);
@@ -425,12 +427,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             if (COMPSs_BUILDNUMBER == null) {
                 LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION);
             } else {
-                if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
-                    COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-                    LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-                } else {
-                    LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-                }
+                LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
             }
         }
 

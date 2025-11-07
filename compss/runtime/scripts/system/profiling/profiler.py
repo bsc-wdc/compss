@@ -19,6 +19,8 @@ import time
 import socket
 from datetime import datetime
 import signal
+from pathlib import Path
+import json
 
 try:
     import psutil
@@ -30,11 +32,19 @@ except ImportError:
     )
     psutil_imported = False
 
-PROFILER_CONFIG = (
-    "linux",
-    "macos",
-    "linux-top",
+from utils import (
+    find_root_cgroup_paths,
+    get_total_cpu_count,
+    get_total_memory_kb,
+    read_cgroup_file,
+    get_cgroup_io_stats
 )
+
+LIST_PROFILER = [
+    "psutil",
+    "top",
+    "cgroup"
+]
 
 # Flag to control the profiling loop
 profiling_active = True
@@ -45,33 +55,19 @@ log_dir = None
 hostname = None
 
 def end_profiling(sig, frame):
-    global profiling_active, profiling_data, output_file, log_dir, hostname
-    print("PROVENANCE | Finishing profiling...")
+    """
+    Signal handler.
+    Sets the global flag to stop the profiling loop.
+    This function should do the absolute minimum work possible.
+    """
+    global profiling_active
+    if not profiling_active:
+        return  # Prevent multiple invocations
+
     profiling_active = False
-
-    # Immediate cleanup - flush and close the main CSV file
-    if output_file and not output_file.closed:
-        try:
-            output_file.flush()
-            output_file.close()
-            if __debug__:
-                print("PROVENANCE DEBUG | Data recorded successfully.")
-        except Exception as e:
-            print(f"PROVENANCE | Warning: Recording data: {e}")
-
-    # Write final summary file
-    if log_dir and hostname:
-        try:
-            with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
-                summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                summary.write(f"Total measurements collected: {len(profiling_data)}\n")
-                summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
-            if __debug__:
-                print("PROVENANCE DEBUG | Summary file created successfully.")
-        except Exception as e:
-            print(f"PROVENANCE | Warning: Could not write summary file: {e}")
-
-    print("PROVENANCE | Profiling completed.")
+    print("PROVENANCE | Finishing profiling (signal received)...")
+    # All file I/O and cleanup is now handled in the main() function's
+    # finally block and post-loop logic.
 
 
 def setup_signal_handlers():
@@ -136,25 +132,22 @@ def profiling_function(
         - The updated total number of bytes sent.
         - The updated total number of bytes received.
     """
-    if config == PROFILER_CONFIG[1]:
+    if config == LIST_PROFILER[0]: # psutil
         logical_processors = psutil.cpu_count(logical=True)
         physical_cores = psutil.cpu_count(logical=False)
         multiplication_factor = float(round(logical_processors / physical_cores, 2))
         cpu = psutil.cpu_percent(interval=interval) * multiplication_factor
         cpu = cpu if cpu < 100 else 100
         mem = psutil.virtual_memory().percent
-    else:
-        cpu_mem = get_cpu_top()
-        cpu = cpu_mem[0]
-        mem = cpu_mem[1]
-
-    if config != PROFILER_CONFIG[2]:
         net = psutil.net_io_counters()
         ref_byte_sent = net.bytes_sent
         ref_byte_recv = net.bytes_recv
         byte_sent = ref_byte_sent - prev_bytes_sent
         byte_recv = ref_byte_recv - prev_bytes_recv
-    else:
+    else: # top
+        cpu_mem = get_cpu_top()
+        cpu = cpu_mem[0]
+        mem = cpu_mem[1]
         ref_byte_sent = 0
         ref_byte_recv = 0
         byte_sent = None
@@ -164,114 +157,264 @@ def profiling_function(
     return new_entry, ref_byte_sent, ref_byte_recv
 
 
+def get_config(machine, config_file_path):
+    try:
+        with Path(config_file_path).open("r") as f:
+            config_data = json.load(f)
+    except FileNotFoundError:
+        print(f"PROVENANCE | ERROR: Config file not found at {config_file_path}")
+        return None
+    except json.JSONDecodeError:
+        print(f"PROVENANCE | ERROR: Config file is not valid JSON: {config_file_path}")
+        return None
+    except Exception as e:
+        print(f"PROVENANCE | ERROR: Could not read config file: {e}")
+        return None
+
+    profiler_tool = None
+    if psutil_imported:
+        if machine in config_data.get('psutil', []):
+            profiler_tool = LIST_PROFILER[0]  # psutil
+        elif machine in config_data.get('top', []):
+            profiler_tool = LIST_PROFILER[1]  # top
+        elif machine in config_data.get('cgroup', []):
+            profiler_tool = LIST_PROFILER[2]  # cgroup
+    else:
+        # Fallback if psutil is not imported
+        if machine in config_data.get('top', []):
+            profiler_tool = LIST_PROFILER[1]  # top
+        elif machine in config_data.get('cgroup', []):
+            profiler_tool = LIST_PROFILER[2]  # cgroup
+
+    return profiler_tool
+
 def main():
     global profiling_active, profiling_data, output_file, log_dir, hostname
 
     # Setup signal handlers first
     setup_signal_handlers()
 
-    log_dir = sys.argv[1]
+    try:
+        config_file_path = sys.argv[1]
+        log_dir = sys.argv[2]
+    except IndexError:
+        print("PROVENANCE | ERROR: Missing arguments.")
+        print("Usage: python profiler.py [config_file_path] [log_dir]")
+        sys.exit(1)
 
-    profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL"))
-    compss_home = os.getenv("COMPSS_HOME")
 
-    computing_units = None
-    # hostname = "localhost"
+    try:
+        profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL", "5")) # Default to 5s
+    except ValueError:
+        print("PROVENANCE | Warning: Invalid COMPSS_PROFILING_INTERVAL. Defaulting to 5s.")
+        profiling_interval = 5
 
-    CHECK_SYSTEM = "uname -s"
-    system_type = subprocess.check_output(CHECK_SYSTEM, shell=True, text=True).strip()
-    if psutil_imported:
-        config_map = {
-            "Linux": PROFILER_CONFIG[0],
-            "Darwin": PROFILER_CONFIG[1],
-        }
-    else:
-        config_map = {
-            "Linux": PROFILER_CONFIG[2],
-        }
-    current_config = config_map.get(system_type, None)
+    machine = os.getenv("BSC_MACHINE", subprocess.check_output("uname -s", shell=True, text=True).strip()).lower()
+    current_config = get_config(machine, config_file_path)
+    # print(f"DEBUG: VALUE OF CURRENT CONFIG {current_config}")
 
     if current_config is None:
+        print(f"PROVENANCE | ERROR: No valid profiler config found for machine '{machine}'.")
+        if not psutil_imported:
+            print("PROVENANCE | INFO: 'psutil' is not installed, which limits options.")
         print("PROVENANCE | ERROR: it is not possible to monitor the resources on this system")
         exit(1)
 
     is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
     hostname = "localhost" if is_local else socket.gethostname()
 
-    to_write = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
-
-    if current_config != PROFILER_CONFIG[2]:
-        io_initial = psutil.disk_io_counters()
-        ref_read, ref_write, ref_time_read, ref_time_write = (
-            io_initial.read_bytes,
-            io_initial.write_bytes,
-            io_initial.read_time,
-            io_initial.write_time,
-        )
-        net = psutil.net_io_counters()
-        ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
-    else:
-        ref_byte_sent = 0
-        ref_byte_recv = 0
-
-    new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-        0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval
-    )
-    to_write += new_entry
-    profiling_data.append(new_entry.strip())  # Store data for summary
+    # This is the 9-column header for psutil, top, and cgroup (with 0s)
+    to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
 
     try:
-        output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
-        output_file.write(to_write)
-        output_file.flush()
+        if current_config == LIST_PROFILER[0] or current_config == LIST_PROFILER[1]:
+            # --- psutil / top branch ---
+            output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
 
-        while profiling_active:  # Changed from while True to while profiling_active
-            if system_type == "Linux":
-                time.sleep(profiling_interval)
-
-            # Check if we should still be profiling after sleep
-            if not profiling_active:
-                break
-
-            if current_config != PROFILER_CONFIG[2]:
-                io_current = psutil.disk_io_counters()
-                byte_read = io_current.read_bytes - ref_read
-                byte_write = io_current.write_bytes - ref_write
-                time_read = io_current.read_time - ref_time_read
-                time_write = io_current.write_time - ref_time_write
-
+            if current_config == LIST_PROFILER[0]: # psutil
+                io_initial = psutil.disk_io_counters()
                 ref_read, ref_write, ref_time_read, ref_time_write = (
-                    io_current.read_bytes,
-                    io_current.write_bytes,
-                    io_current.read_time,
-                    io_current.write_time,
+                    io_initial.read_bytes,
+                    io_initial.write_bytes,
+                    io_initial.read_time,
+                    io_initial.write_time,
                 )
-            else:
-                byte_read = byte_write = time_read = time_write = None
+                net = psutil.net_io_counters()
+                ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
+            else: # top
+                ref_read, ref_write, ref_time_read, ref_time_write = (0, 0, 0, 0) # Init for first call
+                ref_byte_sent = 0
+                ref_byte_recv = 0
 
+            # Get first measurement
             new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                byte_read,
-                byte_write,
-                time_read,
-                time_write,
-                ref_byte_sent,
-                ref_byte_recv,
-                current_config,
-                profiling_interval,
+                0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval
             )
 
-            output_file.write(new_entry)
+            output_file.write(to_write_header) # Write header
+            output_file.write(new_entry) # Write first entry
             output_file.flush()
             profiling_data.append(new_entry.strip())  # Store data for summary
 
+            while profiling_active:  # Loop until flag is set by signal
+                if current_config != LIST_PROFILER[0]:
+                    # 'top' mode needs manual sleep, 'psutil' interval handles it
+                    time.sleep(profiling_interval)
+
+                # Check if we should still be profiling after sleep
+                if not profiling_active:
+                    break
+
+                if current_config == LIST_PROFILER[0]: # psutil
+                    io_current = psutil.disk_io_counters()
+                    byte_read = io_current.read_bytes - ref_read
+                    byte_write = io_current.write_bytes - ref_write
+                    time_read = io_current.read_time - ref_time_read
+                    time_write = io_current.write_time - ref_time_write
+
+                    ref_read, ref_write, ref_time_read, ref_time_write = (
+                        io_current.read_bytes,
+                        io_current.write_bytes,
+                        io_current.read_time,
+                        io_current.write_time,
+                    )
+                else: # top
+                    byte_read = byte_write = time_read = time_write = None
+
+                new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
+                    byte_read,
+                    byte_write,
+                    time_read,
+                    time_write,
+                    ref_byte_sent,
+                    ref_byte_recv,
+                    current_config,
+                    profiling_interval,
+                )
+
+                output_file.write(new_entry)
+                output_file.flush()
+                profiling_data.append(new_entry.strip())  # Store data for summary
+
+        else:
+            # --- cgroup branch ---
+            total_mem_kb = get_total_memory_kb()
+            total_node_cpus = get_total_cpu_count()
+            cgroup_paths = find_root_cgroup_paths()
+
+            # Check for the NEW 'blkio' path.
+            # You must update find_root_cgroup_paths in utils.py to return this!
+            if not all(k in cgroup_paths for k in ['cpu', 'memory', 'blkio']):
+                print("PROVENANCE | ERROR: Failed to find cgroup paths (cpu, memory, or blkio).")
+                print("PROVENANCE | INFO: Make sure 'find_root_cgroup_paths' in utils.py finds the 'blkio' controller path.")
+                sys.exit(1)
+
+            if not total_mem_kb or not total_node_cpus:
+                print("PROVENANCE | ERROR: Failed to get required system info. Exiting.")
+                sys.exit(1)
+
+            # These files represent the *total* usage for the *entire node*
+            cpu_usage_file = cgroup_paths['cpu'] / 'cpuacct.usage'
+            mem_usage_file = cgroup_paths['memory'] / 'memory.usage_in_bytes'
+            blkio_path = cgroup_paths['blkio'] # Path to blkio directory
+
+            try:
+                output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
+                output_file.write(to_write_header) # Write 9-column header
+
+                # Get initial CPU stats
+                last_cpu_ns_str = read_cgroup_file(cpu_usage_file)
+                if last_cpu_ns_str is None:
+                    print(f"PROVENANCE | ERROR: Could not read initial CPU usage from {cpu_usage_file}.")
+                    sys.exit(1) # Exit before loop
+
+                last_cpu_ns = int(last_cpu_ns_str)
+                last_read_time = time.monotonic()
+
+                # Get initial Disk I/O stats
+                last_io_stats = get_cgroup_io_stats(blkio_path)
+
+                # Write first entry as 0s before loop
+                first_entry = f"0.00,0.00,0,0,0,0,0,0,{datetime.now().isoformat()}\n"
+                output_file.write(first_entry)
+                output_file.flush()
+                profiling_data.append(first_entry.strip())
+
+            except Exception as e:
+                print(f"PROVENANCE | ERROR: Could not open output file .csv: {e}")
+                sys.exit(1)
+
+            while profiling_active:
+                time.sleep(profiling_interval)
+
+                # Check flag immediately after waking up
+                if not profiling_active:
+                    break
+
+                timestamp = datetime.now().isoformat()
+
+                # --- Memory ---
+                mem_bytes_str = read_cgroup_file(mem_usage_file)
+                if mem_bytes_str is None:
+                    print("PROVENANCE | Lost cgroup memory file. Stopping.")
+                    break
+                mem_used_kb = int(mem_bytes_str) / 1024.0
+                mem_percent = (mem_used_kb / total_mem_kb) * 100
+
+                # --- CPU ---
+                current_cpu_ns_str = read_cgroup_file(cpu_usage_file)
+                current_read_time = time.monotonic()
+                if current_cpu_ns_str is None:
+                    print("PROVENANCE | Lost cgroup CPU file. Stopping.")
+                    break
+                current_cpu_ns = int(current_cpu_ns_str)
+                time_delta_ns = (current_read_time - last_read_time) * 1e9
+                cpu_delta_ns = current_cpu_ns - last_cpu_ns
+
+                cpu_cores_used = 0.0
+                if time_delta_ns > 0:
+                    cpu_cores_used = cpu_delta_ns / time_delta_ns
+                cpu_percent = (cpu_cores_used / total_node_cpus) * 100
+
+                last_cpu_ns = current_cpu_ns
+                last_read_time = current_read_time
+
+                # --- Disk I/O ---
+                current_io_stats = get_cgroup_io_stats(blkio_path)
+
+                byte_read_delta = current_io_stats['read_bytes'] - last_io_stats['read_bytes']
+                byte_write_delta = current_io_stats['write_bytes'] - last_io_stats['write_bytes']
+                time_read_delta_ms = current_io_stats['read_time_ms'] - last_io_stats['read_time_ms']
+                time_write_delta_ms = current_io_stats['write_time_ms'] - last_io_stats['write_time_ms']
+
+                last_io_stats = current_io_stats
+
+                # --- Format Entry ---
+                # This entry now includes Disk I/O stats
+                new_entry = (
+                    f"{cpu_percent:.2f},"
+                    f"{mem_percent:.2f},"
+                    f"0,0,"  # Network: BYTE_SENT, BYTE_RECV
+                    f"{byte_read_delta},"
+                    f"{byte_write_delta},"
+                    f"{time_read_delta_ms},"
+                    f"{time_write_delta_ms},"
+                    f"{timestamp}\n"
+                )
+
+                output_file.write(new_entry)
+                output_file.flush()
+                profiling_data.append(new_entry.strip())
+
     except KeyboardInterrupt:
         print("PROVENANCE | Profiling interrupted by user.")
-        end_profiling(None, None)  # Call cleanup explicitly
+        # Loop will exit, finally will run
     except Exception as e:
-        print(f"PROVENANCE | Error during profiling: {e}")
-        end_profiling(None, None)  # Call cleanup explicitly
+        if profiling_active:
+            # Only print if we weren't already shutting down
+            print(f"PROVENANCE | ERROR during profiling loop: {e}")
     finally:
-        # Safety check - only close if not already closed
+        # This is the safe cleanup block
         if output_file and not output_file.closed:
             try:
                 output_file.close()
@@ -279,6 +422,20 @@ def main():
                     print("PROVENANCE DEBUG | CSV file closed in finally block.")
             except Exception as e:
                 print(f"PROVENANCE | Warning: Error in final cleanup: {e}")
+
+    # --- Summary Writing ---
+    # This logic is executed when the file is closed and loop is stopped.
+    print("PROVENANCE | Profiling completed.")
+    if log_dir and hostname:
+        try:
+            with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
+                summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                summary.write(f"Total measurements collected: {len(profiling_data)}\n")
+                summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
+            if __debug__:
+                print("PROVENANCE DEBUG | Summary file created successfully.")
+        except Exception as e:
+            print(f"PROVENANCE | Warning: Could not write summary file: {e}")
 
 
 if __name__ == "__main__":

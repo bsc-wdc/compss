@@ -1,0 +1,16 @@
+{
+  "psutil": [
+    "mn5",
+    "darwin",
+    "linux"
+  ],
+  "top": [
+    "mn5",
+    "darwin",
+    "linux"
+  ],
+  "cgroup": [
+    "mn5",
+    "nord4"
+  ]
+}

@@ -28,9 +28,9 @@ launch_profiling_script() {
 
   # Launch the profiling script
   if [ "$debug_mode" == "true" ]; then
-    python3 "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
+    python3 "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler_config.json" "${working_directory}" &
   else
-    python3 -O "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
+    python3 -O "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler_config.json" "${working_directory}" &
   fi
   PROFILING_PID=$!
 }

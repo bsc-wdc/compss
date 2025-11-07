@@ -310,13 +310,14 @@
       # Replace the configuration template parameters with their values
       redis_conf=$(echo $REDIS_TEMPLATE | sed -s s/REDIS_PORT/$redis_port/ | sed -s s/REDIS_NODE_TIMEOUT/$REDIS_NODE_TIMEOUT/)
       # Compute the path of the sandbox for this instance
-      redis_path=${REDIS_SANDBOX}/${redis_port};
-      # Create the folder structure (and remove the previous one if needed). This part can be done with ssh
+      redis_path="${REDIS_SANDBOX}/${instance_location}/${redis_port}/${current_instances}"
       # It is needed to remove the old storage version because they may contain nodes.conf files of old clusters
       # that may not coincide with the configuration we want in this execution
+      echo "ssh $instance_location 'rm -rf ${redis_path}; mkdir -p ${redis_path}; echo -e \'${redis_conf}\' > ${redis_path}/redis.conf;"
       ssh $instance_location "rm -rf ${redis_path}; mkdir -p ${redis_path}; echo -e \"${redis_conf}\" > ${redis_path}/redis.conf;";
       # Launch the redis instance
       # This part is on an specific function because the needed command may vary from one queue system to another
+      echo "$(get_redis_instantiation_command $instance_location ${redis_path})"
       eval $(get_redis_instantiation_command $instance_location ${redis_path})
       current_instances=$((current_instances+1));
       node_name=${instance_location}:${redis_port}
@@ -326,6 +327,8 @@
   done
   # Create a cluster with the instances
   # We should detect failures when trying to create the cluster
+  echo "redis-trib.rb create --replicas $REDIS_REPLICAS $node_ids"
+
   echo "yes" | redis-trib.rb create --replicas $REDIS_REPLICAS $node_ids
 
   ############################

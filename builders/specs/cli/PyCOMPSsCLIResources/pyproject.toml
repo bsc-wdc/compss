@@ -57,8 +57,11 @@ docker = [
 pycompss = "pycompss_cli.cli.pycompss:main"
 
 [tool.setuptools]
-packages = ["pycompss_cli"]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pycompss_cli*"]
 
 [tool.setuptools.dynamic]
 version = { file = "VERSION.txt" }

@@ -16,9 +16,9 @@ from modules.test_tasks import write_objects
 from modules.test_tasks import read_objects
 from modules.test_tasks import process_object
 
-PRODUCER_SLEEP = 0.2  # s
-CONSUMER_SLEEP = 0.1  # s
-CONSUMER_SLEEP2 = 0.3  # s
+PRODUCER_SLEEP = 1.0  # s
+CONSUMER_SLEEP = 0.5  # s
+CONSUMER_SLEEP2 = 0.8  # s
 ALIAS = "py_objects_stream"
 
 

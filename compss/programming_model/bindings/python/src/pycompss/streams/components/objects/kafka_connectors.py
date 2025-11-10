@@ -66,7 +66,7 @@ class ODSPublisher:
             logger.debug("Creating Publisher...")
 
         # Create internal producer
-        from kafka3 import KafkaProducer
+        from kafka import KafkaProducer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(
@@ -157,7 +157,7 @@ class ODSConsumer:
         # Parse configuration
 
         # Create internal consumer
-        from kafka3 import KafkaConsumer
+        from kafka import KafkaConsumer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(

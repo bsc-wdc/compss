@@ -16,7 +16,7 @@ ENV COMPSS_HOME=/opt/COMPSs
 # Install COMPSs
 RUN cd /framework && \
     ./submodules_get.sh && \
-    python3 -m pip --no-cache-dir install pip wheel setuptools --upgrade && \
+    python3 -m pip --no-cache-dir install pip wheel setuptools kafka-python --upgrade && \
     /framework/builders/buildlocal --rcompss /opt/COMPSs && \
     mv /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework /home/jenkins/

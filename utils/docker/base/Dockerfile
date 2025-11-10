@@ -37,7 +37,7 @@ FROM base_bindings AS base_all
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server jq bc && \
     pip3 --no-cache-dir install pip setuptools wheel --upgrade && \
-    pip3 --no-cache-dir install dill guppy3 decorator mpi4py kafka-python3 rocrate==0.14.0 && \
+    pip3 --no-cache-dir install dill guppy3 decorator mpi4py kafka-python rocrate==0.14.0 && \
     pip3 --no-cache-dir install dataclay && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*

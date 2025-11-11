@@ -491,7 +491,7 @@ def executor(
         if streaming:
             if __debug__:
                 logger.debug(
-                    "%s Stopping streaming for process ",
+                    "%s[%s] Stopping streaming for process ",
                     HEADER,
                     str(process_name),
                 )

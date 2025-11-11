@@ -225,6 +225,7 @@ def main():
 
     # This is the 9-column header for psutil, top, and cgroup (with 0s)
     to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
+    counter = 0
 
     try:
         if current_config == LIST_PROFILER[0] or current_config == LIST_PROFILER[1]:
@@ -295,6 +296,7 @@ def main():
                 output_file.write(new_entry)
                 output_file.flush()
                 profiling_data.append(new_entry.strip())  # Store data for summary
+                counter += 1
 
         else:
             # --- cgroup branch ---
@@ -405,6 +407,7 @@ def main():
                 output_file.write(new_entry)
                 output_file.flush()
                 profiling_data.append(new_entry.strip())
+                counter += 1
 
     except KeyboardInterrupt:
         print("PROVENANCE | Profiling interrupted by user.")
@@ -425,7 +428,8 @@ def main():
 
     # --- Summary Writing ---
     # This logic is executed when the file is closed and loop is stopped.
-    print("PROVENANCE | Profiling completed.")
+    if counter > 1:
+        print("PROVENANCE | Profiling completed.")
     if log_dir and hostname:
         try:
             with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:

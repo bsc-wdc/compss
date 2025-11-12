@@ -1,0 +1,22 @@
+#!/bin/bash -e
+  
+  # Obtain parameters
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # Copy execution and validation scripts
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution
+  cp "${source_base_dir}"/result "${target_base_dir}"/result
+  
+  # Copy source code
+  cp -r "${source_base_dir}"/src "${target_base_dir}"
+  
+  # Copy scripts directory (for generate_config.py and compare_configs.py)
+  cp -r "${source_base_dir}"/scripts "${target_base_dir}"
+  
+  # Copy configuration files
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+  cp "${source_base_dir}"/config.json "${target_base_dir}"/config.json
+  
+  exit 0

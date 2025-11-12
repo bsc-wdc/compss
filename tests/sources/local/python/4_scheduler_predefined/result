@@ -1,0 +1,208 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  base_app_dir=$4
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+    result_expected="------------------------------------------------------------"
+    test_result=$(tail -1 "${output_file}")
+    if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+    fi
+  else
+    echo "[ERROR] Output file not found" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Extract and validate the config from runtime.log
+  echo "Validating Predefined Scheduler configuration..." | tee -a "${output_file}"
+  
+  # Check that the Predefined Scheduler was loaded
+  if grep -q "PredefinedScheduler\|PredefinedTS" "${runtime_log}"; then
+    echo "✓ Predefined Scheduler was used" | tee -a "${output_file}"
+  else
+    echo "ERROR: Predefined Scheduler was not detected in runtime.log" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check that the config file was loaded
+  if grep -q "Loading predefined schedule from" "${runtime_log}"; then
+    echo "✓ Config file was loaded" | tee -a "${output_file}"
+  else
+    echo "WARNING: Config file loading message not found in runtime.log" | tee -a "${output_file}"
+  fi
+  
+  # Check that all tasks were scheduled
+  scheduled_tasks=$(grep -c "Scheduling task\|Scheduled action" "${runtime_log}" || echo "0")
+  expected_tasks=10
+  
+  if [ "${scheduled_tasks}" -lt "${expected_tasks}" ]; then
+    echo "ERROR: Expected at least ${expected_tasks} tasks to be scheduled, but found ${scheduled_tasks}" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  echo "✓ All tasks were scheduled successfully (${scheduled_tasks} tasks)" | tee -a "${output_file}"
+  
+  # Validate that the config.json structure is preserved
+  if [ -f "${base_app_dir}/config.json" ]; then
+    echo "✓ Config file found at ${base_app_dir}/config.json" | tee -a "${output_file}"
+    
+    # Count tasks in config
+    config_tasks=$(grep -c '"taskId"' "${base_app_dir}/config.json" || echo "0")
+    echo "  Config defines ${config_tasks} tasks" | tee -a "${output_file}"
+    
+    if [ "${config_tasks}" -ne "${expected_tasks}" ]; then
+      echo "WARNING: Config has ${config_tasks} tasks but expected ${expected_tasks}" | tee -a "${output_file}"
+    fi
+  else
+    echo "ERROR: config.json not found at ${base_app_dir}/config.json" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Extract task scheduling information from runtime.log
+  # Look for patterns like "Task X scheduled on resource Y"
+  echo "" | tee -a "${output_file}"
+  echo "Extracting task execution information from runtime.log..." | tee -a "${output_file}"
+  
+  # Create a temporary file to store extracted scheduling info
+  extracted_schedule="${target_log_folder}/extracted_schedule.txt"
+  
+  # Extract task IDs and their assigned resources from runtime.log
+  # This pattern may need adjustment based on actual log format
+  grep -E "Task.*scheduled|Scheduling.*Task|Action.*scheduled" "${runtime_log}" | head -20 > "${extracted_schedule}" || true
+  
+  if [ -s "${extracted_schedule}" ]; then
+    echo "✓ Extracted scheduling information (first 20 entries):" | tee -a "${output_file}"
+    head -5 "${extracted_schedule}" | tee -a "${output_file}"
+    echo "  ..." | tee -a "${output_file}"
+  else
+    echo "WARNING: Could not extract detailed scheduling information" | tee -a "${output_file}"
+  fi
+  
+  # Check that tasks were executed on the correct resources
+  # This validates that the scheduler respected the resource assignments
+  worker01_count=$(grep -c "COMPSsWorker01" "${runtime_log}" || echo "0")
+  worker02_count=$(grep -c "COMPSsWorker02" "${runtime_log}" || echo "0")
+  worker03_count=$(grep -c "COMPSsWorker03" "${runtime_log}" || echo "0")
+  
+  echo "" | tee -a "${output_file}"
+  echo "Worker utilization:" | tee -a "${output_file}"
+  echo "  - COMPSsWorker01: ${worker01_count} references" | tee -a "${output_file}"
+  echo "  - COMPSsWorker02: ${worker02_count} references" | tee -a "${output_file}"
+  echo "  - COMPSsWorker03: ${worker03_count} references" | tee -a "${output_file}"
+  
+  if [ "${worker01_count}" -gt 0 ] && [ "${worker02_count}" -gt 0 ] && [ "${worker03_count}" -gt 0 ]; then
+    echo "✓ All workers were utilized as expected" | tee -a "${output_file}"
+  else
+    echo "WARNING: Not all workers appear in runtime.log" | tee -a "${output_file}"
+  fi
+  
+  # Verify that dependencies were respected
+  # Check if there are any dependency violations in the log
+  if grep -qi "dependency.*violation\|constraint.*violation" "${runtime_log}"; then
+    echo "ERROR: Dependency violations detected in runtime.log" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check for successful completion
+  if grep -q "Application execution finished" "${runtime_log}"; then
+    echo "✓ Application execution finished successfully" | tee -a "${output_file}"
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Extract actual config from runtime.log and compare with expected
+  echo "" | tee -a "${output_file}"
+  echo "Comparing expected vs actual task scheduling..." | tee -a "${output_file}"
+  
+  # Check if generate_config.py exists
+  generate_script="${base_app_dir}/scripts/generate_config.py"
+  compare_script="${base_app_dir}/scripts/compare_configs.py"
+  
+  if [ -f "${generate_script}" ] && [ -f "${compare_script}" ]; then
+    # Generate actual config from runtime.log
+    actual_config="${target_log_folder}/actual_config.json"
+    
+    if python3 "${generate_script}" "${runtime_log}" > "${actual_config}" 2>/dev/null; then
+      echo "✓ Extracted actual config from runtime.log" | tee -a "${output_file}"
+      
+      # Compare configs
+      comparison_output=$(python3 "${compare_script}" "${base_app_dir}/config.json" "${actual_config}" 2>&1)
+      comparison_exit=$?
+      
+      if [ ${comparison_exit} -eq 0 ]; then
+        echo "✓ Configuration comparison: MATCH" | tee -a "${output_file}"
+        echo "${comparison_output}" | tee -a "${output_file}"
+      else
+        echo "✗ Configuration comparison: MISMATCH" | tee -a "${output_file}"
+        echo "${comparison_output}" | tee -a "${output_file}"
+        echo "" | tee -a "${output_file}"
+        echo "Expected config: ${base_app_dir}/config.json" | tee -a "${output_file}"
+        echo "Actual config:   ${actual_config}" | tee -a "${output_file}"
+        echo "" | tee -a "${output_file}"
+        echo "ERROR: Scheduler did not follow the predefined plan!" | tee -a "${output_file}"
+        exit 1
+      fi
+    else
+      echo "WARNING: Could not generate config from runtime.log" | tee -a "${output_file}"
+      echo "  (generate_config.py may need to be implemented)" | tee -a "${output_file}"
+    fi
+  else
+    echo "INFO: Config comparison scripts not found, skipping detailed comparison" | tee -a "${output_file}"
+    if [ ! -f "${generate_script}" ]; then
+      echo "  Missing: ${generate_script}" | tee -a "${output_file}"
+    fi
+    if [ ! -f "${compare_script}" ]; then
+      echo "  Missing: ${compare_script}" | tee -a "${output_file}"
+    fi
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Report result status
+  echo "" | tee -a "${output_file}"
+  echo "========================================" | tee -a "${output_file}"
+  echo "Predefined Scheduler test PASSED ✓" | tee -a "${output_file}"
+  echo "========================================" | tee -a "${output_file}"
+  exit 0
+

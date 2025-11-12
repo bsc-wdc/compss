@@ -1,0 +1,76 @@
+[
+  {
+    "taskId": 1,
+    "implementationId": 0,
+    "predecessors": [],
+    "resource": "COMPSsWorker01"
+  },
+  {
+    "taskId": 2,
+    "implementationId": 0,
+    "predecessors": [
+      1
+    ],
+    "resource": "COMPSsWorker01"
+  },
+  {
+    "taskId": 3,
+    "implementationId": 0,
+    "predecessors": [],
+    "resource": "COMPSsWorker02"
+  },
+  {
+    "taskId": 4,
+    "implementationId": 0,
+    "predecessors": [
+      3
+    ],
+    "resource": "COMPSsWorker02"
+  },
+  {
+    "taskId": 5,
+    "implementationId": 0,
+    "predecessors": [
+      2
+    ],
+    "resource": "COMPSsWorker01"
+  },
+  {
+    "taskId": 6,
+    "implementationId": 0,
+    "predecessors": [],
+    "resource": "COMPSsWorker03"
+  },
+  {
+    "taskId": 7,
+    "implementationId": 0,
+    "predecessors": [
+      6
+    ],
+    "resource": "COMPSsWorker03"
+  },
+  {
+    "taskId": 8,
+    "implementationId": 0,
+    "predecessors": [
+      5
+    ],
+    "resource": "COMPSsWorker01"
+  },
+  {
+    "taskId": 9,
+    "implementationId": 0,
+    "predecessors": [
+      4
+    ],
+    "resource": "COMPSsWorker02"
+  },
+  {
+    "taskId": 10,
+    "implementationId": 0,
+    "predecessors": [
+      7
+    ],
+    "resource": "COMPSsWorker03"
+  }
+]

@@ -1326,6 +1326,11 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        scheduler_config_file=*)
+          scheduler_config_file=${OPTARG//scheduler_config_file=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         prolog=*)
           action=${OPTARG//prolog=/}
           prologActions[numPrologActions]="$action"
@@ -2622,6 +2627,99 @@ cleanup() {
 
   # Set job variables
   set_variables
+  
+  
+  
+  if [[ "${scheduler}" == "es.bsc.compss.scheduler.predefined.PredefinedTS" ]] \
+   && [[ -n "${scheduler_config_file}" ]] \
+   && [[ -f "${scheduler_config_file}" ]]; then
+
+    FILE="${scheduler_config_file}"
+
+    echo "Scheduler:            ${scheduler}"
+    echo "Scheduler config:     ${FILE}"
+    echo "[LAUNCH_COMPSS] SLURM_NODELIST = ${SLURM_NODELIST}"
+    echo -n "[LAUNCH_COMPSS] Hostnames       = "
+    scontrol show hostnames "${SLURM_NODELIST}"
+
+    # 1) Expande la lista de nodos de Slurm y añade "-ib0"
+    readarray -t SLURM_HOSTS < <(scontrol show hostnames "${SLURM_NODELIST}")
+    if [ ${#SLURM_HOSTS[@]} -eq 0 ]; then
+      echo "[LAUNCH_COMPSS] ERROR: SLURM_NODELIST no devuelve hosts" >&2
+      exit 1
+    fi
+    for i in "${!SLURM_HOSTS[@]}"; do
+      SLURM_HOSTS[$i]="${SLURM_HOSTS[$i]}-ib0"
+    done
+
+    # 2) Extrae recursos únicos del JSON y construye el mapeo lógico→real
+    declare -A MAP
+    declare -a KEYS
+    total_hosts=${#SLURM_HOSTS[@]}
+    
+    # Extrae recursos únicos del JSON usando grep/sed (sin dependencias externas)
+    # Maneja tanto "resource": "..." (singular) como "resources": [...] (array)
+    
+    # Extrae recursos del campo "resource" (singular)
+    readarray -t RESOURCES_SINGULAR < <(grep -o '"resource"[[:space:]]*:[[:space:]]*"[^"]*"' "$FILE" | \
+                                         sed 's/.*"resource"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    
+    # Extrae recursos del campo "resources" (array) - busca strings dentro del array
+    readarray -t RESOURCES_PLURAL < <(grep -A 100 '"resources"[[:space:]]*:[[:space:]]*\[' "$FILE" | \
+                                       grep -o '"[^"]*-ib0"' | \
+                                       sed 's/"//g')
+    
+    # Combina ambos arrays y elimina duplicados
+    ALL_RESOURCES=("${RESOURCES_SINGULAR[@]}" "${RESOURCES_PLURAL[@]}")
+    readarray -t UNIQUE_RESOURCES < <(printf '%s\n' "${ALL_RESOURCES[@]}" | sort -u)
+    
+    if [ ${#UNIQUE_RESOURCES[@]} -eq 0 ]; then
+      echo "[LAUNCH_COMPSS] Aviso: no se encontraron recursos para remapear en ${FILE}"
+    else
+      # Construye el mapeo cíclico
+      for RES in "${UNIQUE_RESOURCES[@]}"; do
+        # Salta recursos vacíos
+        [[ -z "$RES" ]] && continue
+        if [ -z "${MAP[$RES]:-}" ]; then
+          idx=${#KEYS[@]}
+          host_idx=$(( idx % total_hosts ))
+          MAP[$RES]="${SLURM_HOSTS[$host_idx]}"
+          KEYS+=("$RES")
+        fi
+      done
+      
+      # 3) Actualiza el JSON con los nombres reales de los nodos usando sed
+      TMP_FILE="${FILE}.tmp.$$"
+      
+      # Copia el archivo original al temporal
+      cp "$FILE" "$TMP_FILE"
+      
+      # Aplica cada sustitución de recurso
+      for RES in "${KEYS[@]}"; do
+        # Escapa caracteres especiales en el nombre del recurso para sed
+        RES_ESCAPED=$(echo "$RES" | sed 's/[]\/$*.^[]/\\&/g')
+        MAPPED_ESCAPED=$(echo "${MAP[$RES]}" | sed 's/[\/&]/\\&/g')
+        
+        # Reemplaza en campo "resource" (singular): "resource": "COMPSsWorkerXX"
+        sed -i "s/\"resource\"[[:space:]]*:[[:space:]]*\"${RES_ESCAPED}\"/\"resource\": \"${MAPPED_ESCAPED}\"/g" "$TMP_FILE"
+        
+        # Reemplaza en campo "resources" (array): "COMPSsWorkerXX" dentro del array
+        sed -i "s/\"${RES_ESCAPED}\"/\"${MAPPED_ESCAPED}\"/g" "$TMP_FILE"
+      done
+      
+      if [ $? -eq 0 ]; then
+        mv "$TMP_FILE" "$FILE"
+        echo "[LAUNCH_COMPSS] Remapeado aplicado a ${FILE}:"
+        for RES in "${KEYS[@]}"; do
+          echo "   $RES → ${MAP[$RES]}"
+        done
+      else
+        echo "[LAUNCH_COMPSS] ERROR: fallo al remapear ${FILE}" >&2
+        rm -f "$TMP_FILE"
+        exit 1
+      fi
+    fi
+  fi
 
   # Log variables
   if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then

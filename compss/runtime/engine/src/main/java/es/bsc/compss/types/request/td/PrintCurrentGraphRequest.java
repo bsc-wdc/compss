@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 
@@ -232,7 +233,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 this.graph.newLine();
                 this.graph.write(prefix + prefix + prefix + prefix + "color=red");
                 this.graph.newLine();
-                PriorityQueue<AllocatableAction> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
+                Queue<AllocatableAction> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
                 for (AllocatableAction action : blockedActionsOnResource) {
                     if (action instanceof ExecutionAction) {
                         ExecutionAction se = (ExecutionAction) action;

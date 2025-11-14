@@ -12,14 +12,33 @@ PyCOMPSs Testbench
 from pycompss.api.api import compss_wait_on
 from pycompss.streams.distro_stream import ObjectDistroStream
 
+import modules.test_tasks as tt
 from modules.test_tasks import write_objects
 from modules.test_tasks import read_objects
 from modules.test_tasks import process_object
 
-PRODUCER_SLEEP = 1.0  # s
-CONSUMER_SLEEP = 0.5  # s
-CONSUMER_SLEEP2 = 0.8  # s
+PRODUCER_SLEEP = 0.2  # s
+CONSUMER_SLEEP = 0.3  # s
+CONSUMER_SLEEP2 = 0.1  # s
 ALIAS = "py_objects_stream"
+
+
+def warmup():
+    original_num_objects = tt.NUM_OBJECTS
+    tt.NUM_OBJECTS = 1
+    print("[WARMUP] Starting warmup")
+    # Create stream
+    ods = ObjectDistroStream()
+    # Create producer
+    write_objects(ods, PRODUCER_SLEEP)
+    # Create consumer
+    objects = read_objects(ods, CONSUMER_SLEEP)
+    # Sync and print value
+    print("[WARMUP] Wait for objects")
+    objects = compss_wait_on(objects)
+    print(f"[WARMUP] Completed. Received objects: {objects}")
+    print("[WARMUP] 0 means lost first message but kafka has been triggered")
+    tt.NUM_OBJECTS = original_num_objects
 
 
 def test_produce_consume(num_producers, producer_sleep, num_consumers, consumer_sleep):
@@ -95,6 +114,9 @@ def test_by_alias(num_producers, producer_sleep, num_consumers, consumer_sleep):
 
 
 def main_program():
+    # Warmup
+    warmup()
+
     # 1 producer, 1 consumer, consumerTime < producerTime
     print("TEST 1 PRODUCER 1 CONSUMER <")
     test_produce_consume(1, PRODUCER_SLEEP, 1, CONSUMER_SLEEP)

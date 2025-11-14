@@ -99,11 +99,9 @@ public class Agent {
         LOGGER.info("Initializing agent with name: " + AGENT_NAME);
 
         // Start tracing system
-        boolean tracing = System.getProperty(COMPSsConstants.TRACING) != null
-            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
         boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        Tracer.init(tracing, 0, "master", installDir, tracingTaskDep);
+        Tracer.init(0, "master", installDir, tracingTaskDep);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.STATIC_IT);
         }

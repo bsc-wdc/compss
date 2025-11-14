@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -108,7 +107,7 @@ public class BindToMap implements ThreadBinder {
         ProcessBuilder pb = new ProcessBuilder("lscpu");
         try {
             // Setup process environment -- Tracing entries
-            Tracer.prepareEnvironment(pb.environment(), false);
+            Tracer.prepareSubProcessEnvironment(pb.environment(), false);
 
             Process process = pb.start();
 

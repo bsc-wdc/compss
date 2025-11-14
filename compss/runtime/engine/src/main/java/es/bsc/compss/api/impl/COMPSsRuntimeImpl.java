@@ -539,7 +539,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 if (Tracer.isActivated()) {
                     LOGGER.debug("Stopping tracing...");
-                    Comm.stopTracing(CoreManager.getSignaturesToCEIds());
+                    Comm.stopTracing();
                 }
                 LOGGER.debug("Runtime stopped");
                 stopped = true;

@@ -226,14 +226,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.info("NIO Worker init");
 
         // Set tracing attributes and initialize module if needed
-        this.tracing = Boolean.parseBoolean(traceFlag);
         try {
             this.tracingId = Integer.parseInt(traceHost);
         } catch (Exception e) {
             WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
         }
         this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
-        NIOTracer.init(this.tracing, this.tracingId, hostName, installDir, this.tracingTaskDependencies);
+        NIOTracer.init(this.tracingId, hostName, installDir, this.tracingTaskDependencies);
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.START);
         }
@@ -822,7 +821,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     /**
      * Freezes the files on the folder and returns the paths to those frozen files.
      *
-     * @param foldername folder path to the files
+     * @param folderPath folder path to the files
      * @return Set the paths of the files in that folder
      */
     private Set<String> getFilesPathFromFolder(String folderPath) {
@@ -846,7 +845,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String cmd = "cd " + folderPath + " && for file in *; do cp ${file} static_${file} && rm -rf ${file}; done";
         WORKER_LOGGER.debug("Executing: " + cmd.toString());
         ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd.toString());
-        Tracer.prepareEnvironment(pb.environment(), false);
+        Tracer.prepareSubProcessEnvironment(pb.environment(), false);
         int exitCode = pb.inheritIO().start().waitFor();
         if (exitCode != 0) {
             throw new Exception("freezeFolderFailed");
@@ -885,7 +884,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         WORKER_LOGGER.debug("Executing: " + cmd.toString());
         ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd.toString());
-        Tracer.prepareEnvironment(pb.environment(), false);
+        Tracer.prepareSubProcessEnvironment(pb.environment(), false);
         int exitCode = pb.inheritIO().start().waitFor();
         if (exitCode != 0) {
             throw new Exception("package from folder creation returned not 0 exit code");
@@ -1519,7 +1518,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * / Generates the tracing files in the Analysis folder.
      */
     public void generateTracingFiles() {
-        NIOTracer.fini(new HashMap<>());
+        NIOTracer.fini();
 
         String packagePath = this.getAnalysisDir();
         if (!packagePath.endsWith(File.separator)) {

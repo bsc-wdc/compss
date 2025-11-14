@@ -23,6 +23,7 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.tracing.TraceEventType;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -136,7 +137,10 @@ public class CoreManager {
 
         if (coreElement == null) {
             coreElement = insertCoreElement(ceSignature);
+            String tracerSignature = generateCESignatureForTracer(ceSignature);
+            Tracer.defineNewEvent(TraceEventType.TASKS_FUNC, coreElement.getCoreId() + 1, tracerSignature);
         }
+
         for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
             String implSignature = implDef.getSignature();
             if (implSignature != null && !implSignature.isEmpty()) {
@@ -148,6 +152,16 @@ public class CoreManager {
         }
         LOGGER.debug("Registered CoreElement " + coreElement.getCoreId());
         return coreElement;
+    }
+
+    private static String generateCESignatureForTracer(String signature) {
+        String methodName = signature.substring(signature.indexOf('.') + 1);
+        String mN = methodName.replace("(", "([").replace(")", "])");
+        if (mN.contains(".")) {
+            int start = mN.lastIndexOf(".");
+            mN = "[" + mN.substring(0, start) + ".]" + mN.substring(start + 1);
+        }
+        return mN;
     }
 
     private static CoreElement insertCoreElement(String signature) {

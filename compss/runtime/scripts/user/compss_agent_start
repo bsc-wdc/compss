@@ -208,8 +208,13 @@ show_opts() {
     --summary                               Displays a task execution summary at the end of the application execution
                                             Default: ${DEFAULT_SUMMARY}
 
-    --tracing=<bool>, --tracing, -t         Set generation of traces.
+    -t, --tracing[=<value>]                 Set generation of traces.
                                             Default: ${DEFAULT_TRACING}
+                                            When no value is provided, tracing is enabled with the default backend ("extrae").
+                                            Supported values:
+                                              - true|false                Enable tracing using extrae's backend or disable.
+                                              - <backend>[,<backend>...]  Comma-separated list of tracing backends
+                                                  (e.g., "extrae,monitor").
 
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
                                             Default: None
@@ -237,7 +242,9 @@ parse_options() {
         ;;
       t)
         # Enable tracing
-        tracing="${TRACING_ENABLED}"
+        tracing=${TRACING_ENABLED}
+        tracing_extrae=${TRACING_ENABLED}
+        tracing_monitor=${TRACING_DEACTIVATED}
         ;;
       v)
         # Display version
@@ -410,15 +417,32 @@ parse_options() {
               # Tracing level
               if [ "${tracing}" == "false" ]; then
                 tracing=${TRACING_DEACTIVATED}
+                tracing_extrae=${TRACING_DEACTIVATED}
+                tracing_monitor=${TRACING_DEACTIVATED}
               elif [ "${tracing}" == "true" ]; then
-                tracing=${TRACING_ENABLED}
+                tracing_extrae=${TRACING_ENABLED}
+                tracing_monitor=${TRACING_DEACTIVATED}
               else
-                arguments_error "${TRACING_ERROR}"
+                # Parsejar els valors de la llista separada per comes
+                IFS=',' read -ra tracing_options <<< "$tracing"
+                for option in "${tracing_options[@]}"; do
+                  if [ "$option" == "extrae" ]; then
+                    tracing=${TRACING_ENABLED}
+                    tracing_extrae=${TRACING_ENABLED}
+                  elif [ "$option" == "monitor" ]; then
+                    tracing_monitor=${TRACING_ENABLED}
+                  else
+                    echo "ERROR: Valor de tracing no vàlid: $option"
+                    exit 1
+                  fi
+                done
               fi
             ;;
           tracing)
             # Tracing system
             tracing=${TRACING_ENABLED}
+            tracing_extrae=${TRACING_ENABLED}
+            tracing_monitor=${TRACING_DEACTIVATED}
             ;;
           trace_label=*)
             # Tracing system

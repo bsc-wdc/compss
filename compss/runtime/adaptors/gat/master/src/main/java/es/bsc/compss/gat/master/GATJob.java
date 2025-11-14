@@ -194,7 +194,7 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
             job = broker.submitJob(jobDescr, this, JOB_STATUS);
             RUNNING_JOBS.add(this);
         } catch (Exception e) {
-            if (Tracer.isActivated()) {
+            if (Tracer.isExtraeActivated()) {
                 SoftwareDescription sd = jobDescr.getSoftwareDescription();
                 releaseTracingSlot(sd);
             }
@@ -283,8 +283,8 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
         }
 
         // Tracing flags
-        lArgs.add(Boolean.toString(Tracer.isActivated()));
-        if (Tracer.isActivated()) {
+        lArgs.add(Boolean.toString(Tracer.isExtraeActivated()));
+        if (Tracer.isExtraeActivated()) {
             lArgs.add(String.valueOf(TraceEventType.RUNTIME.code)); // Runtime event type
             lArgs.add(String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
             lArgs.add(String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
@@ -608,7 +608,7 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
          * transitions
          */
         if (newJobState == JobState.STOPPED) {
-            if (Tracer.isActivated()) {
+            if (Tracer.isExtraeActivated()) {
                 releaseTracingSlot(sd);
             }
 
@@ -645,7 +645,7 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
             }
         } else if (newJobState == JobState.SUBMISSION_ERROR) {
-            if (Tracer.isActivated()) {
+            if (Tracer.isExtraeActivated()) {
                 releaseTracingSlot(sd);
             }
 

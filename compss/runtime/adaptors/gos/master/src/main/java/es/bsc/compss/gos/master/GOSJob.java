@@ -315,7 +315,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
         }
 
         // Tracing flags
-        jd.addArgument("tracing", Boolean.toString(Tracer.isActivated()));
+        jd.addArgument("tracing", Boolean.toString(Tracer.isExtraeActivated()));
         jd.addArgument("tracer runtime type", String.valueOf(TraceEventType.RUNTIME.code));
         jd.addArgument("sandbox creation id", String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId()));
         jd.addArgument("sandbox removal id", String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId()));

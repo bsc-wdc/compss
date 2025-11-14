@@ -667,7 +667,15 @@ exec_python() {
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
-  ${python_interpreter} ${py_flags} "${PYCOMPSS_HOME}/pycompss/runtime/launch.py" ${wall_clock_limit} ${log_level} ${tracing} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
+  ${python_interpreter} ${py_flags} "${PYCOMPSS_HOME}/pycompss/runtime/launch.py" \
+  ${wall_clock_limit} ${log_level} \
+  ${tracing} \
+  ${tracing_extrae} \
+  ${tracing_monitor} \
+  ${PyObject_serialize} ${storageConf} ${streaming} \
+  ${streaming_master_name} ${streaming_master_port} \
+  "${fullAppPath}" ${application_args}
+
   endCode=$?
   stop_tracing
 

@@ -125,6 +125,18 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("tracing", help="Tracing [True | False]")
     parser.add_argument(
+        "tracing_extrae",
+        nargs="?",
+        default="false",
+        help="Tracing with Extrae [true|false]",
+    )
+    parser.add_argument(
+        "tracing_monitor",
+        nargs="?",
+        default="false",
+        help="Tracing monitor [true|false]",
+    )
+    parser.add_argument(
         "object_conversion", help="Object_conversion [true|false]"
     )
     parser.add_argument(
@@ -211,8 +223,13 @@ def compss_main() -> None:
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv
-    user_sys_argv = sys.argv[10:]
-    sys.argv = sys.argv[:10]
+    if len(sys.argv) >= 12:
+        cut = 12
+    else:
+        cut = 10
+
+    user_sys_argv = sys.argv[cut:]
+    sys.argv = sys.argv[:cut]
     args = parse_arguments()
     # We are done, now sys.argv must contain user args only
     sys.argv = [args.app_path] + user_sys_argv
@@ -222,6 +239,8 @@ def compss_main() -> None:
 
     # Setup tracing
     tracing = args.tracing == "true"
+    tracing_extrae = args.tracing_extrae == "true"
+    tracing_monitor = args.tracing_monitor == "true"
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
@@ -236,7 +255,7 @@ def compss_main() -> None:
             __load_user_module(args.app_path, log_level)
 
     # Start the runtime
-    compss_start(log_level, tracing, False)
+    compss_start(log_level, tracing_extrae, False)
 
     # Register @implements core elements (they can not be registered in
     # __load_user__module__).

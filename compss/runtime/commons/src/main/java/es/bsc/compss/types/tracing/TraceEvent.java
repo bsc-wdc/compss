@@ -16,10 +16,13 @@
  */
 package es.bsc.compss.types.tracing;
 
+import es.bsc.wdc.tracing.Event;
+
+
 /**
  * Representation of a tracing event.
  */
-public enum TraceEvent {
+public enum TraceEvent implements Event {
 
     STATIC_IT(1, TraceEventType.API, "Loading Runtime"), //
     START(2, TraceEventType.API, "Start"), //
@@ -274,20 +277,18 @@ public enum TraceEvent {
         type.addEvent(this);
     }
 
+    @Override
     public int getId() {
         return this.id;
     }
 
-    public TraceEventType getTraceEventType() {
-        return this.type;
+    @Override
+    public String getSignature() {
+        return this.signature;
     }
 
     public TraceEventType getType() {
         return this.type;
-    }
-
-    public String getSignature() {
-        return this.signature;
     }
 
 }

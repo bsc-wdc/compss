@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -391,7 +390,7 @@ public class COMPSsInvoker extends Invoker {
         builder.directory(this.sandBox.getFolder());
 
         // Setup process environment -- Tracing entries
-        Tracer.prepareEnvironment(builder.environment(), false);
+        Tracer.prepareSubProcessEnvironment(builder.environment(), false);
 
         // Launch command
         Process process = builder.start();

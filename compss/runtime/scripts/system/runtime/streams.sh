@@ -112,32 +112,92 @@ EOT
   mkdir -p "${kafka_log_dir}"
   kafka_props_file=$(mktemp -p "${kafka_log_dir}") || fatal_error "${ERROR_KAFKA_CONFIG}" 1
   cat > "${kafka_props_file}" << EOT
+# Unique identifier for the Kafka broker (randomly assigned within a range 0-99)
 broker.id=$((RANDOM % 100))
+# The port on which the Kafka broker will listen for incoming connections
 port=49001
-num.network.threads=3
-num.io.threads=8
-socket.send.buffer.bytes=102400
-socket.receive.buffer.bytes=102400
-socket.request.max.bytes=104857600
-log.dirs=/tmp/kafka-logs
-num.partitions=1
-num.recovery.threads.per.data.dir=1
-offsets.topic.replication.factor=1
-transaction.state.log.replication.factor=1
-transaction.state.log.min.isr=1
-#log.flush.interval.messages=10000
-#log.flush.interval.ms=1000
-log.retention.hours=168
-log.segment.bytes=1073741824
-#log.retention.bytes=1073741824
-log.retention.check.interval.ms=300000
-zookeeper.connect=localhost:49000
-zookeeper.connection.timeout.ms=18000
-group.initial.rebalance.delay.ms=0
-auto.create.topics.enable=true
-max.block.ms=600000
+# Specifies the listener protocol (PLAINTEXT) and port (49001) to listen on
 listeners=PLAINTEXT://:49001
+# Define how brokers advertise themselves to clients. Commented out to use default
 # advertised.listeners=PLAINTEXT://localhost:49001
+# The level of acknowledgment required from the Kafka brokers for a message to be considered successfully written (all means all replicas must acknowledge)
+acks=all
+# If true, Kafka will automatically create topics when they are first referenced (not recommended for production)
+auto.create.topics.enable=true
+# The batch size in bytes for Kafka producer to send data in a single request (16 KB)
+batch.size=8192
+# Total memory available to Kafka producers for buffering data before it is sent to brokers (32 MB)
+buffer.memory=33554432
+# Compression algorithm used for Kafka producer messages
+compression.type=gzip
+# Ensure that messages are delivered exactly once by the producer (important for data integrity)
+enable.idempotence=true
+# The maximum amount of time in milliseconds the server will wait before responding to a fetch request
+fetch.max.wait.ms=500
+# The minimum number of bytes a broker should send back in a fetch response
+fetch.min.bytes=1
+# Time in milliseconds to wait before starting a rebalance in a consumer group after new members join
+group.initial.rebalance.delay.ms=0
+# The time in milliseconds to wait before sending a batch of messages (can be used to accumulate more messages in a batch)
+linger.ms=100
+# The time in milliseconds to retain log segments after they have been deleted by the log cleaner (1 day)
+log.cleaner.delete.retention.ms=86400000
+# Whether log cleaning (compaction) is enabled or not (used in compacted topics)
+log.cleaner.enable=true
+# The minimum ratio of a log segment that must be eligible for compaction before cleaning starts
+log.cleaner.min.cleanable.ratio=0.5
+# Directory where Kafka will store its logs (data storage location for topics)
+log.dirs=/tmp/kafka-logs
+# The number of messages that must be written to a log before it is flushed to disk
+log.flush.interval.messages=10000
+# The interval in milliseconds after which logs are flushed to disk
+log.flush.interval.ms=5000
+# Maximum size of logs to retain in bytes (1 GB)
+log.retention.bytes=1073741824
+# The interval in milliseconds for Kafka to check whether any logs need to be deleted
+log.retention.check.interval.ms=300000
+# The retention time of logs in hours (2 days) before they are deleted
+log.retention.hours=48
+# Maximum size of a log segment file in bytes (1 GB)
+log.segment.bytes=1073741824
+# Maximum time in milliseconds a producer can block waiting for a response from the broker
+max.block.ms=600000
+# Maximum number of records that a consumer can fetch in a single poll request
+max.poll.records=100
+# Minimum number of in-sync replicas needed to acknowledge a write
+min.insync.replicas=1
+# Number of threads to handle disk I/O operations
+num.io.threads=10
+# Number of threads to handle network requests
+num.network.threads=5
+# Default number of partitions for new topics (each partition is a log segment)
+num.partitions=1
+# Number of threads to recover logs from each directory during broker start-up
+num.recovery.threads.per.data.dir=1
+# Replication factor for the offsets topic (1 means no redundancy)
+offsets.topic.replication.factor=1
+# Default replication factor for new topics
+replication.factor=2
+# The maximum number of times the producer will retry sending a message after failure (set to a very high number)
+retries=2147483647
+# The time in milliseconds to wait before retrying a failed request
+retry.backoff.ms=200
+# The size of the socket receive buffer for network communication
+socket.receive.buffer.bytes=102400
+# Maximum number of bytes a broker will accept in a single request (100 MB)
+socket.request.max.bytes=104857600
+# The size of the socket send buffer for network communication
+socket.send.buffer.bytes=102400
+# Minimum in-sync replicas for the transaction log to consider a write successful
+transaction.state.log.min.isr=1
+# Replication factor for the transaction log
+transaction.state.log.replication.factor=1
+# If false, Kafka will not allow unclean leader elections
+unclean.leader.election.enable=false
+# Timeout in milliseconds for establishing a connection to Zookeeper
+zookeeper.connection.timeout.ms=30000
+# Zookeeper server to connect to for Kafka coordination
+zookeeper.connect=localhost:49000
 EOT
 }
 

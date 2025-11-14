@@ -28,8 +28,6 @@ public class NIOTracer extends Tracer {
 
     // Random value for the transfer events
     private static final int ID = 121;
-    // Id for the end of a transfer event
-    public static final String TRANSFER_END = "0";
 
 
     /**
@@ -66,7 +64,7 @@ public class NIOTracer extends Tracer {
      * @param tag Transfer tag.
      */
     public static void emitCommEvent(boolean send, int partnerID, int tag) {
-        emitCommEvent(send, ID, partnerID, tag, 0);
+        emitCommEvent(send, partnerID, ID, tag, 0);
     }
 
     /**
@@ -78,19 +76,17 @@ public class NIOTracer extends Tracer {
      * @param size Transfer size.
      */
     public static void emitCommEvent(boolean send, int partnerID, int tag, long size) {
-        emitCommEvent(send, ID, partnerID, tag, size);
+        emitCommEvent(send, partnerID, ID, tag, size);
     }
 
     /**
      * Generates the tracing package on the worker side.
-     * 
-     * @param runtimeEvents pairs name-event id of events not registered in the runtime
      */
-    public static void fini(Map<String, Integer> runtimeEvents) {
+    public static void fini() {
         emitEvent(TraceEvent.STOP);
         emitEventEnd(TraceEvent.STOP);
 
-        Tracer.fini(runtimeEvents);
+        Tracer.fini();
     }
 
 }

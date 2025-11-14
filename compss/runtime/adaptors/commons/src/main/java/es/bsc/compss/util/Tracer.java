@@ -17,21 +17,24 @@
 
 package es.bsc.compss.util;
 
-import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.tracing.CustomTraceEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.tracing.TraceScript;
+
+import es.bsc.wdc.tracing.TracingBackend;
+import es.bsc.wdc.tracing.extrae.ExtraeTracer;
+import es.bsc.wdc.tracing.monitor.MonitorTracer;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
@@ -40,50 +43,52 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class Tracer {
 
-    // Logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-
+    // Errors
     private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
+
+    // Logger
+    protected static Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
+    protected static boolean DEBUG = LOGGER.isDebugEnabled();
+
+    // Configuration
+    public static final boolean MONITOR_ENABLED = System.getProperty(COMPSsConstants.TRACING_MONITOR) != null
+        && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_MONITOR));
+
+    public static final boolean EXTRAE_ENABLED = System.getProperty(COMPSsConstants.TRACING_EXTRAE) != null
+        && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_EXTRAE));
+
+    private static final boolean ENABLED = EXTRAE_ENABLED || MONITOR_ENABLED;
 
     // Tracing script and file paths
     public static final String TRACE_SUBFOLDER = "trace";
 
-    private static final String TRACER_OUT_FILENAME = "tracer.out";
-    private static final String TRACER_ERR_FILENAME = "tracer.err";
+    private static String TRACER_OUT_FILENAME = "tracer.out";
+    private static String TRACER_ERR_FILENAME = "tracer.err";
 
-    public static final String PACKAGE_SUFFIX = "_compss_trace.tar.gz";
+    public static String PACKAGE_SUFFIX = "_compss_trace.tar.gz";
 
-    private static final String EXTRAE_FILE;
-    private static final String EXTRAE_OUTPUT_DIR;
-
-    private static final String ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE = "EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE";
-    private static final String ENV_EXTRAE_LIB = "EXTRAE_LIB";
-
-    // Extrae environment variables to be removed when tracing
-    public static final String[] REMOVE_ENVIRONMENT_VARIABLES = new String[] { "EXTRAE_CONFIG_FILE",
-        "EXTRAE_USE_POSIX_CLOCK" };
-    // Extrae environment variables
-    public static final String[] CLEAN_ENVIRONMENT_VARIABLES = new String[] { "LD_PRELOAD" };
+    private static String EXTRAE_FILE;
+    private static String EXTRAE_OUTPUT_DIR;
 
     public static final int EVENT_END = 0;
 
-    private static final AtomicInteger NEXT_HOST_ID = new AtomicInteger(1);
-
     // Tracing configuration
     public static boolean tracerAlreadyLoaded = false;
-    private static boolean enabled = false;
+
     private static String nodeName;
     private static String installDir;
     private static String hostId;
-    protected static boolean tracingTaskDependencies;
 
-    private static final Map<String, TraceHost> hostToSlots = new HashMap<>();
+    protected static boolean tracingTaskDependencies;
+    // Hashmap of the predecessors
+    private static HashMap<Integer, ArrayList<Integer>> predecessorsMap = new HashMap<>();
+
+    private static AtomicInteger NEXT_HOST_ID = new AtomicInteger(1);
+    private static Map<String, TraceHost> hostToSlots = new HashMap<>();
 
     private static int numPthreadsEnabled = 0;
 
-    // Hashmap of the predecessors
-    private static final HashMap<Integer, ArrayList<Integer>> predecessorsMap = new HashMap<>();
+    private static ArrayList<TracingBackend> BACKENDS = new ArrayList<>();
 
     static {
         String file = System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE);
@@ -101,99 +106,21 @@ public abstract class Tracer {
 
 
     /**
-     * Checks and updates the environment variables for tracing. In particular, removes the content of the variables
-     * defined in REMOVE_ENVIRONMENT_VARIABLES and also removes any link to extrae from CLEAN_ENVIRONMENT_VARIABLES.
+     * Returns if any kind of tracing is activated.
      *
-     * @param env Environment to prepare for tracing.
-     * @param defineExtra Add extra variables.
+     * @return true if tracing is activated
      */
-    public static void prepareEnvironment(Map<String, String> env, Boolean defineExtra) {
-        // Remove all unnecessary environment variables.
-        for (String envVar : Tracer.REMOVE_ENVIRONMENT_VARIABLES) {
-            env.remove(envVar);
-        }
-        // Remove all unnecessary links to extrae
-        for (String envVar : Tracer.CLEAN_ENVIRONMENT_VARIABLES) {
-            String envVarValue = System.getenv(envVar);
-            if (envVarValue != null) {
-                String[] envVarValuePaths = envVarValue.split(":");
-                List<String> finalEnvVarValuePaths = new ArrayList<String>();
-                // Look for paths that do not contain extrae
-                for (String valuePath : envVarValuePaths) {
-                    if (!valuePath.toLowerCase().contains("extrae")) {
-                        finalEnvVarValuePaths.add(valuePath);
-                    }
-                }
-                String finalEnvVarValue = String.join(":", finalEnvVarValuePaths);
-                // Update the environment variable without extrae paths
-                env.put(envVar, finalEnvVarValue);
-            }
-        }
-        if (defineExtra) {
-            env.put(ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE, "1");
-            env.put(ENV_EXTRAE_LIB, installDir + COMPSsPaths.REL_DEPS_EXTRAE_DIR + "lib");
-        }
+    public static boolean isActivated() {
+        return ENABLED;
     }
 
     /**
-     * Checks and removes the environment variables for tracing. In particular, removes the content of the variables
-     * defined in REMOVE_ENVIRONMENT_VARIABLES and also removes any link to extrae from CLEAN_ENVIRONMENT_VARIABLES.
+     * Returns if Extrae tracing is activated.
      *
-     * @param env Environment to clean from tracing.
+     * @return true if tracing is activated
      */
-    public static void disableExtraeFromEnvironment(Map<String, String> env) {
-        // Remove all unnecessary environment variables.
-        for (String envVar : Tracer.REMOVE_ENVIRONMENT_VARIABLES) {
-            env.remove(envVar);
-        }
-        // Remove all unnecessary links to extrae
-        for (String envVar : Tracer.CLEAN_ENVIRONMENT_VARIABLES) {
-            env.remove(envVar);
-        }
-    }
-
-    /**
-     * Initializes tracer creating the trace folder.If tracing is used then the current node (master) sets its nodeID
-     * (taskID) to 0, and its number of tasks to 1 (a single program).
-     *
-     * @param enabled whether the tracing should be enabled or not
-     * @param hostId id of the host
-     * @param nodeName name of the node being traced
-     * @param installDir Path to the installation directory
-     * @param tracingTasks whether the tracing should add dependency-related events or not
-     */
-    public static void init(boolean enabled, int hostId, String nodeName, String installDir, boolean tracingTasks) {
-        if (tracerAlreadyLoaded) {
-            if (DEBUG) {
-                LOGGER.debug("Tracing already initialized.");
-            }
-            return;
-        }
-        tracerAlreadyLoaded = true;
-        Tracer.enabled = enabled;
-        Tracer.nodeName = nodeName;
-        Tracer.installDir = installDir;
-
-        if (DEBUG) {
-            LOGGER.debug("Initializing tracing: " + (enabled ? "Enabled" : "Disabled"));
-        }
-
-        if (enabled) {
-            Tracer.hostId = String.valueOf(hostId);
-            LOGGER.debug("\t Tracing Host ID: " + Tracer.hostId);
-            tracingTaskDependencies = tracingTasks;
-            LOGGER.debug("\t Task dependencies: " + (tracingTasks ? "Enabled" : "Disabled"));
-
-            LOGGER.debug("\t Extrae file: " + Tracer.EXTRAE_FILE);
-            LOGGER.debug("\t Tracing Ouput folder: " + Tracer.EXTRAE_OUTPUT_DIR);
-            File traceOutDir = new File(Tracer.EXTRAE_OUTPUT_DIR);
-            if (!traceOutDir.exists()) {
-                if (!new File(Tracer.EXTRAE_OUTPUT_DIR).mkdir()) {
-                    ErrorManager.error(ERROR_TRACE_DIR);
-                }
-            }
-            setUpWrapper(hostId, hostId + 1);
-        }
+    public static boolean isExtraeActivated() {
+        return EXTRAE_ENABLED;
     }
 
     /**
@@ -203,94 +130,6 @@ public abstract class Tracer {
      */
     public static String getHostID() {
         return Tracer.hostId;
-    }
-
-    public static String getTraceOutPath() {
-        return EXTRAE_OUTPUT_DIR + TRACER_OUT_FILENAME;
-    }
-
-    public static String getTraceErrPath() {
-        return EXTRAE_OUTPUT_DIR + TRACER_ERR_FILENAME;
-    }
-
-    /**
-     * Initialized the Extrae wrapper.
-     *
-     * @param taskId taskId of the node
-     * @param numTasks num of tasks for that node
-     */
-    private static void setUpWrapper(int taskId, int numTasks) {
-        synchronized (Tracer.class) {
-            if (DEBUG) {
-                LOGGER.debug("Initializing extrae Wrapper.");
-            }
-            Wrapper.SetTaskID(taskId);
-            Wrapper.SetNumTasks(numTasks);
-        }
-    }
-
-    /**
-     * Returns if any kind of tracing is activated.
-     *
-     * @return true if tracing is activated
-     */
-    public static boolean isActivated() {
-        return Tracer.enabled;
-    }
-
-    /**
-     * Returns true if task dependencies tracing is activated.
-     *
-     * @return true or false
-     */
-    public static boolean isTracingTaskDependencies() {
-
-        return tracingTaskDependencies;
-    }
-
-    /**
-     * Returns the config file used for extrae.
-     *
-     * @return path of extrae config file
-     */
-    public static String getExtraeFile() {
-        return EXTRAE_FILE;
-    }
-
-    /**
-     * Returns the folder where extrae will leave the traces.
-     *
-     * @return path of extrae's output directory
-     */
-    public static String getExtraeOutputDir() {
-        return EXTRAE_OUTPUT_DIR;
-    }
-
-    /**
-     * When using extrae's tracing, this call enables the instrumentation of ALL created threads from here onwards until
-     * the same number (n) of disablePThreads is called.
-     */
-    public static void enablePThreads(int n) {
-        synchronized (Tracer.class) {
-            numPthreadsEnabled += n;
-            if (numPthreadsEnabled > 0) {
-                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
-            }
-        }
-    }
-
-    /**
-     * When using extrae's tracing, when n reaches the number of enablePThreads, this call disables the instrumentation
-     * of any created threads from here onwards. To reactivate it use enablePThreads()
-     */
-    public static void disablePThreads(int n) {
-        synchronized (Tracer.class) {
-            numPthreadsEnabled -= n;
-            if (numPthreadsEnabled < 1) {
-                numPthreadsEnabled = 0;
-                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
-            }
-        }
     }
 
     /**
@@ -347,6 +186,15 @@ public abstract class Tracer {
         hostToSlots.get(host).freeSlot(slot);
     }
 
+    /**
+     * Returns true if task dependencies tracing is activated.
+     *
+     * @return true or false
+     */
+    public static boolean isTracingTaskDependencies() {
+        return tracingTaskDependencies;
+    }
+
     public static ArrayList<Integer> getPredecessors(int taskId) {
         return predecessorsMap.get(taskId);
     }
@@ -371,7 +219,131 @@ public abstract class Tracer {
     }
 
     /**
-     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     * Initializes tracer creating the trace folder. If tracing is used then the current node (master) sets its nodeID
+     * (taskID) to 0, and its number of tasks to 1 (a single program).
+     *
+     * @param hostId id of the host
+     * @param nodeName name of the node being traced
+     * @param installDir Path to the installation directory
+     * @param tracingTasks whether the tracing should add dependency-related events or not
+     */
+    public static void init(int hostId, String nodeName, String installDir, boolean tracingTasks) {
+        if (tracerAlreadyLoaded) {
+            if (DEBUG) {
+                LOGGER.debug("Tracing already initialized.");
+            }
+            return;
+        }
+        tracerAlreadyLoaded = true;
+        if (DEBUG) {
+            LOGGER.debug("Initializing tracing: " + (ENABLED ? "Enabled" : "Disabled"));
+        }
+
+        Tracer.hostId = String.valueOf(hostId);
+        LOGGER.debug("\t Tracing Host ID: " + Tracer.hostId);
+        Tracer.nodeName = nodeName;
+        Tracer.installDir = installDir;
+        Tracer.tracingTaskDependencies = tracingTasks;
+        LOGGER.debug("\t Task dependencies: " + (tracingTasks ? "Enabled" : "Disabled"));
+
+        if (DEBUG) {
+            LOGGER.debug("Initializing extrae tracing: " + (EXTRAE_ENABLED ? "Enabled" : "Disabled"));
+        }
+        if (EXTRAE_ENABLED) {
+            String file = System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE);
+            String folder = System.getProperty(COMPSsConstants.EXTRAE_WORKING_DIR);
+            String extraeLib = installDir + COMPSsPaths.REL_DEPS_EXTRAE_DIR + "lib";
+            ExtraeTracer extraeBE = new ExtraeTracer(hostId, file, folder, extraeLib);
+            BACKENDS.add(extraeBE);
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Initializing monitor tracing: " + (MONITOR_ENABLED ? "Enabled" : "Disabled"));
+        }
+        if (MONITOR_ENABLED) {
+            String masterName = System.getProperty(COMPSsConstants.MASTER_NAME);
+            MonitorTracer otelBE = new MonitorTracer(masterName, nodeName);
+            BACKENDS.add(otelBE);
+        }
+
+        defineEvents();
+    }
+
+    /**
+     * When using extrae's tracing, this call enables the instrumentation of ALL created threads from here onwards until
+     * the same number (n) of disablePThreads is called.
+     */
+    public static void enablePThreads(int n) {
+        synchronized (Tracer.class) {
+            numPthreadsEnabled += n;
+            if (numPthreadsEnabled > 0) {
+                for (TracingBackend tb : BACKENDS) {
+                    tb.enablePThreads();
+                }
+            }
+        }
+    }
+
+    /**
+     * When using extrae's tracing, when n reaches the number of enablePThreads, this call disables the instrumentation
+     * of any created threads from here onwards. To reactivate it use enablePThreads()
+     */
+    public static void disablePThreads(int n) {
+        synchronized (Tracer.class) {
+            numPthreadsEnabled -= n;
+            if (numPthreadsEnabled < 1) {
+                numPthreadsEnabled = 0;
+                for (TracingBackend tb : BACKENDS) {
+                    tb.disablePThreads();
+                }
+            }
+        }
+    }
+
+    /**
+     * Defines a new Event that will be traced.
+     *
+     * @param eventType type of event
+     * @param id id of the event within the type
+     * @param signature signature of the event
+     */
+    public static void defineNewEvent(TraceEventType eventType, int id, String signature) {
+        // Instantiates the event and automatically gets registered in the type
+        new CustomTraceEvent(eventType, id, signature);
+        defineEventType(eventType);
+    }
+
+    /**
+     * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
+     */
+    private static void defineEvents() {
+        for (TraceEventType type : TraceEventType.values()) {
+            switch (type) {
+                case TASKTYPE:
+                    defineEventsForTaskType(type, MethodType.values());
+                    break;
+                default:
+                    defineEventType(type);
+            }
+        }
+    }
+
+    private static void defineEventsForTaskType(TraceEventType type, MethodType[] types) {
+        // Populate method's id for different task stype
+        for (MethodType tp : types) {
+            new CustomTraceEvent(type, tp.ordinal(), tp.name());
+        }
+        defineEventType(type);
+    }
+
+    private static void defineEventType(TraceEventType type) {
+        for (TracingBackend tb : BACKENDS) {
+            tb.defineEventType(type);
+        }
+    }
+
+    /**
+     * Emits an event in all the configured tracers.
      *
      * @param event event being emitted
      */
@@ -380,28 +352,29 @@ public abstract class Tracer {
     }
 
     /**
-     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     * Emits an event in all the configured tracers.
      *
      * @param type type of the event.
      * @param value ID of the event
      */
-    public static final void emitEvent(TraceEventType type, long value) {
+    public static void emitEvent(TraceEventType type, long value) {
         int eventType = type.code;
         emitEvent(eventType, value);
     }
 
     /**
-     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     * Emits an event in all the configured tracers.
      *
      * @param eventType type of the event.
      * @param value ID of the event
      */
-    public static final void emitEvent(int eventType, long value) {
+    public static void emitEvent(int eventType, long value) {
         if (DEBUG) {
             LOGGER.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + value + "]");
         }
-        synchronized (Tracer.class) {
-            Wrapper.Event(eventType, value);
+
+        for (TracingBackend tb : BACKENDS) {
+            tb.emitEvent(eventType, value);
         }
     }
 
@@ -412,14 +385,15 @@ public abstract class Tracer {
      * @param type type of the event.
      * @param value ID of the event
      */
-    public static final void emitEventAndCounters(TraceEventType type, int value) {
+    public static void emitEventAndCounters(TraceEventType type, int value) {
         int eventType = type.code;
         if (DEBUG) {
             LOGGER.debug(
                 "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + value + "]");
         }
-        synchronized (Tracer.class) {
-            Wrapper.Eventandcounters(eventType, value);
+
+        for (TracingBackend tb : BACKENDS) {
+            tb.emitEventAndCounters(eventType, value);
         }
     }
 
@@ -428,7 +402,7 @@ public abstract class Tracer {
      *
      * @param event event being emitted
      */
-    public static final void emitEventEnd(TraceEvent event) {
+    public static void emitEventEnd(TraceEvent event) {
         emitEventEnd(event.getType());
     }
 
@@ -437,7 +411,7 @@ public abstract class Tracer {
      *
      * @param type event being emitted
      */
-    public static final void emitEventEnd(TraceEventType type) {
+    public static void emitEventEnd(TraceEventType type) {
         final int typeCode = type.code;
         emitEvent(typeCode, EVENT_END);
     }
@@ -448,82 +422,51 @@ public abstract class Tracer {
      *
      * @param type event being emitted
      */
-    public static final void emitEventEndAndCounters(TraceEventType type) {
+    public static void emitEventEndAndCounters(TraceEventType type) {
         emitEventAndCounters(type, EVENT_END);
     }
 
     /**
      * Emits a new communication event.
      *
-     * @param send Whether it is a send event or not.
-     * @param ownID Transfer own Id.
-     * @param partnerID Transfer partner Id.
+     * @param send Whether it is a send ({@literal true}) or a receive ({@literal false}) event.
+     * @param partnerID ID the of the other partner involved in the communication.
+     * @param id Id of the transfer.
      * @param tag Transfer tag.
      * @param size Transfer size.
      */
-    public static void emitCommEvent(boolean send, int ownID, int partnerID, int tag, long size) {
-        synchronized (Tracer.class) {
-            Wrapper.Comm(send, tag, (int) size, partnerID, ownID);
-        }
-
+    public static void emitCommEvent(boolean send, int partnerID, int id, int tag, long size) {
         if (DEBUG) {
-            LOGGER.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", "
-                + partnerID + ", " + ownID + "]");
+            LOGGER.debug("Emitting communication event [" + (send ? "SEND -> " : "REC <-") + partnerID + "]: " + id
+                + ", " + tag + ", " + size);
+        }
+        for (TracingBackend tb : BACKENDS) {
+            tb.emitCommunicationEvent(send, tag, size, partnerID, id);
         }
     }
 
     /**
      * End the extrae tracing system. Finishes master's tracing, generates both master and worker's packages, merges the
      * packages, and clean the intermediate traces.
-     *
-     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    public static void fini(Map<String, Integer> runtimeEvents) {
+    public static void fini() {
         if (DEBUG) {
             LOGGER.debug("Tracing: finalizing");
         }
-
-        synchronized (Tracer.class) {
-            if (enabled) {
-                defineEvents(runtimeEvents);
-                Tracer.stopWrapper();
-            }
+        for (TracingBackend tb : BACKENDS) {
+            tb.fini();
         }
     }
 
     /**
-     * Stops the extrae wrapper.
+     * Checks and updates the environment variables for tracing.
+     *
+     * @param env Environment to prepare for tracing.
+     * @param defineExtra Add extra variables.
      */
-    private static void stopWrapper() {
-        synchronized (Tracer.class) {
-            LOGGER.debug("[Tracer] Disabling pthreads");
-            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
-            Wrapper.Fini();
-            // End wrapper
-            if (DEBUG) {
-                LOGGER.debug("[Tracer] Finishing extrae");
-            }
-            Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
-        }
-    }
-
-    /**
-     * Shuts down tracing. Disables the instrumentation until the next call to Restart().
-     */
-    public static void shutdownWrapper() {
-        synchronized (Tracer.class) {
-            LOGGER.debug("[Tracer] Shutdown");
-            Wrapper.Shutdown();
-        }
-    }
-
-    /**
-     * Restart tracing. Resumes the instrumentation from the previous Shutdown() call.
-     */
-    public static void restartWrapper() {
-        synchronized (Tracer.class) {
-            LOGGER.debug("[Tracer] Restart");
-            Wrapper.Restart();
+    public static void prepareSubProcessEnvironment(Map<String, String> env, Boolean defineExtra) {
+        for (TracingBackend tb : BACKENDS) {
+            tb.prepareSubProcessEnvironment(env, defineExtra);
         }
     }
 
@@ -532,113 +475,11 @@ public abstract class Tracer {
      */
     public static void generateMasterPackage() {
         synchronized (Tracer.class) {
-            if (enabled) {
+            if (EXTRAE_ENABLED) {
                 String masterPackage = Tracer.EXTRAE_OUTPUT_DIR + "master" + PACKAGE_SUFFIX;
                 generatePackage(masterPackage);
             }
         }
-    }
-
-    /**
-     * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
-     *
-     * @param runtimeEvents label-Id pairs for the runtimeEvents
-     */
-    private static void defineEvents(Map<String, Integer> runtimeEvents) {
-        if (DEBUG) {
-            LOGGER.debug("SignatureToId size: " + runtimeEvents.size());
-        }
-
-        for (TraceEventType type : TraceEventType.values()) {
-            switch (type) {
-                case TASKS_FUNC:
-                    defineEventsForFunctions(type, runtimeEvents);
-                    break;
-                case BINDING_TASKS_FUNC:
-                    // defineEventsForFunctions(type, runtimeEvents);
-                    break;
-                case TASKTYPE:
-                    defineEventsForTaskType(type, MethodType.values());
-                    break;
-                default:
-                    defineEventsForType(type);
-            }
-        }
-    }
-
-    private static void defineEventsForTaskType(TraceEventType type, MethodType[] types) {
-        int size = types.length + 1;
-        long[] values = new long[size];
-        String[] descriptionValues = new String[size];
-        values[0] = 0;
-        descriptionValues[0] = "End";
-        int i = 1;
-        for (MethodType tp : types) {
-            values[i] = tp.ordinal() + 1L;
-            descriptionValues[i] = tp.name();
-            ++i;
-        }
-        Wrapper.defineEventType(type.code, type.desc, values, descriptionValues);
-
-    }
-
-    private static void defineEventsForFunctions(TraceEventType type, Map<String, Integer> runtimeEvents) {
-        int size = runtimeEvents.entrySet().size() + 1;
-        long[] values = new long[size];
-        String[] descriptionValues = new String[size];
-        values[0] = 0;
-        descriptionValues[0] = "End";
-        int i = 1;
-        for (Entry<String, Integer> entry : runtimeEvents.entrySet()) {
-            String signature = entry.getKey();
-            Integer methodId = entry.getValue();
-            values[i] = methodId + 1L;
-            LOGGER.debug("Tracing debug: " + signature);
-            String methodName = signature.substring(signature.indexOf('.') + 1, signature.length());
-            String mN = methodName.replace("(", "([").replace(")", "])");
-            if (mN.contains(".")) {
-                int start = mN.lastIndexOf(".");
-                mN = "[" + mN.substring(0, start) + ".]" + mN.substring(start + 1);
-            }
-            descriptionValues[i] = mN;
-            if (DEBUG) {
-                LOGGER.debug("Tracing Funtion Event [i,methodId]: [" + i + "," + methodId + "] => value: " + values[i]
-                    + ", Desc: " + descriptionValues[i]);
-            }
-            i++;
-        }
-
-        Wrapper.defineEventType(type.code, type.desc, values, descriptionValues);
-    }
-
-    private static void defineEventsForType(TraceEventType type) {
-        boolean endable = type.endable;
-        List<TraceEvent> events = type.getEvents();
-
-        long[] values;
-        String[] descriptions;
-        int size = events.size();
-        int offset = 0;
-        if (endable) {
-            values = new long[size + 1];
-            values[0] = 0;
-            descriptions = new String[size + 1];
-            descriptions[0] = "End";
-            offset = 1;
-        } else {
-            values = new long[size];
-            descriptions = new String[size];
-        }
-        for (TraceEvent event : events) {
-            values[offset] = event.getId();
-            descriptions[offset] = event.getSignature();
-            if (DEBUG) {
-                LOGGER.debug("Tracing[API]: Type " + type.code + " Event " + offset + "=> value: " + values[offset]
-                    + ", Desc: " + descriptions[offset]);
-            }
-            offset++;
-        }
-        Wrapper.defineEventType(type.code, type.desc, values, descriptions);
     }
 
     /**
@@ -662,6 +503,32 @@ public abstract class Tracer {
             ErrorManager.warn("Error generating " + nodeName + " package (interruptedException)", e);
             Thread.currentThread().interrupt();
         }
+    }
+
+    public static String getTraceOutPath() {
+        return EXTRAE_OUTPUT_DIR + TRACER_OUT_FILENAME;
+    }
+
+    public static String getTraceErrPath() {
+        return EXTRAE_OUTPUT_DIR + TRACER_ERR_FILENAME;
+    }
+
+    /**
+     * Returns the config file used for extrae.
+     *
+     * @return path of extrae config file
+     */
+    public static String getExtraeFile() {
+        return EXTRAE_FILE;
+    }
+
+    /**
+     * Returns the folder where extrae will leave the traces.
+     *
+     * @return path of extrae's output directory
+     */
+    public static String getExtraeOutputDir() {
+        return EXTRAE_OUTPUT_DIR;
     }
 
 

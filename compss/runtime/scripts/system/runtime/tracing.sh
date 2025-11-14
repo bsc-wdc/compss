@@ -36,6 +36,8 @@ TRACING_ENABLED="true"
 
 
 DEFAULT_TRACING="${TRACING_DEACTIVATED}"
+DEFAULT_TRACING_EXTRAE="${TRACING_DEACTIVATED}"
+DEFAULT_TRACING_MONITOR="${TRACING_DEACTIVATED}"
 DEFAULT_TRACE_LABEL="None"
 DEFAULT_EXTRAE_CONFIG_FILE="${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml"
 DEFAULT_EXTRAE_CONFIG_FILE_PYTHON="null"
@@ -80,6 +82,14 @@ check_tracing_setup () {
     tracing="${DEFAULT_TRACING}"
   fi
 
+  if [ -z "${tracing_extrae}" ]; then
+    tracing_extrae="${DEFAULT_TRACING}"
+  fi
+
+  if [ -z "${tracing_monitor}" ]; then
+    tracing_monitor="${DEFAULT_TRACING}"
+  fi
+
   if [ -z "${tracing_task_dependencies}" ]; then
     tracing_task_dependencies="${DEFAULT_TRACING_TASK_DEPENDENCIES}"
   fi
@@ -109,9 +119,19 @@ check_tracing_setup () {
     tracing_delete_packages="${DEFAULT_TRACING_DELETE_PACKAGES}"
   fi
 
-  # Determine extrae directories
+  if [ "${tracing_monitor}" == "${TRACING_ENABLED}" ]; then
+    tracing="${TRACING_ENABLED}"
+    echo "tracing monitor activated"
+  fi
+
+  if [ "${tracing_extrae}" == "${TRACING_ENABLED}" ]; then
+    tracing="${TRACING_ENABLED}"
+  fi
+
+
   extraeFile="${DEFAULT_EXTRAE_CONFIG_FILE}"
-  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
+  if [ "${tracing_extrae}" == "${TRACING_ENABLED}" ]; then
+    # Determine extrae directories
     if [ -z "${custom_extrae_config_file}" ]; then
       extraeFile="${custom_extrae_config_file}"
     fi
@@ -122,17 +142,14 @@ check_tracing_setup () {
     sed -i "s+{{TRACE_OUTPUT_DIR}}+${exec_dir}/trace+g" "${extrae_xml_final_path}"
     extraeFile="${extrae_xml_final_path}"
     extraeWDir=$(grep "final-directory" "${extraeFile}" | cut -d'>' -f2 | rev| cut -c18- |rev)
-  else
-    extraeFile="null"
-    extraeWDir="null"
-  fi
 
-  # Set tracing env
-  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
     export EXTRAE_HOME=${EXTRAE_HOME}
     export EXTRAE_CONFIG_FILE=${extraeFile}
     export EXTRAE_USE_POSIX_CLOCK=0
+  else
+    extraeFile="null"
+    extraeWDir="null"
   fi
 }
 
@@ -151,6 +168,8 @@ append_tracing_jvm_options_to_file() {
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.tracing=${tracing}
+-Dcompss.tracing.extrae=${tracing_extrae}
+-Dcompss.tracing.monitor=${tracing_monitor}
 -Dcompss.tracing.task.dependencies=${tracing_task_dependencies}
 -Dcompss.extrae.working_dir=${extraeWDir}
 -Dcompss.extrae.file=${custom_extrae_config_file}
@@ -162,7 +181,7 @@ EOT
 # STARTS TRACING ENGINE
 #----------------------------------------------
 start_tracing() {
-  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
+  if [ "${tracing_extrae}" == "${TRACING_ENABLED}" ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
     export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
   else
@@ -176,7 +195,7 @@ start_tracing() {
 # STOP TRACING ENGINE
 #----------------------------------------------
 stop_tracing() {
-  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
+  if [ "${tracing_extrae}" == "${TRACING_ENABLED}" ]; then
     unset LD_PRELOAD
 
     if [ "${tracing_generate_trace}" == "true" ]; then
@@ -198,7 +217,7 @@ stop_tracing() {
       fi
       out_redirect="${specific_log_dir}/traceMerger.log"
       err_redirect="${specific_log_dir}/traceMerger.log"
-      generate_trace 1>>${out_redirect} 2>>${err_redirect}
+      generate_extrae_trace 1>>${out_redirect} 2>>${err_redirect}
       echo "Trace generation completed"
     fi
 
@@ -212,7 +231,7 @@ stop_tracing() {
   fi
 }
 
-generate_trace() {
+generate_extrae_trace() {
   if [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
     gen_tracing_log_level="${GEN_TRACING_LOG_LEVEL_OFF}"
   else

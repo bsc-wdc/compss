@@ -1114,13 +1114,13 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     /*
-     * ---------------------- TRACE EVENTS MAGEMENT --------------------------------
+     * ---------------------- TRACE EVENTS MANAGEMENT --------------------------------
      */
     private void emitingTaskStartEvents() {
         if (Tracer.isActivated() & Tracer.isTracingTaskDependencies()) {
             if (invocation.getPredecessors() != null) {
                 for (Integer i : invocation.getPredecessors()) {
-                    Tracer.emitCommEvent(false, 123, 1, i, 0);
+                    Tracer.emitCommEvent(false, 1, 123, i, 0);
                 }
             }
         }
@@ -1151,7 +1151,7 @@ public class Executor implements Runnable, InvocationRunner {
     private void emitTaskEndEvents() {
         if (Tracer.isActivated() & Tracer.isTracingTaskDependencies()) {
             for (int i = 0; i < this.invocation.getNumSuccessors(); i++) {
-                Tracer.emitCommEvent(true, 123, 1, invocation.getTaskId(), 0);
+                Tracer.emitCommEvent(true, 1, 123, invocation.getTaskId(), 0);
             }
         }
         Tracer.emitEventEnd(TraceEventType.CPU_COUNTS);

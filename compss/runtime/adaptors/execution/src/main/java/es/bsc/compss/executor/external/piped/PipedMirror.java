@@ -17,7 +17,6 @@
 package es.bsc.compss.executor.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
@@ -145,7 +144,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().putAll(env);
 
             // Setup process environment -- Tracing entries
-            Tracer.prepareEnvironment(pb.environment(), true);
+            Tracer.prepareSubProcessEnvironment(pb.environment(), true);
 
             // Emit event for worker initialisation
             if (Tracer.isActivated()) {
@@ -234,7 +233,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             LOGGER.debug("READ DATA PIPE: " + pipeBuilderPipe + ".inbound");
         }
 
-        cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
+        cmd.append(Tracer.isExtraeActivated()).append(TOKEN_SEP);
         cmd.append(Tracer.getExtraeOutputDir()).append(getMirrorName()).append(File.separator).append(TOKEN_SEP);
         cmd.append(getPipeBuilderContext());
 

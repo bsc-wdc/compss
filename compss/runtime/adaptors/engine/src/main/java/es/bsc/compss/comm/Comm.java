@@ -139,11 +139,9 @@ public class Comm {
         // Load communication adaptors
         loadAdaptorsJars();
         // Start tracing system
-        boolean tracing = System.getProperty(COMPSsConstants.TRACING) != null
-            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
         boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        Tracer.init(tracing, 0, "master", installDir, tracingTaskDep);
+        Tracer.init(0, "master", installDir, tracingTaskDep);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.STATIC_IT);
         }
@@ -355,13 +353,11 @@ public class Comm {
 
     /**
      * Stops the tracing.
-     *
-     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    public static void stopTracing(Map<String, Integer> runtimeEvents) {
+    public static void stopTracing() {
         if (Tracer.isActivated()) {
             // Stop tracing system
-            Tracer.fini(runtimeEvents);
+            Tracer.fini();
 
             // Generate Trace
             Tracer.generateMasterPackage();

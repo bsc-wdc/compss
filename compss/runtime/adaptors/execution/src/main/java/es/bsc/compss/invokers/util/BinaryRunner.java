@@ -24,7 +24,6 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ExternalStreamHandler;
@@ -37,10 +36,8 @@ import es.bsc.distrostreamlib.api.objects.ObjectDistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.CloseStreamRequest;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -556,7 +553,7 @@ public class BinaryRunner {
         outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
 
         // Setup process environment -- Tracing entries
-        Tracer.prepareEnvironment(builder.environment(), false);
+        Tracer.prepareSubProcessEnvironment(builder.environment(), false);
 
         // Setup process environment -- COMPSs entries
         // WARN: THE COMPSS ENVIRONMENT DOES NOT HAVE TO MATCH SLURM CONFIGURATION

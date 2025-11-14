@@ -342,6 +342,7 @@
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
+    -Dcompss.tracing.extrae=${tracing} \
     -Dcompss.extrae.file.python=${pythonExtraeFile} \
     -Dcompss.ear=${ear} \
     -Dcompss.data_provenance=${provenance} \

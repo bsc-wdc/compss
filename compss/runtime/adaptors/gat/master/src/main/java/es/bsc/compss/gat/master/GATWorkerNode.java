@@ -109,7 +109,7 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public void start() throws InitNodeException {
         initWorkingDir();
-        if (GATTracer.isActivated()) {
+        if (GATTracer.isExtraeActivated()) {
             LOGGER.debug("Starting GAT tracer " + this.getName());
             tracingJob = GATTracer.startTracing(this);
             waitForTracingReady();
@@ -152,7 +152,7 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     private void waitForTracingReady() {
-        if (GATTracer.isActivated()) {
+        if (GATTracer.isExtraeActivated()) {
             GATTracer.waitForTracing(tracingJob);
         }
     }

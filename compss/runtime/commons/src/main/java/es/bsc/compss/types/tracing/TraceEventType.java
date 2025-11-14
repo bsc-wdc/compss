@@ -16,11 +16,14 @@
  */
 package es.bsc.compss.types.tracing;
 
+import es.bsc.wdc.tracing.Event;
+import es.bsc.wdc.tracing.EventType;
+
 import java.util.LinkedList;
 import java.util.List;
 
 
-public enum TraceEventType {
+public enum TraceEventType implements EventType {
 
     // Event codes
     // Core Element Id
@@ -38,7 +41,7 @@ public enum TraceEventType {
     // Marks the life and end of an executor thread
     EXECUTOR_IDENTIFICATION(8_001_006, "Executor thread identifier", true),
     // Task Ids
-    TASKS_ID(8_000_002, "Task IDs", false),
+    TASKS_ID(8_000_002, "Task IDs", true),
 
     CHECKPOINT_EVENTS_TYPE(8_001_100, "Checkpoint", true), TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
     DATA_TRANSFERS(8_000_004, "Data Transfers", false), //
@@ -74,21 +77,37 @@ public enum TraceEventType {
     public final int code;
     public final String desc;
     public final boolean endable;
-    private final List<TraceEvent> events;
+    private final List<Event> events;
 
 
-    private TraceEventType(int code, String desc, boolean endable) {
+    TraceEventType(int code, String desc, boolean endable) {
         this.code = code;
         this.desc = desc;
         this.endable = endable;
         this.events = new LinkedList<>();
     }
 
-    protected final void addEvent(TraceEvent event) {
+    protected final void addEvent(Event event) {
         events.add(event);
     }
 
-    public final List<TraceEvent> getEvents() {
+    @Override
+    public int getCode() {
+        return this.code;
+    }
+
+    @Override
+    public String getDescription() {
+        return this.desc;
+    }
+
+    @Override
+    public boolean isEndable() {
+        return this.endable;
+    }
+
+    @Override
+    public final List<Event> getEvents() {
         return events;
     }
 }

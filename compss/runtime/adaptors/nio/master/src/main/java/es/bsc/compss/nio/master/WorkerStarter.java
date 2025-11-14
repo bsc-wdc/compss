@@ -367,7 +367,7 @@ public class WorkerStarter {
             ProcessBuilder pb = new ProcessBuilder();
 
             // Setup process environment -- Tracing entries
-            Tracer.prepareEnvironment(pb.environment(), false);
+            Tracer.prepareSubProcessEnvironment(pb.environment(), false);
 
             pb.command(cmd);
             Process process = pb.start();

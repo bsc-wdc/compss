@@ -774,6 +774,8 @@ def create_init_config_file(
             extrae_xml_path = extrae_cfg
         if trace:
             jvm_options_file.write("-Dcompss.tracing=true\n")
+            jvm_options_file.write("-Dcompss.tracing.extrae=true\n")
+            jvm_options_file.write("-Dcompss.tracing.monitor=false\n")
             # Process extrae_xml_path
             extrae_xml_final_path_dir = os.path.join(log_dir, "cfgfiles")
             pathlib.Path(extrae_xml_final_path_dir).mkdir(
@@ -794,6 +796,8 @@ def create_init_config_file(
         else:
             # Any other case: deactivated
             jvm_options_file.write("-Dcompss.tracing=false" + "\n")
+            jvm_options_file.write("-Dcompss.tracing.extrae=false\n")
+            jvm_options_file.write("-Dcompss.tracing.monitor=false\n")
             got_extrae_final_directory = "null"
         if tracing_task_dependencies:
             jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")

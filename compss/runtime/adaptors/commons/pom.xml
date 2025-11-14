@@ -3,20 +3,18 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <!-- GENERAL INFORMATION -->
-    <artifactId>compss-adaptors-commons</artifactId>
-    <packaging>jar</packaging>
-    <parent>
-        <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-adaptors</artifactId>
-        <version>3.3.3.post2511</version>
-    </parent>
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-adaptors-commons</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-adaptors</artifactId>
+		<version>3.3.3.post2511</version>
+	</parent>
 
 	<!-- PROJECT INFORMATION -->
 	<name>COMPSs Back-end Commons</name>
-	<description>Common classes shared among the runtime engine and every adaptor implementation to communicate the
-        engine with the workers.
-    </description>
+	<description>Common classes shared among the runtime engine and every adaptor implementation to communicate the engine with the workers.</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2015</inceptionYear>
 	<licenses>
@@ -58,10 +56,21 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- Extrae -->
+		<!-- Tracing -->
 		<dependency>
-			<groupId>es.bsc.cepbatools</groupId>
-			<artifactId>extrae</artifactId>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>wdc-tracing-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>wdc-tracing-extrae</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>wdc-tracing-monitor</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Streaming -->
@@ -78,12 +87,12 @@
 			<artifactId>client</artifactId>
 		</dependency>
 
-        <!-- Apache Commons -->
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-            
+		<!-- Apache Commons -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+
 		<!-- Log4j -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -96,6 +105,7 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 
 	<!-- BUILD -->

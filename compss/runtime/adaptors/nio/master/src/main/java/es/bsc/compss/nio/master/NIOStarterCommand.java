@@ -151,7 +151,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = this.workerPythonpath.isEmpty() ? "null" : this.workerPythonpath;
 
         // Tracing parameters
-        cmd[nextPosition++] = String.valueOf(NIOTracer.isActivated());
+        cmd[nextPosition++] = String.valueOf(NIOTracer.isExtraeActivated());
         cmd[nextPosition++] = NIOTracer.getExtraeFile();
         cmd[nextPosition++] = this.hostId;
         cmd[nextPosition++] = String.valueOf(NIOTracer.isTracingTaskDependencies());

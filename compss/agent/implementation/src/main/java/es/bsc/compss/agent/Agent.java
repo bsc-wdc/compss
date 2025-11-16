@@ -93,12 +93,13 @@ public class Agent {
         LoggerManager.init();
         LOGGER.info("Initializing agent with name: " + AGENT_NAME);
 
-        // Start tracing system
-        boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
-        String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        Tracer.init(0, "master", installDir, tracingTaskDep);
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.STATIC_IT);
+        RUNTIME = new COMPSsRuntimeImpl();
+
+        LOGGER.debug("Executing Agent");
+        try {
+            Thread.sleep(200);
+        } catch (Exception e) {
+            LOGGER.debug("");
         }
 
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
@@ -121,14 +122,6 @@ public class Agent {
                     }
                 }
             });
-        }
-        RUNTIME = new COMPSsRuntimeImpl();
-
-        LOGGER.debug("Executing Agent");
-        try {
-            Thread.sleep(200);
-        } catch (Exception e) {
-            LOGGER.debug("");
         }
 
         ErrorHandler feh = new ErrorHandler() {
@@ -197,8 +190,8 @@ public class Agent {
      * @throws AgentException could not retrieve the value of some parameter
      */
     public static long runTask(Lang lang, CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
-        ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
-        throws AgentException {
+                               ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
+            throws AgentException {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.AGENT_RUN_TASK);
         }
@@ -255,15 +248,15 @@ public class Agent {
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
             RUNTIME.executeTask(appId, // APP ID
-                lang, true, null, null, ced.getCeSignature(), // Method to call
-                onFailure, // On failure behavior
-                0, // Time out of the task
-                false, // isPriority
-                numNodes, // Number of nodes
-                false, 0, // Reduce information
-                false, false, // Scheduling information (isDistributed, isReplicated)
-                target != null, results.length, paramsCount, // Parameter information
-                params // Parameter values
+                    lang, true, null, null, ced.getCeSignature(), // Method to call
+                    onFailure, // On failure behavior
+                    0, // Time out of the task
+                    false, // isPriority
+                    numNodes, // Number of nodes
+                    false, 0, // Reduce information
+                    false, false, // Scheduling information (isDistributed, isReplicated)
+                    target != null, results.length, paramsCount, // Parameter information
+                    params // Parameter values
             );
 
         } catch (Exception e) {
@@ -278,7 +271,7 @@ public class Agent {
     }
 
     private static String processCollParamValue(ApplicationParameterCollection<ApplicationParameter> param, Long appId,
-        String colName) throws Exception {
+                                                String colName) throws Exception {
 
         int collSize = param.getCollectionParameters().size();
         StringBuilder sb = new StringBuilder();
@@ -294,7 +287,7 @@ public class Agent {
                 String subParamName = colName + "_" + i;
                 @SuppressWarnings("unchecked")
                 ApplicationParameterCollection<ApplicationParameter> collSubParam =
-                    (ApplicationParameterCollection<ApplicationParameter>) (subParam);
+                        (ApplicationParameterCollection<ApplicationParameter>) (subParam);
                 paramValue = processCollParamValue(collSubParam, appId, subParamName);
             } else {
                 paramValue = subParam.getValueContent().toString() + " " + subParam.getContentType();
@@ -330,7 +323,7 @@ public class Agent {
                 if (param.getType() == DataType.COLLECTION_T) {
                     @SuppressWarnings("unchecked")
                     ApplicationParameterCollection<ApplicationParameter> collSubParam =
-                        (ApplicationParameterCollection<ApplicationParameter>) (param);
+                            (ApplicationParameterCollection<ApplicationParameter>) (param);
                     stub = processCollParamValue(collSubParam, appId, (String) stub);
                 }
             }
@@ -344,14 +337,14 @@ public class Agent {
     }
 
     private static void processParameter(Long appId, ApplicationParameter param, int position, Object[] arguments)
-        throws AgentException, Exception {
+            throws AgentException, Exception {
 
         Object value = processParamValue(appId, position, param);
         addTaskParameter(value, param, position, arguments);
     }
 
     private static void addTaskParameter(Object value, ApplicationParameter param, int position, Object[] arguments)
-        throws AgentException, Exception {
+            throws AgentException, Exception {
 
         arguments[position] = value;
         arguments[position + 1] = param.getType();
@@ -493,7 +486,7 @@ public class Agent {
     }
 
     private static DynamicMethodWorker registerWorker(String workerName, MethodResourceDescription description,
-        String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
+                                                      String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
         if (description == null) {
             description = new MethodResourceDescription();
         }
@@ -595,7 +588,7 @@ public class Agent {
      */
     @SuppressWarnings("unchecked")
     public static final void startInterface(AgentInterfaceConfig conf)
-        throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         AgentInterface<AgentInterfaceConfig> itf = (AgentInterface<AgentInterfaceConfig>) conf.getAgentInterface();
         itf.start(conf);
@@ -603,7 +596,7 @@ public class Agent {
     }
 
     private static AgentInterfaceConfig getInterfaceConfig(String className, JSONObject arguments)
-        throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         Class<?> agentClass = Class.forName(className);
         AgentInterface<?> itf = (AgentInterface<?>) agentClass.newInstance();

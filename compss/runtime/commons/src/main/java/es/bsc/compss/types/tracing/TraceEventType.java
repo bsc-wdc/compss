@@ -28,8 +28,6 @@ public enum TraceEventType implements EventType {
     // Event codes
     // Core Element Id
     TASKS_FUNC(8_000_000, "Task", true),
-    // API Invocations
-    API(8_001_001, "API", true),
     // Runtime internal events
     RUNTIME(8_001_002, "Runtime", true),
     // Identifies the thread as AP, TD, executor...
@@ -87,7 +85,7 @@ public enum TraceEventType implements EventType {
         this.events = new LinkedList<>();
     }
 
-    protected final void addEvent(Event event) {
+    public final void addEvent(Event event) {
         events.add(event);
     }
 

@@ -179,10 +179,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         RuntimeConfigManager.setProperties();
 
+        // Start tracing system
+        boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+        String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
+        Tracer.init(0, "master", installDir, tracingTaskDep);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.STATIC_IT);
+        }
+
         /*
          * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
          */
         Comm.init(new MasterResourceImpl());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(APIEvent.STATIC_IT);
+        }
     }
 
     /*
@@ -217,8 +228,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public synchronized void startIT() {
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.STATIC_IT);
-            Tracer.emitEvent(TraceEvent.START);
+            Tracer.emitEvent(APIEvent.START);
         }
 
         // Console Log
@@ -270,7 +280,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.START);
+            Tracer.emitEventEnd(APIEvent.START);
         }
 
         if (DP_ENABLED) {
@@ -285,7 +295,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         synchronized (this) {
             if (!stopped) {
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(TraceEvent.STOP);
+                    Tracer.emitEvent(APIEvent.STOP);
                 }
 
                 LOGGER.debug("Stopping Wall Clock limit Timer");
@@ -338,8 +348,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     app.getBaseTaskGroup().releaseBarrier();
                 }
                 if (Tracer.isActivated()) {
+                    // Emit last EVENT_END event for STOP
+                    Tracer.emitEventEnd(APIEvent.STOP);
                     LOGGER.debug("Stopping tracing...");
-                    Comm.stopTracing();
+
+                    // Stop tracing system
+                    Tracer.fini();
+                    // Generate Trace
+                    Tracer.generateMasterPackage();
                 }
                 LOGGER.debug("Runtime stopped");
                 stopped = true;
@@ -654,7 +670,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void getFile(Long appId, String fileName) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_FILE);
+            Tracer.emitEvent(APIEvent.GET_FILE);
         }
 
         // Parse the file name
@@ -688,7 +704,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_FILE);
+            Tracer.emitEventEnd(APIEvent.GET_FILE);
         }
     }
 
@@ -701,7 +717,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void getDirectory(Long appId, String dirName) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_DIRECTORY);
+            Tracer.emitEvent(APIEvent.GET_DIRECTORY);
         }
 
         // Parse the dir name
@@ -735,7 +751,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             LOGGER.error("Move not possible ", ioe);
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_DIRECTORY);
+            Tracer.emitEventEnd(APIEvent.GET_DIRECTORY);
         }
     }
 
@@ -747,12 +763,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
         LOGGER.info("Opening " + fileName + " in direction " + direction);
-        TraceEvent tEvent = null;
+        APIEvent tEvent = null;
         if (Tracer.isActivated()) {
             if (isDir) {
-                tEvent = TraceEvent.OPEN_DIRECTORY;
+                tEvent = APIEvent.OPEN_DIRECTORY;
             } else {
-                tEvent = TraceEvent.OPEN_FILE;
+                tEvent = APIEvent.OPEN_FILE;
             }
             Tracer.emitEvent(tEvent);
         }
@@ -895,7 +911,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
          * it and this method would not have been called.
          */
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_OBJECT);
+            Tracer.emitEvent(APIEvent.GET_OBJECT);
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -915,7 +931,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_OBJECT);
+            Tracer.emitEventEnd(APIEvent.GET_OBJECT);
         }
 
         return oUpdated;
@@ -924,7 +940,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public String getBindingObject(Long appId, String fileName) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_BINDING_OBJECT);
+            Tracer.emitEvent(APIEvent.GET_BINDING_OBJECT);
         }
 
         // Parse the file name
@@ -947,7 +963,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
         LOGGER.debug("Returning binding object as id: " + finalPath);
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_BINDING_OBJECT);
+            Tracer.emitEventEnd(APIEvent.GET_BINDING_OBJECT);
         }
         return finalPath;
     }
@@ -968,7 +984,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Emit event
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.DELETE);
+            Tracer.emitEvent(APIEvent.DELETE);
         }
 
         // Parse the file name and translate the access mode
@@ -984,7 +1000,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.DELETE);
+                Tracer.emitEventEnd(APIEvent.DELETE);
             }
         }
         LOGGER.info("File " + fileName + " Deleted.");
@@ -1011,7 +1027,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Emit event
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.DELETE);
+            Tracer.emitEventEnd(APIEvent.DELETE);
         }
 
         Application app = Application.registerApplication(appId);
@@ -1020,7 +1036,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int hashCode = externalObjectHashcode(bo.getId());
         ap.deleteData(app, new BindingObjectData(hashCode), false, false);
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.DELETE);
+            Tracer.emitEventEnd(APIEvent.DELETE);
         }
 
         // Return deletion was successful
@@ -1085,7 +1101,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
 
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.TASK);
+            Tracer.emitEvent(APIEvent.TASK);
         }
 
         if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
@@ -1117,7 +1133,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.TASK);
+            Tracer.emitEventEnd(APIEvent.TASK);
         }
 
         return task;
@@ -1153,7 +1169,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int parameterCount, Object... parameters) {
         // Tracing flag for task creation
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.TASK);
+            Tracer.emitEvent(APIEvent.TASK);
         }
 
         // Log the details
@@ -1208,7 +1224,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // End tracing event
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.TASK);
+            Tracer.emitEventEnd(APIEvent.TASK);
         }
 
         // Return the taskId
@@ -1245,7 +1261,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void barrierGroup(Long appId, String groupName) throws COMPSsException {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS);
+            Tracer.emitEvent(APIEvent.WAIT_FOR_ALL_TASKS);
         }
 
         Application app = Application.registerApplication(appId);
@@ -1253,7 +1269,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         ap.barrierGroup(app, groupName);
 
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.WAIT_FOR_ALL_TASKS);
+            Tracer.emitEventEnd(APIEvent.WAIT_FOR_ALL_TASKS);
         }
     }
 
@@ -1265,7 +1281,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void barrier(Long appId, boolean noMoreTasks) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS);
+            Tracer.emitEvent(APIEvent.WAIT_FOR_ALL_TASKS);
         }
 
         Application app = Application.registerApplication(appId);
@@ -1280,7 +1296,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.WAIT_FOR_ALL_TASKS);
+            Tracer.emitEventEnd(APIEvent.WAIT_FOR_ALL_TASKS);
         }
     }
 
@@ -1297,7 +1313,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     public void noMoreTasks(Application app) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.NO_MORE_TASKS);
+            Tracer.emitEvent(APIEvent.NO_MORE_TASKS);
         }
 
         LOGGER.info("No more tasks for app " + app.getId());
@@ -1310,7 +1326,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             ap.getResultFiles(app);
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.NO_MORE_TASKS);
+            Tracer.emitEventEnd(APIEvent.NO_MORE_TASKS);
         }
     }
 
@@ -1378,7 +1394,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void snapshot(Long appId) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.SNAPSHOT_API);
+            Tracer.emitEvent(APIEvent.SNAPSHOT_API);
         }
         Application app = Application.registerApplication(appId);
         // Wait until all tasks have finished
@@ -1386,7 +1402,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         ap.snapshot(app);
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.SNAPSHOT_API);
+            Tracer.emitEventEnd(APIEvent.SNAPSHOT_API);
         }
     }
 

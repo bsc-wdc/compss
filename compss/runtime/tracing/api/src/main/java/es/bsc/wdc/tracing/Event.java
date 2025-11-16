@@ -31,4 +31,11 @@ public interface Event {
      * @return signature of the event
      */
     String getSignature();
+
+    /**
+     * Returns the type of the event.
+     *
+     * @return event Type
+     */
+    EventType getType();
 }

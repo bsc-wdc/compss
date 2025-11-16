@@ -138,13 +138,6 @@ public class Comm {
 
         // Load communication adaptors
         loadAdaptorsJars();
-        // Start tracing system
-        boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
-        String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        Tracer.init(0, "master", installDir, tracingTaskDep);
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.STATIC_IT);
-        }
 
         // Start streaming library
         if (STREAMING_BACKEND.equals(StreamBackend.NONE)) {
@@ -344,24 +337,6 @@ public class Comm {
         }
 
         FileOpsManager.shutdown();
-
-        if (Tracer.isActivated()) {
-            // Emit last EVENT_END event for STOP
-            Tracer.emitEventEnd(TraceEvent.STOP);
-        }
-    }
-
-    /**
-     * Stops the tracing.
-     */
-    public static void stopTracing() {
-        if (Tracer.isActivated()) {
-            // Stop tracing system
-            Tracer.fini();
-
-            // Generate Trace
-            Tracer.generateMasterPackage();
-        }
     }
 
     /**

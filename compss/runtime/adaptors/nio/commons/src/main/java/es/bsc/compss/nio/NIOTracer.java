@@ -83,9 +83,6 @@ public class NIOTracer extends Tracer {
      * Generates the tracing package on the worker side.
      */
     public static void fini() {
-        emitEvent(TraceEvent.STOP);
-        emitEventEnd(TraceEvent.STOP);
-
         Tracer.fini();
     }
 

@@ -78,6 +78,7 @@ import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
+import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -230,63 +231,64 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.START);
         }
-
-        // Console Log
-        Thread.currentThread().setName("APPLICATION");
-        if (COMPSs_VERSION == null) {
-            LOGGER.warn("Starting COMPSs Runtime");
-        } else {
-            if (COMPSs_BUILDNUMBER == null) {
-                LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION);
+        try {
+            // Console Log
+            Thread.currentThread().setName("APPLICATION");
+            if (COMPSs_VERSION == null) {
+                LOGGER.warn("Starting COMPSs Runtime");
             } else {
-                LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-            }
-        }
-
-        // Init Runtime
-        if (!initialized) {
-            // Application
-            synchronized (this) {
-                LOGGER.debug("Initializing components");
-
-                // Initialize main runtime components
-                td = new TaskDispatcher();
-                ap = new AccessProcessor(td);
-
-                // Initialize runtime tools components
-                long monitoringPeriod = 1000;
-                try {
-                    String monitoringPeriodStr = System.getProperty(COMPSsConstants.MONITOR);
-                    monitoringPeriod = Long.parseLong(monitoringPeriodStr);
-                } catch (Exception e) {
-                    // Keep default value
+                if (COMPSs_BUILDNUMBER == null) {
+                    LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION);
+                } else {
+                    LOGGER.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
                 }
-                runtimeMonitor = new RuntimeMonitor(ap, td, monitoringPeriod);
-                Application.setGH(runtimeMonitor.getGraphHandler());
-
-                // Log initialization
-                initialized = true;
-                LOGGER.debug("Ready to process tasks");
             }
-        } else {
-            // Service
-            String className = Thread.currentThread().getStackTrace()[2].getClassName();
-            LOGGER.debug("Initializing " + className + "Itf");
-            try {
-                td.addInterface(Class.forName(className + "Itf"));
-            } catch (ClassNotFoundException cnfe) {
-                ErrorManager.fatal("Error adding interface " + className + "Itf", cnfe);
+
+            // Init Runtime
+            if (!initialized) {
+                // Application
+                synchronized (this) {
+                    LOGGER.debug("Initializing components");
+
+                    // Initialize main runtime components
+                    td = new TaskDispatcher();
+                    ap = new AccessProcessor(td);
+
+                    // Initialize runtime tools components
+                    long monitoringPeriod = 1000;
+                    try {
+                        String monitoringPeriodStr = System.getProperty(COMPSsConstants.MONITOR);
+                        monitoringPeriod = Long.parseLong(monitoringPeriodStr);
+                    } catch (Exception e) {
+                        // Keep default value
+                    }
+                    runtimeMonitor = new RuntimeMonitor(ap, td, monitoringPeriod);
+                    Application.setGH(runtimeMonitor.getGraphHandler());
+
+                    // Log initialization
+                    initialized = true;
+                    LOGGER.debug("Ready to process tasks");
+                }
+            } else {
+                // Service
+                String className = Thread.currentThread().getStackTrace()[2].getClassName();
+                LOGGER.debug("Initializing " + className + "Itf");
+                try {
+                    td.addInterface(Class.forName(className + "Itf"));
+                } catch (ClassNotFoundException cnfe) {
+                    ErrorManager.fatal("Error adding interface " + className + "Itf", cnfe);
+                }
             }
-        }
 
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.START);
-        }
-
-        if (DP_ENABLED) {
-            DP_LOGGER.info(COMPSs_VERSION);
-            DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
-            DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
+            if (DP_ENABLED) {
+                DP_LOGGER.info(COMPSs_VERSION);
+                DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
+                DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.START);
+            }
         }
     }
 
@@ -365,7 +367,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
 
         }
-
         LOGGER.warn("Execution Finished");
 
         if (DP_ENABLED) {
@@ -426,118 +427,152 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public long registerApplication(String parallelismSource, ApplicationRunner runner) {
-        Application app = Application.registerApplication(parallelismSource, runner);
-        return app.getId();
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.REGISTER_APP);
+        }
+        try {
+            Application app = Application.registerApplication(parallelismSource, runner);
+            return app.getId();
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.REGISTER_APP);
+            }
+        }
     }
 
     @Override
     public void deregisterApplication(Long appId) {
-        Application app = Application.deregisterApplication(appId);
-        ap.deleteAllApplicationDataRequest(app);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.DEREGISTER_APP);
+        }
+        try {
+            Application app = Application.deregisterApplication(appId);
+            ap.deleteAllApplicationDataRequest(app);
+        } finally {
+
+            Tracer.emitEvent(APIEvent.DEREGISTER_APP);
+        }
     }
 
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
         String... implTypeArgs) {
-
-        LOGGER.info("Registering CoreElement " + coreElementSignature);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("\t - Implementation: " + implSignature);
-            LOGGER.debug("\t - Constraints   : " + implConstraints);
-            LOGGER.debug("\t - Local process : " + implLocal);
-            LOGGER.debug("\t - Type          : " + implType);
-            LOGGER.debug("\t - I/O           : " + implIO);
-            LOGGER.debug("\t - Prolog        : ");
-            for (String pro : prolog) {
-                LOGGER.debug("\t\t -- : " + pro);
-            }
-            LOGGER.debug("\t - Epilog        : ");
-            for (String epi : epilog) {
-                LOGGER.debug("\t\t -- : " + epi);
-            }
-
-            LOGGER.debug("\t - Container        : ");
-            for (String cont : container) {
-                LOGGER.debug("\t\t -- : " + cont);
-            }
-
-            LOGGER.debug("\t - ImplTypeArgs  : ");
-            for (String implTypeArg : implTypeArgs) {
-                LOGGER.debug("\t\t Arg: " + implTypeArg);
-            }
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.REGISTER_CE);
         }
+        try {
+            LOGGER.info("Registering CoreElement " + coreElementSignature);
 
-        MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
-        boolean isImplIO = Boolean.parseBoolean(implIO);
-        if (isImplIO) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
+                LOGGER.debug("\t - Implementation: " + implSignature);
+                LOGGER.debug("\t - Constraints   : " + implConstraints);
+                LOGGER.debug("\t - Local process : " + implLocal);
+                LOGGER.debug("\t - Type          : " + implType);
+                LOGGER.debug("\t - I/O           : " + implIO);
+                LOGGER.debug("\t - Prolog        : ");
+                for (String pro : prolog) {
+                    LOGGER.debug("\t\t -- : " + pro);
+                }
+                LOGGER.debug("\t - Epilog        : ");
+                for (String epi : epilog) {
+                    LOGGER.debug("\t\t -- : " + epi);
+                }
+
+                LOGGER.debug("\t - Container        : ");
+                for (String cont : container) {
+                    LOGGER.debug("\t\t -- : " + cont);
+                }
+
+                LOGGER.debug("\t - ImplTypeArgs  : ");
+                for (String implTypeArg : implTypeArgs) {
+                    LOGGER.debug("\t\t Arg: " + implTypeArg);
+                }
             }
-            mrd.setIOResources();
+
+            MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
+            boolean isImplIO = Boolean.parseBoolean(implIO);
+            if (isImplIO) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
+                }
+                mrd.setIOResources();
+            }
+            boolean isLocalImpl;
+            isLocalImpl = Boolean.parseBoolean(implLocal);
+
+            CoreElementDefinition ced = new CoreElementDefinition();
+            ced.setCeSignature(coreElementSignature);
+
+            ExecType pro = null;
+            if (prolog != null && prolog.length > 0) {
+                if (prolog.length != ExecType.ARRAY_LENGTH) {
+                    throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
+                }
+                pro = new ExecType(prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
+                if (!pro.isAssigned()) {
+                    pro = null;
+                }
+            }
+
+            ExecType epi = null;
+            if (epilog != null && epilog.length > 0) {
+                if (epilog.length != ExecType.ARRAY_LENGTH) {
+                    throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
+                }
+                epi = new ExecType(epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+                if (!epi.isAssigned()) {
+                    epi = null;
+                }
+            }
+
+            ContainerDescription cont;
+            if (container != null && container.length > 0 && container[0] != null && !container[0].isEmpty()
+                && !container[0].equals(Constants.UNASSIGNED)) {
+                String engineStr = container[0].toUpperCase();
+                ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
+                cont = new ContainerDescription(engine, container[1], container[2]);
+            } else {
+                cont = null;
+            }
+
+            ImplementationDescription<?, ?> implDef = ImplementationDescription.defineImplementation(implType,
+                implSignature, isLocalImpl, mrd, pro, epi, cont, implTypeArgs);
+            ced.addImplementation(implDef);
+
+            td.registerNewCoreElement(ced);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.REGISTER_CE);
+            }
         }
-        boolean isLocalImpl;
-        isLocalImpl = Boolean.parseBoolean(implLocal);
-
-        CoreElementDefinition ced = new CoreElementDefinition();
-        ced.setCeSignature(coreElementSignature);
-
-        ExecType pro = null;
-        if (prolog != null && prolog.length > 0) {
-            if (prolog.length != ExecType.ARRAY_LENGTH) {
-                throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
-            }
-            pro = new ExecType(prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
-            if (!pro.isAssigned()) {
-                pro = null;
-            }
-        }
-
-        ExecType epi = null;
-        if (epilog != null && epilog.length > 0) {
-            if (epilog.length != ExecType.ARRAY_LENGTH) {
-                throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
-            }
-            epi = new ExecType(epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
-            if (!epi.isAssigned()) {
-                epi = null;
-            }
-        }
-
-        ContainerDescription cont;
-        if (container != null && container.length > 0 && container[0] != null && !container[0].isEmpty()
-            && !container[0].equals(Constants.UNASSIGNED)) {
-            String engineStr = container[0].toUpperCase();
-            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
-            cont = new ContainerDescription(engine, container[1], container[2]);
-        } else {
-            cont = null;
-        }
-
-        ImplementationDescription<?, ?> implDef = ImplementationDescription.defineImplementation(implType,
-            implSignature, isLocalImpl, mrd, pro, epi, cont, implTypeArgs);
-        ced.addImplementation(implDef);
-
-        td.registerNewCoreElement(ced);
     }
 
     @Override
     public void registerCoreElement(CoreElementDefinition ced) {
-        LOGGER.info("Registering CoreElement " + ced.getCeSignature());
-        if (LOGGER.isDebugEnabled()) {
-            int implId = 0;
-            for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
-                LOGGER.debug("\t - Implementation " + implId + ":");
-                try {
-                    LOGGER.debug(implDef.toString());
-                } catch (Exception e) {
-                    LOGGER.debug("Error printing implDef", e);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.REGISTER_CE);
+        }
+        try {
+            LOGGER.info("Registering CoreElement " + ced.getCeSignature());
+            if (LOGGER.isDebugEnabled()) {
+                int implId = 0;
+                for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
+                    LOGGER.debug("\t - Implementation " + implId + ":");
+                    try {
+                        LOGGER.debug(implDef.toString());
+                    } catch (Exception e) {
+                        LOGGER.debug("Error printing implDef", e);
+                    }
                 }
             }
-        }
 
-        td.registerNewCoreElement(ced);
+            td.registerNewCoreElement(ced);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.REGISTER_CE);
+            }
+        }
     }
 
     /*
@@ -547,108 +582,134 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     @Override
     public void registerData(Long appId, DataType type, Object stub, String data) {
-
-        Application app = Application.registerApplication(appId);
-        DataParams dp = null;
-        switch (type) {
-            case DIRECTORY_T:
-            case FILE_T:
-                try {
-                    String fileName = (String) stub;
-                    // Parse arguments to internal structures
-                    DataLocation loc;
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.REGISTER_DATA);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            DataParams dp = null;
+            switch (type) {
+                case DIRECTORY_T:
+                case FILE_T:
                     try {
-                        loc = createLocation(ProtocolType.FILE_URI, fileName);
-                    } catch (IOException ioe) {
-                        ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-                        return;
+                        String fileName = (String) stub;
+                        // Parse arguments to internal structures
+                        DataLocation loc;
+                        try {
+                            loc = createLocation(ProtocolType.FILE_URI, fileName);
+                        } catch (IOException ioe) {
+                            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+                            return;
+                        }
+                        dp = new FileData(loc);
+                    } catch (NullPointerException npe) {
+                        LOGGER.error(ERROR_FILE_NAME, npe);
+                        ErrorManager.fatal(ERROR_FILE_NAME, npe);
                     }
-                    dp = new FileData(loc);
-                } catch (NullPointerException npe) {
-                    LOGGER.error(ERROR_FILE_NAME, npe);
-                    ErrorManager.fatal(ERROR_FILE_NAME, npe);
-                }
-                break;
-            case OBJECT_T:
-            case PSCO_T:
-                int hashcode = oReg.newObjectParameter(appId, stub);
-                dp = new ObjectData(hashcode);
-                break;
-            case STREAM_T:
-                // int streamCode = oReg.newObjectParameter(stub);
-                throw new UnsupportedOperationException("Not implemented yet.");
-            case EXTERNAL_STREAM_T:
-                try {
-                    String fileName = (String) stub;
-                    new File(fileName).getName();
-                } catch (NullPointerException npe) {
-                    LOGGER.error(ERROR_FILE_NAME, npe);
-                    ErrorManager.fatal(ERROR_FILE_NAME, npe);
-                }
-                throw new UnsupportedOperationException("Not implemented yet.");
-            case EXTERNAL_PSCO_T:
-                // String id = (String) stub;
-                throw new UnsupportedOperationException("Not implemented yet.");
-            case BINDING_OBJECT_T:
-                String value = (String) stub;
-                if (value.contains(":")) {
-                    String[] fields = value.split(":");
-                    // if (fields.length == 3) {
-                    // String extObjectId = fields[0];
-                    // int extObjectType = Integer.parseInt(fields[1]);
-                    // int extObjectElements = Integer.parseInt(fields[2]);
-                    // BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
-                    // new BindingObject(extObjectId, extObjectType, extObjectElements);
-                    // int externalCode = externalObjectHashcode(extObjectId);
-                    // externalObjectHashcode(extObjectId);
-                    // }
-                    if (fields.length != 3) {
+                    break;
+                case OBJECT_T:
+                case PSCO_T:
+                    int hashcode = oReg.newObjectParameter(appId, stub);
+                    dp = new ObjectData(hashcode);
+                    break;
+                case STREAM_T:
+                    // int streamCode = oReg.newObjectParameter(stub);
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case EXTERNAL_STREAM_T:
+                    try {
+                        String fileName = (String) stub;
+                        new File(fileName).getName();
+                    } catch (NullPointerException npe) {
+                        LOGGER.error(ERROR_FILE_NAME, npe);
+                        ErrorManager.fatal(ERROR_FILE_NAME, npe);
+                    }
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case EXTERNAL_PSCO_T:
+                    // String id = (String) stub;
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case BINDING_OBJECT_T:
+                    String value = (String) stub;
+                    if (value.contains(":")) {
+                        String[] fields = value.split(":");
+                        // if (fields.length == 3) {
+                        // String extObjectId = fields[0];
+                        // int extObjectType = Integer.parseInt(fields[1]);
+                        // int extObjectElements = Integer.parseInt(fields[2]);
+                        // BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
+                        // new BindingObject(extObjectId, extObjectType, extObjectElements);
+                        // int externalCode = externalObjectHashcode(extObjectId);
+                        // externalObjectHashcode(extObjectId);
+                        // }
+                        if (fields.length != 3) {
+                            LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                            ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                        }
+                    } else {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                     }
-                } else {
-                    LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                    ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                }
-                throw new UnsupportedOperationException("Not implemented yet.");
-            case COLLECTION_T:
-                dp = new CollectionData((String) stub);
-                break;
-            case DICT_COLLECTION_T:
-                throw new UnsupportedOperationException("Not implemented yet.");
-            default:
-                // Basic types (including String)
-                // Already passed in as a value
-                break;
-        }
-        if (dp != null) {
-            ap.registerRemoteData(app, dp, data);
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case COLLECTION_T:
+                    dp = new CollectionData((String) stub);
+                    break;
+                case DICT_COLLECTION_T:
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                default:
+                    // Basic types (including String)
+                    // Already passed in as a value
+                    break;
+            }
+            if (dp != null) {
+                ap.registerRemoteData(app, dp, data);
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.REGISTER_DATA);
+            }
         }
     }
 
     @Override
     public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        // Parse the file name
-        DataLocation sourceLocation = null;
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.BIND_DATA_TO_VERSION);
+        }
         try {
-            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-        }
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
-        }
+            // Parse the file name
+            DataLocation sourceLocation = null;
+            try {
+                sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            }
+            if (sourceLocation == null) {
+                ErrorManager.fatal(ERROR_FILE_NAME);
+            }
 
-        Application app = Application.registerApplication(appId);
-        FileData fd = new FileData(sourceLocation);
-        return bindExistingVersionToData(app, fd, dataId);
+            Application app = Application.registerApplication(appId);
+            FileData fd = new FileData(sourceLocation);
+            return bindExistingVersionToData(app, fd, dataId);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.BIND_DATA_TO_VERSION);
+            }
+        }
     }
 
     @Override
     public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
-        Application app = Application.registerApplication(appId);
-        ObjectData od = new ObjectData(hashCode);
-        return bindExistingVersionToData(app, od, dataId);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.BIND_DATA_TO_VERSION);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            ObjectData od = new ObjectData(hashCode);
+            return bindExistingVersionToData(app, od, dataId);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.BIND_DATA_TO_VERSION);
+            }
+        }
     }
 
     private boolean bindExistingVersionToData(Application app, DataParams data, String dataId) {
@@ -672,46 +733,58 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.GET_FILE);
         }
-
-        // Parse the file name
-        DataLocation sourceLocation = null;
         try {
-            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-        }
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
-        }
-
-        LOGGER.debug("Getting file " + fileName);
-        Application app = Application.registerApplication(appId);
-        String renamedPath = openFileSystemData(app, fileName, Direction.INOUT, false);
-        // If renamePth is the same as original, file has not accessed. Nothing to do.
-        if (!renamedPath.equals(sourceLocation.getPath())) {
+            // Parse the file name
+            DataLocation sourceLocation = null;
             try {
-                String intermediateTmpPath = renamedPath + ".tmp";
-                FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
-                closeFile(app, fileName, Direction.INOUT);
-                ap.deleteData(app, new FileData(sourceLocation), true, false);
-                // In the case of Java file can be stored in the Stream Registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(appId, fileName);
-                }
-                FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
+                sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
             } catch (IOException ioe) {
-                LOGGER.error("Move not possible ", ioe);
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             }
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.GET_FILE);
+            if (sourceLocation == null) {
+                ErrorManager.fatal(ERROR_FILE_NAME);
+            }
+
+            LOGGER.debug("Getting file " + fileName);
+            Application app = Application.registerApplication(appId);
+            String renamedPath = openFileSystemData(app, fileName, Direction.INOUT, false);
+            // If renamePth is the same as original, file has not accessed. Nothing to do.
+            if (!renamedPath.equals(sourceLocation.getPath())) {
+                try {
+                    String intermediateTmpPath = renamedPath + ".tmp";
+                    FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
+                    closeFile(app, fileName, Direction.INOUT);
+                    ap.deleteData(app, new FileData(sourceLocation), true, false);
+                    // In the case of Java file can be stored in the Stream Registry
+                    if (sReg != null) {
+                        sReg.deleteTaskFile(appId, fileName);
+                    }
+                    FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
+                } catch (IOException ioe) {
+                    LOGGER.error("Move not possible ", ioe);
+                }
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.GET_FILE);
+            }
         }
     }
 
     @Override
     public String openFile(Long appId, String fileName, Direction mode) {
-        Application app = Application.registerApplication(appId);
-        return openFileSystemData(app, fileName, mode, false);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.OPEN_FILE);
+        }
+
+        try {
+            Application app = Application.registerApplication(appId);
+            return openFileSystemData(app, fileName, mode, false);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.OPEN_FILE);
+            }
+        }
     }
 
     @Override
@@ -719,59 +792,61 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.GET_DIRECTORY);
         }
-
-        // Parse the dir name
-        DataLocation sourceLocation = null;
         try {
-            sourceLocation = createLocation(ProtocolType.DIR_URI, dirName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_DIR_NAME, ioe);
-        }
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_DIR_NAME);
-        }
-
-        LOGGER.debug("Getting directory " + dirName);
-        Application app = Application.registerApplication(appId);
-        String renamedPath = openFileSystemData(app, dirName, Direction.IN, true);
-        try {
-            LOGGER.debug("Getting directory renamed path: " + renamedPath);
-            String intermediateTmpPath = renamedPath + ".tmp";
-            FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
-            closeFile(app, dirName, Direction.IN);
-
-            ap.deleteData(app, new FileData(sourceLocation), true, false);
-            // In the case of Java file can be stored in the Stream Registry
-            if (sReg != null) {
-                sReg.deleteTaskFile(appId, dirName);
+            // Parse the dir name
+            DataLocation sourceLocation = null;
+            try {
+                sourceLocation = createLocation(ProtocolType.DIR_URI, dirName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_DIR_NAME, ioe);
+            }
+            if (sourceLocation == null) {
+                ErrorManager.fatal(ERROR_DIR_NAME);
             }
 
-            FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
-        } catch (IOException ioe) {
-            LOGGER.error("Move not possible ", ioe);
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.GET_DIRECTORY);
+            LOGGER.debug("Getting directory " + dirName);
+            Application app = Application.registerApplication(appId);
+            String renamedPath = openFileSystemData(app, dirName, Direction.IN, true);
+            try {
+                LOGGER.debug("Getting directory renamed path: " + renamedPath);
+                String intermediateTmpPath = renamedPath + ".tmp";
+                FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
+                closeFile(app, dirName, Direction.IN);
+
+                ap.deleteData(app, new FileData(sourceLocation), true, false);
+                // In the case of Java file can be stored in the Stream Registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(appId, dirName);
+                }
+
+                FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
+            } catch (IOException ioe) {
+                LOGGER.error("Move not possible ", ioe);
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.GET_DIRECTORY);
+            }
         }
     }
 
     @Override
     public String openDirectory(Long appId, String dirName, Direction mode) {
-        Application app = Application.registerApplication(appId);
-        return openFileSystemData(app, dirName, mode, true);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.OPEN_DIRECTORY);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            return openFileSystemData(app, dirName, mode, true);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.OPEN_DIRECTORY);
+            }
+        }
     }
 
     private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
         LOGGER.info("Opening " + fileName + " in direction " + direction);
-        APIEvent tEvent = null;
-        if (Tracer.isActivated()) {
-            if (isDir) {
-                tEvent = APIEvent.OPEN_DIRECTORY;
-            } else {
-                tEvent = APIEvent.OPEN_FILE;
-            }
-            Tracer.emitEvent(tEvent);
-        }
         // Parse arguments to internal structures
         DataLocation loc;
         try {
@@ -821,36 +896,47 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 ErrorManager.error(
                     "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
         }
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(tEvent);
-        }
-
         return finalPath;
     }
 
     @Override
     public boolean isFileAccessed(Long appId, String fileName) {
-        DataLocation loc;
-        try {
-            loc = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-            loc = null;
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(APIEvent.CHECK_FILE);
         }
-        if (loc != null) {
-            Application app = Application.registerApplication(appId);
-            FileData fd = new FileData(loc);
-            return ap.alreadyAccessed(app, fd);
-        } else {
-            return false;
+        try {
+            DataLocation loc;
+            try {
+                loc = createLocation(ProtocolType.FILE_URI, fileName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+                loc = null;
+            }
+            if (loc != null) {
+                Application app = Application.registerApplication(appId);
+                FileData fd = new FileData(loc);
+                return ap.alreadyAccessed(app, fd);
+            } else {
+                return false;
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.CHECK_FILE);
+            }
         }
     }
 
     @Override
     public void closeFile(Long appId, String fileName, Direction mode) {
-        Application app = Application.registerApplication(appId);
-        closeFile(app, fileName, mode);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.CLOSE_FILE);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            closeFile(app, fileName, mode);
+        } finally {
+            Tracer.emitEventEnd(APIEvent.CLOSE_FILE);
+        }
     }
 
     /**
@@ -860,12 +946,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * @param fileName File name.
      * @param direction Access mode.
      */
-    public void closeFile(Application app, String fileName, Direction direction) {
-
-        // if (Tracer.isActivated()) {
-        // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
-        // TraceEvent.CLOSE_FILE.getType());
-        // }
+    private void closeFile(Application app, String fileName, Direction direction) {
         LOGGER.info("Closing " + fileName + " in direction " + direction);
 
         // Parse arguments to internal structures
@@ -898,10 +979,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             default:
                 ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
         }
-
-        // if (Tracer.isActivated()) {
-        // Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        // }
     }
 
     @Override
@@ -913,28 +990,29 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.GET_OBJECT);
         }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Getting object with hash code " + hashCode);
-        }
-
-        Application app = Application.registerApplication(appId);
-        ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
-        Object oUpdated;
         try {
-            oUpdated = ap.mainAccess(oap);
-        } catch (ValueUnawareRuntimeException e) {
-            oUpdated = null;
-        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
-        }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Getting object with hash code " + hashCode);
+            }
 
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.GET_OBJECT);
-        }
+            Application app = Application.registerApplication(appId);
+            ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
+            Object oUpdated;
+            try {
+                oUpdated = ap.mainAccess(oap);
+            } catch (ValueUnawareRuntimeException e) {
+                oUpdated = null;
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
+            }
 
-        return oUpdated;
+            return oUpdated;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.GET_OBJECT);
+            }
+        }
     }
 
     @Override
@@ -942,30 +1020,32 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.GET_BINDING_OBJECT);
         }
-
-        // Parse the file name
-        LOGGER.debug(" Calling get binding object : " + fileName);
-        BindingObject bo = BindingObject.generate(fileName);
-        BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
-        String boId = boLoc.getId();
-        int hashCode = externalObjectHashcode(boId);
-        Application app = Application.registerApplication(appId);
-        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
-
-        // Otherwise we request it from a task
-        String finalPath;
         try {
-            BindingObject newBO = ap.mainAccess(boap);
-            String bindingObjectID = newBO.getName();
-            finalPath = bindingObjectID;
-        } catch (ValueUnawareRuntimeException e) {
-            finalPath = bo.toString();
+            // Parse the file name
+            LOGGER.debug(" Calling get binding object : " + fileName);
+            BindingObject bo = BindingObject.generate(fileName);
+            BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
+            String boId = boLoc.getId();
+            int hashCode = externalObjectHashcode(boId);
+            Application app = Application.registerApplication(appId);
+            BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
+
+            // Otherwise we request it from a task
+            String finalPath;
+            try {
+                BindingObject newBO = ap.mainAccess(boap);
+                String bindingObjectID = newBO.getName();
+                finalPath = bindingObjectID;
+            } catch (ValueUnawareRuntimeException e) {
+                finalPath = bo.toString();
+            }
+            LOGGER.debug("Returning binding object as id: " + finalPath);
+            return finalPath;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.GET_BINDING_OBJECT);
+            }
         }
-        LOGGER.debug("Returning binding object as id: " + finalPath);
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.GET_BINDING_OBJECT);
-        }
-        return finalPath;
     }
 
     @Override
@@ -975,72 +1055,83 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete) {
-        // Check parameters
-        if (fileName == null || fileName.isEmpty()) {
-            return false;
-        }
-
-        LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
-
-        // Emit event
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.DELETE);
+            Tracer.emitEvent(APIEvent.DELETE_FILE);
         }
-
-        // Parse the file name and translate the access mode
         try {
-            DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
-            Application app = Application.registerApplication(appId);
-            ap.deleteData(app, new FileData(loc), waitForData, applicationDelete);
-            // Java case where task files are stored in the registry
-            if (sReg != null) {
-                sReg.deleteTaskFile(appId, fileName);
+            // Check parameters
+            if (fileName == null || fileName.isEmpty()) {
+                return false;
             }
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+
+            LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
+
+            // Parse the file name and translate the access mode
+            try {
+                DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
+                Application app = Application.registerApplication(appId);
+                ap.deleteData(app, new FileData(loc), waitForData, applicationDelete);
+                // Java case where task files are stored in the registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(appId, fileName);
+                }
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            }
+            LOGGER.info("File " + fileName + " Deleted.");
+            // Return deletion was successful
+            return true;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.DELETE);
+                Tracer.emitEventEnd(APIEvent.DELETE_FILE);
             }
         }
-        LOGGER.info("File " + fileName + " Deleted.");
-        // Return deletion was successful
-        return true;
     }
 
     @Override
     public void removeObject(Long appId, Object o, int hashcode) {
-        Application app = Application.registerApplication(appId);
-        // This will remove the object from the Object Registry and the Data Info Provider
-        // eventually allowing the garbage collector to free it (better use of memory)
-        ap.deleteData(app, new ObjectData(hashcode), false, false);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.DELETE_OBJECT);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            // This will remove the object from the Object Registry and the Data Info Provider
+            // eventually allowing the garbage collector to free it (better use of memory)
+            ap.deleteData(app, new ObjectData(hashcode), false, false);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.DELETE_OBJECT);
+            }
+        }
     }
 
     @Override
     public boolean deleteBindingObject(Long appId, String fileName) {
-        // Check parameters
-        if (fileName == null || fileName.isEmpty()) {
-            return false;
-        }
-
-        LOGGER.info("Deleting BindingObject " + fileName);
-
         // Emit event
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.DELETE);
+            Tracer.emitEvent(APIEvent.DELETE_BIND_OBJECT);
         }
+        try {
+            // Check parameters
+            if (fileName == null || fileName.isEmpty()) {
+                return false;
+            }
 
-        Application app = Application.registerApplication(appId);
-        // Parse the binding object name and translate the access mode
-        BindingObject bo = BindingObject.generate(fileName);
-        int hashCode = externalObjectHashcode(bo.getId());
-        ap.deleteData(app, new BindingObjectData(hashCode), false, false);
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.DELETE);
+            LOGGER.info("Deleting BindingObject " + fileName);
+
+            Application app = Application.registerApplication(appId);
+            // Parse the binding object name and translate the access mode
+            BindingObject bo = BindingObject.generate(fileName);
+            int hashCode = externalObjectHashcode(bo.getId());
+            ap.deleteData(app, new BindingObjectData(hashCode), false, false);
+
+            // Return deletion was successful
+            return true;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.DELETE_BIND_OBJECT);
+            }
         }
-
-        // Return deletion was successful
-        return true;
     }
 
     /*
@@ -1096,47 +1187,47 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // HTTP
     // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
     @Override
-    public int executeTask(Long appId, String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes,
-        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
+    public int executeTask(Long appId, String methodFQN, boolean isPrioritary, int numNodes, boolean isReduce,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
+        OnFailure onFailure, int timeOut, Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.TASK);
         }
+        try {
+            if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
+                ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
+            }
 
-        if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
-            ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
-        }
+            LOGGER.info("Creating HTTP task for application " + appId + " and declaring class:" + methodFQN);
 
-        LOGGER.info(
-            "Creating HTTP task for application " + appId + " and declaring class:" + declareMethodFullyQualifiedName);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
+                    + (parameterCount > 1 ? "s" : ""));
+            }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
-                + (parameterCount > 1 ? "s" : ""));
-        }
+            Application app = Application.registerApplication(appId);
+            TaskMonitor monitor = app.getTaskMonitor();
+            // Process the parameters
+            List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
+            boolean hasReturn = hasReturn(pars);
+            int numReturns = hasReturn ? 1 : 0;
 
-        Application app = Application.registerApplication(appId);
-        TaskMonitor monitor = app.getTaskMonitor();
-        // Process the parameters
-        List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
-        boolean hasReturn = hasReturn(pars);
-        int numReturns = hasReturn ? 1 : 0;
+            // Register the task
+            int task = ap.newTask(app, monitor, methodFQN, isPrioritary, isReduce, reduceChunkSize, hasTarget,
+                numReturns, pars, onFailure, timeOut);
 
-        // Register the task
-        int task = ap.newTask(app, monitor, declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize,
-            hasTarget, numReturns, pars, onFailure, timeOut);
-
-        for (Parameter p : pars) {
-            if (p.getDirection().equals(Direction.IN_DELETE)) {
-                deleteParameter(app, p);
+            for (Parameter p : pars) {
+                if (p.getDirection().equals(Direction.IN_DELETE)) {
+                    deleteParameter(app, p);
+                }
+            }
+            return task;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.TASK);
             }
         }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.TASK);
-        }
-
-        return task;
     }
 
     /**
@@ -1171,105 +1262,144 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.TASK);
         }
+        try {
+            // Log the details
+            if (hasSignature) {
+                LOGGER.info("Creating task from method " + signature + " for application " + appId);
+            } else {
+                LOGGER.info(
+                    "Creating task from method " + methodName + " in " + methodClass + " for application " + appId);
+            }
 
-        // Log the details
-        if (hasSignature) {
-            LOGGER.info("Creating task from method " + signature + " for application " + appId);
-        } else {
-            LOGGER.info("Creating task from method " + methodName + " in " + methodClass + " for application " + appId);
-        }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter"
+                    + (parameterCount > 1 ? "s" : ""));
+            }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter"
-                + (parameterCount > 1 ? "s" : ""));
-        }
+            Application app = Application.registerApplication(appId);
+            TaskMonitor monitor = app.getTaskMonitor();
 
-        Application app = Application.registerApplication(appId);
-        TaskMonitor monitor = app.getTaskMonitor();
+            // Process the parameters
+            List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
 
-        // Process the parameters
-        List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
+            if (numReturns == null) {
+                numReturns = hasReturn(pars) ? 1 : 0;
+            }
 
-        if (numReturns == null) {
-            numReturns = hasReturn(pars) ? 1 : 0;
-        }
+            // Create the signature if it is not created
+            if (!hasSignature) {
+                signature = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
+            }
 
-        // Create the signature if it is not created
-        if (!hasSignature) {
-            signature = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
-        }
+            if (lang == null) {
+                lang = DEFAULT_LANG;
+            }
 
-        if (lang == null) {
-            lang = DEFAULT_LANG;
-        }
+            int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                isReplicated, isDistributed, hasTarget, numReturns, pars, onFailure, timeOut);
 
-        int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
-            isReplicated, isDistributed, hasTarget, numReturns, pars, onFailure, timeOut);
+            if (DP_ENABLED) {
+                StringBuilder taskInfoBuilder = new StringBuilder("task " + task + " " + signature + " ");
+                for (Parameter p : pars) {
+                    taskInfoBuilder.append(p.getName()).append(".").append(p.getType().name()).append(".")
+                        .append(p.getDirection().toString()).append("::");
+                }
+                String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
+                DP_LOGGER.info(taskInfo);
+            }
 
-        if (DP_ENABLED) {
-            StringBuilder taskInfoBuilder = new StringBuilder("task " + task + " " + signature + " ");
             for (Parameter p : pars) {
-                taskInfoBuilder.append(p.getName()).append(".").append(p.getType().name()).append(".")
-                    .append(p.getDirection().toString()).append("::");
+                if (p.getDirection().equals(Direction.IN_DELETE)) {
+                    deleteParameter(app, p);
+                }
             }
-            String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
-            DP_LOGGER.info(taskInfo);
-        }
-
-        for (Parameter p : pars) {
-            if (p.getDirection().equals(Direction.IN_DELETE)) {
-                deleteParameter(app, p);
+            // Return the taskId
+            return task;
+        } finally {
+            // End tracing event
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.TASK);
             }
         }
-
-        // End tracing event
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.TASK);
-        }
-
-        // Return the taskId
-        return task;
     }
 
     @Override
     public void cancelApplicationTasks(Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.cancelApplicationTasks(app);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.CANCEL_APP);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            ap.cancelApplicationTasks(app);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.CANCEL_APP);
+            }
+        }
+
     }
 
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.setCurrentTaskGroup(groupName, app);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.OPEN_GROUP);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            ap.setCurrentTaskGroup(groupName, app);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.OPEN_GROUP);
+            }
+        }
     }
 
     @Override
     public void closeTaskGroup(String groupName, Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.closeCurrentTaskGroup(app);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.CLOSE_GROUP);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            ap.closeCurrentTaskGroup(app);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.CLOSE_GROUP);
+            }
+        }
     }
 
     @Override
     public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
-        Application app = Application.registerApplication(appId);
-        ap.cancelTaskGroup(app, groupName);
-        // This is required that changes in metadata have been applied before
-        // generating new tasks
-        ap.barrierGroup(app, groupName);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.CANCEL_GROUP);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            ap.cancelTaskGroup(app, groupName);
+            // This is required that changes in metadata have been applied before
+            // generating new tasks
+            ap.barrierGroup(app, groupName);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.CANCEL_GROUP);
+            }
+        }
     }
 
     @Override
     public void barrierGroup(Long appId, String groupName) throws COMPSsException {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.WAIT_FOR_ALL_TASKS);
+            Tracer.emitEvent(APIEvent.WAIT_FOR_GROUP_TASKS);
         }
-
-        Application app = Application.registerApplication(appId);
-        // Regular barrier
-        ap.barrierGroup(app, groupName);
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.WAIT_FOR_ALL_TASKS);
+        try {
+            Application app = Application.registerApplication(appId);
+            // Regular barrier
+            ap.barrierGroup(app, groupName);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.WAIT_FOR_GROUP_TASKS);
+            }
         }
     }
 
@@ -1283,27 +1413,37 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.WAIT_FOR_ALL_TASKS);
         }
-
-        Application app = Application.registerApplication(appId);
-        // Wait until all tasks have finished
-        LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
-        if (noMoreTasks) {
-            // No more tasks expected, we can unregister application
-            noMoreTasks(app);
-        } else {
-            // Regular barrier
-            ap.barrier(app);
-        }
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.WAIT_FOR_ALL_TASKS);
+        try {
+            Application app = Application.registerApplication(appId);
+            // Wait until all tasks have finished
+            LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
+            if (noMoreTasks) {
+                // No more tasks expected, we can unregister application
+                noMoreTasks(app);
+            } else {
+                // Regular barrier
+                ap.barrier(app);
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.WAIT_FOR_ALL_TASKS);
+            }
         }
     }
 
     @Override
     public void noMoreTasks(Long appId) {
-        Application app = Application.registerApplication(appId);
-        noMoreTasks(app);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.NO_MORE_TASKS);
+        }
+        try {
+            Application app = Application.registerApplication(appId);
+            noMoreTasks(app);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.NO_MORE_TASKS);
+            }
+        }
     }
 
     /**
@@ -1312,10 +1452,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * @param app Application that finished generating tasks
      */
     public void noMoreTasks(Application app) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.NO_MORE_TASKS);
-        }
-
         LOGGER.info("No more tasks for app " + app.getId());
         // Wait until all tasks have finished
         ap.noMoreTasks(app);
@@ -1324,9 +1460,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             // Retrieve result files
             LOGGER.debug("Getting Result Files for app" + app.getId());
             ap.getResultFiles(app);
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.NO_MORE_TASKS);
         }
     }
 
@@ -1337,42 +1470,70 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     @Override
     public int getNumberOfResources() {
-        LOGGER.info("Received request for number of active resources");
-        return ResourceManager.getTotalNumberOfWorkers();
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.GET_RESOURCES);
+        }
+        try {
+            LOGGER.info("Received request for number of active resources");
+            return ResourceManager.getTotalNumberOfWorkers();
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(APIEvent.GET_RESOURCES);
+            }
+        }
     }
 
     @Override
     public void requestResources(Long appId, int numResources, String groupName) {
-        LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
-            + " for application " + appId);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.REQUEST_RESOURCES);
+        }
+        try {
+            LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
+                + " for application " + appId);
 
-        if (numResources > 0) {
-            Application app = Application.registerApplication(appId);
-            // Create listener to cancel the associated task group
-            CancelTaskGroupOnResourceCreation rcl =
-                new CancelTaskGroupOnResourceCreation(ap, app, numResources, groupName);
+            if (numResources > 0) {
+                Application app = Application.registerApplication(appId);
+                // Create listener to cancel the associated task group
+                CancelTaskGroupOnResourceCreation rcl =
+                    new CancelTaskGroupOnResourceCreation(ap, app, numResources, groupName);
 
-            // Request first resource
-            // The rest will be automatically requested by the CancelTaskGroupOnResource listener
-            ResourceManager.requestResources(1, rcl);
+                // Request first resource
+                // The rest will be automatically requested by the CancelTaskGroupOnResource listener
+                ResourceManager.requestResources(1, rcl);
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.REQUEST_RESOURCES);
+            }
+
         }
     }
 
     @Override
     public void freeResources(Long appId, int numResources, String groupName) {
-        LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
-            + " for application " + appId);
-
-        Application app = Application.registerApplication(appId);
-        // Cancel associated task group (if provided)
-        if (groupName != null && !groupName.isEmpty()) {
-            ap.cancelTaskGroup(app, groupName);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.FREE_RESOURCES);
         }
+        try {
+            LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
+                + " for application " + appId);
 
-        // Destroy resources
-        // No need to sync since task will be re-scheduled as soon as the workers are available
-        if (numResources > 0) {
-            ResourceManager.freeResources(numResources);
+            Application app = Application.registerApplication(appId);
+            // Cancel associated task group (if provided)
+            if (groupName != null && !groupName.isEmpty()) {
+                ap.cancelTaskGroup(app, groupName);
+            }
+
+            // Destroy resources
+            // No need to sync since task will be re-scheduled as soon as the workers are available
+            if (numResources > 0) {
+                ResourceManager.freeResources(numResources);
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.FREE_RESOURCES);
+            }
         }
     }
 
@@ -1396,13 +1557,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.SNAPSHOT_API);
         }
-        Application app = Application.registerApplication(appId);
-        // Wait until all tasks have finished
-        LOGGER.info("Requesting snapshot for application " + appId);
+        try {
+            Application app = Application.registerApplication(appId);
+            // Wait until all tasks have finished
+            LOGGER.info("Requesting snapshot for application " + appId);
 
-        ap.snapshot(app);
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.SNAPSHOT_API);
+            ap.snapshot(app);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.SNAPSHOT_API);
+            }
         }
     }
 
@@ -1851,32 +2015,40 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
-        if (wcl > 0) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(APIEvent.SET_WALLCLOCK);
+        }
+        try {
+            if (wcl > 0) {
 
-            if (timer == null) {
-                if (Tracer.isActivated()) {
-                    Tracer.enablePThreads(1);
-                }
-                timer = new Timer("Application wall clock limit timer");
-                timer.schedule(new TimerTask() {
-
-                    @Override
-                    public void run() {
-                        if (Tracer.isActivated()) {
-                            Tracer.disablePThreads(1);
-                            Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID);
-                        }
+                if (timer == null) {
+                    if (Tracer.isActivated()) {
+                        Tracer.enablePThreads(1);
                     }
-                }, 0);
-            }
+                    timer = new Timer("Application wall clock limit timer");
+                    timer.schedule(new TimerTask() {
 
-            LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + "seconds.");
-            Application app = Application.registerApplication(appId);
-            WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));
-            app.setTimerTask(wcTask);
-            // One second is added to allow possible stop from the binding
-            timer.schedule(wcTask, (wcl + 1) * 1000);
+                        @Override
+                        public void run() {
+                            if (Tracer.isActivated()) {
+                                Tracer.disablePThreads(1);
+                                Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID);
+                            }
+                        }
+                    }, 0);
+                }
+
+                LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + "seconds.");
+                Application app = Application.registerApplication(appId);
+                WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));
+                app.setTimerTask(wcTask);
+                // One second is added to allow possible stop from the binding
+                timer.schedule(wcTask, (wcl + 1) * 1000);
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(APIEvent.SET_WALLCLOCK);
+            }
         }
     }
-
 }

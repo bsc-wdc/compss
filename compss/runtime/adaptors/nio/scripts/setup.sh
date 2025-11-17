@@ -197,6 +197,10 @@
 
     # DLB activation
     if [[ "$cpuMap" == "dlb" ]]; then
+      if [ -z "$DLB_HOME" ]; then
+        export DLB_HOME=${COMPSS_HOME}/Dependencies/dlb
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${COMPSS_HOME}/Dependencies/dlb/lib
+      fi
       if [ "${debug}" == "true" ]; then
         export COMPSS_WITH_DLB=2
       else

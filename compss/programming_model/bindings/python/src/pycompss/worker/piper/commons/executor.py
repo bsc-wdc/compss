@@ -86,7 +86,7 @@ except ImportError:
 COMPSS_WITH_DLB = False
 if int(os.getenv("COMPSS_WITH_DLB", 0)) >= 1:
     COMPSS_WITH_DLB = True
-    import dlb_affinity
+    import dlb
 
 
 HEADER = "*[PYTHON EXECUTOR] "
@@ -317,9 +317,8 @@ def executor(
         )
 
         if COMPSS_WITH_DLB:
-            dlb_affinity.init()
-            dlb_affinity.setaffinity([], os.getpid())
-            dlb_affinity.lend()
+            dlb.DLB_Init(0, "", "--drom --ompt --ompt-thread-manager=omp5")
+            dlb.DLB_DROM_SetProcessMask(0, "", dlb.DLB_DROM_FLAGS_NONE)
 
         # Replace Python Worker's SIGTERM handler.
         signal.signal(signal.SIGTERM, shutdown_handler)
@@ -528,6 +527,8 @@ def executor(
                 )
         if __debug__:
             logger.debug("%s[%s] Exiting process ", HEADER, str(process_name))
+        if COMPSS_WITH_DLB:
+            dlb.DLB_Finalize()
         # Send quit message back to the runtime
         pipe.write(TAGS.quit)
         pipe.close()
@@ -847,8 +848,7 @@ def process_task(
             exit_value, new_types, new_values, _, except_msg = result
 
             if COMPSS_WITH_DLB:
-                dlb_affinity.setaffinity([], os.getpid())
-                dlb_affinity.lend()
+                dlb.DLB_DROM_SetProcessMask(0, "", dlb.DLB_DROM_FLAGS_NONE)
 
             if exit_value == 0:
                 # Task has finished without exceptions
@@ -1035,7 +1035,7 @@ def bind_cpus(cpus: str, process_name: str, logger: logging.Logger) -> bool:
         cpus_map = list(map(int, cpus_list))
         try:
             if COMPSS_WITH_DLB:
-                dlb_affinity.setaffinity(cpus_map, os.getpid())
+                dlb.DLB_DROM_SetProcessMask(0, cpus, dlb.DLB_DROM_FLAGS_NONE)
             else:
                 process_affinity.setaffinity(cpus_map)
         except Exception as e:  # pylint: disable=broad-except

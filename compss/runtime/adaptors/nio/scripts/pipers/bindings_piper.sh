@@ -206,12 +206,30 @@ process_pipe_commands() {
                 fi
 
                 # DLB
-                if [ "${COMPSS_WITH_DLB}" == "1" ]; then
-                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
-                    workerCMD="${dlbArgs} ${workerCMD}"
-                elif [ "${COMPSS_WITH_DLB}" == "2" ]; then
-                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
-                    workerCMD="${dlbArgs} ${workerCMD}"
+                if [ "${COMPSS_WITH_DLB}" != "0" ]; then
+                    using_dlb_module=false
+
+                    if module avail dlb &>/dev/null; then
+                        module load dlb &>/dev/null
+                        min_dlb_version="3.6"
+                        dlb_version=$(dlb -v | head -n1 | awk '{print $2}' | grep -oE '^[0-9]+\.[0-9]+')
+                        if printf '%s\n' "$min_dlb_version" "$dlb_version" | sort -V -c >/dev/null 2>&1; then
+                            using_dlb_module=true
+                        fi
+                    fi
+
+                    if [ "$using_dlb_module" = false ]; then
+                        module unload dlb &>/dev/null
+                        python_version=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')")
+                        export DLB_HOME="${SCRIPT_DIR}/../../../../../../Dependencies/dlb"
+                        export PYTHONPATH="${DLB_HOME}/lib/${python_version}/site-packages${PYTHONPATH:+:$PYTHONPATH}"
+                    fi
+
+                    dlbArgs="--quiet"
+                    if [ "${COMPSS_WITH_DLB}" == "2" ]; then
+                        dlbArgs="--verbose=all"
+                    fi
+                    workerCMD="DLB_ARGS=\"${dlbArgs}\" ${workerCMD}"
                 fi
 
                 echo "LD_PRELOAD bindings_piper.sh: ${LD_PRELOAD}"

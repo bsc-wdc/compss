@@ -99,6 +99,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -223,15 +224,67 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     /*
      * ************************************************************************************************************
+     * ****************************************** TRACING HELPER **************************************************
+     * ************************************************************************************************************
+     */
+    private static <T> T traced(APIEvent event, Supplier<T> work) {
+        boolean active = Tracer.isActivated();
+        if (active) {
+            Tracer.emitEvent(event);
+        }
+        try {
+            return work.get();
+        } finally {
+            if (active) {
+                Tracer.emitEventEnd(event);
+            }
+        }
+    }
+
+    private static void traced(APIEvent event, Runnable work) {
+        boolean active = Tracer.isActivated();
+        if (active) {
+            Tracer.emitEvent(event);
+        }
+        try {
+            work.run();
+        } finally {
+            if (active) {
+                Tracer.emitEventEnd(event);
+            }
+        }
+    }
+
+
+    @FunctionalInterface
+    public interface ThrowingRunnable {
+
+        void run() throws COMPSsException;
+    }
+
+
+    private static void traced(APIEvent event, ThrowingRunnable work) throws COMPSsException {
+        boolean active = Tracer.isActivated();
+        if (active) {
+            Tracer.emitEvent(event);
+        }
+        try {
+            work.run();
+        } finally {
+            if (active) {
+                Tracer.emitEventEnd(event);
+            }
+        }
+    }
+
+    /*
+     * ************************************************************************************************************
      * ***************************************** RUNTIME CONTROL **************************************************
      * ************************************************************************************************************
      */
     @Override
     public synchronized void startIT() {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.START);
-        }
-        try {
+        traced(APIEvent.START, (Runnable) () -> {
             // Console Log
             Thread.currentThread().setName("APPLICATION");
             if (COMPSs_VERSION == null) {
@@ -285,11 +338,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
                 DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.START);
-            }
-        }
+        });
     }
 
     @Override
@@ -427,41 +476,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public long registerApplication(String parallelismSource, ApplicationRunner runner) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.REGISTER_APP);
-        }
-        try {
+        return traced(APIEvent.REGISTER_APP, () -> {
             Application app = Application.registerApplication(parallelismSource, runner);
             return app.getId();
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.REGISTER_APP);
-            }
-        }
+        });
     }
 
     @Override
     public void deregisterApplication(Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.DEREGISTER_APP);
-        }
-        try {
+        traced(APIEvent.DEREGISTER_APP, (Runnable) () -> {
             Application app = Application.deregisterApplication(appId);
             ap.deleteAllApplicationDataRequest(app);
-        } finally {
-
-            Tracer.emitEvent(APIEvent.DEREGISTER_APP);
-        }
+        });
     }
 
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
         String... implTypeArgs) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.REGISTER_CE);
-        }
-        try {
+        traced(APIEvent.REGISTER_CE, (Runnable) () -> {
             LOGGER.info("Registering CoreElement " + coreElementSignature);
 
             if (LOGGER.isDebugEnabled()) {
@@ -541,19 +574,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             ced.addImplementation(implDef);
 
             td.registerNewCoreElement(ced);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.REGISTER_CE);
-            }
-        }
+        });
     }
 
     @Override
     public void registerCoreElement(CoreElementDefinition ced) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.REGISTER_CE);
-        }
-        try {
+        traced(APIEvent.REGISTER_CE, (Runnable) () -> {
             LOGGER.info("Registering CoreElement " + ced.getCeSignature());
             if (LOGGER.isDebugEnabled()) {
                 int implId = 0;
@@ -568,11 +594,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
 
             td.registerNewCoreElement(ced);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.REGISTER_CE);
-            }
-        }
+        });
     }
 
     /*
@@ -582,10 +604,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     @Override
     public void registerData(Long appId, DataType type, Object stub, String data) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.REGISTER_DATA);
-        }
-        try {
+        traced(APIEvent.REGISTER_DATA, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             DataParams dp = null;
             switch (type) {
@@ -662,19 +681,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             if (dp != null) {
                 ap.registerRemoteData(app, dp, data);
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.REGISTER_DATA);
-            }
-        }
+        });
     }
 
     @Override
     public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.BIND_DATA_TO_VERSION);
-        }
-        try {
+        return traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
             // Parse the file name
             DataLocation sourceLocation = null;
             try {
@@ -689,27 +701,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             Application app = Application.registerApplication(appId);
             FileData fd = new FileData(sourceLocation);
             return bindExistingVersionToData(app, fd, dataId);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.BIND_DATA_TO_VERSION);
-            }
-        }
+        });
     }
 
     @Override
     public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.BIND_DATA_TO_VERSION);
-        }
-        try {
+        return traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
             Application app = Application.registerApplication(appId);
             ObjectData od = new ObjectData(hashCode);
             return bindExistingVersionToData(app, od, dataId);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.BIND_DATA_TO_VERSION);
-            }
-        }
+        });
     }
 
     private boolean bindExistingVersionToData(Application app, DataParams data, String dataId) {
@@ -730,10 +731,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void getFile(Long appId, String fileName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.GET_FILE);
-        }
-        try {
+        traced(APIEvent.GET_FILE, (Runnable) () -> {
             // Parse the file name
             DataLocation sourceLocation = null;
             try {
@@ -764,35 +762,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.error("Move not possible ", ioe);
                 }
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.GET_FILE);
-            }
-        }
+        });
     }
 
     @Override
     public String openFile(Long appId, String fileName, Direction mode) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.OPEN_FILE);
-        }
-
-        try {
+        return traced(APIEvent.OPEN_FILE, () -> {
             Application app = Application.registerApplication(appId);
             return openFileSystemData(app, fileName, mode, false);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.OPEN_FILE);
-            }
-        }
+        });
     }
 
     @Override
     public void getDirectory(Long appId, String dirName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.GET_DIRECTORY);
-        }
-        try {
+        traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
             // Parse the dir name
             DataLocation sourceLocation = null;
             try {
@@ -823,26 +806,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             } catch (IOException ioe) {
                 LOGGER.error("Move not possible ", ioe);
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.GET_DIRECTORY);
-            }
-        }
+        });
     }
 
     @Override
     public String openDirectory(Long appId, String dirName, Direction mode) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.OPEN_DIRECTORY);
-        }
-        try {
+        return traced(APIEvent.OPEN_DIRECTORY, () -> {
             Application app = Application.registerApplication(appId);
             return openFileSystemData(app, dirName, mode, true);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.OPEN_DIRECTORY);
-            }
-        }
+        });
     }
 
     private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
@@ -901,10 +873,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean isFileAccessed(Long appId, String fileName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(APIEvent.CHECK_FILE);
-        }
-        try {
+        return traced(APIEvent.CHECK_FILE, () -> {
             DataLocation loc;
             try {
                 loc = createLocation(ProtocolType.FILE_URI, fileName);
@@ -919,24 +888,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             } else {
                 return false;
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.CHECK_FILE);
-            }
-        }
+        });
     }
 
     @Override
     public void closeFile(Long appId, String fileName, Direction mode) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.CLOSE_FILE);
-        }
-        try {
+        traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             closeFile(app, fileName, mode);
-        } finally {
-            Tracer.emitEventEnd(APIEvent.CLOSE_FILE);
-        }
+        });
     }
 
     /**
@@ -987,10 +947,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
          */
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.GET_OBJECT);
-        }
-        try {
+        return traced(APIEvent.GET_OBJECT, () -> {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Getting object with hash code " + hashCode);
             }
@@ -1008,19 +965,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
 
             return oUpdated;
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.GET_OBJECT);
-            }
-        }
+        });
     }
 
     @Override
     public String getBindingObject(Long appId, String fileName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.GET_BINDING_OBJECT);
-        }
-        try {
+        return traced(APIEvent.GET_BINDING_OBJECT, () -> {
             // Parse the file name
             LOGGER.debug(" Calling get binding object : " + fileName);
             BindingObject bo = BindingObject.generate(fileName);
@@ -1041,11 +991,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
             LOGGER.debug("Returning binding object as id: " + finalPath);
             return finalPath;
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.GET_BINDING_OBJECT);
-            }
-        }
+        });
     }
 
     @Override
@@ -1055,10 +1001,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.DELETE_FILE);
-        }
-        try {
+        return traced(APIEvent.DELETE_FILE, () -> {
             // Check parameters
             if (fileName == null || fileName.isEmpty()) {
                 return false;
@@ -1081,38 +1024,23 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             LOGGER.info("File " + fileName + " Deleted.");
             // Return deletion was successful
             return true;
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.DELETE_FILE);
-            }
-        }
+        });
     }
 
     @Override
     public void removeObject(Long appId, Object o, int hashcode) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.DELETE_OBJECT);
-        }
-        try {
+        traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             // This will remove the object from the Object Registry and the Data Info Provider
             // eventually allowing the garbage collector to free it (better use of memory)
             ap.deleteData(app, new ObjectData(hashcode), false, false);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.DELETE_OBJECT);
-            }
-        }
+        });
     }
 
     @Override
     public boolean deleteBindingObject(Long appId, String fileName) {
         // Emit event
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.DELETE_BIND_OBJECT);
-        }
-        try {
-            // Check parameters
+        return traced(APIEvent.DELETE_BIND_OBJECT, () -> {
             if (fileName == null || fileName.isEmpty()) {
                 return false;
             }
@@ -1127,11 +1055,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
             // Return deletion was successful
             return true;
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.DELETE_BIND_OBJECT);
-            }
-        }
+        });
     }
 
     /*
@@ -1191,10 +1115,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
         OnFailure onFailure, int timeOut, Object... parameters) {
 
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.TASK);
-        }
-        try {
+        return traced(APIEvent.TASK, () -> {
             if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
                 ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
             }
@@ -1223,11 +1144,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
             }
             return task;
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.TASK);
-            }
-        }
+        });
     }
 
     /**
@@ -1259,10 +1176,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
         int parameterCount, Object... parameters) {
         // Tracing flag for task creation
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.TASK);
-        }
-        try {
+        return traced(APIEvent.TASK, () -> {
             // Log the details
             if (hasSignature) {
                 LOGGER.info("Creating task from method " + signature + " for application " + appId);
@@ -1281,22 +1195,22 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
             // Process the parameters
             List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
-
-            if (numReturns == null) {
-                numReturns = hasReturn(pars) ? 1 : 0;
+            Integer nReturns = numReturns;
+            if (nReturns == null) {
+                nReturns = hasReturn(pars) ? 1 : 0;
             }
-
+            String fSign = signature;
             // Create the signature if it is not created
             if (!hasSignature) {
-                signature = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
+                fSign = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, nReturns, pars);
             }
-
+            Lang fLang = lang;
             if (lang == null) {
-                lang = DEFAULT_LANG;
+                fLang = DEFAULT_LANG;
             }
 
-            int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
-                isReplicated, isDistributed, hasTarget, numReturns, pars, onFailure, timeOut);
+            int task = ap.newTask(app, monitor, fLang, fSign, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                isReplicated, isDistributed, hasTarget, nReturns, pars, onFailure, timeOut);
 
             if (DP_ENABLED) {
                 StringBuilder taskInfoBuilder = new StringBuilder("task " + task + " " + signature + " ");
@@ -1315,92 +1229,51 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
             // Return the taskId
             return task;
-        } finally {
-            // End tracing event
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.TASK);
-            }
-        }
+        });
     }
 
     @Override
     public void cancelApplicationTasks(Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.CANCEL_APP);
-        }
-        try {
+        traced(APIEvent.CANCEL_APP, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.cancelApplicationTasks(app);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.CANCEL_APP);
-            }
-        }
-
+        });
     }
 
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.OPEN_GROUP);
-        }
-        try {
+        traced(APIEvent.OPEN_GROUP, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.setCurrentTaskGroup(groupName, app);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.OPEN_GROUP);
-            }
-        }
+        });
     }
 
     @Override
     public void closeTaskGroup(String groupName, Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.CLOSE_GROUP);
-        }
-        try {
+        traced(APIEvent.CLOSE_GROUP, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.closeCurrentTaskGroup(app);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.CLOSE_GROUP);
-            }
-        }
+        });
     }
 
     @Override
     public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.CANCEL_GROUP);
-        }
-        try {
+        traced(APIEvent.CANCEL_GROUP, (ThrowingRunnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.cancelTaskGroup(app, groupName);
             // This is required that changes in metadata have been applied before
             // generating new tasks
             ap.barrierGroup(app, groupName);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.CANCEL_GROUP);
-            }
-        }
+        });
     }
 
     @Override
     public void barrierGroup(Long appId, String groupName) throws COMPSsException {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.WAIT_FOR_GROUP_TASKS);
-        }
-        try {
+        traced(APIEvent.WAIT_FOR_GROUP_TASKS, (ThrowingRunnable) () -> {
             Application app = Application.registerApplication(appId);
             // Regular barrier
             ap.barrierGroup(app, groupName);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.WAIT_FOR_GROUP_TASKS);
-            }
-        }
+        });
     }
 
     @Override
@@ -1410,10 +1283,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void barrier(Long appId, boolean noMoreTasks) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.WAIT_FOR_ALL_TASKS);
-        }
-        try {
+        traced(APIEvent.WAIT_FOR_ALL_TASKS, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             // Wait until all tasks have finished
             LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
@@ -1424,26 +1294,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 // Regular barrier
                 ap.barrier(app);
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.WAIT_FOR_ALL_TASKS);
-            }
-        }
+        });
     }
 
     @Override
     public void noMoreTasks(Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.NO_MORE_TASKS);
-        }
-        try {
+        traced(APIEvent.NO_MORE_TASKS, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             noMoreTasks(app);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.NO_MORE_TASKS);
-            }
-        }
+        });
     }
 
     /**
@@ -1470,25 +1329,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     @Override
     public int getNumberOfResources() {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.GET_RESOURCES);
-        }
-        try {
+        return traced(APIEvent.GET_RESOURCES, () -> {
             LOGGER.info("Received request for number of active resources");
             return ResourceManager.getTotalNumberOfWorkers();
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(APIEvent.GET_RESOURCES);
-            }
-        }
+        });
     }
 
     @Override
     public void requestResources(Long appId, int numResources, String groupName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.REQUEST_RESOURCES);
-        }
-        try {
+        traced(APIEvent.REQUEST_RESOURCES, (Runnable) () -> {
             LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
                 + " for application " + appId);
 
@@ -1502,20 +1351,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 // The rest will be automatically requested by the CancelTaskGroupOnResource listener
                 ResourceManager.requestResources(1, rcl);
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.REQUEST_RESOURCES);
-            }
-
-        }
+        });
     }
 
     @Override
     public void freeResources(Long appId, int numResources, String groupName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.FREE_RESOURCES);
-        }
-        try {
+        traced(APIEvent.FREE_RESOURCES, (Runnable) () -> {
             LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
                 + " for application " + appId);
 
@@ -1530,11 +1371,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             if (numResources > 0) {
                 ResourceManager.freeResources(numResources);
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.FREE_RESOURCES);
-            }
-        }
+        });
     }
 
     /*
@@ -1554,20 +1391,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void snapshot(Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.SNAPSHOT_API);
-        }
-        try {
+        traced(APIEvent.SNAPSHOT_API, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             // Wait until all tasks have finished
             LOGGER.info("Requesting snapshot for application " + appId);
 
             ap.snapshot(app);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.SNAPSHOT_API);
-            }
-        }
+        });
     }
 
     /*
@@ -2015,12 +1845,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(APIEvent.SET_WALLCLOCK);
-        }
-        try {
+        traced(APIEvent.SET_WALLCLOCK, (Runnable) () -> {
             if (wcl > 0) {
-
                 if (timer == null) {
                     if (Tracer.isActivated()) {
                         Tracer.enablePThreads(1);
@@ -2045,10 +1871,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 // One second is added to allow possible stop from the binding
                 timer.schedule(wcTask, (wcl + 1) * 1000);
             }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(APIEvent.SET_WALLCLOCK);
-            }
-        }
+        });
     }
 }

@@ -18,7 +18,6 @@ package es.bsc.compss.checkpoint.policies;
 
 import es.bsc.compss.checkpoint.CheckpointManagerImpl;
 import es.bsc.compss.checkpoint.types.CheckpointGroupImpl;
-import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Task;
 
 import java.util.HashMap;
@@ -26,8 +25,8 @@ import java.util.HashMap;
 
 public class CheckpointPolicyInstantiatedGroup extends CheckpointManagerImpl {
 
-    public CheckpointPolicyInstantiatedGroup(HashMap<String, String> config, AccessProcessor ap) {
-        super(config, 0, 0, ap);
+    public CheckpointPolicyInstantiatedGroup(HashMap<String, String> config, User user) {
+        super(config, 0, 0, user);
     }
 
     @Override

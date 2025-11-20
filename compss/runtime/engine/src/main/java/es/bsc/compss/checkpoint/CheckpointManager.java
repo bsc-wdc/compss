@@ -20,6 +20,7 @@ import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.ap.APRequest;
+import es.bsc.compss.types.request.ap.CheckpointerRequest;
 
 
 /**
@@ -77,10 +78,10 @@ public interface CheckpointManager {
         /**
          * Checkpoint request to accessProcessor.
          *
-         * @param apRequest APRequest from checkpointer.
+         * @param request request from checkpointer.
          * @param errorMessage Error message in case the request can not be enqueued.
          */
-        public void addCheckpointRequest(APRequest apRequest, String errorMessage);
+        public void addCheckpointRequest(CheckpointerRequest request, String errorMessage);
 
     }
 }

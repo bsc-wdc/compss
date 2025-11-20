@@ -24,7 +24,7 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 
-public class CheckpointerSaveLastDataVersionsRequest extends CheckpointerRequest {
+public class CheckpointerSaveLastDataVersionsRequest extends CheckpointerRequestImpl {
 
     /**
      * Requesting to save all last data versions from checkpointer.

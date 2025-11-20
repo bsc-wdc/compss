@@ -25,7 +25,7 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 
-public class CheckpointerDataCopyFailedRequest extends CheckpointerRequest {
+public class CheckpointerDataCopyFailedRequest extends CheckpointerRequestImpl {
 
     private final CheckpointDataVersion dataVersion;
 

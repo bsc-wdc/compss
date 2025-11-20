@@ -14,26 +14,16 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.checkpoint.policies;
+package es.bsc.compss.types.request.ap;
 
-import es.bsc.compss.checkpoint.CheckpointManagerImpl;
-
-import es.bsc.compss.types.Task;
-
-import java.util.HashMap;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
-public class CheckpointPolicyFinishedTasks extends CheckpointManagerImpl {
-
-    private static int DEFAULT_NUMBER_TASKS = 3;
-
-
-    public CheckpointPolicyFinishedTasks(HashMap<String, String> config, User ap) {
-        super(config, 0, DEFAULT_NUMBER_TASKS, ap);
-    }
+public abstract class CheckpointerRequest implements APRequest {
 
     @Override
-    protected void assignTaskToGroup(Task t) {
-        this.addTaskToGroup(t, String.valueOf(defGroup));
+    public TraceEvent getEvent() {
+        return TraceEvent.AP_CHECKPOINT_REQUEST;
     }
+
 }

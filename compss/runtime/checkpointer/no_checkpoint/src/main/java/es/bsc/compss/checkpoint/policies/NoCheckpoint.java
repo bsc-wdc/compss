@@ -18,7 +18,6 @@
 package es.bsc.compss.checkpoint.policies;
 
 import es.bsc.compss.checkpoint.CheckpointManager;
-import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
@@ -28,11 +27,11 @@ import java.util.HashMap;
 
 public class NoCheckpoint implements CheckpointManager {
 
-    private final CheckpointManager.User cpUser;
+    private final User cpUser;
 
 
-    public NoCheckpoint(HashMap<String, String> config, AccessProcessor ap) {
-        cpUser = ap;
+    public NoCheckpoint(HashMap<String, String> config, User user) {
+        cpUser = user;
     }
 
     @Override

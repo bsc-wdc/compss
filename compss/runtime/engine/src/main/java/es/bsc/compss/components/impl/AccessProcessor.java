@@ -16,10 +16,9 @@
  */
 package es.bsc.compss.components.impl;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.checkpoint.CheckpointBuilder;
 import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
@@ -42,6 +41,7 @@ import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
+import es.bsc.compss.types.request.ap.CheckpointerRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
@@ -64,17 +64,10 @@ import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.types.tracing.TraceEventType;
-import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -91,8 +84,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
-
-    private static final String CHECKPOINTER_REL_PATH = File.separator + "Runtime" + File.separator + "checkpointer";
 
     private static final String ERR_LOAD_CHECKPOINTER = "Error loading checkpoint manager";
 
@@ -122,11 +113,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         this.taskDispatcher = td;
 
         // Start Subcomponents
-        loadCheckpointingPoliciesJars();
-        this.checkpointManager = constructCheckpointManager();
-        if (this.checkpointManager == null) {
-            ErrorManager.fatal(ERR_LOAD_CHECKPOINTER);
+        CheckpointManager cp;
+        try {
+            cp = CheckpointBuilder.constructCheckpointManager(this);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERR_LOAD_CHECKPOINTER, e);
+            cp = null;
         }
+        this.checkpointManager = cp;
         Application.setCP(this.checkpointManager);
 
         this.requestQueue = new LinkedBlockingQueue<>();
@@ -600,7 +594,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     @Override
-    public void addCheckpointRequest(APRequest apRequest, String errorMessage) {
+    public void addCheckpointRequest(CheckpointerRequest apRequest, String errorMessage) {
         this.offerRequest(apRequest, errorMessage);
     }
 
@@ -609,80 +603,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         this.offerRequest(new ShutdownNotificationRequest(shutdownSemaphore), "shutdown");
     }
 
-    /**
-     * Loads the checkpoint policy.
-     */
-    private static void loadCheckpointingPoliciesJars() {
-        LOGGER.info("Loading checkpointers...");
-        String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
-
-        if (compssHome == null || compssHome.isEmpty()) {
-            LOGGER.warn("WARN: COMPSS_HOME not defined, no checkpointers loaded.");
-            return;
-        }
-
-        Classpath.loadJarsInPath(compssHome + CHECKPOINTER_REL_PATH, LOGGER);
-    }
-
-    /**
-     * Constructs the checkpoint Manager setting the parameters.
-     */
-    private CheckpointManager constructCheckpointManager() {
-        CheckpointManager checkpointer = null;
-        try {
-            String parameters = System.getProperty(COMPSsConstants.CHECKPOINT_PARAMS);
-            HashMap<String, String> paramsMap = new HashMap<>();
-            if (parameters != null && !parameters.equals("")) {
-                if (DEBUG) {
-                    LOGGER.debug("Reading Checkpointing policy parameters  " + parameters);
-                }
-                int index = parameters.indexOf("avoid.checkpoint");
-                List<String> params;
-
-                if (index != -1) {
-                    params = new ArrayList<>(Arrays.asList(parameters.substring(0, index).split(",")));
-                    String avoidTasks = parameters.substring(index);
-                    params.add(avoidTasks);
-
-                } else {
-                    params = new ArrayList<>(Arrays.asList(parameters.split(",")));
-                }
-                for (String param : params) {
-                    String[] values = param.split(":");
-                    if (values[0].equals("period.time")) {
-                        int unit;
-                        if (values[1].endsWith("h")) {
-                            unit = 3_600_000;
-                        } else {
-                            if (values[1].endsWith("s")) {
-                                unit = 1_000;
-                            } else {
-                                unit = 60_000;
-                            }
-                        }
-                        int period = Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * unit;
-                        values[1] = String.valueOf(period);
-                    }
-                    paramsMap.put(values[0], values[1]);
-                }
-            }
-            String cpFQN = System.getProperty(COMPSsConstants.CHECKPOINT_POLICY);
-            if (cpFQN == null || cpFQN.isEmpty()) {
-                cpFQN = COMPSsDefaults.CHECKPOINT;
-            }
-            Class<?> cpClass = Class.forName(cpFQN);
-            Constructor<?> cpCnstr = cpClass.getConstructor(HashMap.class, AccessProcessor.class);
-            checkpointer = (CheckpointManager) cpCnstr.newInstance(paramsMap, this);
-            if (DEBUG) {
-                LOGGER.debug("Loaded checkpointer " + checkpointer);
-            }
-        } catch (Exception e) {
-            ErrorManager.fatal(ERR_LOAD_CHECKPOINTER, e);
-        }
-        return checkpointer;
-    }
-
     public void shutdownCP() {
+        // Before shutting down the AP we need to confirm that all CP copies are done. Notifications arrives through
+        // allAvailableDataCheckpointed method
         this.checkpointManager.shutdown();
     }
 }

@@ -170,6 +170,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         COMPSs_VERSION = version;
         COMPSs_BUILDNUMBER = buildNum;
 
+        RuntimeConfigManager.setProperties();
+
         String defaultLang = System.getProperty(COMPSsConstants.LANG);
         Lang lang;
         if (defaultLang == null) {
@@ -178,8 +180,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             lang = Lang.valueOf(defaultLang.toUpperCase());
         }
         DEFAULT_LANG = lang;
-
-        RuntimeConfigManager.setProperties();
 
         // Start tracing system
         boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
@@ -308,14 +308,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ap = new AccessProcessor(td);
 
                     // Initialize runtime tools components
-                    long monitoringPeriod = 1000;
-                    try {
-                        String monitoringPeriodStr = System.getProperty(COMPSsConstants.MONITOR);
-                        monitoringPeriod = Long.parseLong(monitoringPeriodStr);
-                    } catch (Exception e) {
-                        // Keep default value
-                    }
-                    runtimeMonitor = new RuntimeMonitor(ap, td, monitoringPeriod);
+                    runtimeMonitor = new RuntimeMonitor(ap, td);
                     Application.setGH(runtimeMonitor.getGraphHandler());
 
                     // Log initialization

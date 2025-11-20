@@ -103,9 +103,8 @@ public class RuntimeMonitor implements Runnable {
      *
      * @param ap Task Processor associated to the monitor
      * @param td Task Dispatcher associated to the monitor
-     * @param sleepTime interval of time between state queries
      */
-    public RuntimeMonitor(AccessProcessor ap, TaskDispatcher td, long sleepTime) {
+    public RuntimeMonitor(AccessProcessor ap, TaskDispatcher td) {
         this.td = td;
         this.ap = ap;
         if (GraphGenerator.isEnabled()) {
@@ -119,7 +118,15 @@ public class RuntimeMonitor implements Runnable {
 
         // Configure and start internal monitor thread
         this.keepRunning = true;
-        this.sleepTime = sleepTime;
+        long monitoringPeriod = 1000;
+        try {
+            String monitoringPeriodStr = System.getProperty(COMPSsConstants.MONITOR);
+            monitoringPeriod = Long.parseLong(monitoringPeriodStr);
+        } catch (Exception e) {
+            // Keep default value
+        }
+        this.sleepTime = monitoringPeriod;
+
         this.installDir = System.getenv().get(COMPSsConstants.COMPSS_HOME);
         if (isEnabled()) {
             this.monitor = new Thread(this);
@@ -132,7 +139,7 @@ public class RuntimeMonitor implements Runnable {
 
     /**
      * Returns the Graph Handler for the monitoring.
-     * 
+     *
      * @return graphHandler for the monitoring.
      */
     public GraphHandler getGraphHandler() {

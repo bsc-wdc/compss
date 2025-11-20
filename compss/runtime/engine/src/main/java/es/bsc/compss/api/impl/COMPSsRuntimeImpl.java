@@ -1843,27 +1843,35 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return DataLocation.createLocation(host, uri);
     }
 
+    private void createWallClockReaper() {
+        // Enable thread detection on tracing
+        if (Tracer.isActivated()) {
+            Tracer.enablePThreads(1);
+        }
+        // Create Timer
+        timer = new Timer("Application wall clock limit timer");
+
+        if (Tracer.isActivated()) {
+            // Register new timerTask to be executed immediately. It emits threadID event and disables thread detection.
+            timer.schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+                    Tracer.disablePThreads(1);
+                    Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID);
+
+                }
+            }, 0);
+        }
+    }
+
     @Override
     public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
         traced(APIEvent.SET_WALLCLOCK, (Runnable) () -> {
             if (wcl > 0) {
                 if (timer == null) {
-                    if (Tracer.isActivated()) {
-                        Tracer.enablePThreads(1);
-                    }
-                    timer = new Timer("Application wall clock limit timer");
-                    timer.schedule(new TimerTask() {
-
-                        @Override
-                        public void run() {
-                            if (Tracer.isActivated()) {
-                                Tracer.disablePThreads(1);
-                                Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID);
-                            }
-                        }
-                    }, 0);
+                    createWallClockReaper();
                 }
-
                 LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + "seconds.");
                 Application app = Application.registerApplication(appId);
                 WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));

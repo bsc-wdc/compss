@@ -45,7 +45,8 @@ public enum APIEvent implements Event {
     CANCEL_APP(89, "Cancel app tasks"), //
     OPEN_GROUP(90, "Open Task Group"), //
     CLOSE_GROUP(91, "Close task group"), //
-    CANCEL_GROUP(92, "Cancel task group"), WAIT_FOR_GROUP_TASKS(93, "Group Barrier"), //
+    CANCEL_GROUP(92, "Cancel task group"), //
+    WAIT_FOR_GROUP_TASKS(93, "Group Barrier"), //
     WAIT_FOR_ALL_TASKS(6, "Barrier"), //
     NO_MORE_TASKS(5, "Waiting for tasks end"), //
 

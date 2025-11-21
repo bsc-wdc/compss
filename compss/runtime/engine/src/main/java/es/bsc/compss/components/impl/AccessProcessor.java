@@ -65,11 +65,9 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -79,7 +77,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Component to handle the tasks accesses to files and object.
  */
-public class AccessProcessor implements Runnable, CheckpointManager.User {
+public class AccessProcessor extends RequestDispatcher<APRequest> implements CheckpointManager.User {
 
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
@@ -87,21 +85,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
     private static final String ERR_LOAD_CHECKPOINTER = "Error loading checkpoint manager";
 
-    private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
-
     // Other super-components
     private final TaskDispatcher taskDispatcher;
 
     // Subcomponents
     private final CheckpointManager checkpointManager;
-
-    // Processor thread
-    private static Thread processor;
-    private static boolean keepGoing;
     private Semaphore shutdownSemaphore;
-
-    // Tasks to be processed
-    protected LinkedBlockingQueue<APRequest> requestQueue;
 
 
     /**
@@ -110,8 +99,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param td Associated TaskDispatcher component.
      */
     public AccessProcessor(TaskDispatcher td) {
-        this.taskDispatcher = td;
+        super("AccessProcessor", LOGGER);
 
+        this.taskDispatcher = td;
         // Start Subcomponents
         CheckpointManager cp;
         try {
@@ -122,56 +112,17 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
         this.checkpointManager = cp;
         Application.setCP(this.checkpointManager);
-
-        this.requestQueue = new LinkedBlockingQueue<>();
-
-        keepGoing = true;
-        processor = new Thread(this);
-        processor.setName("Access Processor");
-        if (Tracer.isActivated()) {
-            Tracer.enablePThreads(1);
-        }
-        processor.start();
+        start();
     }
 
     @Override
-    public void run() {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.AP_THREAD_ID);
-            Tracer.disablePThreads(1);
-        }
-        while (keepGoing) {
-            APRequest request = null;
-            try {
-                request = this.requestQueue.take();
-                if (Tracer.isActivated()) {
-                    Tracer.emitEvent(request.getEvent());
-                }
-                request.process(this, this.taskDispatcher);
-            } catch (ShutdownException se) {
-                se.getSemaphore().release();
-                break;
-            } catch (Exception e) {
-                ErrorManager.error("Exception", e);
-            } finally {
-                if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(request.getEvent());
-                }
-            }
-
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.AP_THREAD_ID);
-        }
-        LOGGER.info("AccessProcessor shutdown");
+    public TraceEvent getThreadEvent() {
+        return TraceEvent.AP_THREAD_ID;
     }
 
-    private boolean offerRequest(APRequest req, String errMsg) {
-        if (!this.requestQueue.offer(req)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + errMsg);
-            return false;
-        }
-        return true;
+    @Override
+    public void handleRequest(APRequest request) throws ShutdownException, COMPSsException {
+        request.process(this, taskDispatcher);
     }
 
     /**
@@ -604,7 +555,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Shutdowns the CP.
+     * Stops the internal components of the AP.
      */
     public void shutdownCP() {
         // Before shutting down the AP we need to confirm that all CP copies are done. Notifications arrives through

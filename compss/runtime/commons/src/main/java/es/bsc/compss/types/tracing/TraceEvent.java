@@ -218,18 +218,6 @@ public enum TraceEvent implements Event {
     AGENT_REMOVE_RESOURCES(6005, TraceEventType.AGENT, "Remove resources agent"), //
     AGENT_RUN_TASK(6006, TraceEventType.AGENT, "Run task agent"), //
 
-    // Checkpointer events
-    CHECKPOINT_SHUTDOWN(7001, TraceEventType.CHECKPOINT_EVENTS_TYPE, "CheckpointManager shutdown"),
-
-    CHECKPOINT_NEW_TASK(7002, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint New task"), // New task
-    CHECKPOINT_END_TASK(7003, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint end task"), // End task
-    CHECKPOINT_MAIN_ACCESS(7004, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint main data access"), // Main access
-    CHECKPOINT_DELETE_DATA(7005, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint deletes data"), // delete data
-    CHECKPOINT_SNAPSHOT(7006, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint snapshot"), // Snapshot
-
-    SAVE_LAST_DATA_VERSIONS(7011, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint current versions"), // Request
-    CHECKPOINT_COPY_DATA_ENDED(7012, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint copy finished"), // Request
-
     // Thread identifier events
     AP_THREAD_ID(Threads.AP.id, TraceEventType.THREAD_IDENTIFICATION, Threads.AP.description), //
     TD_THREAD_ID(Threads.TD.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TD.description), //

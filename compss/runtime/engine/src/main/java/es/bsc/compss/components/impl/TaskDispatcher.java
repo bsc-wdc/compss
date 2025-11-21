@@ -43,18 +43,14 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -65,24 +61,18 @@ import org.apache.logging.log4j.Logger;
  * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task
  * execution, task status, etc.
  */
-public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
+public class TaskDispatcher extends RequestDispatcher<TDRequest> implements ResourceUser, ActionOrchestrator {
 
     // Schedulers jars path
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
     // Subcomponents
     protected TaskScheduler scheduler;
-    protected LinkedBlockingDeque<TDRequest> requestQueue;
-
-    // Scheduler thread
-    protected Thread dispatcher;
-    protected boolean keepGoing;
 
     // Logging
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
 
 
@@ -91,9 +81,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      */
     @SuppressWarnings("unchecked")
     public <A extends WorkerResourceDescription> TaskDispatcher() {
-        requestQueue = new LinkedBlockingDeque<>();
-        dispatcher = new Thread(this);
-        dispatcher.setName("Task Dispatcher");
+        super("Task Dispatcher", LOGGER);
 
         // Load scheduler jars
         loadSchedulerJars();
@@ -117,75 +105,18 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             Worker<A> w = (Worker<A>) worker;
             scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
         }
-
-        keepGoing = true;
-        if (Tracer.isActivated()) {
-            Tracer.enablePThreads(1);
-        }
-        dispatcher.start();
-
+        start();
         LOGGER.info("Initialization finished");
     }
 
-    // Dispatcher thread
     @Override
-    public void run() {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.TD_THREAD_ID);
-            Tracer.disablePThreads(1);
-        }
-        while (keepGoing) {
-            String requestType = "Not defined";
-            try {
-                TDRequest request = requestQueue.take();
-                requestType = request.getEvent().toString();
-
-                if (Tracer.isActivated()) {
-                    Tracer.emitEvent(request.getEvent());
-                }
-                request.process(scheduler);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                continue;
-            } catch (ShutdownException se) {
-                LOGGER.debug("Exiting dispatcher because of shutting down");
-                se.getSemaphore().release();
-                break;
-            } catch (Exception e) {
-                LOGGER.error("Error in TaskDispatcher request:" + e.getMessage());
-                ErrorManager.error("Error in TaskDispatcher request " + requestType, e);
-                continue;
-            } finally {
-                if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEventType.RUNTIME);
-                }
-            }
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.TD_THREAD_ID);
-        }
+    public TraceEvent getThreadEvent() {
+        return TraceEvent.TD_THREAD_ID;
     }
 
-    /**
-     * Adds a new request to the task dispatcher.
-     *
-     * @param request New Task Dispatcher request.
-     */
-    private void addRequest(TDRequest request) {
-        if (!requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "add request");
-        }
-    }
-
-    /**
-     * Adds a new prioritary request to the task dispatcher.
-     *
-     * @param request New Task Dispatcher request.
-     */
-    private void addPrioritaryRequest(TDRequest request) {
-        if (!requestQueue.offerFirst(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "add prioritary request");
-        }
+    @Override
+    public void handleRequest(TDRequest request) throws ShutdownException, COMPSsException {
+        request.process(scheduler);
     }
 
     /**
@@ -201,7 +132,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             LOGGER.debug(sb);
         }
         ExecuteTasksRequest request = new ExecuteTasksRequest(ap, (Task) task);
-        addRequest(request);
+        offerRequest(request, "execute task");
     }
 
     /**
@@ -212,28 +143,28 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      */
     public void cancelTasks(Task task, RequestListener listener) {
         CancelTaskRequest request = new CancelTaskRequest(task, listener);
-        addRequest(request);
+        offerRequest(request, "cancel tasks");
     }
 
     // Notification thread
     @Override
     public void actionRunning(AllocatableAction action) {
         ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.RUNNING);
-        addRequest(request);
+        offerRequest(request, "action running");
     }
 
     // Notification thread
     @Override
     public void actionCompletion(AllocatableAction action) {
         ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
-        addRequest(request);
+        offerRequest(request, "action completed");
     }
 
     // Notification thread
     @Override
     public void actionError(AllocatableAction action) {
         ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.ERROR);
-        addRequest(request);
+        offerRequest(request, "action error");
     }
 
     // Notification thread
@@ -241,7 +172,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void actionException(AllocatableAction action, COMPSsException e) {
         ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.EXCEPTION);
         request.setCOMPSsException(e);
-        addRequest(request);
+        offerRequest(request, "action exception");
     }
 
     @Override
@@ -257,7 +188,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void getTaskSummary(Logger logger) {
         Semaphore sem = new Semaphore(0);
         TaskSummaryRequest request = new TaskSummaryRequest(logger, sem);
-        addRequest(request);
+        offerRequest(request, "get task summary");
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -273,13 +204,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public String getCurrentMonitoringData() {
         Semaphore sem = new Semaphore(0);
         MonitoringDataRequest request = new MonitoringDataRequest(sem);
-        addRequest(request);
+        offerRequest(request, "getMonitorData");
         try {
             sem.acquire();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        return (String) request.getResponse();
+        return request.getResponse();
     }
 
     /**
@@ -287,7 +218,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      */
     public void printCurrentState() {
         PrintCurrentLoadRequest request = new PrintCurrentLoadRequest();
-        addRequest(request);
+        offerRequest(request, "print current state");
     }
 
     /**
@@ -298,7 +229,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void printCurrentGraph(BufferedWriter graph) {
         Semaphore sem = new Semaphore(0);
         PrintCurrentGraphRequest request = new PrintCurrentGraphRequest(sem, graph);
-        addRequest(request);
+        offerRequest(request, "print current GRaph");
 
         // Synchronize until request has been processed
         try {
@@ -311,13 +242,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     @Override
     public <T extends WorkerResourceDescription> void restartedResource(Worker<T> r, ResourceUpdate<T> modification) {
         WorkerRestartRequest<T> request = new WorkerRestartRequest<>(r, modification);
-        addPrioritaryRequest(request);
+        offerRequestWithPriority(request, "restart resource");
     }
 
     @Override
     public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification) {
         WorkerUpdateRequest<T> request = new WorkerUpdateRequest<>(r, modification);
-        addPrioritaryRequest(request);
+        offerRequestWithPriority(request, "update resource");
     }
 
     /**
@@ -331,7 +262,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
         Semaphore sem = new Semaphore(0);
         UpdateLocalCEIRequest request = new UpdateLocalCEIRequest(forName, sem);
-        addRequest(request);
+        offerRequest(request, "add interface");
 
         try {
             sem.acquire();
@@ -364,7 +295,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             }
             return;
         }
-        addRequest(request);
+        offerRequest(request, "register new CoreElement");
 
         // Waiting for registration
         try {
@@ -384,7 +315,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
         ShutdownRequest request = new ShutdownRequest(sem);
-        addRequest(request);
+        offerRequest(request, "shutdown");
         try {
             sem.acquire();
         } catch (InterruptedException e) {

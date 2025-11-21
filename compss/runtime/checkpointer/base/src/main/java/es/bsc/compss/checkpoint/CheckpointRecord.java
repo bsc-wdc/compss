@@ -44,7 +44,7 @@ import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
@@ -721,12 +721,12 @@ public class CheckpointRecord {
      */
     public final void mainAccess(EngineDataInstanceId di) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECKPOINT_MAIN_ACCESS);
+            Tracer.emitEvent(CheckpointEvent.CHECKPOINT_MAIN_ACCESS);
         }
         LogicalData ld = di.getData();
         ld.setAccessedByMain(true);
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECKPOINT_MAIN_ACCESS);
+            Tracer.emitEventEnd(CheckpointEvent.CHECKPOINT_MAIN_ACCESS);
         }
     }
 
@@ -737,7 +737,7 @@ public class CheckpointRecord {
      */
     public final void deletedData(DataInfo data) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECKPOINT_DELETE_DATA);
+            Tracer.emitEvent(CheckpointEvent.CHECKPOINT_DELETE_DATA);
         }
         int dataId = data.getDataId();
         LOGGER.info("Deleting data " + dataId);
@@ -755,7 +755,7 @@ public class CheckpointRecord {
 
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECKPOINT_DELETE_DATA);
+            Tracer.emitEventEnd(CheckpointEvent.CHECKPOINT_DELETE_DATA);
         }
     }
 

@@ -603,6 +603,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         this.offerRequest(new ShutdownNotificationRequest(shutdownSemaphore), "shutdown");
     }
 
+    /**
+     * Shutdowns the CP.
+     */
     public void shutdownCP() {
         // Before shutting down the AP we need to confirm that all CP copies are done. Notifications arrives through
         // allAvailableDataCheckpointed method

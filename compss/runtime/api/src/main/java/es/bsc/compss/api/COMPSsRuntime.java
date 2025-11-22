@@ -91,6 +91,16 @@ public interface COMPSsRuntime {
      * *****************************************************************************************************************
      * TASK METHODS
      ******************************************************************************************************************/
+
+    /**
+     * Registers in the runtime a new application with with parallelism defined by a specific source.
+     *
+     * @param parallelismSource Element defining the task within the application
+     * @param runner Element executing the application's main code.
+     * @return workflow being executed
+     */
+    Workflow registerWorkflow(String parallelismSource, ApplicationRunner runner);
+
     /**
      * Registers in the runtime a new application with with parallelism defined by a specific source.
      *
@@ -109,7 +119,7 @@ public interface COMPSsRuntime {
 
     /**
      * Registers a new CoreElement in the Runtime.
-     * 
+     *
      * @param ced Definition of the core element to add.
      */
     public void registerCoreElement(CoreElementDefinition ced);
@@ -299,7 +309,7 @@ public interface COMPSsRuntime {
 
     /**
      * Cancels all tasks of the application.
-     * 
+     *
      * @param appId Application id.
      */
     public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException;
@@ -429,7 +439,7 @@ public interface COMPSsRuntime {
 
     /**
      * Cancels all tasks of the application.
-     * 
+     *
      * @param appId Application id.
      */
     public void cancelApplicationTasks(Long appId);

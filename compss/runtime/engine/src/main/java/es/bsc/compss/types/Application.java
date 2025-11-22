@@ -21,6 +21,7 @@ import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.info.CollectionInfo;
@@ -31,9 +32,11 @@ import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
@@ -51,10 +54,11 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
 
     private static final Random APP_ID_GENERATOR = new SecureRandom();
 
-    private static final TreeMap<Long, Application> APPLICATIONS = new TreeMap<>();
+    private static final Map<Long, Application> APPLICATIONS = new HashMap<>();
     private static final ApplicationRunner DEFAULT_RUNNER = new DoNothingApplicationMonitor();
     private static final Application NO_APPLICATION = new Application(null, null, DEFAULT_RUNNER);
 
+    private static AccessProcessor AP;
     private static GraphHandler GH;
     private static CheckpointManager CP;
 
@@ -97,7 +101,7 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
      * Application's task groups
      */
     // Task groups. Map: group name -> commutative group tasks
-    private TreeMap<String, TaskGroup> taskGroups;
+    private Map<String, TaskGroup> taskGroups;
     // Registered task groups
     private Stack<TaskGroup> currentTaskGroups;
 
@@ -105,12 +109,16 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
      * Application's Data
      */
     // Map: filename:host:path -> file identifier
-    private final TreeMap<String, FileInfo> nameToData;
+    private final Map<String, FileInfo> nameToData;
     // Map: hash code -> object identifier
-    private final TreeMap<Integer, DataInfo> codeToData;
+    private final Map<Integer, DataInfo> codeToData;
     // Map: collectionName -> collection identifier
-    private final TreeMap<String, CollectionInfo> collectionToData;
+    private final Map<String, CollectionInfo> collectionToData;
 
+
+    public static void setAP(AccessProcessor ap) {
+        Application.AP = ap;
+    }
 
     public static void setCP(CheckpointManager cp) {
         Application.CP = cp;
@@ -143,6 +151,14 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
         return sb.toString();
     }
 
+    private static long getUniqueId() {
+        Long appId = APP_ID_GENERATOR.nextLong();
+        while (APPLICATIONS.containsKey(appId)) {
+            appId = APP_ID_GENERATOR.nextLong();
+        }
+        return appId;
+    }
+
     /**
      * Registers an application with Id @code{appId}. If the application has already been registered, it returns the
      * previous instance. Otherwise, it creates a new application instance.
@@ -162,10 +178,7 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
      * @return Application instance registered.
      */
     public static Application registerApplication(String parallelismSource, ApplicationRunner runner) {
-        Long appId = APP_ID_GENERATOR.nextLong();
-        while (APPLICATIONS.containsKey(appId)) {
-            appId = APP_ID_GENERATOR.nextLong();
-        }
+        Long appId = getUniqueId();
         return registerApplication(appId, parallelismSource, runner);
     }
 
@@ -191,7 +204,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
                         runner = DEFAULT_RUNNER;
                     }
                     app = new Application(appId, parallelismSource, runner);
-                    APPLICATIONS.put(appId, app);
                 }
             }
         }
@@ -213,6 +225,11 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
         return app;
     }
 
+    public void deregister() {
+        deregisterApplication(this.id);
+        AP.deleteAllApplicationDataRequest(this);
+    }
+
     /**
      * Get all the registered applications.
      *
@@ -224,7 +241,11 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
         }
     }
 
-    private Application(Long appId, String parallelismSource, ApplicationRunner runner) {
+    protected Application(String parallelismSource, ApplicationRunner runner) {
+        this(getUniqueId(), parallelismSource, runner);
+    }
+
+    protected Application(Long appId, String parallelismSource, ApplicationRunner runner) {
         this.id = appId;
         this.parallelismSource = parallelismSource;
         this.runner = runner;
@@ -235,6 +256,9 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
         this.nameToData = new TreeMap<>();
         this.codeToData = new TreeMap<>();
         this.collectionToData = new TreeMap<>();
+        synchronized (APPLICATIONS) {
+            APPLICATIONS.put(appId, this);
+        }
     }
 
     public Long getId() {

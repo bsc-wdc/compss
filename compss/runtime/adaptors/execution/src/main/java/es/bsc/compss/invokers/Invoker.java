@@ -17,6 +17,9 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.ApplicationRunner;
+import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
@@ -431,8 +434,9 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
             this.context.getThreadErrStream(), null, executable.isFailByExitValue());
     }
 
-    protected long becomesNestedApplication(String parallelismSource) {
-        long appId = this.context.getRuntimeAPI().registerApplication(parallelismSource, this);
+    protected Workflow becomesNestedApplication(String parallelismSource) {
+        Workflow wf = this.context.getRuntimeAPI().registerWorkflow(parallelismSource, this);
+        long appId = wf.getId();
         LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
         for (InvocationParam p : this.invocation.getParams()) {
             handleInputValue(appId, p);
@@ -441,7 +445,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         if (p != null) {
             handleInputValue(appId, p);
         }
-        return appId;
+        return wf;
     }
 
     private void handleInputValue(Long appId, InvocationParam p) {
@@ -482,7 +486,8 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         this.runner.readyToContinueExecution(sem);
     }
 
-    protected void completeNestedApplication(long appId) {
+    protected void completeNestedApplication(Workflow wf) {
+        long appId = wf.getId();
         // Wait for all nested tasks to end
         this.context.getRuntimeAPI().barrier(appId);
 
@@ -497,7 +502,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         }
 
         // Removing internal application
-        this.context.getRuntimeAPI().deregisterApplication(appId);
+        wf.deregister();
     }
 
     private void handleOutputValue(Long appId, InvocationParam p) {

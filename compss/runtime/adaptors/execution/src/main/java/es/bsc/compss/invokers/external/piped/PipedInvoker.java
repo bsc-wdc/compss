@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
@@ -58,6 +59,7 @@ import java.util.Iterator;
 public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
+    private Workflow wf;
     private Long appId;
 
 
@@ -124,7 +126,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 int parameterCount = entpc.getParameterCount();
                                 Object[] parameters = entpc.getParameters();
                                 if (this.appId == null) {
-                                    this.appId = becomesNestedApplication(null);
+                                    this.wf = becomesNestedApplication(null);
+                                    this.appId = wf.getId();
                                 }
                                 int numNodes = entpc.getNumNodes();
                                 boolean isReduce = entpc.isReduce();
@@ -259,7 +262,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 String groupName = otgpc.getGroupName();
                                 boolean barrier = otgpc.isImplicitBarrier();
                                 if (this.appId == null) {
-                                    this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
+                                    this.wf = this.context.getRuntimeAPI().registerWorkflow(null, this);
+                                    this.appId = this.wf.getId();
                                     LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
                                 }
                                 this.context.getRuntimeAPI().openTaskGroup(groupName, barrier, this.appId);
@@ -333,7 +337,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
             throw e;
         } finally {
             if (this.appId != null) {
-                completeNestedApplication(appId);
+                completeNestedApplication(this.wf);
             }
         }
 

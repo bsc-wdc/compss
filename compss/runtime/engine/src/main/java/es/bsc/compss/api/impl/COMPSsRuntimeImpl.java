@@ -23,6 +23,7 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
@@ -266,6 +267,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                     // Initialize runtime tools components
                     runtimeMonitor = new RuntimeMonitor(ap, td);
+                    Application.setAP(ap);
                     Application.setGH(runtimeMonitor.getGraphHandler());
 
                     // Log initialization
@@ -429,6 +431,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * ************************************* APPLICATION MANAGEMENT ***********************************************
      * ************************************************************************************************************
      */
+
+    @Override
+    public Workflow registerWorkflow(String parallelismSource, ApplicationRunner runner) {
+        return APITracer.traced(APIEvent.REGISTER_APP, () -> {
+            return new WorkflowImpl(parallelismSource, runner);
+        });
+    }
 
     @Override
     public long registerApplication(String parallelismSource, ApplicationRunner runner) {

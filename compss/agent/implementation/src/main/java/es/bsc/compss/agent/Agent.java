@@ -27,6 +27,7 @@ import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.types.SharedRemoteDataLocation;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
@@ -199,7 +200,8 @@ public class Agent {
         synchronized (RUNTIME) {
             // Making sure that the runtime has already been started
         }
-        Long appId = RUNTIME.registerApplication(ceiClass, monitor);
+        Workflow wf = RUNTIME.registerWorkflow(ceiClass, monitor);
+        long appId = wf.getId();
         monitor.setAppId(appId);
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("appId: " + appId);

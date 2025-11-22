@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.LoaderAPI;
@@ -110,8 +111,7 @@ public class JavaNestedInvoker extends JavaInvoker {
         if (this.ceiClass == null) {
             super.runMethod();
         } else {
-            long appId;
-            appId = becomesNestedApplication(this.ceiName);
+            Workflow wf = becomesNestedApplication(this.ceiName);
             // Register Core Elements on Runtime
             List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
             for (CoreElementDefinition ced : ceds) {
@@ -130,7 +130,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             try {
                 Object[] values = new Object[] { this.runtimeAPI,
                     this.loaderAPI,
-                    appId };
+                    wf.getId() };
                 setter.invoke(null, values);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new JobExecutionException("Error setting Nested COMPSs variables", e);
@@ -140,7 +140,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
             } finally {
-                this.completeNestedApplication(appId);
+                this.completeNestedApplication(wf);
             }
         }
     }

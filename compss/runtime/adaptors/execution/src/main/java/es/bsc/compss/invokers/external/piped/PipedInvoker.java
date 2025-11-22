@@ -225,8 +225,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             }
                                 break;
                             case BARRIER: {
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().barrier(this.appId);
+                                if (this.wf != null) {
+                                    this.wf.barrier();
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -234,8 +234,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case BARRIER_NEW: {
                                 NewBarrierPipeCommand nbpc = (NewBarrierPipeCommand) rcvdCommand;
                                 boolean noMoreTasks = nbpc.isNoMoreTasks();
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().barrier(this.appId, noMoreTasks);
+                                if (this.wf != null) {
+                                    this.wf.barrier(noMoreTasks);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -244,9 +244,9 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 BarrierTaskGroupPipeCommand bgpc = (BarrierTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = bgpc.getGroupName();
                                 boolean synch = true;
-                                if (this.appId != null) {
+                                if (this.wf != null) {
                                     try {
-                                        this.context.getRuntimeAPI().barrierGroup(appId, groupName);
+                                        this.wf.barrierGroup(groupName);
                                     } catch (COMPSsException ce) {
                                         this.pipes.sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
                                         synch = false;
@@ -261,34 +261,34 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 OpenTaskGroupPipeCommand otgpc = (OpenTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = otgpc.getGroupName();
                                 boolean barrier = otgpc.isImplicitBarrier();
-                                if (this.appId == null) {
+                                if (this.wf == null) {
                                     this.wf = this.context.getRuntimeAPI().registerWorkflow(null, this);
-                                    this.appId = this.wf.getId();
+                                    long appId = this.wf.getId();
                                     LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
                                 }
-                                this.context.getRuntimeAPI().openTaskGroup(groupName, barrier, this.appId);
+                                this.wf.openTaskGroup(groupName, barrier);
 
                             }
                                 break;
                             case CLOSE_TASK_GROUP: {
                                 CloseTaskGroupPipeCommand otgpc = (CloseTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = otgpc.getGroupName();
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().closeTaskGroup(groupName, this.appId);
+                                if (this.wf != null) {
+                                    this.wf.closeTaskGroup(groupName);
                                 }
                             }
                                 break;
                             case CANCEL_TASK_GROUP: {
                                 CancelTaskGroupPipeCommand otgpc = (CancelTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = otgpc.getGroupName();
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().cancelTaskGroup(groupName, this.appId);
+                                if (this.wf != null) {
+                                    this.wf.cancelTaskGroup(groupName);
                                 }
                             }
                                 break;
                             case NO_MORE_TASKS: {
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().noMoreTasks(this.appId);
+                                if (this.wf != null) {
+                                    this.wf.noMoreTasks();
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }

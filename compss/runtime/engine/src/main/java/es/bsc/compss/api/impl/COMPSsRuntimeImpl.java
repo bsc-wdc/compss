@@ -267,7 +267,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                     // Initialize runtime tools components
                     runtimeMonitor = new RuntimeMonitor(ap, td);
-                    Application.setAP(ap);
+                    WorkflowImpl.setAP(ap);
                     Application.setGH(runtimeMonitor.getGraphHandler());
 
                     // Log initialization

@@ -489,7 +489,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
     protected void completeNestedApplication(Workflow wf) {
         long appId = wf.getId();
         // Wait for all nested tasks to end
-        this.context.getRuntimeAPI().barrier(appId);
+        wf.barrier();
 
         // Handle Output Parameters
         for (InvocationParam p : this.invocation.getParams()) {

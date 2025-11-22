@@ -202,7 +202,7 @@ public class Agent {
         }
         Workflow wf = RUNTIME.registerWorkflow(ceiClass, monitor);
         long appId = wf.getId();
-        monitor.setAppId(appId);
+        monitor.setWorkflow(wf);
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("appId: " + appId);
         LOGGER.debug("Core Element Description: " + ced.toString());
@@ -663,18 +663,5 @@ public class Agent {
             }
             start();
         }
-    }
-
-    /**
-     * Handles the notification of the end of an application.
-     *
-     * @param appId Identifier of the finished application
-     */
-    public static void finishedApplication(long appId) {
-        synchronized (RUNTIME) {
-            // Making sure that the runtime has already been started
-        }
-        // Remove all data bound to the application and remove app
-        RUNTIME.deregisterApplication(appId);
     }
 }

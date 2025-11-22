@@ -18,12 +18,25 @@ package es.bsc.compss.api.impl;
 
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
+import es.bsc.compss.worker.COMPSsException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class WorkflowImpl extends Application implements Workflow {
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+    private static AccessProcessor AP;
+
+
+    public static void setAP(AccessProcessor ap) {
+        WorkflowImpl.AP = ap;
+    }
 
     public WorkflowImpl(String parallelismSource, ApplicationRunner runner) {
         super(parallelismSource, runner);
@@ -38,6 +51,86 @@ public class WorkflowImpl extends Application implements Workflow {
     public void deregister() {
         APITracer.traced(APIEvent.DEREGISTER_APP, (Runnable) () -> {
             super.deregister();
+            AP.deleteAllApplicationDataRequest(this);
         });
+    }
+
+    @Override
+    public void openTaskGroup(String groupName, boolean implicitBarrier) {
+        APITracer.traced(APIEvent.OPEN_GROUP, (Runnable) () -> {
+            AP.setCurrentTaskGroup(groupName, this);
+        });
+    }
+
+    @Override
+    public void closeTaskGroup(String groupName) {
+        APITracer.traced(APIEvent.CLOSE_GROUP, (Runnable) () -> {
+            AP.closeCurrentTaskGroup(this);
+        });
+    }
+
+    @Override
+    public void cancelTaskGroup(String groupName) throws COMPSsException {
+        APITracer.traced(APIEvent.CANCEL_GROUP, (APITracer.ThrowingRunnable) () -> {
+            AP.cancelTaskGroup(this, groupName);
+            // This is required that changes in metadata have been applied before
+            // generating new tasks
+            AP.barrierGroup(this, groupName);
+        });
+    }
+
+    @Override
+    public void cancelApplicationTasks() {
+        AP.cancelApplicationTasks(this);
+    }
+
+    @Override
+    public void barrierGroup(String groupName) throws COMPSsException {
+        APITracer.traced(APIEvent.WAIT_FOR_GROUP_TASKS, (APITracer.ThrowingRunnable) () -> {
+            // Regular barrier
+            AP.barrierGroup(this, groupName);
+        });
+    }
+
+    @Override
+    public void barrier() {
+        barrier(false);
+    }
+
+    @Override
+    public void barrier(boolean noMoreTasks) {
+        APITracer.traced(APIEvent.WAIT_FOR_ALL_TASKS, (Runnable) () -> {
+            // Wait until all tasks have finished
+            LOGGER.info("Barrier for app " + this.getId() + " with noMoreTasks = " + noMoreTasks);
+            if (noMoreTasks) {
+                // No more tasks expected, we can unregister application
+                handleNoMoreTasks();
+            } else {
+                // Regular barrier
+                AP.barrier(this);
+            }
+        });
+    }
+
+    @Override
+    public void noMoreTasks() {
+        APITracer.traced(APIEvent.NO_MORE_TASKS, (Runnable) () -> {
+            handleNoMoreTasks();
+        });
+    }
+
+    /**
+     * Notifies the runtime that an application will not produce more tasks.
+     */
+    public void handleNoMoreTasks() {
+        LOGGER.info("No more tasks for app " + this.getId());
+        // Wait until all tasks have finished
+        AP.noMoreTasks(this);
+
+        this.cancelTimerTask();
+        // Retrieve result files
+        LOGGER.debug("Getting Result Files for app" + this.getId());
+        AP.getResultFiles(this);
+
     }
 }

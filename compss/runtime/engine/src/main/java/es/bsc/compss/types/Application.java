@@ -21,7 +21,6 @@ import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
-import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.info.CollectionInfo;
@@ -58,7 +57,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     private static final ApplicationRunner DEFAULT_RUNNER = new DoNothingApplicationMonitor();
     private static final Application NO_APPLICATION = new Application(null, null, DEFAULT_RUNNER);
 
-    private static AccessProcessor AP;
     private static GraphHandler GH;
     private static CheckpointManager CP;
 
@@ -115,10 +113,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     // Map: collectionName -> collection identifier
     private final Map<String, CollectionInfo> collectionToData;
 
-
-    public static void setAP(AccessProcessor ap) {
-        Application.AP = ap;
-    }
 
     public static void setCP(CheckpointManager cp) {
         Application.CP = cp;
@@ -211,6 +205,13 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     }
 
     /**
+     * Deregisters the application.
+     */
+    public void deregister() {
+        deregisterApplication(this.getId());
+    }
+
+    /**
      * Deregisters the application with Id @code{appId}.
      *
      * @param appId Id of the application to be remove
@@ -223,11 +224,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
             app = APPLICATIONS.remove(appId);
         }
         return app;
-    }
-
-    public void deregister() {
-        deregisterApplication(this.id);
-        AP.deleteAllApplicationDataRequest(this);
     }
 
     /**

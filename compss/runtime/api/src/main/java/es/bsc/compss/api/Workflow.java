@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.worker.COMPSsException;
+
+
 public interface Workflow {
 
     /**
@@ -29,5 +32,57 @@ public interface Workflow {
      * Deregisters the workflow from the runtime.
      */
     void deregister();
+
+    /**
+     * Creates a new task group.
+     *
+     * @param groupName Group name.
+     * @param implicitBarrier {@literal true}, if the task group requires a barrier
+     */
+    void openTaskGroup(String groupName, boolean implicitBarrier);
+
+    /**
+     * Closes an existing task group.
+     *
+     * @param groupName Group name.
+     */
+    void closeTaskGroup(String groupName);
+
+    /**
+     * Cancels all tasks belonging to a group of the workflow.
+     */
+    void cancelTaskGroup(String groupName) throws COMPSsException;
+
+    /**
+     * Cancels all tasks of the workflow.
+     */
+    void cancelApplicationTasks();
+
+    /**
+     * Notifies the Runtime that there are no more tasks created by the workflow.
+     */
+    void noMoreTasks();
+
+    /**
+     * Freezes the code execution until all previous tasks have been executed.
+     */
+    void barrier();
+
+    /**
+     * Freezes the code execution until all previous tasks have been executed. The noMoreTasks parameter indicates
+     * whether to expect new tasks after the barrier or not.
+     *
+     * @param noMoreTasks Whether the application will spawn more tasks or not.
+     */
+    void barrier(boolean noMoreTasks);
+
+    /**
+     * Freezes the code execution until all the tasks of the group have finished execution. The name of the group to
+     * wait is given as a parameter.
+     *
+     * @param groupName Name of the group to wait.
+     * @throws COMPSsException Custom COMPSs exception to handle groups.
+     */
+    void barrierGroup(String groupName) throws COMPSsException;
 
 }

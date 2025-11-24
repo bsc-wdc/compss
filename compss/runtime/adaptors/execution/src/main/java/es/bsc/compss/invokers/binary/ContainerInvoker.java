@@ -49,8 +49,8 @@ import java.util.List;
 
 public class ContainerInvoker extends Invoker {
 
-    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 21;
-    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
+    private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 19;
+    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 8;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 10;
     private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 24;
@@ -168,7 +168,7 @@ public class ContainerInvoker extends Invoker {
         // Mark job as failed if needed
         if (this.failByEV) {
             if (!retValue.toString().equals("0")) {
-                throw new JobExecutionException("Received non-zero exit value (" + retValue.toString() + ") for Job "
+                throw new JobExecutionException("Received non-zero exit value (" + retValue + ") for Job "
                     + this.invocation.getJobId() + " (Task " + this.invocation.getTaskId() + ")");
             }
         }
@@ -276,12 +276,12 @@ public class ContainerInvoker extends Invoker {
         String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
         LOGGER.info("COMPSs docker container: {}", compssContainer);
         boolean insideContainer = compssContainer != null && !compssContainer.isEmpty();
-        int numCmdArgs = numOptions + containerCallParams.size() + (insideContainer ? 0 : 2);
+        int numCmdArgs = numOptions + containerCallParams.size() + (insideContainer ? 2 : 4);
         switch (this.container.getEngine()) {
             case DOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs += NUM_BASE_DOCKER_PYTHON_ARGS;
+                        numCmdArgs += NUM_BASE_DOCKER_PYTHON_ARGS + (insideContainer ? 0 : 2);
                         break;
                     case CET_BINARY:
                         numCmdArgs += NUM_BASE_DOCKER_BINARY_ARGS;
@@ -466,7 +466,7 @@ public class ContainerInvoker extends Invoker {
     }
 
     protected static int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
-        if (options != null && options.length > 0) {
+        if (options != null) {
             for (String option : options) {
                 cmd[cmdIndex++] = option;
             }
@@ -549,9 +549,7 @@ public class ContainerInvoker extends Invoker {
                 String[] vals = value.split(" ");
                 int numSubStrings = vals.length;
                 paramArgs.add(Integer.toString(numSubStrings));
-                for (String v : vals) {
-                    paramArgs.add(v);
-                }
+                paramArgs.addAll(Arrays.asList(vals));
                 break;
             case STRING_64_T:
                 // decode the string

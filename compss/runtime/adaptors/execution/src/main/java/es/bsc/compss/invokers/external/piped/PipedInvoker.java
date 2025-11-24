@@ -262,7 +262,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 String groupName = otgpc.getGroupName();
                                 boolean barrier = otgpc.isImplicitBarrier();
                                 if (this.wf == null) {
-                                    this.wf = this.context.getRuntimeAPI().registerWorkflow(null, this);
+                                    this.wf = becomesNestedApplication(null);
                                     long appId = this.wf.getId();
                                     LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
                                 }
@@ -317,7 +317,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
                                 for (InvocationParam param : this.invocation.getResults()) {
                                     if (taskResults.hasNext()) {
-
                                         updateParam(param, taskResults.next());
                                     }
                                 }

@@ -133,4 +133,14 @@ public class WorkflowImpl extends Application implements Workflow {
         AP.getResultFiles(this);
 
     }
+
+    @Override
+    public void snapshot() {
+        APITracer.traced(APIEvent.SNAPSHOT_API, (Runnable) () -> {
+            // Wait until all tasks have finished
+            LOGGER.info("Requesting snapshot for application " + this.getId());
+            AP.snapshot(this);
+        });
+    }
+
 }

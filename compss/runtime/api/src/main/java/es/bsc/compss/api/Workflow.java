@@ -85,4 +85,8 @@ public interface Workflow {
      */
     void barrierGroup(String groupName) throws COMPSsException;
 
+    /**
+     * Checkpoint of the tasks and data.
+     */
+    void snapshot();
 }

@@ -1193,11 +1193,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void deregisterObject(Long appId, Object o) {
-        oReg.delete(appId, o);
-    }
-
-    @Override
     public void removeObject(Long appId, Object o, int hashcode) {
         Application app = Application.registerApplication(appId);
         // This will remove the object from the Object Registry and the Data Info Provider

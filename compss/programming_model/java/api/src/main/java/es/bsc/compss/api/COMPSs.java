@@ -90,7 +90,7 @@ public class COMPSs {
      * 
      * @return The number of active resources.
      */
-    public int getNumberOfResources() {
+    public static int getNumberOfResources() {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
         return 0;
@@ -100,8 +100,9 @@ public class COMPSs {
      * Requests the creation of {@code numResources} resources.
      * 
      * @param numResources Number of resources to create.
+     * @param groupName Name of the group to cancel if the request fails
      */
-    public void requestResources(int numResources) {
+    public static void requestResources(int numResources, String groupName) {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
@@ -110,8 +111,9 @@ public class COMPSs {
      * Requests the destruction of {@code numResources} resources.
      * 
      * @param numResources Number of resources to destroy.
+     * @param groupName Name of the group to cancel if the request fails
      */
-    public void freeResources(int numResources) {
+    public static void freeResources(int numResources, String groupName) {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }

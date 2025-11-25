@@ -283,14 +283,6 @@ public interface COMPSsRuntime {
     public void barrierGroup(Long appId, String groupName) throws COMPSsException;
 
     /**
-     * Unregisters an object to eventually free its memory.
-     *
-     * @param appId The application id.
-     * @param o The object to register.
-     */
-    public void deregisterObject(Long appId, Object o);
-
-    /**
      * Creates a new task group.
      *
      * @param groupName Group name.

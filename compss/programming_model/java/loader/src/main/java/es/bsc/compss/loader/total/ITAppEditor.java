@@ -72,6 +72,7 @@ public class ITAppEditor extends ExprEditor {
     private static final String PROCEED = "$_ = $proceed(";
     private static final String COMPSS_LOADER_GROUP = "es.bsc.compss.loader.total.COMPSsGroupLoader(";
 
+    private static final String COMPSS_API = APIHandler.class.getCanonicalName();
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
     private static final String DATA_STREAM = StdIOStream.class.getCanonicalName();
@@ -933,14 +934,13 @@ public class ITAppEditor extends ExprEditor {
 
         // Add the COMPSsRuntime API Call with the given appId ALWAYS as FIRST parameter
         // Something like: itApiVar.methodName(itAppIdVar, $$);
-        StringBuilder apiCall = new StringBuilder("");
+        StringBuilder apiCall = new StringBuilder();
         if (isVoid) {
-            apiCall.append("$_ = ").append(this.itApiVar);
-        } else {
-            apiCall.append(this.itApiVar);
+            apiCall.append("$_ = ");
         }
 
-        apiCall.append(".").append(methodName).append("(").append(this.itAppIdVar);
+        apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itApiVar).append(",")
+            .append(this.itAppIdVar).append(",").append(this.itORVar);
 
         if (hasArgs) {
             apiCall.append(", $$");

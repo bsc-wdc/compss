@@ -92,7 +92,6 @@ import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -531,6 +530,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                 LOGGER.debug("Stopping Comm...");
                 Comm.stop();
+
                 // LOGGER.debug("Releasing all barriers...");
                 // In some case, when runtime is stop because an error the java process is not stopped
                 // because some threads are blocked at barriers waiting for the end of tasks

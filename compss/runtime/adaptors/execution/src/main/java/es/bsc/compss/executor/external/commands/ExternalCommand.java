@@ -66,6 +66,10 @@ public interface ExternalCommand {
         CANCEL_TASK_GROUP, // Cancel a task group
         NO_MORE_TASKS, // Sync until all previously-submitted tasks have finish
 
+        // Required by replacing JNI with runtime socket
+        GET_MASTERWORKINGDIR, // Get the master working directory
+        GET_APPDIR, // Get the application directory
+
         SYNCH, // Expected synch notification
         REMOVE, // Remove data
         SERIALIZE, // Serialize data

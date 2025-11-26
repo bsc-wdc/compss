@@ -14,14 +14,24 @@
  *  limitations under the License.
  *
  */
-#ifndef PIPE_COMPSS_H
-#define PIPE_COMPSS_H
+#ifndef TESTS_HARNESS_COMMON_TEST_TYPES_H
+#define TESTS_HARNESS_COMMON_TEST_TYPES_H
 
-#include <stddef.h>
+#include <string>
+#include <vector>
 
-#include "common.h"
-#include "compss_interface.h"
+#include "../../src/param_metadata.h"
 
-CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe);
+struct Parameter {
+    std::string value;
+    datatype type;
+    direction dir;
+    io_stream ioStream;
+    std::string prefix;
+    std::string name;
+    std::string contType;
+    std::string weight;
+    bool keepRename;
+};
 
-#endif /* PIPE_COMPSS_H */
+#endif // TESTS_HARNESS_COMMON_TEST_TYPES_H

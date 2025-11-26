@@ -14,14 +14,28 @@
  *  limitations under the License.
  *
  */
-#ifndef PIPE_COMPSS_H
-#define PIPE_COMPSS_H
+package es.bsc.compss.executor.external.piped.commands;
 
-#include <stddef.h>
+import es.bsc.compss.executor.external.commands.GetAppDirExternalCommand;
 
-#include "common.h"
-#include "compss_interface.h"
 
-CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe);
+public class GetAppDirPipeCommand extends GetAppDirExternalCommand implements PipeCommand {
 
-#endif /* PIPE_COMPSS_H */
+    /**
+     * Constructs an GetAppDirPipeCommand out of the message received through the pipe.
+     */
+    public GetAppDirPipeCommand() {
+        super();
+    }
+
+    @Override
+    public int compareTo(PipeCommand t) {
+        return Integer.compare(this.getType().ordinal(), t.getType().ordinal());
+    }
+
+    @Override
+    public void join(PipeCommand receivedCommand) {
+        // Do nothing
+    }
+
+}

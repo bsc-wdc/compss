@@ -18,4 +18,40 @@ AC_PROG_CXX
 
 AC_PROG_LIBTOOL
 
-AC_OUTPUT(Makefile src/Makefile)
+dnl --- JNI/Java detection ---
+AC_ARG_VAR([JAVA_HOME], [Path to Java home (JDK)])
+AC_PATH_PROG([JAVA], [java])
+if test -z "$JAVA_HOME" -a -n "$JAVA"; then
+  JAVA_HOME=`$JAVA -XshowSettings:properties -version 2>&1 | sed -n 's/.*java.home = //p' | head -n1`
+fi
+if test -z "$JAVA_HOME"; then
+  AC_MSG_ERROR([JAVA_HOME is not set and could not be detected. Please export JAVA_HOME pointing to your JDK.])
+fi
+
+case "$host_os" in
+  linux*)  CPP_OS="-I$JAVA_HOME/include/linux" ;;
+  darwin*) CPP_OS="-I$JAVA_HOME/include/darwin" ;;
+  freebsd*) CPP_OS="-I$JAVA_HOME/include/freebsd" ;;
+  *)       CPP_OS="" ;;
+esac
+
+JAVA_LIB_DIR=""
+for d in \
+  "$JAVA_HOME/lib/server" \
+  "$JAVA_HOME/jre/lib/amd64/server" \
+  "$JAVA_HOME/jre/lib/server" \
+  "$JAVA_HOME/lib/amd64/server"; do
+  if test -d "$d"; then
+    JAVA_LIB_DIR="$d"
+    break
+  fi
+done
+if test -z "$JAVA_LIB_DIR"; then
+  AC_MSG_WARN([Could not locate libjvm directory under JAVA_HOME; linking may fail.])
+fi
+
+AC_SUBST([JAVA_HOME])
+AC_SUBST([CPP_OS])
+AC_SUBST([JAVA_LIB_DIR])
+
+AC_OUTPUT(Makefile src/Makefile tests/Makefile)

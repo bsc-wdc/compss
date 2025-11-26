@@ -24,6 +24,7 @@
 
 #include "compss_interface.h"
 #include "compss_jni.h"
+#include "compss_interface.h"
 #include "param_metadata.h"
 #include "BindingDataManager.h"
 
@@ -1833,36 +1834,36 @@ void JNI_set_wall_clock(long appId, long wcl, int stopRT){
 }
 
 CompssInterface setup_JNI_runtime(){
-    CompssInterface *iface = (CompssInterface *)malloc(sizeof(CompssInterface));
-    iface->On = JNI_On;
-    iface->Off = JNI_Off;
-    iface->read_command = JNI_read_command;
-    iface->RegisterCE = JNI_RegisterCE;
-    iface->ExecuteTask = JNI_ExecuteTask;
-    iface->ExecuteTaskNew = JNI_ExecuteTaskNew;
-    iface->ExecuteHttpTask = JNI_ExecuteHttpTask;
-    iface->Cancel_Application_Tasks = JNI_Cancel_Application_Tasks;
-    iface->Accessed_File = JNI_Accessed_File;
-    iface->Open_File = JNI_Open_File;
-    iface->Close_File = JNI_Close_File;
-    iface->Delete_File = JNI_Delete_File;
-    iface->Get_File = JNI_Get_File;
-    iface->Get_Directory = JNI_Get_Directory;
-    iface->Barrier = JNI_Barrier;
-    iface->BarrierNew = JNI_BarrierNew;
-    iface->BarrierGroup = JNI_BarrierGroup;
-    iface->OpenTaskGroup = JNI_OpenTaskGroup;
-    iface->CloseTaskGroup = JNI_CloseTaskGroup;
-    iface->CancelTaskGroup = JNI_CancelTaskGroup;
-    iface->Snapshot = JNI_Snapshot;
-    iface->GetNumberOfResources = JNI_GetNumberOfResources;
-    iface->RequestResources = JNI_RequestResources;
-    iface->FreeResources = JNI_FreeResources;
-    iface->Get_AppDir = JNI_Get_AppDir;
-    iface->Get_MasterWorkingDir = JNI_Get_MasterWorkingDir;
-    iface->EmitEvent = JNI_EmitEvent;
-    iface->Get_Object = JNI_Get_Object;
-    iface->Delete_Object = JNI_Delete_Object;
-    iface->Set_wall_clock = JNI_set_wall_clock;
-    return *iface;
+    CompssInterface iface{};
+    iface.On = JNI_On;
+    iface.Off = JNI_Off;
+    iface.read_command = JNI_read_command;
+    iface.RegisterCE = JNI_RegisterCE;
+    iface.ExecuteTask = JNI_ExecuteTask;
+    iface.ExecuteTaskNew = JNI_ExecuteTaskNew;
+    iface.ExecuteHttpTask = JNI_ExecuteHttpTask;
+    iface.Cancel_Application_Tasks = JNI_Cancel_Application_Tasks;
+    iface.Accessed_File = JNI_Accessed_File;
+    iface.Open_File = JNI_Open_File;
+    iface.Close_File = JNI_Close_File;
+    iface.Delete_File = JNI_Delete_File;
+    iface.Get_File = JNI_Get_File;
+    iface.Get_Directory = JNI_Get_Directory;
+    iface.Barrier = JNI_Barrier;
+    iface.BarrierNew = JNI_BarrierNew;
+    iface.BarrierGroup = JNI_BarrierGroup;
+    iface.OpenTaskGroup = JNI_OpenTaskGroup;
+    iface.CloseTaskGroup = JNI_CloseTaskGroup;
+    iface.CancelTaskGroup = JNI_CancelTaskGroup;
+    iface.Snapshot = JNI_Snapshot;
+    iface.GetNumberOfResources = JNI_GetNumberOfResources;
+    iface.RequestResources = JNI_RequestResources;
+    iface.FreeResources = JNI_FreeResources;
+    iface.Get_AppDir = JNI_Get_AppDir;
+    iface.Get_MasterWorkingDir = JNI_Get_MasterWorkingDir;
+    iface.EmitEvent = JNI_EmitEvent;
+    iface.Get_Object = JNI_Get_Object;
+    iface.Delete_Object = JNI_Delete_Object;
+    iface.Set_wall_clock = JNI_set_wall_clock;
+    return iface;
 }

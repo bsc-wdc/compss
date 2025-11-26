@@ -267,6 +267,19 @@ static PyObject* set_pipes(PyObject* self, PyObject* args){
 	Py_RETURN_NONE;
 }
 
+static PyObject* set_socket_endpoint(PyObject* self, PyObject* args){
+	char* endpoint = _pystring_to_char(PyTuple_GetItem(args, 0));
+	GS_set_socket_endpoint(endpoint);
+	Py_RETURN_NONE;
+}
+
+static PyObject* set_JNI_runtime(PyObject* self, PyObject* args){
+    (void)self;
+    (void)args;
+	GS_set_JNI_runtime();
+	Py_RETURN_NONE;
+}
+
 /*
   A function that reads a command from the pipe mechanism set with set_pipes 
   method. No arguments are used in the function. The result is a string containing
@@ -1004,6 +1017,8 @@ static PyMethodDef CompssMethods[] = {
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 	{ "emit_event", emit_event, METH_VARARGS, "Emit a event in the API Thread." },
 	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },
+    { "set_socket_endpoint", set_socket_endpoint, METH_VARARGS, "Set compss module to socket communication mode." },
+    { "set_JNI_runtime", set_JNI_runtime, METH_NOARGS, "Enable JNI runtime support." },
     { "read_pipes", read_pipes, METH_VARARGS, "Reads a command using the pipe comunication mode." },
 	{ "set_wall_clock" , set_wall_clock, METH_VARARGS, "Set the application wall clock limit."},
     { NULL, NULL } /* sentinel */

@@ -15,15 +15,18 @@
  *
  */
 
+#include <fstream>
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-#include <sstream>
-#include <fstream>
 
+#include "BindingDataManager.h"
 #include "GS_compss.h"
+#include "compss_interface.h"
 #include "compss_jni.h"
 #include "compss_pipes.h"
+#include "compss_sockets.h"
 #include "param_metadata.h"
 #include "compss_interface.h"
 #include "BindingDataManager.h"
@@ -40,13 +43,26 @@ void GS_set_pipes(char* comPipe, char* resPipe){
 	runtime = setup_PIPE_runtime(comPipe, resPipe);
 }
 
+void GS_set_socket_endpoint(char* endpoint) {
+    runtime = setup_SOCKET_runtime(endpoint);
+}
+
+void GS_set_JNI_runtime(void) {
+    runtime = setup_JNI_runtime();
+}
+
+
 void GS_read_pipes(char** command){
+	GS_read_command(command);
+}
+
+void GS_read_command(char **command) {
 	runtime.read_command(command);
 }
 
 void GS_On(AbstractCache* absCache) {
-  init_data_manager(absCache);
-  GS_On();
+    init_data_manager(absCache);
+    GS_On();
 }
 
 

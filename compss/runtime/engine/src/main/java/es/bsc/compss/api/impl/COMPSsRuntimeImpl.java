@@ -79,6 +79,8 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.tracing.APIEvent;
+import es.bsc.compss.types.tracing.APITracer;
+import es.bsc.compss.types.tracing.APITracer.ThrowingRunnable;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -99,7 +101,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -224,67 +225,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     /*
      * ************************************************************************************************************
-     * ****************************************** TRACING HELPER **************************************************
-     * ************************************************************************************************************
-     */
-    private static <T> T traced(APIEvent event, Supplier<T> work) {
-        boolean active = Tracer.isActivated();
-        if (active) {
-            Tracer.emitEvent(event);
-        }
-        try {
-            return work.get();
-        } finally {
-            if (active) {
-                Tracer.emitEventEnd(event);
-            }
-        }
-    }
-
-    private static void traced(APIEvent event, Runnable work) {
-        boolean active = Tracer.isActivated();
-        if (active) {
-            Tracer.emitEvent(event);
-        }
-        try {
-            work.run();
-        } finally {
-            if (active) {
-                Tracer.emitEventEnd(event);
-            }
-        }
-    }
-
-
-    @FunctionalInterface
-    public interface ThrowingRunnable {
-
-        void run() throws COMPSsException;
-    }
-
-
-    private static void traced(APIEvent event, ThrowingRunnable work) throws COMPSsException {
-        boolean active = Tracer.isActivated();
-        if (active) {
-            Tracer.emitEvent(event);
-        }
-        try {
-            work.run();
-        } finally {
-            if (active) {
-                Tracer.emitEventEnd(event);
-            }
-        }
-    }
-
-    /*
-     * ************************************************************************************************************
      * ***************************************** RUNTIME CONTROL **************************************************
      * ************************************************************************************************************
      */
     @Override
     public synchronized void startIT() {
-        traced(APIEvent.START, (Runnable) () -> {
+        APITracer.traced(APIEvent.START, (Runnable) () -> {
             // Console Log
             Thread.currentThread().setName("APPLICATION");
             if (COMPSs_VERSION == null) {
@@ -469,7 +415,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public long registerApplication(String parallelismSource, ApplicationRunner runner) {
-        return traced(APIEvent.REGISTER_APP, () -> {
+        return APITracer.traced(APIEvent.REGISTER_APP, () -> {
             Application app = Application.registerApplication(parallelismSource, runner);
             return app.getId();
         });
@@ -477,7 +423,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void deregisterApplication(Long appId) {
-        traced(APIEvent.DEREGISTER_APP, (Runnable) () -> {
+        APITracer.traced(APIEvent.DEREGISTER_APP, (Runnable) () -> {
             Application app = Application.deregisterApplication(appId);
             ap.deleteAllApplicationDataRequest(app);
         });
@@ -487,7 +433,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
         String... implTypeArgs) {
-        traced(APIEvent.REGISTER_CE, (Runnable) () -> {
+        APITracer.traced(APIEvent.REGISTER_CE, (Runnable) () -> {
             LOGGER.info("Registering CoreElement " + coreElementSignature);
 
             if (LOGGER.isDebugEnabled()) {
@@ -572,7 +518,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void registerCoreElement(CoreElementDefinition ced) {
-        traced(APIEvent.REGISTER_CE, (Runnable) () -> {
+        APITracer.traced(APIEvent.REGISTER_CE, (Runnable) () -> {
             LOGGER.info("Registering CoreElement " + ced.getCeSignature());
             if (LOGGER.isDebugEnabled()) {
                 int implId = 0;
@@ -597,7 +543,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     @Override
     public void registerData(Long appId, DataType type, Object stub, String data) {
-        traced(APIEvent.REGISTER_DATA, (Runnable) () -> {
+        APITracer.traced(APIEvent.REGISTER_DATA, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             DataParams dp = null;
             switch (type) {
@@ -679,7 +625,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        return traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
+        return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
             // Parse the file name
             DataLocation sourceLocation = null;
             try {
@@ -699,7 +645,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
-        return traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
+        return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
             Application app = Application.registerApplication(appId);
             ObjectData od = new ObjectData(hashCode);
             return bindExistingVersionToData(app, od, dataId);
@@ -724,7 +670,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void getFile(Long appId, String fileName) {
-        traced(APIEvent.GET_FILE, (Runnable) () -> {
+        APITracer.traced(APIEvent.GET_FILE, (Runnable) () -> {
             // Parse the file name
             DataLocation sourceLocation = null;
             try {
@@ -760,7 +706,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public String openFile(Long appId, String fileName, Direction mode) {
-        return traced(APIEvent.OPEN_FILE, () -> {
+        return APITracer.traced(APIEvent.OPEN_FILE, () -> {
             Application app = Application.registerApplication(appId);
             return openFileSystemData(app, fileName, mode, false);
         });
@@ -768,7 +714,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void getDirectory(Long appId, String dirName) {
-        traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
+        APITracer.traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
             // Parse the dir name
             DataLocation sourceLocation = null;
             try {
@@ -804,7 +750,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public String openDirectory(Long appId, String dirName, Direction mode) {
-        return traced(APIEvent.OPEN_DIRECTORY, () -> {
+        return APITracer.traced(APIEvent.OPEN_DIRECTORY, () -> {
             Application app = Application.registerApplication(appId);
             return openFileSystemData(app, dirName, mode, true);
         });
@@ -866,7 +812,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean isFileAccessed(Long appId, String fileName) {
-        return traced(APIEvent.CHECK_FILE, () -> {
+        return APITracer.traced(APIEvent.CHECK_FILE, () -> {
             DataLocation loc;
             try {
                 loc = createLocation(ProtocolType.FILE_URI, fileName);
@@ -886,7 +832,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void closeFile(Long appId, String fileName, Direction mode) {
-        traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
+        APITracer.traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             closeFile(app, fileName, mode);
         });
@@ -940,7 +886,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
          */
-        return traced(APIEvent.GET_OBJECT, () -> {
+        return APITracer.traced(APIEvent.GET_OBJECT, () -> {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Getting object with hash code " + hashCode);
             }
@@ -963,7 +909,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public String getBindingObject(Long appId, String fileName) {
-        return traced(APIEvent.GET_BINDING_OBJECT, () -> {
+        return APITracer.traced(APIEvent.GET_BINDING_OBJECT, () -> {
             // Parse the file name
             LOGGER.debug(" Calling get binding object : " + fileName);
             BindingObject bo = BindingObject.generate(fileName);
@@ -994,7 +940,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete) {
-        return traced(APIEvent.DELETE_FILE, () -> {
+        return APITracer.traced(APIEvent.DELETE_FILE, () -> {
             // Check parameters
             if (fileName == null || fileName.isEmpty()) {
                 return false;
@@ -1022,7 +968,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void removeObject(Long appId, Object o, int hashcode) {
-        traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
+        APITracer.traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             // This will remove the object from the Object Registry and the Data Info Provider
             // eventually allowing the garbage collector to free it (better use of memory)
@@ -1033,7 +979,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public boolean deleteBindingObject(Long appId, String fileName) {
         // Emit event
-        return traced(APIEvent.DELETE_BIND_OBJECT, () -> {
+        return APITracer.traced(APIEvent.DELETE_BIND_OBJECT, () -> {
             if (fileName == null || fileName.isEmpty()) {
                 return false;
             }
@@ -1108,7 +1054,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
         OnFailure onFailure, int timeOut, Object... parameters) {
 
-        return traced(APIEvent.TASK, () -> {
+        return APITracer.traced(APIEvent.TASK, () -> {
             if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
                 ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
             }
@@ -1169,7 +1115,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
         int parameterCount, Object... parameters) {
         // Tracing flag for task creation
-        return traced(APIEvent.TASK, () -> {
+        return APITracer.traced(APIEvent.TASK, () -> {
             // Log the details
             if (hasSignature) {
                 LOGGER.info("Creating task from method " + signature + " for application " + appId);
@@ -1227,7 +1173,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void cancelApplicationTasks(Long appId) {
-        traced(APIEvent.CANCEL_APP, (Runnable) () -> {
+        APITracer.traced(APIEvent.CANCEL_APP, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.cancelApplicationTasks(app);
         });
@@ -1235,7 +1181,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        traced(APIEvent.OPEN_GROUP, (Runnable) () -> {
+        APITracer.traced(APIEvent.OPEN_GROUP, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.setCurrentTaskGroup(groupName, app);
         });
@@ -1243,7 +1189,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void closeTaskGroup(String groupName, Long appId) {
-        traced(APIEvent.CLOSE_GROUP, (Runnable) () -> {
+        APITracer.traced(APIEvent.CLOSE_GROUP, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.closeCurrentTaskGroup(app);
         });
@@ -1251,7 +1197,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
-        traced(APIEvent.CANCEL_GROUP, (ThrowingRunnable) () -> {
+        APITracer.traced(APIEvent.CANCEL_GROUP, (ThrowingRunnable) () -> {
             Application app = Application.registerApplication(appId);
             ap.cancelTaskGroup(app, groupName);
             // This is required that changes in metadata have been applied before
@@ -1262,7 +1208,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void barrierGroup(Long appId, String groupName) throws COMPSsException {
-        traced(APIEvent.WAIT_FOR_GROUP_TASKS, (ThrowingRunnable) () -> {
+        APITracer.traced(APIEvent.WAIT_FOR_GROUP_TASKS, (ThrowingRunnable) () -> {
             Application app = Application.registerApplication(appId);
             // Regular barrier
             ap.barrierGroup(app, groupName);
@@ -1276,7 +1222,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void barrier(Long appId, boolean noMoreTasks) {
-        traced(APIEvent.WAIT_FOR_ALL_TASKS, (Runnable) () -> {
+        APITracer.traced(APIEvent.WAIT_FOR_ALL_TASKS, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             // Wait until all tasks have finished
             LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
@@ -1292,7 +1238,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void noMoreTasks(Long appId) {
-        traced(APIEvent.NO_MORE_TASKS, (Runnable) () -> {
+        APITracer.traced(APIEvent.NO_MORE_TASKS, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             noMoreTasks(app);
         });
@@ -1322,7 +1268,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
     @Override
     public int getNumberOfResources() {
-        return traced(APIEvent.GET_RESOURCES, () -> {
+        return APITracer.traced(APIEvent.GET_RESOURCES, () -> {
             LOGGER.info("Received request for number of active resources");
             return ResourceManager.getTotalNumberOfWorkers();
         });
@@ -1330,7 +1276,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void requestResources(Long appId, int numResources, String groupName) {
-        traced(APIEvent.REQUEST_RESOURCES, (Runnable) () -> {
+        APITracer.traced(APIEvent.REQUEST_RESOURCES, (Runnable) () -> {
             LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
                 + " for application " + appId);
 
@@ -1349,7 +1295,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void freeResources(Long appId, int numResources, String groupName) {
-        traced(APIEvent.FREE_RESOURCES, (Runnable) () -> {
+        APITracer.traced(APIEvent.FREE_RESOURCES, (Runnable) () -> {
             LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
                 + " for application " + appId);
 
@@ -1384,7 +1330,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void snapshot(Long appId) {
-        traced(APIEvent.SNAPSHOT_API, (Runnable) () -> {
+        APITracer.traced(APIEvent.SNAPSHOT_API, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
             // Wait until all tasks have finished
             LOGGER.info("Requesting snapshot for application " + appId);
@@ -1860,7 +1806,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
-        traced(APIEvent.SET_WALLCLOCK, (Runnable) () -> {
+        APITracer.traced(APIEvent.SET_WALLCLOCK, (Runnable) () -> {
             if (wcl > 0) {
                 if (timer == null) {
                     createWallClockReaper();

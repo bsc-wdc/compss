@@ -136,7 +136,9 @@ show_opts() {
                                                   ├── ${LA_MT_SUCC_LIFO_SCHEDULER}
                                                   ├── ${LA_SUCC_LOCALITY_SCHEDULER}
                                                   └── ${LA_MT_SUCC_LOCALITY_SCHEDULER}
-                                            Default: ${DEFAULT_SCHEDULER}
+                                            Default in runcompss: ${DEFAULT_SCHEDULER}
+                                            Default in enqueue_compss shared disk: ${LA_MT_SUCC_FIFO_SCHEDULER}
+                                            Default in enqueue_compss local disk: ${LA_MT_SUCC_LOCALITY_SCHEDULER}
     --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
                                             Default: Empty
     --checkpoint=<className>                Class that implements the Checkpoint Management policy

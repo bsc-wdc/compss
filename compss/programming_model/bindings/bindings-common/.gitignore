@@ -1,0 +1,37 @@
+# Autotools output
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+configure
+configure~
+config.log
+config.status
+libtool
+config/
+m4/
+
+# Libtool/C++ build artifacts
+*.la
+*.lo
+*.o
+src/.deps/
+src/.libs/
+tests/.deps/
+tests/.libs/
+
+# Test binaries & coverage
+tests/test_gs_compss
+tests/*.la
+tests/*.log
+tests/*.trs
+tests/*.gcno
+tests/*.gcda
+tests/coverage*.html
+tests/coverage.css
+tests/*.tmp
+unix_socket_client
+
+
+# Editor junk
+*~

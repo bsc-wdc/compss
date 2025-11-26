@@ -14,14 +14,4 @@
  *  limitations under the License.
  *
  */
-#ifndef PIPE_COMPSS_H
-#define PIPE_COMPSS_H
-
-#include <stddef.h>
-
-#include "common.h"
-#include "compss_interface.h"
-
-CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe);
-
-#endif /* PIPE_COMPSS_H */
+package es.bsc.compss.components.impl.socketserver.ipc;

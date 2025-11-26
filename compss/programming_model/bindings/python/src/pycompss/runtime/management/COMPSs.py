@@ -512,6 +512,21 @@ class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
         """
         self.compss.set_pipes(pipe_in, pipe_out)
 
+    def set_socket_endpoint(self, endpoint: str) -> None:
+        """Set socket endpoint.
+
+        :param endpoint: Socket endpoint.
+        :return: None.
+        """
+        self.compss.set_socket_endpoint(endpoint)
+
+    def set_JNI_runtime(self) -> None:
+        """Set JNI runtime.
+
+        :return: None.
+        """
+        self.compss.set_JNI_runtime()
+
     def read_pipes(self) -> str:
         """Call to read_pipes.
 

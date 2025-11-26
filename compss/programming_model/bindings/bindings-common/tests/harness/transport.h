@@ -14,14 +14,19 @@
  *  limitations under the License.
  *
  */
-#ifndef PIPE_COMPSS_H
-#define PIPE_COMPSS_H
+#ifndef TESTS_HARNESS_TRANSPORT_H
+#define TESTS_HARNESS_TRANSPORT_H
 
-#include <stddef.h>
+#include <string>
 
-#include "common.h"
-#include "compss_interface.h"
+// Lightweight interface that allows the socket and pipes harnesses used in the
+// integration tests to be manipulated polymorphically.
+struct TransportHarness {
+    virtual ~TransportHarness() = default;
 
-CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe);
+    virtual void reset() = 0;
+    virtual void enqueueResponse(const std::string& line) = 0;
+    virtual std::string commands() const = 0;
+};
 
-#endif /* PIPE_COMPSS_H */
+#endif // TESTS_HARNESS_TRANSPORT_H

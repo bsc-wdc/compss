@@ -14,14 +14,17 @@
  *  limitations under the License.
  *
  */
-#ifndef PIPE_COMPSS_H
-#define PIPE_COMPSS_H
+package es.bsc.compss.executor.external.commands;
 
-#include <stddef.h>
+public class GetMasterWorkingDirExternalCommand implements ExternalCommand {
 
-#include "common.h"
-#include "compss_interface.h"
+    @Override
+    public CommandType getType() {
+        return CommandType.GET_MASTERWORKINGDIR;
+    }
 
-CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe);
-
-#endif /* PIPE_COMPSS_H */
+    @Override
+    public String getAsString() {
+        return CommandType.GET_MASTERWORKINGDIR.name();
+    }
+}

@@ -14,14 +14,15 @@
  *  limitations under the License.
  *
  */
-#ifndef PIPE_COMPSS_H
-#define PIPE_COMPSS_H
+#ifndef TEST_STUB_BINDINGDATAMANAGER_H
+#define TEST_STUB_BINDINGDATAMANAGER_H
 
-#include <stddef.h>
+// Minimal subset used by compss_pipes.cc includes
+struct AbstractCache {};
 
-#include "common.h"
-#include "compss_interface.h"
+inline void init_data_manager(AbstractCache*) {}
+inline AbstractCache* get_cache() { return nullptr; }
 
-CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe);
+#endif // TEST_STUB_BINDINGDATAMANAGER_H
 
-#endif /* PIPE_COMPSS_H */
+

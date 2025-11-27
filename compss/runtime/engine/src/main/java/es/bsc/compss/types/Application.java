@@ -194,9 +194,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
             synchronized (APPLICATIONS) {
                 app = APPLICATIONS.get(appId);
                 if (app == null) {
-                    if (runner == null) {
-                        runner = DEFAULT_RUNNER;
-                    }
                     app = new Application(appId, parallelismSource, runner);
                 }
             }
@@ -244,7 +241,11 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     protected Application(Long appId, String parallelismSource, ApplicationRunner runner) {
         this.id = appId;
         this.parallelismSource = parallelismSource;
-        this.runner = runner;
+        if (runner == null) {
+            this.runner = DEFAULT_RUNNER;
+        } else {
+            this.runner = runner;
+        }
         this.totalTaskCount = 0;
         this.currentTaskGroups = new Stack<>();
         this.taskGroups = new TreeMap<>();

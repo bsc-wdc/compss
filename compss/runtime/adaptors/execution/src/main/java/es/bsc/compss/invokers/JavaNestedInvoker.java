@@ -122,7 +122,7 @@ public class JavaNestedInvoker extends JavaInvoker {
                 setter = this.methodClass.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
                         Class.forName(LoaderConstants.CLASS_LOADERAPI),
-                        Class.forName(LoaderConstants.CLASS_APP_ID) });
+                        Class.forName(LoaderConstants.CLASS_WORKFLOW) });
             } catch (Exception e) {
                 throw new JobExecutionException("Class not properly instrumented. Method setCOMPSsVariables not found!",
                     e);
@@ -130,7 +130,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             try {
                 Object[] values = new Object[] { this.runtimeAPI,
                     this.loaderAPI,
-                    wf.getId() };
+                    wf };
                 setter.invoke(null, values);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new JobExecutionException("Error setting Nested COMPSs variables", e);

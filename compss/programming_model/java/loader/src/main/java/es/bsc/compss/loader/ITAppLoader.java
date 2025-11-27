@@ -71,11 +71,15 @@ public class ITAppLoader {
 
             LOGGER.debug("Starting runtime");
             rt.startIT();
-
-            LOGGER.debug("Executing " + appName);
-            // Start main
-            Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
-            main.invoke(null, new Object[] { appArgs });
+            try {
+                LOGGER.debug("Executing " + appName);
+                // Start main
+                Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
+                main.invoke(null, new Object[] { appArgs });
+            } finally {
+                // Stop the runtime whether the execution raises an exception or not
+                rt.stopIT(true);
+            }
         } catch (Exception e) {
             throw e;
         } finally {

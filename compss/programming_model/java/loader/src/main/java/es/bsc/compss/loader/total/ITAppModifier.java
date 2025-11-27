@@ -288,11 +288,6 @@ public final class ITAppModifier {
             boolean isOrchestration = LoaderUtils.isOrchestration(m);
 
             if ((isMainMethod && isMainClass) || (isOrchestration && IS_WS_CLASS)) {
-                LOGGER.debug("Inserting calls at the beginning and at the end of main");
-                if (!IS_WS_CLASS) { // Main program
-                    LOGGER.debug("Inserting call stopIT at the end of main");
-                    toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
-                }
                 LOGGER.debug("Inserting call noMoreTasks at the end of main");
                 toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
 

@@ -1424,7 +1424,7 @@ get_args() {
           ear=true
           ear_flags=${OPTARG//ear=/}
           ;;
-        provenance-folder=*)
+        provenance_folder=*)
           provenance=true
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
@@ -1439,7 +1439,7 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-        zip-provenance)
+        zip_provenance)
           provenance=true
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"

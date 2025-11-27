@@ -1530,4 +1530,5 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     public void setLoaderApi(LoaderAPI loaderApi) {
         this.loaderApi = loaderApi;
     }
+
 }

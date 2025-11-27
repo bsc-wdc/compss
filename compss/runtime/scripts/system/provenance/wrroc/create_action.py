@@ -19,6 +19,8 @@ import typing
 import os
 import subprocess
 import socket
+from typing import Any
+
 import yaml
 import statistics as st
 from hashlib import sha256
@@ -130,7 +132,7 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
 
             parameter_list = list(filter(None, row.strip().split(" ")))
             len_row = len(parameter_list)
-            if len_row >= 4:
+            if len_row >= 4 and not row.startswith("task") and not row.startswith("file"):
                 data_list.append(parameter_list)
 
         try:
@@ -377,7 +379,9 @@ def wrroc_create_action(
     end_time: datetime,
     run_uuid: str,
     auxiliary_file_list: list,
-):
+    successful_execution: bool,
+    provenance_run_enabled: bool,
+)-> tuple[ContextEntity, dict]:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -393,6 +397,7 @@ def wrroc_create_action(
     :param end_time: Time where the COMPSs application execution ended
     :param run_uuid: UUID generated for this run
     :param auxiliary_file_list: list of the auxiliary file contained in the instruments
+    :param successful_execution: The status of the workflow execution (True if successful, False otherwise).
     """
     # Define useful pathnames of file/directory in log directory
     energy_path = log_dir / "energy/"
@@ -416,7 +421,7 @@ def wrroc_create_action(
             "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         )
         userportal_url = None
-        create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
+        create_action_id = "#COMPSs_WRROC_" + f"{'Provenance_Run' if provenance_run_enabled else 'Workflow_Run'}" + "_Crate_" + host_name + "_" + run_uuid
     else:
         name_property = (
             "COMPSs "
@@ -428,7 +433,7 @@ def wrroc_create_action(
         )
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id = (
-            "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+                "#COMPSs_WRROC_" + f"{'Provenance_Run' if provenance_run_enabled else 'Workflow_Run'}" + "_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
         )
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
@@ -602,11 +607,12 @@ def wrroc_create_action(
     create_action_properties = {
         "@type": "CreateAction",
         "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
-        "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
+        "actionStatus": {"@id": f"{'http://schema.org/CompletedActionStatus' if successful_execution else 'http://schema.org/FailedActionStatus'}"},
         "endTime": end_time.isoformat(),  # endTime of the application corresponds to the start of the provenance generation
         "name": name_property,
-        "description": description_property,
     }
+    if description_property is not None:
+        create_action_properties["description"] = description_property
     if len(environment_property) > 0:
         create_action_properties["environment"] = environment_property
 
@@ -891,3 +897,5 @@ def wrroc_create_action(
         print(
             f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
         )
+
+    return create_action, agent

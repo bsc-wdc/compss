@@ -20,31 +20,39 @@ The generate_COMPSs_RO-Crate.py module generates the resulting RO-Crate metadata
 following the Workflow Run Crate profile specification. Takes as parameters the ro-crate-info.yaml, and the
 dataprovenance.log generated from the run.
 """
-from datetime import datetime
+import datetime as dt
+import os.path
+import uuid
+from datetime import timezone
 from pathlib import Path
 
-import yaml
-import time
 import sys
-import uuid
-
-from rocrate.rocrate import ROCrate
-from rocrate.utils import iso_now
-
-from provenance.utils.url_fixes import fix_in_files_at_out_dirs
-from provenance.utils.common_paths import get_common_paths
-from provenance.utils.yaml_template import get_yaml_template
-from provenance.processing.entities import root_entity, get_main_entities
-from provenance.processing.files import process_accessed_files
-from provenance.file_adding.source_code import add_application_source_files
+import time
+import yaml
+from itertools import chain
 from provenance.file_adding.datasets import (
     add_dataset_file_to_crate,
+    add_file_to_crate,
     add_manual_datasets,
 )
+from provenance.file_adding.source_code import add_application_source_files
+from provenance.processing.entities import root_entity, get_main_entities
+from provenance.processing.master_log import process_master_log
+from provenance.processing.worker_logs import update_tasks_from_worker_logs
+from provenance.utils.common_paths import get_common_paths, has_files
+from provenance.utils.url_fixes import fix_in_files_at_out_dirs
+from provenance.utils.yaml_template import get_yaml_template
 from provenance.wrroc.create_action import wrroc_create_action
 from provenance.wrroc.profile import set_profile_details
+from provenance.wrroc.provenance_run.prospective import *
+from provenance.wrroc.provenance_run.retrospective import *
 from provenance.wrroc.store_data import store_data
 from provenance.wrroc.profiling_plots import generate_plots
+
+from rocrate.utils import iso_now
+
+PROVENANCE_RUN_ENABLED = True  # Provenance Run Crate profile is enabled by default
+PARAM_SIZE_LIMIT = 200  # Default character limit of parameter values
 
 
 def main():
@@ -55,7 +63,7 @@ def main():
 
     :returns: None
     """
-
+    global PROVENANCE_RUN_ENABLED, PARAM_SIZE_LIMIT
     exec_time = time.time()
     yaml_template = get_yaml_template()
     compss_crate = ROCrate()
@@ -102,7 +110,7 @@ def main():
 
     # Process set of accessed files, as reported by COMPSs runtime.
     # This must be done before adding the Workflow to the RO-Crate
-    ins, outs = process_accessed_files(DP_LOG)
+    ins, outs, tasks_dict = process_master_log(DP_LOG)
 
     auxiliary_file_list = []
     # Add application source files to the RO-Crate, that will also be physically in the crate
@@ -133,49 +141,177 @@ def main():
 
     # The list has at this point detected ins and outs, but also added any ins an outs defined by the user
     list_common_paths = []
-    part_time = time.time()
     if (
-        "data_persistence" in compss_wf_info
-        and compss_wf_info["data_persistence"] is True
+            "data_persistence" in compss_wf_info
+            and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
     else:
         persistence = False
 
-    fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
-    for item in ins:
-        fixed_ins.append(
-            add_dataset_file_to_crate(
-                compss_crate, item, persistence, list_common_paths
-            )
-        )
-    print(
-        f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
-        f"{time.time() - part_time} s"
-    )
+    if "provenance_run" in compss_wf_info:
+        if isinstance(compss_wf_info["provenance_run"], bool):
+            PROVENANCE_RUN_ENABLED = compss_wf_info["provenance_run"]
+        else:
+            print(f"PROVENANCE | WARNING: 'provenance_run' in {INFO_YAML} wrongly defined. "
+                  "Reverting to default: {PROVENANCE_RUN_ENABLED}")
 
-    part_time = time.time()
+    if PROVENANCE_RUN_ENABLED and not WORKER_LOGS:
+        PROVENANCE_RUN_ENABLED = False
+        print("PROVENANCE | WARNING: Missing worker log files. Cannot generate metadata with the Provenance Run Crate"
+              "Profile (Level 3). Reverting back to Workflow Run Crate (Level 2).")
 
-    fixed_outs = []
-    for item in outs:
-        fixed_outs.append(
-            add_dataset_file_to_crate(
-                compss_crate, item, persistence, list_common_paths
-            )
+    if "param_size_limit" in compss_wf_info:
+        if isinstance(compss_wf_info["param_size_limit"], int) and int(compss_wf_info["param_size_limit"]) > 0:
+            PARAM_SIZE_LIMIT = compss_wf_info["param_size_limit"]
+        else:
+            print(f"PROVENANCE | WARNING: 'param_size_limit' in {INFO_YAML} wrongly defined. "
+                  f"Reverting to default: {PARAM_SIZE_LIMIT}")
+
+    successful_execution = True
+    added_logs = set()
+    run_with_debug = bool(os.environ.get("RUNCOMPSS_DEBUG_ENABLED", "0"))
+    job_logs_available = has_files(os.path.join(sys.argv[2], "jobs"))
+
+    # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
+    if PROVENANCE_RUN_ENABLED:
+        pr_part_time1 = time.time()
+
+        update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
+
+        fixed_ins = set()  # ins are file://host/path/file, fixed_ins are crate_path/file
+        fixed_outs = set()
+        steps = []
+        step_control_actions = []
+        added_formal_params = {}
+        defined_tools = {}
+        formal_to_actuals = {}
+
+        # Process each task
+        for task in tasks_dict.values():
+            if task.tid == "master":
+                successful_execution = task.succeeded
+                continue
+
+            if not task.starttime or not task.endtime:
+                task.succeeded = False
+                successful_execution = False
+
+            # -------------------- PARAMETER-related ENTITIES -------------------- #
+
+            # Process each parameter of the current task
+            params = list(chain(task.in_params.values(), task.out_params.values()))
+            for param in params:
+                # Add the formal definition of the parameter (FormalParameter); check for duplicates
+                if (task.tid, param.name) in added_formal_params:
+                    param.formal_instance = added_formal_params[(task.tid, param.name)]
+                else:
+                    param.formal_instance = add_parameter_definition(compss_crate, param)
+                    added_formal_params[(task.tid, param.name)] = param.formal_instance
+
+                if not task.succeeded and param.direction == "OUT":
+                    continue
+
+                # Add the actual parameter value (File/PropertyValue)
+                # for files:
+                if ("File" in param.dtype or "Dataset" in param.dtype) and param.is_array == False:
+                    added_value = add_dataset_file_to_crate(compss_crate, param.value, persistence, list_common_paths)
+                    if added_value:
+                        if param.value in ins or f"{param.value}/" in ins:
+                            fixed_ins.add(added_value)
+                        if param.value in outs or f"{param.value}/" in outs:
+                            fixed_outs.add(added_value)
+
+                        param.value = added_value
+
+                        # Cross-reference the file parameter definition (FormalParameter) with its value (File) through "exampleOfWork"
+                        file_instance = compss_crate.dereference(param.value)
+                        if file_instance and param.formal_instance not in file_instance.get("exampleOfWork", []):
+                            param.actual_instance = {"@id": param.value}
+                            file_instance.append_to("exampleOfWork", param.formal_instance)
+
+                # for regular parameters:
+                else:
+                    param.actual_instance = add_parameter_value(compss_crate, param, PARAM_SIZE_LIMIT)
+
+                # Collect the FormalParameter - PropertyValue/File cross-references for later update
+                if param.formal_instance and param.actual_instance:
+                    formal_to_actuals.setdefault(param.formal_instance, set())
+                    formal_to_actuals[param.formal_instance].add(param.actual_instance["@id"])
+
+            # -------------------- TASK-related ENTITIES -------------------- #
+
+            # Add a SoftwareSourceCode entity representing the method that has been decorated with @task
+            if task.signature not in defined_tools:
+                defined_tools[task.signature] = add_formal_method_of_task(compss_crate, task)
+
+            # Add the information related to the task: HowToStep, CreateAction, ControlAction
+            step = add_how_to_step(compss_crate, task, defined_tools[task.signature])
+            create_action = add_create_action_for_task(compss_crate, task, defined_tools[task.signature])
+            control_action = add_control_action_for_step(compss_crate, step, create_action)
+
+            steps.append(step)
+            step_control_actions.append(control_action)
+
+            # If task logs are available, we add them here and give details on which task they belong to
+            if job_logs_available and task.logs:
+                for filename in task.logs:
+                    source = Path(PATH_LOG) / "jobs" / filename
+                    add_file_to_crate(compss_crate, source, "logs", task, create_action)
+                    added_logs.add(filename)
+
+        # Cross-reference parameter definitions (FormalParameter) with their value (PropertyValue) through "workExample"
+        for formal_param, actual_params in formal_to_actuals.items():
+            formal_instance = compss_crate.get(formal_param["@id"])
+            formal_instance.append_to("workExample", [{"@id": pid} for pid in actual_params])
+
+        pr_part_time1 = time.time() - pr_part_time1
+
+    else:
+        part_time = time.time()
+        fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
+        for item in ins:
+            in_url = add_dataset_file_to_crate(compss_crate, item, persistence, list_common_paths)
+            if in_url: fixed_ins.append(in_url)
+        print(
+            f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
+            f"{time.time() - part_time} s"
         )
-    print(
-        f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
-        f"{time.time() - part_time} s"
-    )
-    # print(f"FIXED_INS: {fixed_ins}")
-    # print(f"FIXED_OUTS: {fixed_outs}")
+
+        part_time = time.time()
+        fixed_outs = []
+        for item in outs:
+            out_url = add_dataset_file_to_crate(compss_crate, item, persistence, list_common_paths)
+            if out_url: fixed_outs.append(out_url)
+        print(
+            f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
+            f"{time.time() - part_time} s"
+        )
+
+    # Check for the presence of job log files in any case:
+    # - Their presence indicates either: failure or debug mode enabled
+    # - If debug mode was not enabled and log files were generated, we can assume a failure
+    # - Double check that some log files have not been previously added together with their task (if the info was available)
+
+    if job_logs_available:
+        logs = (PATH_LOG / "jobs").glob("*")
+        for file in logs:
+            if file.name not in added_logs:
+                add_file_to_crate(crate=compss_crate, source=file, destination="logs")
+                added_logs.add(file.name)
+
+        if not run_with_debug:
+            successful_execution = False
+
+    # -------------------- MAIN ENTITY -------------------- #
 
     # Register execution details using WRROC profile
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # Can update Agent details from online search
+
     part_time = time.time()
-    wrroc_create_action(
+    main_create_action, agent = wrroc_create_action(
         compss_crate,
         main_entity,
         author_list,
@@ -183,18 +319,39 @@ def main():
         fixed_outs,
         yaml_content,
         INFO_YAML,
-        path_log,
-        datetime.fromisoformat(end_time),
+        PATH_LOG,
+        dt.datetime.fromisoformat(end_time),
         run_uuid,
         auxiliary_file_list,
+        successful_execution,
+        PROVENANCE_RUN_ENABLED
     )
     print(
         f"PROVENANCE | RO-Crate adding CreateAction TIME: "
         f"{time.time() - part_time} s"
     )
 
+    if PROVENANCE_RUN_ENABLED:
+        pr_part_time2 = time.time()
+        update_main_entity_with_formal_methods(compss_crate, list(defined_tools.values()))
+        update_main_entity_with_steps(compss_crate, steps)
+
+        compss_runtime = add_workflow_engine(compss_crate, compss_ver)
+        add_organize_action(
+            compss_crate=compss_crate,
+            objects=step_control_actions,
+            result=main_create_action,
+            workflow_engine=compss_runtime,
+            agent=agent
+        )
+        pr_part_time2 = time.time() - pr_part_time2
+        print(
+            f"PROVENANCE | RO-Crate Provenance Run Crate profile total TIME: "
+            f"{pr_part_time1 + pr_part_time2} s"
+        )
+
     # Set RO-Crate conformance to profiles
-    set_profile_details(compss_crate)
+    set_profile_details(compss_crate, 3 if PROVENANCE_RUN_ENABLED else 2)
 
     # Debug
     # for e in compss_crate.get_entities():
@@ -235,17 +392,22 @@ if __name__ == "__main__":
         sys.exit()
     else:
         INFO_YAML = sys.argv[1]
-        path_log = Path(sys.argv[2])
+        PATH_LOG = Path(sys.argv[2])
         DEST_FOLDER = sys.argv[3]
         ZIP_PROVENANCE = True if sys.argv[4] == "true" else False
-        DP_LOG = path_log / "dataprovenance.log"
+
+        DP_LOG = PATH_LOG / "dataprovenance.log"
         if not DP_LOG.exists() or DP_LOG.stat().st_size == 0:
             print(
                 f"PROVENANCE | ERROR: the dataprovenance.log file is empty. Provenance information has not been correctly generated from the COMPSs runtime"
             )
             sys.exit()
-        COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
-        ENERGY_PATH = path_log / "energy/"
-        STATS_PATH = path_log / "stats/"
-        PLOTS_PATH = path_log / "stats/plots/"
+
+        COMPLETE_GRAPH = PATH_LOG / "monitor/complete_graph.svg"
+        ENERGY_PATH = PATH_LOG / "energy/"
+        STATS_PATH = PATH_LOG / "stats/"
+        PLOTS_PATH = PATH_LOG / "stats/plots/"
+        # Find all static_binding_dp.out and static_worker_dp.out files in the workers folder recursively:
+        WORKER_LOGS = sorted((PATH_LOG / "workers").glob("*/Log/static_*_dp.out*"))
+
     main()

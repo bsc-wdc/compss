@@ -148,16 +148,17 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
                 entry_name = e.get("name")
                 if entry_name in profiling_stats:
                     id_stat = e.id.replace("#", "").split(".")
+                    node_to_compare = id_stat[0].split("-", -1)[0] if "MASTER" in id_stat[0] else id_stat[0]
                     node_list = final_dict.keys()
                     for n in node_list:
-                        if id_stat[0] in n:
+                        if n in node_to_compare:
                             if n not in final_dict:
                                 final_dict[n] = {}
                             final_dict[n][id_stat[1]] = e.get("value")
 
                 elif entry_name in execution_stats:
                     id_stat = e.id.replace("#", "").split(".")
-                    node = id_stat[0]
+                    node = id_stat[0].split("-")[0] if "ib" in id_stat[0] else id_stat[0]
                     nodes.append(node)
                     if len(id_stat) > 3:
                         function_name = id_stat[1] + "." + id_stat[2]
@@ -183,7 +184,8 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
                         final_dict[node] = {}
                     final_dict[node].update(funct_dict)
                 else:
-                    final_dict[e.get("name")] = e.get("value")
+                    if entry_name is not None:
+                        final_dict[e.get("name")] = e.get("value")
             elif e.type == "CrateAction":
                 final_dict["ExecutionID"] = e.id
 

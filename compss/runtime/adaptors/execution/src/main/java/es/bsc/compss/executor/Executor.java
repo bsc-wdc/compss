@@ -85,6 +85,8 @@ import es.bsc.wdc.affinity.ThreadAffinity;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TimerTask;
@@ -101,6 +103,9 @@ public class Executor implements Runnable, InvocationRunner {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
     private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
+    private static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
+
+    private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     // Error messages
     private static final String ERROR_OUT_FILES =
@@ -247,6 +252,11 @@ public class Executor implements Runnable, InvocationRunner {
         this.invocation = inv;
         this.invocationListener = listener;
 
+        if (DP_ENABLED) {
+            DP_LOGGER.info("TASK=" + this.invocation.getTaskId() + " STARTTIME="
+                + OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")));
+        }
+
         boolean success = false;
         invocation.executionStarts();
         if (WORKER_DEBUG) {
@@ -271,6 +281,11 @@ public class Executor implements Runnable, InvocationRunner {
                 LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
             }
             invocation.executionEnds();
+
+            if (DP_ENABLED) {
+                DP_LOGGER.info("TASK=" + this.invocation.getTaskId() + " ENDTIME="
+                    + OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")));
+            }
 
             invocation = null;
             invocationListener = null;
@@ -420,6 +435,12 @@ public class Executor implements Runnable, InvocationRunner {
                         throw ex;
                     }
                 }
+            }
+            if (DP_ENABLED) {
+                DP_LOGGER.info("TASK=" + invocation.getTaskId() + " LOGFILE="
+                    + this.context.getStandardStreamsPath(invocation) + ".out");
+                DP_LOGGER.info("TASK=" + invocation.getTaskId() + " LOGFILE="
+                    + this.context.getStandardStreamsPath(invocation) + ".err");
             }
         }
     }

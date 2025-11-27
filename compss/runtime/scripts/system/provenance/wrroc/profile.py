@@ -20,7 +20,7 @@ from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
 
 
-def set_profile_details(compss_crate: ROCrate) -> None:
+def set_profile_details(compss_crate: ROCrate, level: int) -> None:
     """
     Set all the details of the profiles used inside the RO-Crate
 
@@ -60,9 +60,7 @@ def set_profile_details(compss_crate: ROCrate) -> None:
         )
     )
 
-    # provenance-run not enabled yet
-    # for proc in "process", "workflow", "provenance":
-    for proc in "process", "workflow":
+    for proc in ("process", "workflow", "provenance")[:level]:
         id_ = f"{PROFILES_BASE}/{proc}/{WRROC_PROFILES_VERSION}"
         profiles.append(
             compss_crate.add(

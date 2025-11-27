@@ -227,9 +227,9 @@ show_opts() {
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
     --provenance=<yaml>, --provenance, -p   Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph.
                                             Default: ro-crate-info.yaml
-    --provenance-folder=<path>              Path where the workflow provenance will be generated
+    --provenance_folder=<path>              Path where the workflow provenance will be generated
                                             Default: COMPSs_RO-Crate_[timestamp]
-    --zip-provenance, -z                    Zip the resulting COMPSs RO-Crate
+    --zip_provenance, -z                    Zip the resulting COMPSs RO-Crate
                                             Default: COMPSs_RO-Crate_[timestamp].zip
 
 * Application name:
@@ -673,12 +673,12 @@ get_args() {
             # Enable provenance
             provenance=true
             ;;
-          provenance-folder=*)
+          provenance_folder=*)
             # Generate provenance in a specified directory
             provenance=true
-            provenance_dest_path=${OPTARG//provenance-folder=/}
+            provenance_dest_path=${OPTARG//provenance_folder=/}
             ;;
-          zip-provenance)
+          zip_provenance)
             # Zip provenance result
             provenance=true
             zip_provenance=true
@@ -818,10 +818,6 @@ if [ "${provenance}" != false ]; then
       break
     fi
   done
-
-  if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
-    rm -r "${specific_log_dir}/workers/"
-  fi
 
   # Check if provenance_dest_path is unset or empty
   if [ -z "${provenance_dest_path}" ]; then

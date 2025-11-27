@@ -22,20 +22,20 @@ PyCOMPSs runtime - Task - Worker.
 
 This file contains the task core functions when acting as worker.
 """
-
 import gc
+import logging
 import os
 import re
+import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from shutil import copyfile
 
 from pycompss.api import parameter
-from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.commons import CONSTANTS
+from pycompss.runtime.commons import CONSTANTS, GLOBALS
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.arguments import get_name_from_kwarg
@@ -48,10 +48,11 @@ from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
-from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_direction_from_key
+from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.shared_args import SHARED_ARGUMENTS
 from pycompss.runtime.task.wrappers.psco_stream import PscoStreamWrapper
+from pycompss.util.context import CONTEXT
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.objects.properties import create_object_by_con_type
@@ -66,12 +67,12 @@ from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.worker import build_task_parameter
+from pycompss.worker.piper.cache.classes import TaskWorkerCache
 
 # The cache is only available currently for piper_worker.py and python >= 3.8
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
-from pycompss.worker.piper.cache.classes import TaskWorkerCache
 
 NP = None  # type: typing.Any
 try:
@@ -82,9 +83,11 @@ except ImportError:
     NP = None
 
 if __debug__:
-    import logging
-
     LOGGER = logging.getLogger(__name__)
+
+DP_LOGGER = logging.getLogger("dp_logger")
+
+DP_ENABLED = False
 
 
 class TaskWorker:
@@ -101,6 +104,8 @@ class TaskWorker:
         "on_failure",
         "defaults",
         "cache",
+        "task_id",
+        "method_name",
     ]
 
     def __init__(
@@ -114,6 +119,8 @@ class TaskWorker:
         :param decorated_function: Decorated function.
         """
         # Initialize TaskCommons
+        global DP_ENABLED, DP_LOGGER
+
         self.decorator_arguments = decorator_arguments
         self.user_function = decorated_function.function
         self.param_args = []  # type: typing.List[typing.Any]
@@ -121,6 +128,11 @@ class TaskWorker:
         self.on_failure = ""
         self.defaults = {}  # type: dict
         self.cache = TaskWorkerCache()
+        self.task_id = None
+        self.method_name = ""
+
+        if GLOBALS.get_data_provenance():
+            DP_ENABLED = True
 
     def call(
         self, *args: typing.Any, **kwargs: typing.Any
@@ -144,6 +156,12 @@ class TaskWorker:
         # Grab LOGGER from kwargs
         # (shadows outer LOGGER since it is set by the worker)
         LOGGER = kwargs["compss_logger"]  # noqa
+
+        if kwargs["compss_job_id"]:
+            self.task_id = kwargs["compss_job_id"]
+        if kwargs["compss_method_name"]:
+            self.method_name = kwargs["compss_method_name"]
+
         with swap_logger_name(LOGGER, __name__):
             if __debug__:
                 LOGGER.debug("Starting @task decorator worker call")
@@ -207,6 +225,31 @@ class TaskWorker:
                 # After this line all the objects in arg have a "content"
                 # field, now we will segregate them in User positional and
                 # variadic args
+
+                if DP_ENABLED:
+                    for argument in args:
+                        if is_return(argument.name):
+                            continue
+                        pythontype, is_array = get_type_info(argument.content)
+                        content = str(argument.content).replace("\n", "")
+                        description = ""
+                        if is_array or "dict" in pythontype:
+                            description = get_array_shape_string(
+                                argument.content
+                            )
+                        DP_LOGGER.info(
+                            f"TASK={self.task_id} "
+                            f"HOST={socket.gethostname()} "
+                            f"METHOD={self.method_name} "
+                            f"PARAMETER={argument.name} "
+                            f"COMPSSTYPE={get_compss_type(argument.content)} "
+                            f"BASICTYPE={pythontype} "
+                            f"IS_ARRAY={is_array} "
+                            f"DESCRIPTION={description} "
+                            f"CONTENT={content} "
+                            f"DIRECTION=IN"
+                        )
+
                 user_args, user_kwargs, ret_params = self.segregate_objects(
                     args
                 )
@@ -268,6 +311,32 @@ class TaskWorker:
                 if default_values:
                     self.manage_defaults(args, default_values)
 
+                if DP_ENABLED:
+                    for arg in args:
+                        if is_return(arg.name) or arg.content_type < 10:
+                            continue
+
+                        name_to_print = arg.name.replace("#kwarg_", "")
+                        pythontype, is_array = get_type_info(arg.content)
+                        content = str(arg.content).replace("\n", "")
+                        description = ""
+                        if is_array or "dict" in pythontype:
+                            description = get_array_shape_string(
+                                argument.content
+                            )
+                        DP_LOGGER.info(
+                            f"TASK={self.task_id} "
+                            f"HOST={socket.gethostname()} "
+                            f"METHOD={self.method_name} "
+                            f"PARAMETER={name_to_print} "
+                            f"COMPSSTYPE={get_compss_type(arg.content)} "
+                            f"BASICTYPE={pythontype} "
+                            f"IS_ARRAY={is_array} "
+                            f"DESCRIPTION={description} "
+                            f"CONTENT={content} "
+                            f"DIRECTION=OUT"
+                        )
+
                 # Deal with INOUTs and COL_OUTs
                 self.manage_inouts(args, python_mpi)
 
@@ -308,6 +377,27 @@ class TaskWorker:
 
             if __debug__:
                 LOGGER.debug("Finished @task decorator")
+
+            if DP_ENABLED:
+                for ret_param in ret_params:
+                    pythontype, is_array = get_type_info(ret_param.content)
+                    content = str(ret_param.content).replace("\n", "")
+                    content = re.sub(r"\s+", " ", content)
+                    description = ""
+                    if is_array or "dict" in pythontype:
+                        description = get_array_shape_string(argument.content)
+                    DP_LOGGER.info(
+                        f"TASK={self.task_id} "
+                        f"HOST={socket.gethostname()} "
+                        f"METHOD={self.method_name} "
+                        f"PARAMETER={ret_param.name} "
+                        f"COMPSSTYPE={get_compss_type(ret_param.content)} "
+                        f"BASICTYPE={pythontype} "
+                        f"IS_ARRAY={is_array} "
+                        f"DESCRIPTION={description} "
+                        f"CONTENT={content} "
+                        f"DIRECTION=OUT"
+                    )
 
         return (
             new_types,
@@ -1961,3 +2051,83 @@ def get_ret_rank(_ret_params: list) -> list:
     from mpi4py import MPI  # pylint: disable=import-outside-toplevel
 
     return [_ret_params[MPI.COMM_WORLD.rank]]
+
+
+def get_type_info(element):
+    """Get information about the type and shape of a value.
+
+    :param element: Input value to check the type of.
+    :return: Tuple (type_str, is_list_like).
+    """
+    container_chain = []
+    list_like_types = (list, tuple, set, NP.ndarray)
+    seen_containers = set()
+    is_list_like = isinstance(element, list_like_types)
+
+    current = element
+    while isinstance(current, list_like_types):
+        if isinstance(current, NP.ndarray):
+            if "nd.array" not in seen_containers:
+                container_chain.append("nd.array")
+                seen_containers.add("nd.array")
+            if current.size == 0:
+                return "None," + ",".join(container_chain), is_list_like
+            current = current.flat[0]
+        else:
+            container_name = type(current).__name__
+            if container_name not in seen_containers:
+                container_chain.append(container_name)
+                seen_containers.add(container_name)
+            if len(current) == 0:
+                return "None," + ",".join(container_chain), True
+            current = next(iter(current))
+
+    # Use numpy type names if applicable
+    if isinstance(current, NP.generic):
+        inner_type = str(current.dtype)
+    else:
+        inner_type = type(current).__name__
+
+    return f"{inner_type}," + ",".join(container_chain), is_list_like
+
+
+def get_array_shape_string(arr):
+    """Get a human-readable description of the list-type provided.
+
+    :param arr: Input array to get the shape of.
+    :return: String describing the shape of the input value.
+    """
+    # Numpy arrays
+    if isinstance(arr, NP.ndarray):
+        return f"Numpy array with shape: {'x'.join(map(str, arr.shape))}"
+
+    # Dictionaries
+    if isinstance(arr, dict):
+        size = len(arr)
+        # Determine key types
+        key_types = {type(k).__name__ for k in arr.keys()}
+        value_types = {type(v).__name__ for v in arr.values()}
+        key_types_str = ", ".join(sorted(key_types))
+        value_types_str = ", ".join(sorted(value_types))
+        return (
+            f"Dict with {size} entries; "
+            f"key types: {key_types_str}; "
+            f"value types: {value_types_str}"
+        )
+
+    # Traverse nested containers (lists, tuples, sets)
+    shape = []
+    current = arr
+    while isinstance(current, (list, tuple, set)):
+        shape.append(len(current))
+        try:
+            current = next(iter(current))
+        except StopIteration:
+            break  # Empty container
+
+    if len(shape) == 1:
+        return f"Array with shape: 1x{shape[0]}"
+    elif shape:
+        return f"Array with shape: {'x'.join(map(str, shape))}"
+    else:
+        return None

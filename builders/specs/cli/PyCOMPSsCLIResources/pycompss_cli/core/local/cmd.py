@@ -14,14 +14,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import pycompss_cli.core.utils as utils
-import subprocess, os, shutil
-from typing import List
-from rocrate.rocrate import ROCrate
-from rocrate.model.contextentity import ContextEntity
+import os
+import shutil
+import subprocess
 from datetime import datetime
+from typing import List
+from pathlib import Path
 
-from pycompss_cli.core.cmd_helpers import command_runner
+import pycompss_cli.core.utils as utils
+from rich.console import Console
+from rich.panel import Panel
+from rich.tree import Tree
+from rocrate.model.contextentity import ContextEntity
+from rocrate.model.entity import Entity
+from rocrate.rocrate import ROCrate
 
 # ################ #
 # GLOBAL VARIABLES #
@@ -32,33 +38,48 @@ follow_prefix = "│   "
 empty_prefix = "    "
 
 METRICS_UNITS = {
-    'maxTime': 'ms',
-    'minTime': 'ms',
-    'avgTime': 'ms',
-    'executionTime': 'ms',
-    'cpuAvg': '%',
-    'cpuMax': '%',
-    'memAvg': '%',
-    'memMax': '%',
-    'memMin': '%',
-    'byteSent': 'bytes',
-    'byteRecv': 'bytes',
+    "maxTime": "ms",
+    "minTime": "ms",
+    "avgTime": "ms",
+    "executionTime": "ms",
+    "cpuAvg": "%",
+    "cpuMax": "%",
+    "memAvg": "%",
+    "memMax": "%",
+    "memMin": "%",
+    "byteSent": "bytes",
+    "byteRecv": "bytes",
 }
 
-ORDER = {'executions': 0, 'avgTime': 1, 'maxTime': 2, 'minTime': 3}
+ORDER = {"executions": 0, "avgTime": 1, "maxTime": 2, "minTime": 3}
+
 
 # ############# #
 # API FUNCTIONS #
 # ############# #
 
+
 def print_resource_usage_ordered(resource_usage_list: list):
-    sorted_list = sorted(resource_usage_list, key=lambda line: ORDER.get(
-        next((k for k in ORDER if k in line), ''), float('inf')))
+    sorted_list = sorted(
+        resource_usage_list,
+        key=lambda line: ORDER.get(
+            next((k for k in ORDER if k in line), ""), float("inf")
+        ),
+    )
 
     for line in sorted_list:
         print(line, end="")
 
-def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False, isfirst=True, to_print=[]):
+
+def resources_tree(
+    jsonData,
+    name="",
+    file=None,
+    prefix=empty_prefix,
+    last=False,
+    isfirst=True,
+    to_print=[],
+):
     if isinstance(jsonData, dict):
         if not isfirst:
             print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
@@ -66,17 +87,20 @@ def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False
         length = len(jsonData)
         for i, key in enumerate(jsonData.keys()):
             last = i == (length - 1)
-            resources_tree(jsonData[key], key, file, prefix, last, isfirst=False, to_print=to_print)
+            resources_tree(
+                jsonData[key], key, file, prefix, last, isfirst=False, to_print=to_print
+            )
         print_resource_usage_ordered(to_print)
         to_print.clear()
     else:
-        unit = METRICS_UNITS[name] if name in METRICS_UNITS.keys() else ''
+        unit = METRICS_UNITS[name] if name in METRICS_UNITS.keys() else ""
         try:
             int_value = int(jsonData)
-            name = name + f' = {int_value:,} {unit}'
+            name = name + f" = {int_value:,} {unit}"
         except ValueError:
-            name = name + f' = {jsonData} {unit}'
+            name = name + f" = {jsonData} {unit}"
         to_print.append(f"{prefix}{pointers[1] if last else pointers[0]}{name}\n")
+
 
 def local_deploy_compss(working_dir: str = "") -> None:
     """Starts the main COMPSs image in Docker.
@@ -197,268 +221,627 @@ def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
     print("App deployed from " + local_source + " to " + dst)
 
 
-def local_inspect(ro_crate_list: list):
+def local_inspect_execution(ro_crate_list: list, verbose: bool):
+    console = Console()
+
     for ro_crate_zip_or_dir in ro_crate_list:
-        print(
-            f"================================================================================"
-        )
+        console.rule("RO-Crate Inspection")
         try:
             crate = ROCrate(ro_crate_zip_or_dir)
         except Exception as e:
-            print(f"Error loading the RO-Crate from {ro_crate_zip_or_dir} : {e}")
+            console.print(
+                f"[red]Error loading the RO-Crate from {ro_crate_zip_or_dir}: {e}"
+            )
             continue
 
-        print(f"{ro_crate_zip_or_dir}")
+        root_tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
 
-        prefix = follow_prefix
+        nr_of_tasks_completed = 0
+        nr_of_tasks_failed = 0
+        total_tasks = 0
         profiles = []
-        e_create_action = None
-        i_pointer = 0
-        application_main_file = None
+        e_main_create_action = None
+        e_main_entity = None
 
         for e in crate.get_entities():
+            # --- GENERAL INFO ---
             if e.id == "./":
-                publish_time = datetime.fromisoformat(e.get("datePublished"))
-                print(f"{pointers[0]}Date Published")
-                print(f"{prefix}{pointers[1]}{publish_time.strftime('%A, %d of %B of %Y - %H:%M %Z')}")
-                print(f"{pointers[0]}Name")
-                print(f"{prefix}{pointers[1]}{e.get('name')}")
+                if crate_name := e.get("name"):
+                    root_tree.add(f"Name —— [green]{crate_name}")
+
+                if crate_desc := e.get("description", ""):
+                    root_tree.add(f"Description —— [green]{crate_desc}")
+
                 if "creator" in e:
-                    print(f"{pointers[0]}Authors")
-                    creators = e.get("creator")
-                    for i, c in enumerate(creators):
-                        author_str = c["name"] if "name" in c else c["@id"]
-                        affiliation_e = c["affiliation"] if "affiliation" in c else None  # Can be a str or an entity
-                        if isinstance(affiliation_e, ContextEntity):
-                            affiliation_str = (
-                                affiliation_e["name"]
-                                if "name" in affiliation_e
-                                else affiliation_e["@id"]
-                            )
-                        elif isinstance(affiliation_e, str):
-                            affiliation_str = affiliation_e
+                    authors_tree = root_tree.add("Authors")
+                    c_list = []
+                    c_e = e.get("creator")
+                    if isinstance(c_e, str):
+                        authors_tree.add(f"[green]{c_e}")
+                    elif isinstance(c_e, list):
+                        c_list = c_e
+                    elif isinstance(c_e, Entity):
+                        c_list.append(c_e)
+
+                    for c in c_list:
+                        if isinstance(c, str):
+                            authors_tree.add(f"[green]{c}")
                         else:
-                            affiliation_str = ""
-                        email_e = c["contactPoint"] if "contactPoint" in c else None
-                        if email_e:
-                            email_str = (
-                                email_e["email"] if "email" in email_e else str(email_e)
+                            author_str = c.get("name", c.get("@id", ""))
+                            if not "name" in c:
+                                given_n = c.get("givenName")
+                                family_n = c.get("familyName")
+                                if given_n or family_n:
+                                    author_str = (
+                                        family_n
+                                        if not given_n
+                                        else (
+                                            f"{family_n}, {given_n}"
+                                            if family_n
+                                            else given_n
+                                        )
+                                    )
+                            affiliation = c.get("affiliation", {})
+                            if isinstance(affiliation, ContextEntity):
+                                affiliation_str = affiliation.get(
+                                    "name", affiliation.get("@id", "")
+                                )
+                            else:
+                                affiliation_str = str(affiliation or "")
+
+                            contact_point = c.get("contactPoint", "")
+                            if isinstance(contact_point, ContextEntity):
+                                email = contact_point.get("email", "")
+                            elif isinstance(contact_point, str):
+                                email = contact_point
+                            else:
+                                email = ""
+
+                            authors_tree.add(
+                                f"[green]{author_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
                             )
+                elif "author" in e:
+                    authors_tree = root_tree.add("Authors")
+                    c_list = []
+                    c_e = e.get("author")
+                    if isinstance(c_e, str):
+                        authors_tree.add(f"[green]{c_e}")
+                    elif isinstance(c_e, list):
+                        c_list = c_e
+                    elif isinstance(c_e, Entity):
+                        c_list.append(c_e)
+
+                    for c in c_list:
+                        if isinstance(c, str):
+                            authors_tree.add(f"[green]{c}")
                         else:
-                            email_str = ""
-                        i_pointer = 1 if i == (len(creators) - 1) else 0
-                        print(f"{prefix}{pointers[i_pointer]}{author_str} ({affiliation_str}) ({email_str})")
-                desc_str = e.get("description")
-                if "license" in e:
-                    print(f"{pointers[0]}License")
-                    print(f"{prefix}{pointers[1]}{e.get('license')}")
-            elif e.type == "CreativeWork":
-                if e.id.startswith("https"):
-                    profiles.append(f"{e['name']} ({e['version']})")
-            elif e.id == "#compss":
-                print(f"{pointers[0]}COMPSs Runtime version")
-                print(f"{prefix}{pointers[1]}{e.get('version', '')}")
-            elif "ComputationalWorkflow" in e.type:
-                application_main_file = e.id
-                if "softwareRequirements" in e:
-                    print(f"{pointers[0]}Software Dependencies")
-                    software_requirements = e.get("softwareRequirements")
-                    if isinstance(software_requirements, list):
-                        for i, s in enumerate(software_requirements):
-                            version_str = s["softwareVersion"] if "softwareVersion" in s else ""
-                            i_pointer = 1 if i == (len(software_requirements) - 1) else 0
-                            print(f"{prefix}{pointers[i_pointer]}{s['name']} ({version_str})")
+                            author_str = c.get("name", c.get("@id", ""))
+                            if not "name" in c:
+                                given_n = c.get("givenName")
+                                family_n = c.get("familyName")
+                                if given_n or family_n:
+                                    author_str = (
+                                        family_n
+                                        if not given_n
+                                        else (
+                                            f"{family_n}, {given_n}"
+                                            if family_n
+                                            else given_n
+                                        )
+                                    )
+                            affiliation = c.get("affiliation", {})
+                            if isinstance(affiliation, ContextEntity):
+                                affiliation_str = affiliation.get(
+                                    "name", affiliation.get("@id", "")
+                                )
+                            else:
+                                affiliation_str = str(affiliation or "")
+
+                            contact_point = c.get("contactPoint", "")
+                            if isinstance(contact_point, ContextEntity):
+                                email = contact_point.get("email", "")
+                            elif isinstance(contact_point, str):
+                                email = contact_point
+                            else:
+                                email = ""
+
+                            authors_tree.add(
+                                f"[green]{author_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
+                            )
+
+                if license_e := e.get("license"):
+                    if isinstance(license_e, ContextEntity):
+                        lic_name = license_e.get("name", "")
+                        lic_url = license_e.get("url", "")
+                        root_tree.add(
+                            f"License —— [green]{lic_name} {f'({lic_url})' if lic_url else ''}"
+                        )
+
                     else:
-                        version_str = software_requirements["softwareVersion"] if "softwareVersion" in software_requirements else ""
-                        print(f"{prefix}{pointers[1]}{software_requirements['name']} ({version_str})")
-            elif "CreateAction" in e.type:
-                e_create_action = e
+                        root_tree.add(f"License —— [green]{license_e}")
 
-        if len(profiles) > 0:
-            print(f"{pointers[0]}RO-Crate Profiles compliance")
-            for i, prof in enumerate(profiles):
-                i_pointer = 1 if i == (len(profiles) - 1) else 0
-                print(f"{prefix}{pointers[i_pointer]}{prof}")
-
-        if desc_str:
-            print(f"{pointers[0]}Description")
-            print(f"{prefix}{pointers[1]}{desc_str}")
-
-        prefix = empty_prefix + follow_prefix
-        if e_create_action:
-            print(f"{pointers[1]}CreateAction (execution details)")
-            if "agent" in e_create_action:
-                print(f"{empty_prefix}{pointers[0]}Agent")
-                agent_e = e_create_action.get("agent")
-                agent_str = agent_e["name"] if "name" in agent_e else str(agent_e)
-                affiliation_e = agent_e["affiliation"] if "affiliation" in agent_e else None
-                if isinstance(affiliation_e, ContextEntity):
-                    affiliation_str = (
-                        affiliation_e["name"]
-                        if "name" in affiliation_e
-                        else affiliation_e["@id"]
+                try:
+                    publish_time = datetime.fromisoformat(e.get("datePublished"))
+                except (TypeError, ValueError):
+                    publish_time = None
+                    publish_time_str = e.get("datePublished")
+                if publish_time:
+                    root_tree.add(
+                        f"Date Published —— [green]{publish_time.strftime('%A, %d of %B of %Y - %H:%M %Z')}"
                     )
-                elif isinstance(affiliation_e, str):
-                    affiliation_str = affiliation_e
                 else:
-                    affiliation_str = ""
-                email_e = agent_e["contactPoint"] if "contactPoint" in agent_e else None
-                if email_e:
-                    email_str = email_e["email"] if "email" in email_e else str(email_e)
-                else:
-                    email_str = ""
-                print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
-            if "instrument" in e_create_action:
-                print(f"{empty_prefix}{pointers[0]}Application's main file")
-                print(f"{prefix}{pointers[1]}{application_main_file}")
+                    root_tree.add(f"Date Published —— [green]{publish_time_str}")
 
-                num_aux_files = len(e_create_action["instrument"])
-                if isinstance(e_create_action["instrument"], list):
-                    print(f"{empty_prefix}{pointers[0]}Auxilirary files:")
-                    for entry, index in zip(e_create_action["instrument"], range(num_aux_files)):
-                        application_auxiliary_file = entry["@id"].split("/")[-1].split(".")[0]
-                        if application_auxiliary_file in application_main_file:
-                            continue
-                        current_pointer = 1 if index == num_aux_files-1 else 0
-                        print(f"{prefix}{pointers[current_pointer]}{entry['@id']}")
+                if e_main_entity := e.get("mainEntity"):
+                    if isinstance(e_main_entity, Entity):
+                        me_tree = root_tree.add(
+                            f"Main entity —— [green]{e_main_entity.get('@id', '')}"
+                        )
+                        if prog_lang_e := e_main_entity.get("programmingLanguage"):
+                            pl_name = prog_lang_e.get("name", "")
+                            pl_version = prog_lang_e.get("version")
+                            me_tree.add(
+                                f"Programming language —— [green]{pl_name} {f'({pl_version})' if pl_version else ''}"
+                            )
 
-        # Parse 'name' for hostname and JOB_ID
-            # "COMPSs cch_matmul_test.py execution at bsc_nvidia with JOB_ID 1930225"
-            exec_info = e_create_action.get("name").split(" ")
-            # Hostname included from COMPSs 3.2 version
-            if exec_info[4] != "for":
-                print(f"{empty_prefix}{pointers[0]}Hostname")
-                print(f"{prefix}{pointers[1]}{exec_info[4]}")
-            if len(exec_info) == 8:
-                print(f"{empty_prefix}{pointers[0]}Job ID")
-                print(f"{prefix}{pointers[1]}{exec_info[7]}")
+                conforms_to = e.get("conformsTo")
+                if isinstance(conforms_to, ContextEntity):
+                    profiles.append(
+                        f"{conforms_to.get('name', '')} ({conforms_to.get('version', '')})"
+                    )
+                elif isinstance(conforms_to, list):
+                    for prof in conforms_to:
+                        if isinstance(prof, ContextEntity):
+                            profiles.append(
+                                f"{prof.get('name', '')} ({prof.get('version', '')})"
+                            )
+                        elif isinstance(prof, str):
+                            profiles.append(prof)
 
-            # Environment
-            master_node_name = None
-            if "description" in e_create_action:
-                print(f"{empty_prefix}{pointers[0]}Description (submission command line)")
-                print(f"{prefix}{pointers[1]}{e_create_action.get('description', '')}")
-            environment = e_create_action.get("environment")
-            env_list = []
-            if environment:
-                for env in environment:
-                    env_list.append((env.get("name"), env.get("value")))
-                print(f"{empty_prefix}{pointers[0]}Environment")
-                for i, env_item in enumerate(env_list):
-                    i_pointer = 1 if i == (len(env_list) - 1) else 0
-                    print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
-                    if env_item[0].strip() == "COMPSS_MASTER_NODE":
-                        master_node_name = env_item[1]
+            elif "CreateAction" in e.type and e.get("instrument") == e_main_entity:
+                e_main_create_action = e
 
-            # Resource Usage
-            usage_e = e_create_action.get("resourceUsage")
-            usage_list = []
-            if usage_e:
-                for usage in usage_e:
-                    usage_list.append((usage.get("@id", ""), usage.get("value", "")))
-                print(f"{empty_prefix}{pointers[0]}Resource Usage")
+            elif "ControlAction" in e.type:
+                # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
+                action_status = e.get("actionStatus", "")
+                if "Completed" in action_status:
+                    nr_of_tasks_completed += 1
+                elif "Failed" in action_status:
+                    nr_of_tasks_failed += 1
+                total_tasks += 1
 
-                final_list = []
+        if e_main_entity and (
+            software_requirements := e_main_entity.get("softwareRequirements")
+        ):
+            deps_tree = root_tree.add("Software Requirements")
+            if isinstance(software_requirements, list):
+                for s in software_requirements:
+                    s_name = s.get("name", "")
+                    ver = s.get("softwareVersion")  # canonical expected
+                    deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
+            else:
+                s_name = software_requirements.get("name", "")
+                ver = software_requirements.get("softwareVersion", "")
+                deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
 
-                for i, ru_item in enumerate(usage_list):
-                    ru_list = ru_item[0].split(".")
-                    ru_list[0] = ru_list[0][1:]
-                    ru_list.append(ru_item[1])
-                    final_list.append(ru_list)
+        if verbose and profiles:
+            prof_tree = root_tree.add("RO-Crate compliance")
+            for prof in profiles:
+                prof_tree.add(f"[green]{prof}[/green]")
 
-                overall_list = []
-                for entry in final_list:
-                    entry[0] = entry[0].split("-")[0] if '-' in entry[0] else entry[0]
-                    entry[0] = f"{entry[0]}-MASTER" if master_node_name == entry[0] else entry[0]
-                    if entry[0] == 'overall':
-                        if entry[-2] == 'executionTime':
-                            if entry[-3] != application_main_file:
-                                del entry[-3]
-                        overall_list.append(entry)
+        # --- EXECUTION DETAILS ---
+        if e_main_create_action:
+            action_tree = root_tree.add("Execution details")
 
-                final_list = [x for x in final_list if x not in overall_list]
+            exec_info_str = e_main_create_action.get("@id")
+            if (
+                ca_name := e_main_create_action.get("name")
+            ) and not exec_info_str.startswith("#COMPSs"):
+                action_tree.add(f"Name —— [green]{ca_name}")
 
-                result = {}
-                for row in final_list:
-                    current_level = result
-                    for i, key in enumerate(row[:-2]):
-                        if key not in current_level:
-                            current_level[key] = {}
-                        current_level = current_level[key]
-                    current_level[row[-2]] = row[-1]
+            if main_ca_status := e_main_create_action.get("actionStatus", ""):
+                # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
+                if "Completed" in main_ca_status:
+                    action_tree.add(f"Status —— {'[yellow]COMPLETED[/yellow]'}")
+                elif "Failed" in main_ca_status:
+                    action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
 
-                for row in overall_list:
-                    current_level = result
-                    for i, key in enumerate(row[:-2]):
-                        if key not in current_level:
-                            current_level[key] = {}
-                        current_level = current_level[key]
-                    current_level[row[-2]] = row[-1]
+            if e_main_entity.get("step"):
+                task_tree = action_tree.add(
+                    f"Executed Tasks: {total_tasks} —— [green]COMPLETED: {nr_of_tasks_completed}[/green] [red]FAILED: {nr_of_tasks_failed}[/red]"
+                )
 
-                resources_tree(result)
+            start_time = end_time = None
+            if e_main_create_action.get("startTime"):
+                try:
+                    start_time = datetime.fromisoformat(
+                        e_main_create_action["startTime"]
+                    )
+                except (TypeError, ValueError):
+                    start_time = None
+            if e_main_create_action.get("endTime"):
+                try:
+                    end_time = datetime.fromisoformat(e_main_create_action["endTime"])
+                except (TypeError, ValueError):
+                    end_time = None
 
-            # Times
-            e_start_time = e_create_action.get("startTime")
-            if e_start_time:
-                start_time = datetime.fromisoformat(e_start_time)
-                print(f"{empty_prefix}{pointers[0]}Start Time")
-                print(f"{prefix}{pointers[1]}{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}")
-            end_time = datetime.fromisoformat(e_create_action.get("endTime"))
-            print(f"{empty_prefix}{pointers[0]}End Time")
-            print(f"{prefix}{pointers[1]}{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}")
-            # total_time = datetime.fromisoformat(endTime) - datetime.fromisoformat(startTime)
-            if e_start_time:
+            time_details = None
+            if start_time and end_time:
                 total_time = end_time - start_time
-                print(f"{empty_prefix}{pointers[0]}TOTAL EXECUTION TIME")
-                print(f"{prefix}{pointers[1]}{total_time} s")
+                time_details = action_tree.add(
+                    f"Execution Time —— [magenta]{total_time} s[/magenta]"
+                )
+            # elif (start_time or end_time) and verbose:
+            #     time_details = action_tree.add(f"Execution Time")
+            if verbose and (start_time or end_time):
+                if not time_details:
+                    time_details = action_tree.add(f"Execution Time")
+                if start_time:
+                    time_details.add(
+                        f"Start Time —— [green]{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+                    )
+                if end_time:
+                    time_details.add(
+                        f"End Time   —— [green]{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+                    )
 
-            # The 'object' list in the JSON can contain "File" objects, but also strings referencing remote files
-            # wf_inputs = e.get('object')
-            # inputs_list = []
-            # for i, wf_in in enumerate(wf_inputs):
-            #     if isinstance(wf_in, File):
-            #         name = wf_in.get('name')
-            #     else:
-            #         name = wf_in
-            #     print(f"Name: {name}")
-            #     inputs_list.append(name)
-            # print(f"\tList of needed inputs: {inputs_list}")
+            if exec_info_str.startswith("#COMPSs"):
+                # We can extract more details. Hostname included from COMPSs 3.2 version
+                # Old Create action id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117
+                # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
+                exec_info = exec_info_str.split("_")
+                host_index = exec_info.index("Crate") + 1
+                host_name_text = (
+                    exec_info[host_index] if exec_info[host_index] != "for" else ""
+                )  # Avoid problems with < 3.2 versions
+                num_nodes_e = crate.get("#slurm_job_num_nodes")
+                num_nodes_text = (
+                    f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
+                )
+                job_id = None
+                if job_id_e := crate.get("#slurm_job_id"):
+                    job_id = job_id_e.get("value", None)
+                elif len(exec_info) >= 9:
+                    job_id = exec_info[-1]
+                job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
+                action_tree.add(
+                    f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
+                )
 
-            # Inputs and Outputs
-            wf_inputs = e_create_action.get("object")
-            if wf_inputs:
-                if not e_create_action.get("result"):
-                    prefix = 2 * empty_prefix
-                    print(f"{empty_prefix}{pointers[1]}INPUTS")
+            # Resource Usage section
+            if "resourceUsage" in e_main_create_action:
+                # Create a dictionary with Resource Usage info, then print it
+                ru_dict = {}
+                for e in e_main_create_action["resourceUsage"]:
+                    is_master = False
+                    keys = e.get("@id", "").split(".")
+                    value = e.get("value", "")
+                    host = keys[0].lstrip("#").removesuffix("-ib0")
+                    if host.endswith("-MASTER"):
+                        host = host.removesuffix("-MASTER")
+                        is_master = True
+                    if host == "overall":
+                        host = host.upper()
+                    if host not in ru_dict:
+                        ru_dict[host] = {}
+                    if is_master:
+                        ru_dict[host]["is_master"] = True
+                    if len(keys) == 2:
+                        # Metric id: #[host|host-MASTER].metric_name
+                        metric = keys[1]
+                        ru_dict[host][metric] = value
+                    elif len(keys) >= 3:
+                        # Metric id's are: #[overall|host].filename.method_name.metric_name
+                        method = ".".join(keys[1:-1])
+                        if method not in ru_dict[host]:
+                            ru_dict[host][method] = {}
+                        metric = keys[-1]
+                        ru_dict[host][method][metric] = value
+
+                # Calculate totals for non-verbose
+                cpu_values = []
+                mem_values = []
+
+                del_key = None
+                for key, host_data in ru_dict.items():
+                    if "is_master" in host_data:
+                        # We ingnore the data from the master to calculate the avg and merge entries
+                        continue
+                    cpu = host_data.get("cpuAvg")
+                    mem = host_data.get("memAvg")
+                    if cpu is not None:
+                        cpu_values.append(float(cpu))
+                    if mem is not None:
+                        mem_values.append(float(mem))
+                avg_cpu = (
+                    round(sum(cpu_values) / len(cpu_values), 2) if cpu_values else None
+                )
+                avg_mem = (
+                    round(sum(mem_values) / len(mem_values), 2) if mem_values else None
+                )
+
+                # Non-verbose
+                if not verbose:
+                    usage_tree = action_tree.add(
+                        f"Resource Usage —— [magenta]Avg. CPU {avg_cpu} % —— Avg. Mem {avg_mem} %"
+                    )
                 else:
-                    print(f"{empty_prefix}{pointers[0]}INPUTS")
-                for i, wf_in in enumerate(wf_inputs):
-                    if isinstance(wf_in, str):
-                        # Backwards compatible with COMPSs 3.0
-                        continue
-                    i_pointer = 1 if i == (len(wf_inputs) - 1) else 0
-                    if "contentSize" in wf_in:
-                        print(f"{prefix}{pointers[i_pointer]}{wf_in.get('@id')} ({int(wf_in['contentSize']):,} bytes)")
-                    else:
-                        print(f"{prefix}{pointers[i_pointer]}{wf_in.get('@id')}")
+                    # add to usage_tree
+                    usage_tree = action_tree.add(f"Resource Usage")
+                    for host, host_dict in sorted(ru_dict.items()):
+                        master_text = (
+                            " (master node)" if "is_master" in host_dict else ""
+                        )
+                        host_tree = usage_tree.add(
+                            f"[blue]{host} (averages){master_text}"
+                        )
+                        for metric, metric_value in host_dict.items():
+                            if isinstance(metric_value, dict):
+                                # Info about a method
+                                if "executionTime" in metric_value:
+                                    continue  # Ignore executionTime metric
+                                host_tree.add(
+                                    f"[cyan]{metric} ({metric_value.get('executions', '')} tasks): {metric_value.get('avgTime', '')} ms —— [bright_red]{metric_value.get('maxTime', '')} ms Max[/] —— [light_green]{metric_value.get('minTime', '')} ms Min"
+                                )
+                        # Deal with info about a machine direct metric
+                        if "cpuAvg" in host_dict:
+                            host_tree.add(
+                                f"[magenta]CPU: {host_dict.get('cpuAvg', '')} % —— [bright_red]{host_dict.get('cpuMax', '')} % Max"
+                            )
+                        elif host == "OVERALL":
+                            host_tree.add(f"[magenta]CPU: {avg_cpu} %")
+                        if "memAvg" in host_dict:
+                            host_tree.add(
+                                f"[magenta]Memory: {host_dict.get('memAvg', '')} % —— [bright_red]{host_dict.get('memMax', '')} % Max[/] —— [light_green]{host_dict.get('memMin', '')} % Min"
+                            )
+                        elif host == "OVERALL":
+                            host_tree.add(f"[magenta]Memory: {avg_mem} %")
 
-            wf_outputs = e_create_action.get("result")
-            if wf_outputs:
-                prefix = 2 * empty_prefix
-                print(f"{empty_prefix}{pointers[1]}OUTPUTS")
-                for i, wf_out in enumerate(wf_outputs):
-                    if isinstance(wf_out, str):
-                        # Backwards compatible with COMPSs 3.0
-                        continue
-                    i_pointer = 1 if i == (len(wf_outputs) - 1) else 0
-                    if "contentSize" in wf_out:
-                        print(f"{prefix}{pointers[i_pointer]}{wf_out.get('@id')} ({int(wf_out['contentSize']):,} bytes)")
-                    else:
-                        print(f"{prefix}{pointers[i_pointer]}{wf_out.get('@id')}")
+            if description := e_main_create_action.get("description"):
+                # Backwards compatible with txt files, only works when Crates are not zipped
+                args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt", "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
+                for file in args_files:
+                    try:
+                        with file.open("r", encoding="utf-8") as f:
+                            description = f.readline().strip()
+                    except Exception:
+                        pass
+                action_tree.add(
+                    f"Submission —— [dim]{description}"
+                )
 
-        print(
-            f"================================================================================"
-        )
+            if e_main_create_action.get("agent"):
+                agent = e_main_create_action.get("agent")
+                agent_str = agent.get("name", str(agent))
+                affiliation = agent.get("affiliation")
+                if isinstance(affiliation, ContextEntity):
+                    affiliation_str = affiliation.get("name", affiliation.get("@id"))
+                else:
+                    affiliation_str = str(affiliation or "")
 
-        # meta = crate.dereference("ro-crate-metadata.json")
-        # print(meta["conformsTo"])
+                contact_point = agent.get("contactPoint", "")
+                if isinstance(contact_point, ContextEntity):
+                    email = contact_point.get("email", "")
+                elif isinstance(contact_point, str):
+                    email = contact_point
+                else:
+                    email = ""
+
+                action_tree.add(
+                    f"Agent —— [green]{agent_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
+                )
+
+            if e_main_create_action.get("environment"):
+                if verbose:
+                    env_tree = action_tree.add("Environment")
+                    for env in e_main_create_action["environment"]:
+                        env_tree.add(
+                            f"[dark_goldenrod]{env['name']}[/dark_goldenrod] = [green]{env['value']}[/green]"
+                        )
+                else:
+                    action_tree.add(
+                        f"Environment —— [dark_goldenrod]{len(e_main_create_action['environment'])} variables [/dark_goldenrod]"
+                    )
+
+            if not verbose:
+                ins_e = e_main_create_action.get("object")
+                outs_e = e_main_create_action.get("result")
+                action_tree.add(
+                    f"Data assets —— [dark_goldenrod]{len(ins_e) if ins_e else 0} Inputs —— [dark_goldenrod]{len(outs_e) if outs_e else 0} Outputs"
+                )
+
+            else:
+                if e_main_create_action.get("object"):
+                    inputs_tree = action_tree.add("Inputs:")
+                    for wf_in in e_main_create_action["object"]:
+                        if isinstance(wf_in, Entity):
+                            if "contentSize" in wf_in:
+                                inputs_tree.add(
+                                    f"[dark_goldenrod]{wf_in.get('@id')}[/dark_goldenrod] [dim]({int(wf_in['contentSize']):,} bytes)[/dim]"
+                                )
+                            else:
+                                inputs_tree.add(
+                                    f"[dark_goldenrod]{wf_in.get('@id')}[/dark_goldenrod]"
+                                )
+                        if isinstance(wf_in, str):
+                            # Backwards compatible with COMPSs 3.0
+                            inputs_tree.add(f"[dark_goldenrod]{wf_in}[/dark_goldenrod]")
+
+                if e_main_create_action.get("result"):
+                    outputs_tree = action_tree.add("Outputs")
+                    for wf_out in e_main_create_action["result"]:
+                        if isinstance(wf_out, Entity):
+                            if "contentSize" in wf_out:
+                                outputs_tree.add(
+                                    f"[dark_goldenrod]{wf_out.get('@id')}[/dark_goldenrod] [dim]({int(wf_out['contentSize']):,} bytes)[/dim]"
+                                )
+                            else:
+                                outputs_tree.add(
+                                    f"[dark_goldenrod]{wf_out.get('@id')}[/dark_goldenrod]"
+                                )
+                        elif isinstance(wf_out, str):
+                            # Backwards compatible with COMPSs 3.0
+                            outputs_tree.add(
+                                f"[dark_goldenrod]{wf_out}[/dark_goldenrod]"
+                            )
+
+        console.print(root_tree)
+        console.rule()
+
+
+def local_inspect_tasks(
+    ro_crate_list, failing_tasks_only: bool, tasks_to_inspect: list[int]
+):
+    from datetime import datetime
+    from rich.tree import Tree
+    from rich.console import Console
+
+    console = Console()
+
+    for ro_crate_zip_or_dir in ro_crate_list:
+        try:
+            crate = ROCrate(ro_crate_zip_or_dir)
+        except Exception as e:
+            console.print(
+                f"[bold red] Error loading the RO-Crate[/bold red] from [yellow]{ro_crate_zip_or_dir}[/yellow]: {e}"
+            )
+            continue
+
+        tree = Tree(f"[bold cyan]{ro_crate_zip_or_dir}")
+
+        log_tree = {}
+        failing_tasks = set()
+        task_create_actions = []
+
+        # OrganizeAction -> object: ControlAction's of tasks, result: main CreateAction
+        # ControlAction's of tasks -> object: CreateAction of the task
+        for e in crate.get_entities():
+            # Get only the ControlAction's from the OrganizeAction
+            if "OrganizeAction" in e.type:
+                for cont_act_task in e.get("object"):
+                    task_create_actions.append(cont_act_task.get("object"))
+
+            # —— LOGS ——
+            if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
+                task_id = int(e.get("about").get("@id").split("_")[1])
+                if (
+                    (not tasks_to_inspect)
+                    or (task_id in tasks_to_inspect)
+                    or (failing_tasks_only and task_id in failing_tasks)
+                ):
+                    log_tree.setdefault(task_id, [])
+                    log_tree[task_id].append(e.id)
+
+        task_tree = {}
+        task_counter = 0
+
+        for e in task_create_actions:
+            task_id = int(e.id.split("_")[1])
+            task_counter += 1
+            if "CompletedActionStatus" in e.get("actionStatus", ""):
+                status = "[green]COMPLETED[/green]"
+            else:
+                status = "[red]FAILED[/red]"
+                failing_tasks.add(task_id)
+
+            if (
+                (not tasks_to_inspect)
+                or (task_id in tasks_to_inspect)
+                or (failing_tasks_only and "FAILED" in status)
+            ):
+                task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
+                task_tree[task_id] = tree.add(task_label)
+
+                # —— STATUS ——
+                task_tree[task_id].add(f"Status: {status}")
+
+                # —— METHOD ——
+                method = e.get("instrument") or {}
+                method_name = method.get("name", "")
+                task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+
+                # —— EXECUTION TIME ——
+                start_time = end_time = None
+                if e.get("startTime"):
+                    try:
+                        start_time = datetime.fromisoformat(e.get("startTime"))
+                    except (TypeError, ValueError):
+                        start_time = None
+                if e.get("endTime"):
+                    try:
+                        end_time = datetime.fromisoformat(e.get("endTime"))
+                    except (TypeError, ValueError):
+                        end_time = None
+
+                if start_time and end_time:
+                    execution_time = end_time - start_time
+                    task_tree[task_id].add(
+                        f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
+                    )
+
+                # —— HOST ——
+                name_before, _, name_host = e.get("name").rpartition(" ")
+                host = name_host if name_before.endswith("host") else None
+                task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+
+                # —— INPUTS ——
+                t_inputs = task_tree[task_id].add("[bold green]Inputs:[/bold green]")
+                input_values = e.get("object", [])
+                input_params = method.get("input", [])
+                for index, param in enumerate(input_params):
+                    param_section = t_inputs.add(f"Parameter {index + 1}")
+                    param_section.add(f"Name: [cyan]{param.get('name', '')}[/cyan]")
+                    param_section.add(
+                        f"Type: [grey50]{param.get('additionalType') or param.get('@type', '')}[/grey50]"
+                    )
+                    val = next(
+                        (v for v in param.get("workExample", []) if v in input_values),
+                        {},
+                    )
+                    param_section.add(
+                        f"Value: [dark_goldenrod]{val.get('value', val.get('@id'))}[/dark_goldenrod]"
+                    )
+
+                # —— OUTPUTS ——
+                if "COMPLETED" in status:
+                    output_values = e.get("result", [])
+                    output_params = method.get("output", [])
+                    for index, param in enumerate(output_params):
+                        if index == 0:
+                            t_outputs = task_tree[task_id].add(
+                                "[bold green]Outputs:[/bold green]"
+                            )
+                        param_section = t_outputs.add(f"Parameter {index + 1}")
+                        param_section.add(f"Name: [cyan]{param.get('name', '')}[/cyan]")
+                        param_section.add(
+                            f"Type: [grey50]{param.get('additionalType') or param.get('@type', '')}[/grey50]"
+                        )
+                        val = next(
+                            (
+                                v
+                                for v in param.get("workExample", [])
+                                if v in output_values
+                            ),
+                            {},
+                        )
+                        param_section.add(
+                            f"Value: [dark_goldenrod]{val.get('value', val.get('@id'))}[/dark_goldenrod]"
+                        )
+
+        for task_id, logs in log_tree.items():
+            log_section = task_tree[task_id].add("[bold green]Logs:[/bold green]")
+            for log in logs:
+                log_section.add(f"[dim]{log}[/dim]")
+
+        tree.add(f"[bold cyan]Total Tasks —— {task_counter}")
+        if failing_tasks_only:
+            tree.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
+
+        if crate.mainEntity and not crate.mainEntity.get("step"):
+            warning_panel = Panel(
+                "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
+                border_style="yellow",
+            )
+            console.print(warning_panel)
+
+        console.print(tree)

@@ -73,27 +73,77 @@ public final class ITAppModifier {
         ClassPool classPool = getClassPool();
         CtClass appClass = classPool.get(appName);
         appClass.defrost();
-        String varName = "COMPSs_";
-        String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
-        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
-        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
-        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
-        addFields(classPool, appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
 
-        // Use thread ID for instrumentation
+        HashMap<String, CtField> getters = new HashMap<>();
+
+        String varName = "COMPSs_";
+
+        String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
+        CtField apiField = buildField(classPool, appClass, LoaderConstants.CLASS_COMPSSRUNTIME_API, itApiVar);
+        appClass.addField(apiField);
+        getters.put("getRuntime", apiField);
+
+        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
+        CtField srField = buildField(classPool, appClass, LoaderConstants.CLASS_STREAM_REGISTRY, itSRVar);
+        appClass.addField(srField);
+        getters.put("getStreamRegistry", srField);
+
+        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
+        CtField orField = buildField(classPool, appClass, LoaderConstants.CLASS_OBJECT_REGISTRY, itORVar);
+        appClass.addField(orField);
+        getters.put("getObjectRegistry", orField);
+
+        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+        CtField appIdField = buildField(classPool, appClass, LoaderConstants.CLASS_APP_ID, itAppIdVar);
+        appClass.addField(appIdField);
+        getters.put("getAppId", appIdField);
+
+        String itWfVar = varName + LoaderConstants.STR_COMPSS_WORKFLOW;
         String instrumentationAppId;
+        String instrumentationWf;
+        String setupWkSupplySrc;
         if (threadIdAsAppId) {
+            CtField field = buildField(classPool, appClass, LoaderConstants.CLASS_WORKFLOW_SUPPLIER, itWfVar);
+            String fieldInitSrc = "new " + LoaderConstants.CLASS_WORKFLOW_SUPPLIER + "();";
+            appClass.addField(field, CtField.Initializer.byExpr(fieldInitSrc));
+
+            instrumentationWf = itWfVar + ".get()";
             instrumentationAppId = "new Long(Thread.currentThread().getId())";
+            setupWkSupplySrc = LoaderConstants.CLASS_WORKFLOW_SUPPLIER + ".setRuntime(" + itApiVar + ");";
         } else {
+            appClass.addField(buildField(classPool, appClass, LoaderConstants.CLASS_WORKFLOW, itWfVar));
+            instrumentationWf = itWfVar;
             instrumentationAppId = itAppIdVar;
+            setupWkSupplySrc = ""; // No workflow supply exists. Do nothing
         }
 
         // Instrument class
-
         instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instrumentationAppId, isMainClass);
-        addModifyVariablesMethods(appClass, itApiVar, itSRVar, itORVar, itAppIdVar, instrumentationAppId, isMainClass);
 
+        addGetters(appClass, getters);
+        StringBuilder methodBody = new StringBuilder();
+        methodBody.append("public static ").append(LoaderConstants.CLASS_WORKFLOW).append(" getWorkflow() {");
+        methodBody.append("    return ").append(instrumentationWf).append(";");
+        methodBody.append("}");
+        CtMethod m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        methodBody = new StringBuilder();
+        methodBody.append("private static void setupWorkflowSupplier() {");
+        methodBody.append("    ").append(setupWkSupplySrc);
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        addModifyVariablesMethods(appClass, itApiVar, itSRVar, itORVar, itAppIdVar, instrumentationAppId, isMainClass);
         return appClass;
+    }
+
+    private static void addGetters(CtClass appClass, HashMap<String, CtField> getters) throws CannotCompileException {
+        for (Map.Entry<String, CtField> entry : getters.entrySet()) {
+            CtMethod m = CtNewMethod.getter(entry.getKey(), entry.getValue());
+            appClass.addMethod(m);
+        }
     }
 
     /**
@@ -188,24 +238,12 @@ public final class ITAppModifier {
         return cp;
     }
 
-    /**
-     * Add main variables to the instrumented class.
-     */
-    private static void addFields(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-        String itAppIdVar) throws NotFoundException, CannotCompileException {
-
-        addField(cp, appClass, LoaderConstants.CLASS_COMPSSRUNTIME_API, itApiVar);
-        addField(cp, appClass, LoaderConstants.CLASS_STREAM_REGISTRY, itSRVar);
-        addField(cp, appClass, LoaderConstants.CLASS_OBJECT_REGISTRY, itORVar);
-        addField(cp, appClass, LoaderConstants.CLASS_APP_ID, itAppIdVar);
-    }
-
-    private static void addField(ClassPool cp, CtClass appClass, String fieldClassName, String fieldName)
+    private static CtField buildField(ClassPool cp, CtClass appClass, String fieldClassName, String fieldName)
         throws NotFoundException, CannotCompileException {
         CtClass fieldClass = cp.get(fieldClassName);
         CtField field = new CtField(fieldClass, fieldName, appClass);
         field.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(field);
+        return field;
     }
 
     /*
@@ -320,6 +358,7 @@ public final class ITAppModifier {
             .append(" runtime" + ", ").append(LoaderConstants.CLASS_LOADERAPI).append(" loader" + ", ")
             .append(LoaderConstants.CLASS_APP_ID).append(" appId" + ") {");
         methodBody.append(itApiVar).append("= runtime;");
+        methodBody.append("setupWorkflowSupplier();");
         methodBody.append(itSRVar).append("= loader.getStreamRegistry();");
         methodBody.append(itORVar).append("= loader.getObjectRegistry();");
         methodBody.append(itAppIdVar).append("= appId;");
@@ -337,6 +376,7 @@ public final class ITAppModifier {
             .append(LoaderConstants.CLASS_OBJECT_REGISTRY).append(" objectRegistry" + ", ")
             .append(LoaderConstants.CLASS_APP_ID).append(" appId" + ") {");
         methodBody.append(itApiVar).append("= runtime;");
+        methodBody.append("setupWorkflowSupplier();");
         methodBody.append(itSRVar).append("= streamRegistry;");
         methodBody.append(itORVar).append("= objectRegistry;");
         methodBody.append(itAppIdVar).append("= appId;");
@@ -358,6 +398,7 @@ public final class ITAppModifier {
         methodBody.append(itApiVar).append(" = new ").append(LoaderConstants.CLASS_COMPSS_API_IMPL).append("();");
         methodBody.append(itApiVar).append(" = (").append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(")")
             .append(itApiVar).append(";");
+        methodBody.append("setupWorkflowSupplier();");
         methodBody.append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("((")
             .append(LoaderConstants.CLASS_LOADERAPI).append(") ").append(itApiVar).append(" );");
         methodBody.append(itORVar).append(" = new ").append(LoaderConstants.CLASS_OBJECT_REGISTRY).append("((")
@@ -372,37 +413,5 @@ public final class ITAppModifier {
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
 
-        /*
-         * Insert getter methods
-         */
-        methodBody = new StringBuilder();
-        methodBody.append("public static ").append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" getRuntime() {");
-        methodBody.append("return ").append(itApiVar).append(";");
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
-
-        methodBody = new StringBuilder();
-        methodBody.append("public static ").append(LoaderConstants.CLASS_STREAM_REGISTRY)
-            .append(" getStreamRegistry() {");
-        methodBody.append("return ").append(itSRVar).append(";");
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
-
-        methodBody = new StringBuilder();
-        methodBody.append("public static ").append(LoaderConstants.CLASS_OBJECT_REGISTRY)
-            .append(" getObjectRegistry() {");
-        methodBody.append("return ").append(itORVar).append(";");
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
-
-        methodBody = new StringBuilder();
-        methodBody.append("public static ").append(LoaderConstants.CLASS_APP_ID).append(" getAppId() {");
-        methodBody.append("return ").append(itAppIdVar).append(";");
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
     }
 }

@@ -108,7 +108,7 @@
     # Check ro-crate-metadata.json content
 
     # if jq available: jq '."@graph".[] | select(."@type"==["File","SoftwareSourceCode","ComputationalWorkflow"])' ro-crate-metadata.json
-    computational_workflow=$(grep ComputationalWorkflow "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//')
+    computational_workflow=$(grep ComputationalWorkflow "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//' -e 's/,\s*$//')
     if [ "${computational_workflow}" != "\"ComputationalWorkflow\"" ]; then
       echo "ro-crate-metadata.json: ComputationalWorkflow NOT FOUND" | tee -a "${output_file}"
       exit 1
@@ -135,8 +135,8 @@
     fi
 
     # if jq available: jq '."@graph".[] | select(."@type"=="CreateAction")' ro-crate-metadata.json
-    create_action=$(grep CreateAction "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//')
-    if [ "${create_action}" != "\"@type\": \"CreateAction\"," ]; then
+    create_action=$(grep -w "CreateAction" "${prov_dir}ro-crate-metadata.json")
+    if [ -z "$create_action" ]; then
       echo "ro-crate-metadata.json: CreateAction NOT FOUND" | tee -a "${output_file}"
       exit 1
     else

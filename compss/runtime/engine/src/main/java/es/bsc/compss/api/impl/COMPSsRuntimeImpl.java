@@ -103,6 +103,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1390,6 +1391,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         int task = ap.newTask(app, monitor, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
             isReplicated, isDistributed, hasTarget, numReturns, pars, onFailure, timeOut);
 
+        if (DP_ENABLED) {
+            StringBuilder taskInfoBuilder = new StringBuilder("task " + task + " " + signature + " ");
+            for (Parameter p : pars) {
+                taskInfoBuilder.append(p.getName()).append(".").append(p.getType().name()).append(".")
+                    .append(p.getDirection().toString()).append("::");
+            }
+            String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
+            DP_LOGGER.info(taskInfo);
+        }
+
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {
                 deleteParameter(app, p);
@@ -1592,6 +1603,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean handleFatalError() {
+        if (DP_ENABLED) {
+            DP_LOGGER.info("FAILED");
+        }
         ErrorManager.info("Shutting down COMPSs...", null, System.err);
         new Thread() {
 
@@ -1626,6 +1640,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         Direction direction, StdIOStream stream, String prefix, String name, String pyType, double weight,
         boolean keepRename, ArrayList<Parameter> pars, int offset, String[] vals) {
         long appId = app.getId();
+        String nameToPrint = name;
+        if (name.contains(".")) {
+            nameToPrint = name.substring(0, name.indexOf('.'));
+        }
         switch (type) {
             case DIRECTORY_T:
                 try {
@@ -1638,15 +1656,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     if (DP_ENABLED) {
                         // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
+                        String pathToPrint = finalPath;
                         if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
                             Resource host = Comm.getAppHost();
                             String absolute = dirFile.getAbsolutePath();
                             String fixedFinalPath = "dir://" + host.getName() + absolute;
-                            DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
-
-                        } else {
-                            DP_LOGGER.info(finalPath + " " + direction.toString());
+                            pathToPrint = fixedFinalPath;
                         }
+                        DP_LOGGER
+                            .info("file " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
                     }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
@@ -1665,16 +1683,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         // Log access to file in the dataprovenance.log.
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
                         String finalPath = location.toString();
+                        String pathToPrint = finalPath;
                         if (!finalPath.contains("tmpFiles/pycompss")) {
                             if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
                                 Resource host = Comm.getAppHost();
                                 String absolute = f.getAbsolutePath();
                                 String fixedFinalPath = "file://" + host.getName() + absolute;
-                                DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
-
-                            } else {
-                                DP_LOGGER.info(finalPath + " " + direction.toString());
+                                pathToPrint = fixedFinalPath;
                             }
+                            DP_LOGGER.info(
+                                "file " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
                         }
                     }
                 } catch (Exception e) {
@@ -1767,9 +1785,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     // @collection.1.0.1.2
                     // Means that this is the third element of the second element of the first element
                     // of the named collection "collection1"
-                    if (!elemName.startsWith("@")) {
-                        elemName = "@" + elemName;
-                    }
                     ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j);
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
                         elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;

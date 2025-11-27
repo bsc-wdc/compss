@@ -156,3 +156,11 @@ def is_canonical(version):
         )
         is not None
     )
+
+
+def has_files(path: str) -> bool:
+    """Return True if the directory exists and contains at least one file/entry."""
+    try:
+        return next(os.scandir(path), None) is not None
+    except (FileNotFoundError, NotADirectoryError):
+        return False

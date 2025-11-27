@@ -101,6 +101,7 @@ class PiperWorkerConfiguration:
         self.cache_profiler = argv[12]
         self.ear = argv[13] == "true"
         self.data_provenance = argv[14] == "true"
+        GLOBALS.set_data_provenance(self.data_provenance)
         self.tasks_x_node = int(argv[15])
         exec_ids = argv[16 : 16 + self.tasks_x_node]  # noqa: E203
         self.exec_ids = [int(exec_id) for exec_id in exec_ids]

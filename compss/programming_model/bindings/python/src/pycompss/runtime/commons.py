@@ -140,6 +140,7 @@ class Globals:
         "analysis_dir",
         "object_conversion",
         "tracing_task_name_to_id",
+        "data_provenance",
     )
 
     def __init__(self) -> None:
@@ -152,6 +153,7 @@ class Globals:
         self.analysis_dir = ""
         self.object_conversion = False
         self.tracing_task_name_to_id = {}  # type: typing.Dict[str, int]
+        self.data_provenance = False
 
     def get_log_directory(self) -> str:
         """Log directory getter.
@@ -240,6 +242,21 @@ class Globals:
         :return: The number of entries.
         """
         return len(self.tracing_task_name_to_id)
+
+    def get_data_provenance(self):
+        """Data_provenance getter.
+
+        :return: Value of data_provenance.
+        """
+        return self.data_provenance
+
+    def set_data_provenance(self, data_provenance):
+        """Setter of data_provenance.
+
+        :param data_provenance: New value for data_provenance.
+        :return: None.
+        """
+        self.data_provenance = data_provenance
 
 
 GLOBALS = Globals()

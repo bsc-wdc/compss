@@ -16,8 +16,7 @@
  */
 package es.bsc.compss.invokers;
 
-import es.bsc.compss.api.ApplicationRunner;
-import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
@@ -49,6 +48,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -60,6 +61,10 @@ import org.apache.logging.log4j.Logger;
 public abstract class Invoker extends DoNothingApplicationMonitor {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
+    protected static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
+
+    protected static final boolean DP_ENABLED =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
@@ -338,7 +343,15 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
             ExecType prolog = desc.getProlog();
             executeBinary(prolog);
 
+            if (DP_ENABLED) {
+                logProvenanceOfParameters(invocation.getParams(), "IN");
+            }
+
             invokeMethod();
+
+            if (DP_ENABLED) {
+                logProvenanceOfParameters(invocation.getParams(), "OUT");
+            }
 
             ExecType epilog = desc.getEpilog();
             executeBinary(epilog);
@@ -523,4 +536,20 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
 
     }
 
+    protected void logProvenanceOfParameters(List<? extends InvocationParam> params, String direction) {
+        AbstractMethodImplementation impl = this.invocation.getMethodImplementation();
+        String hostname;
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            hostname = "";
+        }
+        for (InvocationParam p : params) {
+            String paramInfo = "TASK=" + this.invocation.getTaskId() + " JOB=" + this.invocation.getJobId() + " HOST="
+                + hostname + " METHOD=" + impl.getSignature().split("\\.")[1] + " PARAMETER=" + p.getName()
+                + " BASICTYPE=" + p.getValueClass() + " COMPSSTYPE=" + p.getType() + " CONTENT=" + p.getValue()
+                + " DIRECTION=" + direction;
+            DP_LOGGER.info(paramInfo);
+        }
+    }
 }

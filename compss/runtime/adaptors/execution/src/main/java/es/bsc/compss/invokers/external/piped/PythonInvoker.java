@@ -26,7 +26,10 @@ import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+
+import java.util.List;
 
 
 public class PythonInvoker extends PipedInvoker {
@@ -43,6 +46,10 @@ public class PythonInvoker extends PipedInvoker {
 
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId(), sandBox);
         return taskExecution;
+    }
+
+    // The logging is done in the worker.py Python worker
+    protected void logProvenanceOfParameters(List<? extends InvocationParam> params, String direction) {
     }
 
     public static PipedMirror getMirror(InvocationContext context, ExecutorContext platform) {

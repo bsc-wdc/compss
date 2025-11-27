@@ -182,8 +182,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
 
         // Ear
         cmd[nextPosition++] = this.ear;
-
-        // Provenance
+        // Data provenance
         cmd[nextPosition++] = this.dataProvenance;
 
         if (cmd.length != nextPosition) {

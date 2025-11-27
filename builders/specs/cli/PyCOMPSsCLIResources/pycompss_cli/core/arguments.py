@@ -21,6 +21,7 @@ import subprocess
 
 from pycompss_cli.core.docker.arguments import docker_init_parser
 from pycompss_cli.core.local.arguments import local_init_parser
+from pycompss_cli.core.parsers import TaskIDAction
 from pycompss_cli.core.remote.arguments import remote_init_parser
 from pycompss_cli.core.remote.arguments import remote_parser_job
 from pycompss_cli.core.remote.arguments import remote_parser_app
@@ -28,6 +29,7 @@ from pycompss_cli.core.unicore.arguments import unicore_init_parser
 from pycompss_cli.core import utils
 
 FORMATTER_CLASS = argparse.RawTextHelpFormatter
+
 
 def parse_sys_argv():
     """ Parses the sys.argv.
@@ -296,10 +298,25 @@ def parse_sys_argv():
 
     parser_environment.set_defaults(action='inspect')
 
+    parser_environment.add_argument("-v", "--verbose",
+                                    action='store_true',
+                                    default=False,
+                                    help="Print extra information about tasks")
+
+    parser_environment.add_argument("-f", "--failing-tasks",
+                                    action='store_true',
+                                    default=False,
+                                    help="Print info about failing tasks only")
+
+    parser_environment.add_argument("-t", "--tasks",
+                                    action=TaskIDAction,
+                                    nargs="*",
+                                    help="Print all information about one or more tasks (e.g. 4 7 10-11 15-18")
+
     parser_environment.add_argument("ro_crate",
-                                 type=str,
-                                 nargs='+',
-                                 help="Folder or zip file(s) containing the RO-Crate(s)")
+                                    type=str,
+                                    nargs='+',
+                                    help="Folder or zip file(s) containing the RO-Crate(s)")
 
     # Check if the user does not include any argument
     if len(sys.argv) < 2:
@@ -308,6 +325,9 @@ def parse_sys_argv():
 
     arguments, leftovers = parser.parse_known_args()
     if leftovers:
-        arguments.rest_args = leftovers + arguments.rest_args
+        if hasattr(arguments, "rest_args"):
+            arguments.rest_args = leftovers + arguments.rest_args
+        else:
+            parser.error(f"Unrecognized arguments: {' '.join(leftovers)}")
 
     return arguments

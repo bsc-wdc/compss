@@ -350,6 +350,7 @@
     -Dcompss.extrae.file.python=${pythonExtraeFile} \
     -Dcompss.ear=${ear} \
     -Dcompss.data_provenance=${provenance} \
+    -Dcompss.worker.logdir=${workingDir}/log\
     -Djava.library.path=$LD_LIBRARY_PATH"
     if [ "$(uname -m)" == "riscv64" ]; then
       worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"

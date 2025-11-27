@@ -19,26 +19,28 @@ This file contains the actions supported by pycompss-cli.
 They are invoked from cli/pycompss.py and uses core/cmd.py.
 """
 
-from collections import defaultdict
 import datetime
 import json
+import os
 import shutil
 import traceback
+from collections import defaultdict
 from typing import List
-from pycompss_cli.models.app import App
-from pycompss_cli.core.local.cmd import local_deploy_compss
-from pycompss_cli.core.local.cmd import local_run_app
-from pycompss_cli.core.local.cmd import local_exec_app
-from pycompss_cli.core.local.cmd import local_jupyter
-from pycompss_cli.core.local.cmd import local_submit_job
-from pycompss_cli.core.local.cmd import local_job_list
-from pycompss_cli.core.local.cmd import local_cancel_job
-from pycompss_cli.core.local.cmd import local_job_status
-from pycompss_cli.core.local.cmd import local_app_deploy
-from pycompss_cli.core.local.cmd import local_inspect
-from pycompss_cli.core.actions import Actions
+
 import pycompss_cli.core.utils as utils
-import os, sys
+from pycompss_cli.core.actions import Actions
+from pycompss_cli.core.local.cmd import local_app_deploy
+from pycompss_cli.core.local.cmd import local_cancel_job
+from pycompss_cli.core.local.cmd import local_deploy_compss
+from pycompss_cli.core.local.cmd import local_exec_app
+from pycompss_cli.core.local.cmd import local_inspect_execution
+from pycompss_cli.core.local.cmd import local_inspect_tasks
+from pycompss_cli.core.local.cmd import local_job_list
+from pycompss_cli.core.local.cmd import local_job_status
+from pycompss_cli.core.local.cmd import local_jupyter
+from pycompss_cli.core.local.cmd import local_run_app
+from pycompss_cli.core.local.cmd import local_submit_job
+from pycompss_cli.models.app import App
 
 
 class LocalActions(Actions):
@@ -332,7 +334,7 @@ class LocalActions(Actions):
 
     def inspect(self):
         # Code that inspects the RO-Crate
-        local_inspect(self.arguments.ro_crate)
-
-
-
+        if self.arguments.failing_tasks or self.arguments.tasks or self.arguments.tasks == []:
+            local_inspect_tasks(self.arguments.ro_crate, self.arguments.failing_tasks, self.arguments.tasks)
+        else:
+            local_inspect_execution(self.arguments.ro_crate, self.arguments.verbose)

@@ -65,6 +65,85 @@ public final class ITAppModifier {
     }
 
     /**
+     * Load the modified class into memory and return it. Generally, once a class is loaded into memory no further
+     * modifications can be performed on it.
+     *
+     * @param appName Application name
+     * @param annotItf Annotated interface class
+     * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
+     *            otherwise uses the same "compssAppId"
+     * @param isMainClass Whether the calling class is the main application class
+     * @return Instrumented class
+     */
+    public static Class<?> modifyToMemory(String appName, Class<?> annotItf, boolean threadIdAsAppId,
+        boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
+        String cacheKey = appName + "-itf-" + annotItf.getName();
+        Map<String, byte[]> bytecodeMap = CACHE.get(cacheKey);
+        if (bytecodeMap == null) {
+            bytecodeMap = new HashMap<>();
+            LOGGER.info("Instrumenting class " + appName + " according to interface " + annotItf.getName());
+            CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
+            byte[] bytecode = appClass.toBytecode();
+            bytecodeMap.put(appClass.getName(), bytecode);
+            for (CtClass inner : appClass.getNestedClasses()) {
+                bytecodeMap.put(inner.getName(), inner.toBytecode());
+            }
+            CACHE.put(cacheKey, bytecodeMap);
+        } else {
+            LOGGER.info("Using cached classes");
+        }
+        ClassLoader loader = new CustomClassLoader(bytecodeMap);
+        Class<?> clazz = loader.loadClass(appName);
+        Thread.currentThread().setContextClassLoader(loader);
+        return clazz;
+    }
+
+
+    /**
+     * Custom class loader for defining the instrumented version of the class.
+     */
+    private static class CustomClassLoader extends ClassLoader {
+
+        private final Map<String, byte[]> bytecodeMap;
+
+
+        public CustomClassLoader(Map<String, byte[]> bytecodeMap) {
+            super(ITAppModifier.class.getClassLoader());
+            this.bytecodeMap = bytecodeMap;
+        }
+
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+            byte[] bytecode = bytecodeMap.get(name);
+            if (bytecode != null) {
+                // define from bytecode without delegating to parent
+                return defineClass(name, bytecode, 0, bytecode.length);
+            }
+            return super.loadClass(name);
+        }
+    }
+
+
+    /**
+     * Write the modified class to disk.
+     *
+     * @param appName Application name
+     * @param annotItf Annotated interface class
+     * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
+     *            otherwise uses the same "compssAppId"
+     * @param isMainClass Whether the calling class is the main application class
+     */
+    public static void modifyToFile(String appName, Class<?> annotItf, boolean threadIdAsAppId, boolean isMainClass)
+        throws NotFoundException, CannotCompileException, ClassNotFoundException {
+        CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
+        try {
+            appClass.writeFile();
+        } catch (Exception e) {
+            ErrorManager.fatal("Error writing the instrumented class file");
+        }
+    }
+
+    /**
      * Modify method.
      */
     private static CtClass modify(String appName, Class<?> annotItf, boolean threadIdAsAppId, boolean isMainClass)
@@ -143,85 +222,6 @@ public final class ITAppModifier {
         for (Map.Entry<String, CtField> entry : getters.entrySet()) {
             CtMethod m = CtNewMethod.getter(entry.getKey(), entry.getValue());
             appClass.addMethod(m);
-        }
-    }
-
-    /**
-     * Load the modified class into memory and return it. Generally, once a class is loaded into memory no further
-     * modifications can be performed on it.
-     *
-     * @param appName Application name
-     * @param annotItf Annotated interface class
-     * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
-     *            otherwise uses the same "compssAppId"
-     * @param isMainClass Whether the calling class is the main application class
-     * @return Instrumented class
-     */
-    public static Class<?> modifyToMemory(String appName, Class<?> annotItf, boolean threadIdAsAppId,
-        boolean isMainClass) throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
-        String cacheKey = appName + "-itf-" + annotItf.getName();
-        Map<String, byte[]> bytecodeMap = CACHE.get(cacheKey);
-        if (bytecodeMap == null) {
-            bytecodeMap = new HashMap<>();
-            LOGGER.info("Instrumenting class " + appName + " according to interface " + annotItf.getName());
-            CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
-            byte[] bytecode = appClass.toBytecode();
-            bytecodeMap.put(appClass.getName(), bytecode);
-            for (CtClass inner : appClass.getNestedClasses()) {
-                bytecodeMap.put(inner.getName(), inner.toBytecode());
-            }
-            CACHE.put(cacheKey, bytecodeMap);
-        } else {
-            LOGGER.info("Using cached classes");
-        }
-        ClassLoader loader = new CustomClassLoader(bytecodeMap);
-        Class<?> clazz = loader.loadClass(appName);
-        Thread.currentThread().setContextClassLoader(loader);
-        return clazz;
-    }
-
-
-    /**
-     * Custom class loader for defining the instrumented version of the class.
-     */
-    private static class CustomClassLoader extends ClassLoader {
-
-        private final Map<String, byte[]> bytecodeMap;
-
-
-        public CustomClassLoader(Map<String, byte[]> bytecodeMap) {
-            super(ITAppModifier.class.getClassLoader());
-            this.bytecodeMap = bytecodeMap;
-        }
-
-        @Override
-        public Class<?> loadClass(String name) throws ClassNotFoundException {
-            byte[] bytecode = bytecodeMap.get(name);
-            if (bytecode != null) {
-                // define from bytecode without delegating to parent
-                return defineClass(name, bytecode, 0, bytecode.length);
-            }
-            return super.loadClass(name);
-        }
-    }
-
-
-    /**
-     * Write the modified class to disk.
-     *
-     * @param appName Application name
-     * @param annotItf Annotated interface class
-     * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
-     *            otherwise uses the same "compssAppId"
-     * @param isMainClass Whether the calling class is the main application class
-     */
-    public static void modifyToFile(String appName, Class<?> annotItf, boolean threadIdAsAppId, boolean isMainClass)
-        throws NotFoundException, CannotCompileException, ClassNotFoundException {
-        CtClass appClass = modify(appName, annotItf, threadIdAsAppId, isMainClass);
-        try {
-            appClass.writeFile();
-        } catch (Exception e) {
-            ErrorManager.fatal("Error writing the instrumented class file");
         }
     }
 
@@ -385,25 +385,17 @@ public final class ITAppModifier {
         appClass.addMethod(m);
 
         /*
-         * Insert method to start runtime - Creation of the COMPSsRuntimeImpl - Creation of the stream registry to keep
-         * track of streams (with error handling) - Setting of the COMPSsRuntime interface variable - Start of the
-         * COMPSsRuntimeImpl
+         * Insert method to retrieve the runtime instead of instantiating a new one
          */
         methodBody = new StringBuilder();
-        methodBody.append("public static void initCOMPSsVariables() {");
-        if (isMainClass || IS_WS_CLASS) {
-            methodBody.append("System.setProperty(").append(COMPSS_APP_CONSTANT).append(", \"")
-                .append(appClass.getName()).append("\");");
-        }
-        methodBody.append(itApiVar).append(" = new ").append(LoaderConstants.CLASS_COMPSS_API_IMPL).append("();");
-        methodBody.append(itApiVar).append(" = (").append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(")")
-            .append(itApiVar).append(";");
-        methodBody.append("setupWorkflowSupplier();");
-        methodBody.append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("((")
-            .append(LoaderConstants.CLASS_LOADERAPI).append(") ").append(itApiVar).append(" );");
-        methodBody.append(itORVar).append(" = new ").append(LoaderConstants.CLASS_OBJECT_REGISTRY).append("((")
-            .append(LoaderConstants.CLASS_LOADERAPI).append(") ").append(itApiVar).append(" );");
-        methodBody.append(itApiVar).append(".startIT();");
+        methodBody.append("public static void setCOMPSsVariables( ") //
+            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime, ") //
+            .append(LoaderConstants.CLASS_LOADERAPI).append(" loader") //
+            .append(") {") //
+            .append(itApiVar).append("= runtime;") //
+            .append("setupWorkflowSupplier();") //
+            .append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("(loader);") //
+            .append(itORVar).append(" = new ").append(LoaderConstants.CLASS_OBJECT_REGISTRY).append("(loader);");//
         if (WALL_CLOCK_LIMIT > 0) {
             // Setting wall clock limit with runtime stop.
             methodBody.append(itApiVar).append(".setWallClockLimit(").append(instrumentationAppId).append(",")
@@ -412,6 +404,5 @@ public final class ITAppModifier {
         methodBody.append("}");
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
-
     }
 }

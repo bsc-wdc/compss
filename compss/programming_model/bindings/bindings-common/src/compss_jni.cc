@@ -92,10 +92,13 @@ typedef struct {         /* Instances of the es.bsc.compss.types.annotations.par
 } ParamDirections;
 ParamDirections par_dir;
 
-jobject jobjParStreamSTDIN;         /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
-jobject jobjParStreamSTDOUT;        /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
-jobject jobjParStreamSTDERR;        /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
-jobject jobjParStreamUNSPECIFIED;   /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
+typedef struct { 
+    jobject STDIN;
+    jobject STDOUT;
+    jobject STDERR;
+    jobject UNSPECIFIED;
+} StdStream;
+StdStream std_stream;
 
 jstring jobjParPrefixEMPTY;         /* Instance of the es.bsc.compss.types.annotations.Constants.PREFIX_EMPTY */
 
@@ -298,7 +301,33 @@ void init_param_directions(ThreadStatus* status) {
     par_dir.COMMUTATIVE = init_param_direction(status, clsParDir, midParDirCon, "COMMUTATIVE");
 }
 
+jobject init_std_stream(ThreadStatus* status, jclass clsStdStream, jmethodID midStdStreamCon, const char* direction) {
+    char err_msg[256];
 
+    snprintf(err_msg, 256, "Cannot retrieve StdIOStream.%s object", direction);
+    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsStdStream, midStdStreamCon, status->localJniEnv->NewStringUTF(direction));
+    check_exception(status, err_msg);
+
+    snprintf(err_msg, 256, "Cannot create global reference for StdIOStream.%s object", direction);
+    jobject jobjStdStream = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, err_msg);
+    return jobjStdStream;
+}
+
+void init_std_streams(ThreadStatus* status) {
+    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
+    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
+
+    clsParStream = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/StdIOStream");
+    check_exception(status, "Cannot find StdIOStream class");
+    midParStreamCon = status->localJniEnv->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
+    check_exception(status, "Cannot find StdIOStream constructor");
+
+    std_stream.STDIN = init_std_stream(status, clsParStream, midParStreamCon, "STDIN");
+    std_stream.STDOUT = init_std_stream(status, clsParStream, midParStreamCon, "STDOUT");
+    std_stream.STDERR = init_std_stream(status, clsParStream, midParStreamCon, "STDERR");
+    std_stream.UNSPECIFIED = init_std_stream(status, clsParStream, midParStreamCon, "UNSPECIFIED");   
+}
 /**
  * Initialises the COMPSs related types.
  */
@@ -444,35 +473,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
 
     // Parameter streams
     debug_printf ("[BINDING-COMMONS] - @Init JNI Stream Types\n");
-
-    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
-    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
-
-    clsParStream = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/StdIOStream");
-    check_exception(status, "Cannot find StdIOStream class");
-    midParStreamCon = status->localJniEnv->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
-    check_exception(status, "Cannot find StdIOStream constructor");
-
-    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDIN"));
-    check_exception(status, "Cannot retrieve StdIOStream.STDIN object");
-    jobjParStreamSTDIN = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for StdIOStream.STDIN object");
-
-    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDOUT"));
-    check_exception(status, "Cannot retrieve StdIOStream.STDOUT object");
-    jobjParStreamSTDOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for StdIOStream.STDOUT object");
-
-    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDERR"));
-    check_exception(status, "Cannot retrieve StdIOStream.STDERR object");
-    jobjParStreamSTDERR = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for StdIOStream.STDERR object");
-
-    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("UNSPECIFIED"));
-    check_exception(status, "Cannot retrieve StdIOStream.UNSPECIFIED object");
-    jobjParStreamUNSPECIFIED = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for StdIOStream.UNSPECIFIED object");
-
+    init_std_streams(status);
     debug_printf ("[BINDING-COMMONS] - @Init JNI Stream Types\n");
 
 
@@ -728,16 +729,16 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM STD IO STREAM: %d\n", (enum io_stream) parIOStream);
     switch ((enum io_stream) parIOStream) {
         case STD_IN:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDIN);
             break;
         case STD_OUT:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDOUT);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDOUT);
             break;
         case STD_ERR:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDERR);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDERR);
             break;
         default:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.UNSPECIFIED);
             break;
     }
 

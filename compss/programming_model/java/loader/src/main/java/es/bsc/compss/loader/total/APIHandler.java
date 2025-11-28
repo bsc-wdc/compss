@@ -18,6 +18,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -27,84 +28,84 @@ public final class APIHandler {
      * Barrier.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      */
-    public static void barrier(COMPSsRuntime api, Long appId, ObjectRegistry or) {
-        api.barrier(appId);
+    public static void barrier(COMPSsRuntime api, Workflow wf, ObjectRegistry or) {
+        wf.barrier();
     }
 
     /**
      * Barrier with noMoreTasks flag to avoid file transfers.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry *
      * @param noMoreTasks Whether there are more tasks to be created or not.
      */
-    public static void barrier(COMPSsRuntime api, Long appId, ObjectRegistry or, boolean noMoreTasks) {
-        api.barrier(appId, noMoreTasks);
+    public static void barrier(COMPSsRuntime api, Workflow wf, ObjectRegistry or, boolean noMoreTasks) {
+        wf.barrier(noMoreTasks);
     }
 
     /**
      * Barrier for a group of tasks.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry *
      * @param groupName Name of the group to perform the barrier.
      */
-    public static void barrierGroup(COMPSsRuntime api, Long appId, ObjectRegistry or, String groupName)
+    public static void barrierGroup(COMPSsRuntime api, Workflow wf, ObjectRegistry or, String groupName)
         throws COMPSsException {
-        api.barrierGroup(appId, groupName);
+        wf.barrierGroup(groupName);
     }
 
     /**
      * Cancel for a group of tasks.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      * @param groupName Name of the group to cancel.
      */
-    public static void cancelGroup(COMPSsRuntime api, Long appId, ObjectRegistry or, String groupName)
+    public static void cancelGroup(COMPSsRuntime api, Workflow wf, ObjectRegistry or, String groupName)
         throws COMPSsException {
-        api.cancelTaskGroup(groupName, appId);
+        wf.cancelTaskGroup(groupName);
     }
 
     /**
      * Unregister the given object from the Runtime.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      * @param o Object to unregister.
      */
-    public static void deregisterObject(COMPSsRuntime api, Long appId, ObjectRegistry or, Object o) {
-        or.delete(appId, o);
+    public static void deregisterObject(COMPSsRuntime api, Workflow wf, ObjectRegistry or, Object o) {
+        or.delete(wf.getId(), o);
     }
 
     /**
      * Returns the file specified by the given abstract pathname.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      * @param fileName File path.
      */
-    public static void getFile(COMPSsRuntime api, Long appId, ObjectRegistry or, String fileName) {
-        api.getFile(appId, fileName);
+    public static void getFile(COMPSsRuntime api, Workflow wf, ObjectRegistry or, String fileName) {
+        api.getFile(wf.getId(), fileName);
     }
 
     /**
      * Returns the number of active resources.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      * @return The number of active resources.
      */
-    public static int getNumberOfResources(COMPSsRuntime api, Long appId, ObjectRegistry or) {
+    public static int getNumberOfResources(COMPSsRuntime api, Workflow wf, ObjectRegistry or) {
         return api.getNumberOfResources();
     }
 
@@ -112,38 +113,38 @@ public final class APIHandler {
      * Requests the creation of {@code numResources} resources.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      * @param numResources Number of resources to create.
      * @param groupName name of the group to cancel if the creation fails
      */
-    public static void requestResources(COMPSsRuntime api, Long appId, ObjectRegistry or, int numResources,
+    public static void requestResources(COMPSsRuntime api, Workflow wf, ObjectRegistry or, int numResources,
         String groupName) {
-        api.requestResources(appId, numResources, groupName);
+        api.requestResources(wf.getId(), numResources, groupName);
     }
 
     /**
      * Requests the destruction of {@code numResources} resources.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      * @param numResources Number of resources to destroy.
      */
-    public static void freeResources(COMPSsRuntime api, Long appId, ObjectRegistry or, int numResources,
+    public static void freeResources(COMPSsRuntime api, Workflow wf, ObjectRegistry or, int numResources,
         String groupName) {
-        api.freeResources(appId, numResources, groupName);
+        api.freeResources(wf.getId(), numResources, groupName);
     }
 
     /**
      * Requests a checkpoint of the tasks and data.
      *
      * @param api COMPSsRuntimeAPI
-     * @param appId Id of the application doing the API call
+     * @param wf Workflow invoking the API
      * @param or Object registry
      */
-    public static void snapshot(COMPSsRuntime api, Long appId, ObjectRegistry or) {
-        api.snapshot(appId);
+    public static void snapshot(COMPSsRuntime api, Workflow wf, ObjectRegistry or) {
+        wf.snapshot();
     }
 
 }

@@ -88,6 +88,7 @@ public class ITAppEditor extends ExprEditor {
     private String itApiVar;
     private String itSRVar;
     private String itORVar;
+    private String itWfVar;
     private String itAppIdVar;
     private CtClass appClass;
 
@@ -100,11 +101,12 @@ public class ITAppEditor extends ExprEditor {
      * @param itApiVar COMPSs API pointer.
      * @param itSRVar Stream Registry.
      * @param itORVar Object Registry pointer.
+     * @param itWfVar Workflow variable.
      * @param itAppIdVar COMPSs Application Id variable.
      * @param appClass Application main class.
      */
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-        String itORVar, String itAppIdVar, CtClass appClass) {
+        String itORVar, String itWfVar, String itAppIdVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
@@ -112,6 +114,7 @@ public class ITAppEditor extends ExprEditor {
         this.itApiVar = itApiVar;
         this.itSRVar = itSRVar;
         this.itORVar = itORVar;
+        this.itWfVar = itWfVar;
         this.itAppIdVar = itAppIdVar;
         this.appClass = appClass;
     }
@@ -940,7 +943,7 @@ public class ITAppEditor extends ExprEditor {
         }
 
         apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itApiVar).append(",")
-            .append(this.itAppIdVar).append(",").append(this.itORVar);
+            .append(this.itWfVar).append(",").append(this.itORVar);
 
         if (hasArgs) {
             apiCall.append(", $$");

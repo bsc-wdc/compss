@@ -173,29 +173,29 @@ public final class ITAppModifier {
         getters.put("getObjectRegistry", orField);
 
         String itWfVar = varName + LoaderConstants.STR_COMPSS_WORKFLOW;
-        String instrumentationAppId;
-        String instrumentationWf;
+        String instAppId;
+        String instWf;
         String setupWkSupplySrc;
         if (perThreadWf) {
             CtField field = buildField(classPool, appClass, LoaderConstants.CLASS_WORKFLOW_SUPPLIER, itWfVar);
             String fieldInitSrc = "new " + LoaderConstants.CLASS_WORKFLOW_SUPPLIER + "();";
             appClass.addField(field, CtField.Initializer.byExpr(fieldInitSrc));
-            instrumentationWf = "((" + LoaderConstants.CLASS_WORKFLOW + ")" + itWfVar + ".get())";
+            instWf = "((" + LoaderConstants.CLASS_WORKFLOW + ")" + itWfVar + ".get())";
             setupWkSupplySrc = LoaderConstants.CLASS_WORKFLOW_SUPPLIER + ".setRuntime(" + itApiVar + ");";
         } else {
             appClass.addField(buildField(classPool, appClass, LoaderConstants.CLASS_WORKFLOW, itWfVar));
-            instrumentationWf = itWfVar;
+            instWf = itWfVar;
             setupWkSupplySrc = ""; // No workflow supply exists. Do nothing
         }
-        instrumentationAppId = instrumentationWf + ".getId()";
+        instAppId = instWf + ".getId()";
 
         // Instrument class
-        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instrumentationAppId, isMainClass);
+        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instWf, instAppId, isMainClass);
 
         addGetters(appClass, getters);
         StringBuilder methodBody = new StringBuilder();
         methodBody.append("public static ").append(LoaderConstants.CLASS_WORKFLOW).append(" getWorkflow() {");
-        methodBody.append("    return ").append(instrumentationWf).append(";");
+        methodBody.append("    return ").append(instWf).append(";");
         methodBody.append("}");
         CtMethod m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
@@ -244,7 +244,7 @@ public final class ITAppModifier {
      * orchestration method, or a web service method.
      */
     private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
-        String itSRVar, String itORVar, String itAppIdVar, boolean isMainClass)
+        String itSRVar, String itORVar, String itWfVar, String itAppIdVar, boolean isMainClass)
         throws NotFoundException, CannotCompileException {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
@@ -269,7 +269,7 @@ public final class ITAppModifier {
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
         ITAppEditor itAppEditor =
-            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
+            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itWfVar, itAppIdVar, appClass);
 
         for (CtMethod m : instrCandidates) {
             if (DEBUG) {

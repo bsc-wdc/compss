@@ -82,7 +82,28 @@ jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the e
 jclass clsOnFailure;
 jmethodID midOnFailureCon;
 
-typedef struct {         /* Instances of the es.bsc.compss.types.annotations.parameter.Direction class */
+typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.DataType class */
+    jobject CHAR_T;
+    jobject BOOLEAN_T;
+    jobject SHORT_T;
+    jobject INT_T;
+    jobject LONG_T;
+    jobject FLOAT_T;
+    jobject DOUBLE_T;
+    jobject FILE_T;
+    jobject DIRECTORY_T;
+    jobject EXTERNAL_STREAM_T;
+    jobject EXTERNAL_PSCO_T;
+    jobject STRING_T;
+    jobject STRING_64_T;
+    jobject BINDING_OBJECT_T;
+    jobject COLLECTION_T;
+    jobject DICT_COLLECTION_T;
+    jobject NULL_T;
+}ParamType;
+ParamType par_type;
+
+typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.Direction class */
     jobject IN;
     jobject IN_DELETE;
     jobject OUT;
@@ -92,7 +113,7 @@ typedef struct {         /* Instances of the es.bsc.compss.types.annotations.par
 } ParamDirections;
 ParamDirections par_dir;
 
-typedef struct { 
+typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
     jobject STDIN;
     jobject STDOUT;
     jobject STDERR;
@@ -269,6 +290,47 @@ void init_basic_jni_types(ThreadStatus* status) {
     debug_printf ("[BINDING-COMMONS] - @Init JNI Types DONE\n");
 }
 
+jobject init_param_type(ThreadStatus* status, jclass clsParType, jmethodID midParTypeCon, const char* type) {
+    char err_msg[256];
+
+    snprintf(err_msg, 256, "Cannot retrieve DataType.%s object", type);
+    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF(type));
+    check_exception(status, err_msg);
+
+    snprintf(err_msg, 256, "Cannot create global reference for DataType.%s object", type);
+    jobject jobjParType = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, err_msg);
+    return jobjParType;
+}
+
+void init_param_types(ThreadStatus* status){
+
+    jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
+    clsParType = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
+    check_exception(status, "Cannot load DataType class");
+
+    jmethodID midParTypeCon = NULL; /* ID of the es.bsc.compss.api.COMPSsRuntime$DataType class constructor method */
+    midParTypeCon = status->localJniEnv->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
+    check_exception(status, "Cannot get DataType constructor");
+
+    par_type.CHAR_T = init_param_type(status, clsParType, midParTypeCon, "CHAR_T");
+    par_type.BOOLEAN_T = init_param_type(status, clsParType, midParTypeCon, "BOOLEAN_T");
+    par_type.SHORT_T = init_param_type(status, clsParType, midParTypeCon, "SHORT_T");
+    par_type.INT_T = init_param_type(status, clsParType, midParTypeCon, "INT_T");
+    par_type.LONG_T = init_param_type(status, clsParType, midParTypeCon, "LONG_T");
+    par_type.FLOAT_T = init_param_type(status, clsParType, midParTypeCon, "FLOAT_T");
+    par_type.DOUBLE_T = init_param_type(status, clsParType, midParTypeCon, "DOUBLE_T");
+    par_type.FILE_T = init_param_type(status, clsParType, midParTypeCon, "FILE_T");
+    par_type.DIRECTORY_T = init_param_type(status, clsParType, midParTypeCon, "DIRECTORY_T");
+    par_type.EXTERNAL_STREAM_T = init_param_type(status, clsParType, midParTypeCon, "EXTERNAL_STREAM_T");
+    par_type.EXTERNAL_PSCO_T = init_param_type(status, clsParType, midParTypeCon, "EXTERNAL_PSCO_T");
+    par_type.STRING_T = init_param_type(status, clsParType, midParTypeCon, "STRING_T");
+    par_type.STRING_64_T = init_param_type(status, clsParType, midParTypeCon, "STRING_64_T");
+    par_type.BINDING_OBJECT_T = init_param_type(status, clsParType, midParTypeCon, "BINDING_OBJECT_T");
+    par_type.COLLECTION_T = init_param_type(status, clsParType, midParTypeCon, "COLLECTION_T");
+    par_type.DICT_COLLECTION_T = init_param_type(status, clsParType, midParTypeCon, "DICT_COLLECTION_T");
+    par_type.NULL_T = init_param_type(status, clsParType, midParTypeCon, "NULL_T");
+}
 
 jobject init_param_direction(ThreadStatus* status, jclass clsParDir, jmethodID midParDirCon, const char* direction) {
     char err_msg[256];
@@ -333,7 +395,6 @@ void init_std_streams(ThreadStatus* status) {
  */
 void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     debug_printf ("[BINDING-COMMONS] - @Init JNI Master\n");
-
 
     // JNI API method calls
     debug_printf ("[BINDING-COMMONS] - @Init JNI Methods\n");
@@ -466,6 +527,11 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find OnFailure constructor");
 
     // Parameter directions
+    debug_printf ("[BINDING-COMMONS] - @Init JNI Parameter Types\n");
+    init_param_types(status);
+    debug_printf ("[BINDING-COMMONS] - @Init JNI Parameter Types DONE\n");
+
+    // Parameter directions
     debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types\n");
     init_param_directions(status);
     debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types DONE\n");
@@ -518,16 +584,8 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     void *parPrefix     =           params[pp];
     void *parName       =           params[pn];
     void *parConType    =           params[pc];
-    void *parWeight	=           params[pw];
+    void *parWeight	    =           params[pw];
     int parKeepRename   = *(int*)   params[pkr];
-
-    jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
-    clsParType = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
-    check_exception(status, "Cannot load DataType class");
-
-    jmethodID midParTypeCon = NULL; /* ID of the es.bsc.compss.api.COMPSsRuntime$DataType class constructor method */
-    midParTypeCon = status->localJniEnv->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
-    check_exception(status, "Cannot get DataType constructor");
 
     jobject jobjParType = NULL;
     jobject jobjParVal = NULL;
@@ -537,157 +595,107 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     switch ( (enum datatype) parType) {
         case char_dt:
         case wchar_dt:
+            jobjParType = par_type.CHAR_T;
             jobjParVal = status->localJniEnv->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
             check_exception(status, "Cannot instantiate new char object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Char: %c\n", *(char*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("CHAR_T"));
-            check_exception(status, "Exception calling char constructor");
             break;
         case boolean_dt:
+            jobjParType = par_type.BOOLEAN_T;
             jobjParVal = status->localJniEnv->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
             check_exception(status, "Cannot instantiate new boolean object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Bool: %d\n", *(int*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("BOOLEAN_T"));
-            check_exception(status, "Exception calling boolean constructor");
             break;
         case short_dt:
+            jobjParType = par_type.SHORT_T;
             jobjParVal = status->localJniEnv->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
             check_exception(status, "Cannot instantiate new short object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Short: %hu\n", *(short*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("SHORT_T"));
-            check_exception(status, "Exception calling short constructor");
             break;
         case int_dt:
+            jobjParType = par_type.INT_T;
             jobjParVal = status->localJniEnv->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
             check_exception(status, "Cannot instantiate new int object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Int: %d\n", *(int*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("INT_T"));
-            check_exception(status, "Exception calling int constructor");
             break;
         case long_dt:
+            jobjParType = par_type.LONG_T;
             jobjParVal = status->localJniEnv->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
             check_exception(status, "Cannot instantiate new long object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Long: %ld\n", *(long*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("LONG_T"));
-            check_exception(status, "Exception calling long constructor");
             break;
         case longlong_dt:
         case float_dt:
+            jobjParType = par_type.FLOAT_T;
             jobjParVal = status->localJniEnv->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
             check_exception(status, "Cannot instantiate new float object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Float: %f\n", *(float*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("FLOAT_T"));
-            check_exception(status, "Exception calling float constructor");
             break;
         case double_dt:
+            jobjParType = par_type.DOUBLE_T;
             jobjParVal = status->localJniEnv->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
             check_exception(status, "Cannot instantiate new double object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Double: %f\n", *(double*)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("DOUBLE_T"));
-            check_exception(status, "Exception calling double constructor");
             break;
         case file_dt:
+            jobjParType = par_type.FILE_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for file)");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - File: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("FILE_T"));
-            check_exception(status, "Exception calling string constructor (for file)");
             break;
         case directory_dt:
+            jobjParType = par_type.DIRECTORY_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for directory)");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Directory: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("DIRECTORY_T"));
-            check_exception(status, "Exception calling string constructor (for directory)");
             break;
         case external_stream_dt:
+            jobjParType = par_type.EXTERNAL_STREAM_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for stream)");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - External Stream: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("EXTERNAL_STREAM_T"));
-            check_exception(status, "Exception calling string constructor (for stream)");
             break;
         case external_psco_dt:
+            jobjParType = par_type.EXTERNAL_PSCO_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for psco)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Persistent: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("EXTERNAL_PSCO_T"));
-            check_exception(status, "Exception calling string constructor (for psco)");
             break;
         case string_dt:
+            jobjParType = par_type.STRING_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_T"));
-            check_exception(status, "Exception calling string constructor");
             break;
         case string_64_dt:
+            jobjParType = par_type.STRING_64_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_64_T"));
-            check_exception(status, "Exception calling string constructor");
             break;
         case binding_object_dt:
+            jobjParType = par_type.BINDING_OBJECT_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for binding object)");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - BindingObject: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("BINDING_OBJECT_T"));
-            check_exception(status, "Exception calling string constructor (for binding object)");
             break;
         case collection_dt:
+            jobjParType = par_type.COLLECTION_T;
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for collection)");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Collection: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("COLLECTION_T"));
-            check_exception(status, "Exception calling string constructor (for collection)");
             break;
         case dict_collection_dt:
+            jobjParType = par_type.DICT_COLLECTION_T;
             jobjParVal = globalJniEnv -> NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for dictionary collection)");
-
             debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Dictionary Collection: %s\n", *(char **)parVal);
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("DICT_COLLECTION_T"));
-            check_exception(status, "Exception calling string constructor (for dictionary collection)");
             break;
         case null_dt:
+            jobjParType = par_type.NULL_T;
             jobjParVal = globalJniEnv -> NewStringUTF("NULL");
             check_exception(status, "Cannot instantiate new null object");
-
             debug_printf ("[BINDING-COMMONS] - @process_param - Null: NULL\n");
-
-            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("NULL_T"));
-            check_exception(status, "Exception calling null constructor");
             break;
         case void_dt:
         case any_dt:

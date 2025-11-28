@@ -101,6 +101,14 @@ def resources_tree(
             name = name + f" = {jsonData} {unit}"
         to_print.append(f"{prefix}{pointers[1] if last else pointers[0]}{name}\n")
 
+def fmt(num):
+    if num in (None, "", "None"):
+        return ""
+    try:
+        return f"{int(num):,}"  # Thousands sepparated with comma
+    except ValueError:
+        return num  # Return whatever was there
+
 
 def local_deploy_compss(working_dir: str = "") -> None:
     """Starts the main COMPSs image in Docker.
@@ -563,41 +571,50 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
                 # Non-verbose
                 if not verbose:
                     usage_tree = action_tree.add(
-                        f"Resource Usage —— [magenta]Avg. CPU {avg_cpu} % —— Avg. Mem {avg_mem} %"
+                        f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
                     )
                 else:
                     # add to usage_tree
-                    usage_tree = action_tree.add(f"Resource Usage")
+                    usage_tree = action_tree.add(f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/], [bright_red]Max[/], [light_green]Min[/] time in ms)")
                     for host, host_dict in sorted(ru_dict.items()):
                         master_text = (
                             " (master node)" if "is_master" in host_dict else ""
                         )
-                        host_tree = usage_tree.add(
-                            f"[blue]{host} (averages){master_text}"
-                        )
+                        if host != "OVERALL":
+                            host_tree = usage_tree.add(
+                                f"[blue]{host} {master_text}"
+                            )
+                        else:
+                            host_tree = usage_tree.add(
+                                f"[gold1]{host} {master_text}"
+                            )
                         for metric, metric_value in host_dict.items():
                             if isinstance(metric_value, dict):
                                 # Info about a method
                                 if "executionTime" in metric_value:
                                     continue  # Ignore executionTime metric
+                                executions = metric_value.get('executions')
+                                if host != "OVERALL" and executions == "None":
+                                    # None comes as a string in the host_dict, not as a real None
+                                    continue  # Do not print if no executions in a host, but print in the OVERALL
                                 host_tree.add(
-                                    f"[cyan]{metric} ({metric_value.get('executions', '')} tasks): {metric_value.get('avgTime', '')} ms —— [bright_red]{metric_value.get('maxTime', '')} ms Max[/] —— [light_green]{metric_value.get('minTime', '')} ms Min"
+                                    f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
                                 )
                         # Deal with info about a machine direct metric
                         if "cpuAvg" in host_dict:
                             host_tree.add(
-                                f"[magenta]CPU: {host_dict.get('cpuAvg', '')} % —— [bright_red]{host_dict.get('cpuMax', '')} % Max"
+                                f"CPU: [gold1]{host_dict.get('cpuAvg', '')} % —— [bright_red]{host_dict.get('cpuMax', '')} %"
                             )
                         elif host == "OVERALL":
-                            host_tree.add(f"[magenta]CPU: {avg_cpu} %")
+                            host_tree.add(f"CPU: [gold1]{avg_cpu} %")
                         if "memAvg" in host_dict:
                             host_tree.add(
-                                f"[magenta]Memory: {host_dict.get('memAvg', '')} % —— [bright_red]{host_dict.get('memMax', '')} % Max[/] —— [light_green]{host_dict.get('memMin', '')} % Min"
+                                f"Memory: [gold1]{host_dict.get('memAvg', '')} % —— [bright_red]{host_dict.get('memMax', '')} %[/] —— [light_green]{host_dict.get('memMin', '')} %"
                             )
                         elif host == "OVERALL":
-                            host_tree.add(f"[magenta]Memory: {avg_mem} %")
+                            host_tree.add(f"Memory: [gold1]{avg_mem} %")
 
-            if description := e_main_create_action.get("description"):
+            if (description := e_main_create_action.get("description")) and verbose:
                 # Backwards compatible with txt files, only works when Crates are not zipped
                 args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt", "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
                 for file in args_files:
@@ -643,7 +660,8 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
                         f"Environment —— [dark_goldenrod]{len(e_main_create_action['environment'])} variables [/dark_goldenrod]"
                     )
 
-            if not verbose:
+            data_assets = False
+            if not data_assets:
                 ins_e = e_main_create_action.get("object")
                 outs_e = e_main_create_action.get("result")
                 action_tree.add(
@@ -707,7 +725,7 @@ def local_inspect_tasks(
             )
             continue
 
-        tree = Tree(f"[bold cyan]{ro_crate_zip_or_dir}")
+        tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
 
         log_tree = {}
         failing_tasks = set()
@@ -780,9 +798,10 @@ def local_inspect_tasks(
                     )
 
                 # —— HOST ——
-                name_before, _, name_host = e.get("name").rpartition(" ")
-                host = name_host if name_before.endswith("host") else None
-                task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+                if e.get("name"):
+                    name_before, _, name_host = e.get("name").rpartition(" ")
+                    host = name_host if name_before.endswith("host") else None
+                    task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
                 # —— INPUTS ——
                 t_inputs = task_tree[task_id].add("[bold green]Inputs:[/bold green]")

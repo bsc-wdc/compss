@@ -82,12 +82,15 @@ jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the e
 jclass clsOnFailure;
 jmethodID midOnFailureCon;
 
-jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
-jobject jobjParDirIN_DELETE;        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
-jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
-jobject jobjParDirINOUT; 	        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
-jobject jobjParDirCONCURRENT; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
-jobject jobjParDirCOMMUTATIVE; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+typedef struct {         /* Instances of the es.bsc.compss.types.annotations.parameter.Direction class */
+    jobject IN;
+    jobject IN_DELETE;
+    jobject OUT;
+    jobject INOUT;
+    jobject CONCURRENT;
+    jobject COMMUTATIVE;
+} ParamDirections;
+ParamDirections par_dir;
 
 jobject jobjParStreamSTDIN;         /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
 jobject jobjParStreamSTDOUT;        /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
@@ -264,6 +267,38 @@ void init_basic_jni_types(ThreadStatus* status) {
 }
 
 
+jobject init_param_direction(ThreadStatus* status, jclass clsParDir, jmethodID midParDirCon, const char* direction) {
+    char err_msg[256];
+
+    snprintf(err_msg, 256, "Cannot retrieve Direction.%s object", direction);
+    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF(direction));
+    check_exception(status, err_msg);
+
+    snprintf(err_msg, 256, "Cannot create global reference for Direction.%s object", direction);
+    jobject jobjParDir = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
+    check_exception(status, err_msg);
+    return jobjParDir;
+}
+
+void init_param_directions(ThreadStatus* status) {
+
+    jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
+    jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
+
+    clsParDir = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
+    check_exception(status, "Cannot find Direction Class");
+    midParDirCon = status->localJniEnv->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
+    check_exception(status, "Cannot find Direction constructor");
+
+    par_dir.IN = init_param_direction(status, clsParDir, midParDirCon, "IN");
+    par_dir.IN_DELETE = init_param_direction(status, clsParDir, midParDirCon, "IN_DELETE");
+    par_dir.OUT = init_param_direction(status, clsParDir, midParDirCon, "OUT");
+    par_dir.INOUT = init_param_direction(status, clsParDir, midParDirCon, "INOUT");
+    par_dir.CONCURRENT = init_param_direction(status, clsParDir, midParDirCon, "CONCURRENT");
+    par_dir.COMMUTATIVE = init_param_direction(status, clsParDir, midParDirCon, "COMMUTATIVE");
+}
+
+
 /**
  * Initialises the COMPSs related types.
  */
@@ -403,45 +438,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
 
     // Parameter directions
     debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types\n");
-
-    jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
-    jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
-
-    clsParDir = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
-    check_exception(status, "Cannot find Direction Class");
-    midParDirCon = status->localJniEnv->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
-    check_exception(status, "Cannot find Direction constructor");
-
-    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("IN"));
-    check_exception(status, "Cannot retrieve Direction.IN object");
-    jobjParDirIN = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for Direction.IN object");
-
-    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("IN_DELETE"));
-    check_exception(status, "Cannot retrieve Direction.IN_DELETE object");
-    jobjParDirIN_DELETE = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for Direction.IN_DELETE object");
-
-    objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("OUT"));
-    check_exception(status, "Cannot retrieve Direction.OUT object");
-    jobjParDirOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for Direction.OUT object");
-
-    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("INOUT"));
-    check_exception(status, "Cannot retrieve Direction.INOUT object");
-    jobjParDirINOUT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for Direction.INOUT object");
-
-    objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("CONCURRENT"));
-    check_exception(status, "Cannot retrieve Direction.CONCURRENT object");
-    jobjParDirCONCURRENT = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for Direction.CONCURRENT object");
-
-    objLocal =  status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF("COMMUTATIVE"));
-    check_exception(status, "Cannot retrieve Direction.COMMUTATIVE object");
-    jobjParDirCOMMUTATIVE = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create global reference for Direction.COMMUTATIVE object");
-
+    init_param_directions(status);
     debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types DONE\n");
 
 
@@ -456,7 +453,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midParStreamCon = status->localJniEnv->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
     check_exception(status, "Cannot find StdIOStream constructor");
 
-    objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDIN"));
+    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParStream, midParStreamCon, status->localJniEnv->NewStringUTF("STDIN"));
     check_exception(status, "Cannot retrieve StdIOStream.STDIN object");
     jobjParStreamSTDIN = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
     check_exception(status, "Cannot create global reference for StdIOStream.STDIN object");
@@ -706,22 +703,22 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DIRECTION: %d\n", (enum direction) parDirect);
     switch ((enum direction) parDirect) {
         case in_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN);
             break;
         case out_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirOUT);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.OUT);
             break;
         case inout_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirINOUT);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.INOUT);
             break;
         case concurrent_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCONCURRENT);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.CONCURRENT);
             break;
         case commutative_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCOMMUTATIVE);
+            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.COMMUTATIVE);
             break;
         case in_delete_dir:
-        	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN_DELETE);
+        	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN_DELETE);
         	break;
         default:
             break;
@@ -1308,35 +1305,35 @@ void JNI_Open_File(long appId, char* fileName, int mode, char** buf) {
                                                         midOpenFile,
                                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                                         filename_str,
-                                                        jobjParDirIN);
+                                                        par_dir.IN);
             break;
         case out_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
                                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                                         filename_str,
-                                                        jobjParDirOUT);
+                                                        par_dir.OUT);
             break;
         case inout_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
                                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                                         filename_str,
-                                                        jobjParDirINOUT);
+                                                        par_dir.INOUT);
             break;
         case concurrent_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
                                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                                         filename_str,
-                                                        jobjParDirCONCURRENT);
+                                                        par_dir.CONCURRENT);
             break;
         case commutative_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
                                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                                         filename_str,
-                                                        jobjParDirCOMMUTATIVE);
+                                                        par_dir.COMMUTATIVE);
             break;
         default:
             break;
@@ -1373,35 +1370,35 @@ void JNI_Close_File(long appId, char* fileName, int mode) {
                                         midCloseFile,
                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                         status->localJniEnv->NewStringUTF(fileName),
-                                        jobjParDirIN);
+                                        par_dir.IN);
             break;
         case out_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                         status->localJniEnv->NewStringUTF(fileName),
-                                        jobjParDirOUT);
+                                        par_dir.OUT);
             break;
         case inout_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                         status->localJniEnv->NewStringUTF(fileName),
-                                        jobjParDirINOUT);
+                                        par_dir.INOUT);
             break;
         case concurrent_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                         status->localJniEnv->NewStringUTF(fileName),
-                                        jobjParDirCONCURRENT);
+                                        par_dir.CONCURRENT);
             break;
         case commutative_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
                                         status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                         status->localJniEnv->NewStringUTF(fileName),
-                                        jobjParDirCOMMUTATIVE);
+                                        par_dir.COMMUTATIVE);
             break;
         default:
             break;

@@ -24,22 +24,6 @@ import es.bsc.wdc.tracing.Event;
  */
 public enum TraceEvent implements Event {
 
-    STATIC_IT(1, TraceEventType.API, "Loading Runtime"), //
-    START(2, TraceEventType.API, "Start"), //
-    STOP(3, TraceEventType.API, "Stop"), //
-    TASK(4, TraceEventType.API, "Execute Task"), //
-    NO_MORE_TASKS(5, TraceEventType.API, "Waiting for tasks end"), //
-    WAIT_FOR_ALL_TASKS(6, TraceEventType.API, "Barrier"), //
-    OPEN_FILE(7, TraceEventType.API, "Waiting for open file"), //
-    OPEN_DIRECTORY(57, TraceEventType.API, "Waiting for open directory"), //
-    GET_FILE(8, TraceEventType.API, "Waiting for get file"), //
-    GET_OBJECT(9, TraceEventType.API, "Waiting for get object"), //
-    GET_BINDING_OBJECT(10, TraceEventType.API, "Waiting for get binding object"), //
-    GET_DIRECTORY(58, TraceEventType.API, "Waiting for get Directory"), //
-    DELETE(12, TraceEventType.API, "Delete File"), //
-    WAIT_FOR_CONCURRENT(59, TraceEventType.API, "Wait on concurrent"), //
-    SNAPSHOT_API(80, TraceEventType.API, "Snapshot request"), //
-
     // Worker runtime events
     TASK_RUNNING(11, TraceEventType.RUNTIME, "Task Running"), //
     WORKER_RECEIVED_NEW_TASK(13, TraceEventType.RUNTIME, "Received new task"), //
@@ -62,6 +46,7 @@ public enum TraceEvent implements Event {
     LOCAL_SERIALIZE(69, TraceEventType.RUNTIME, "Serializing Object"), //
 
     // Access Processor Events which are not in the API
+    WAIT_FOR_ALL_TASKS(6, TraceEventType.RUNTIME, "Access Processor: Barrier"), //
     DEBUG(17, TraceEventType.RUNTIME, "Access Processor: Debug"), //
     ANALYSE_TASK(18, TraceEventType.RUNTIME, "Access Processor: Analyse task"), //
     UPDATE_GRAPH(19, TraceEventType.RUNTIME, "Access Processor: Update graph"), //
@@ -233,18 +218,6 @@ public enum TraceEvent implements Event {
     AGENT_REMOVE_RESOURCES(6005, TraceEventType.AGENT, "Remove resources agent"), //
     AGENT_RUN_TASK(6006, TraceEventType.AGENT, "Run task agent"), //
 
-    // Checkpointer events
-    CHECKPOINT_SHUTDOWN(7001, TraceEventType.CHECKPOINT_EVENTS_TYPE, "CheckpointManager shutdown"),
-
-    CHECKPOINT_NEW_TASK(7002, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint New task"), // New task
-    CHECKPOINT_END_TASK(7003, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint end task"), // End task
-    CHECKPOINT_MAIN_ACCESS(7004, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint main data access"), // Main access
-    CHECKPOINT_DELETE_DATA(7005, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint deletes data"), // delete data
-    CHECKPOINT_SNAPSHOT(7006, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint snapshot"), // Snapshot
-
-    SAVE_LAST_DATA_VERSIONS(7011, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint current versions"), // Request
-    CHECKPOINT_COPY_DATA_ENDED(7012, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint copy finished"), // Request
-
     // Thread identifier events
     AP_THREAD_ID(Threads.AP.id, TraceEventType.THREAD_IDENTIFICATION, Threads.AP.description), //
     TD_THREAD_ID(Threads.TD.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TD.description), //
@@ -287,6 +260,7 @@ public enum TraceEvent implements Event {
         return this.signature;
     }
 
+    @Override
     public TraceEventType getType() {
         return this.type;
     }

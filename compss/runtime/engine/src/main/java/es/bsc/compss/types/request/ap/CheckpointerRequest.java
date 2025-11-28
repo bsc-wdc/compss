@@ -14,28 +14,16 @@
  *  limitations under the License.
  *
  */
-package es.bsc.wdc.tracing;
+package es.bsc.compss.types.request.ap;
 
-public interface Event {
+import es.bsc.compss.types.tracing.TraceEvent;
 
-    /**
-     * Retuns the code identifying the event.
-     * 
-     * @return code identifying the event.
-     */
-    int getId();
 
-    /**
-     * Returns the signature of the event.
-     * 
-     * @return signature of the event
-     */
-    String getSignature();
+public abstract class CheckpointerRequest implements APRequest {
 
-    /**
-     * Returns the type of the event.
-     *
-     * @return event Type
-     */
-    EventType getType();
+    @Override
+    public TraceEvent getEvent() {
+        return TraceEvent.AP_CHECKPOINT_REQUEST;
+    }
+
 }

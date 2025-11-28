@@ -17,7 +17,6 @@
 package es.bsc.compss.checkpoint.policies;
 
 import es.bsc.compss.checkpoint.CheckpointManagerImpl;
-import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Task;
 
 import java.util.HashMap;
@@ -28,8 +27,8 @@ public class CheckpointPolicyPeriodicTime extends CheckpointManagerImpl {
     private static int DEFAULT_TIME = 15_000;
 
 
-    public CheckpointPolicyPeriodicTime(HashMap<String, String> config, AccessProcessor ap) {
-        super(config, DEFAULT_TIME, 0, ap);
+    public CheckpointPolicyPeriodicTime(HashMap<String, String> config, User user) {
+        super(config, DEFAULT_TIME, 0, user);
     }
 
     @Override

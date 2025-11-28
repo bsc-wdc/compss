@@ -25,7 +25,7 @@ import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.Collections;
@@ -83,7 +83,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
     @Override
     public final void newTask(Task t) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECKPOINT_NEW_TASK);
+            Tracer.emitEvent(CheckpointEvent.CHECKPOINT_NEW_TASK);
         }
         if (isTaskCheckpointed(t)) {
             recoverTask(t);
@@ -105,7 +105,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
             }
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECKPOINT_NEW_TASK);
+            Tracer.emitEventEnd(CheckpointEvent.CHECKPOINT_NEW_TASK);
         }
     }
 
@@ -119,7 +119,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
     @Override
     public final void endTask(Task t) {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECKPOINT_END_TASK);
+            Tracer.emitEvent(CheckpointEvent.CHECKPOINT_END_TASK);
         }
         String signature = t.getTaskDescription().getCoreElement().getSignature();
         if (!this.avoidCheckpointTasks.contains(signature)) {
@@ -144,14 +144,14 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
             }
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECKPOINT_NEW_TASK);
+            Tracer.emitEventEnd(CheckpointEvent.CHECKPOINT_NEW_TASK);
         }
     }
 
     @Override
     public final void snapshot() {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECKPOINT_SNAPSHOT);
+            Tracer.emitEvent(CheckpointEvent.CHECKPOINT_SNAPSHOT);
         }
         for (CheckpointGroupImpl group : openGroups.values()) {
             closeGroup(group);
@@ -160,7 +160,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
 
         this.defGroup -= 1;
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECKPOINT_SNAPSHOT);
+            Tracer.emitEventEnd(CheckpointEvent.CHECKPOINT_SNAPSHOT);
         }
     }
 
@@ -243,7 +243,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
     @Override
     public final void shutdown() {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECKPOINT_SHUTDOWN);
+            Tracer.emitEvent(CheckpointEvent.CHECKPOINT_SHUTDOWN);
         }
         for (CheckpointGroupImpl group : this.openGroups.values()) {
             closeGroup(group);
@@ -256,7 +256,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
 
         performAllCopies();
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECKPOINT_SHUTDOWN);
+            Tracer.emitEventEnd(CheckpointEvent.CHECKPOINT_SHUTDOWN);
         }
     }
 

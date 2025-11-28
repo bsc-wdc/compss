@@ -233,9 +233,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
         this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
         NIOTracer.init(this.tracingId, hostName, installDir, this.tracingTaskDependencies);
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.START);
-        }
 
         // Set attributes
         this.deploymentId = appUuid;
@@ -1320,10 +1317,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.error("Error starting TransferManager Server at Worker" + nw.getHostName(), ce);
             nw.shutdown(null);
             return;
-        }
-
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventEnd(TraceEvent.START);
         }
 
         /*

@@ -28,8 +28,6 @@ public enum TraceEventType implements EventType {
     // Event codes
     // Core Element Id
     TASKS_FUNC(8_000_000, "Task", true),
-    // API Invocations
-    API(8_001_001, "API", true),
     // Runtime internal events
     RUNTIME(8_001_002, "Runtime", true),
     // Identifies the thread as AP, TD, executor...
@@ -43,7 +41,7 @@ public enum TraceEventType implements EventType {
     // Task Ids
     TASKS_ID(8_000_002, "Task IDs", true),
 
-    CHECKPOINT_EVENTS_TYPE(8_001_100, "Checkpoint", true), TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
+    TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
     DATA_TRANSFERS(8_000_004, "Data Transfers", false), //
     STORAGE_TYPE(8_000_005, "Storage API", true), //
     READY_COUNTS(8_000_006, "Ready queue count", true), //
@@ -87,7 +85,7 @@ public enum TraceEventType implements EventType {
         this.events = new LinkedList<>();
     }
 
-    protected final void addEvent(Event event) {
+    public final void addEvent(Event event) {
         events.add(event);
     }
 

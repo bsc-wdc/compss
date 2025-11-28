@@ -14,28 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.wdc.tracing;
+package es.bsc.compss.types.request;
 
-public interface Event {
+import es.bsc.compss.types.tracing.TraceEvent;
 
-    /**
-     * Retuns the code identifying the event.
-     * 
-     * @return code identifying the event.
-     */
-    int getId();
+
+public interface Request {
 
     /**
-     * Returns the signature of the event.
-     * 
-     * @return signature of the event
-     */
-    String getSignature();
-
-    /**
-     * Returns the type of the event.
+     * Returns the event to be traced for this instance.
      *
-     * @return event Type
+     * @return event to trace
      */
-    EventType getType();
+    TraceEvent getEvent();
 }

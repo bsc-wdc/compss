@@ -20,11 +20,11 @@ import es.bsc.compss.checkpoint.CheckpointRecord;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 
-public class CheckpointerSaveLastDataVersionsRequest extends CheckpointerRequest {
+public class CheckpointerSaveLastDataVersionsRequest extends CheckpointerRequestImpl {
 
     /**
      * Requesting to save all last data versions from checkpointer.
@@ -36,8 +36,8 @@ public class CheckpointerSaveLastDataVersionsRequest extends CheckpointerRequest
     }
 
     @Override
-    public TraceEvent getCheckpointEvent() {
-        return TraceEvent.SAVE_LAST_DATA_VERSIONS;
+    public CheckpointEvent getCheckpointEvent() {
+        return CheckpointEvent.SAVE_LAST_DATA_VERSIONS;
     }
 
     @Override

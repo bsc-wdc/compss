@@ -24,7 +24,6 @@
 
 #include "compss_interface.h"
 #include "compss_jni.h"
-#include "compss_interface.h"
 #include "param_metadata.h"
 #include "BindingDataManager.h"
 
@@ -235,82 +234,32 @@ void check_and_get_compss_exception(ThreadStatus* status, char** buf) {
 }
 
 
+void defineBasicType(ThreadStatus* status, const char* label, const char* name, const char* args, jclass* cls, jmethodID* midCon){
+    char err_msg[256];
+    snprintf(err_msg, 256, "Cannot find %s Class", label);
+    jclass clsLocal = status->localJniEnv->FindClass(name);
+    check_exception(status, err_msg);
+    *cls = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
+    check_exception(status, err_msg);
+    *midCon = status->localJniEnv->GetMethodID(*cls, "<init>", args);
+    check_exception(status, err_msg);
+}
+
 /**
  * Initialises the JNI basic types.
  */
 void init_basic_jni_types(ThreadStatus* status) {
     // Parameter classes
     debug_printf ("[BINDING-COMMONS] - @Init JNI Types\n");
-
-    jclass clsLocal = status->localJniEnv->FindClass("java/lang/Object");
-    check_exception(status, "Cannot find object class");
-    clsObject = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot create global object class");
-    midObjCon = status->localJniEnv->GetMethodID(clsObject, "<init>", "()V");
-    check_exception(status, "Cannot find object constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/String");
-    check_exception(status, "Cannot find string class");
-    clsString = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot create global string class");
-    midStrCon = status->localJniEnv->GetMethodID(clsString, "<init>", "(Ljava/lang/String;)V");
-    check_exception(status, "Cannot find string constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Character");
-    check_exception(status, "Cannot find char class");
-    clsCharacter = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot create global char class");
-    midCharCon = status->localJniEnv->GetMethodID(clsCharacter, "<init>", "(C)V");
-    check_exception(status, "Cannot find char constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Boolean");
-    check_exception(status, "Cannot find boolean class");
-    clsBoolean = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot find boolean class");
-
-    midBoolCon = status->localJniEnv->GetMethodID(clsBoolean, "<init>", "(Z)V");
-    check_exception(status, "Cannot find boolean class");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Short");
-    check_exception(status, "Cannot find boolean class");
-    clsShort = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot find boolean class");
-
-    midShortCon = status->localJniEnv->GetMethodID(clsShort, "<init>", "(S)V");
-    check_exception(status, "Cannot find boolean constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Integer");
-    check_exception(status, "Cannot find Integer class");
-    clsInteger = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot find Integer class");
-
-    midIntCon = status->localJniEnv->GetMethodID(clsInteger, "<init>", "(I)V");
-    check_exception(status, "Cannot find Integer constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Long");
-    check_exception(status, "Cannot find Long class");
-    clsLong = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot find Long class");
-
-    midLongCon = status->localJniEnv->GetMethodID(clsLong, "<init>", "(J)V");
-    check_exception(status, "Cannot find Long constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Float");
-    check_exception(status, "Cannot find Float Class");
-    clsFloat = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot find Float Class");
-
-    midFloatCon = status->localJniEnv->GetMethodID(clsFloat, "<init>", "(F)V");
-    check_exception(status, "Cannot find Float Constructor");
-
-    clsLocal = status->localJniEnv->FindClass("java/lang/Double");
-    check_exception(status, "Cannot find Double Class");
-    clsDouble = (jclass)status->localJniEnv->NewGlobalRef(clsLocal);
-    check_exception(status, "Cannot find Double Class");
-
-    midDoubleCon = status->localJniEnv->GetMethodID(clsDouble, "<init>", "(D)V");
-    check_exception(status, "Cannot find Double Constructor");
-
+    defineBasicType(status, "Object", (char*)"java/lang/Object", (char*)"()V", &clsObject, &midObjCon);
+    defineBasicType(status, (char*)"String", "java/lang/String", (char*)"(Ljava/lang/String;)V", &clsString, &midStrCon);
+    defineBasicType(status, (char*)"Char", (char*)"java/lang/Character", "(C)V", &clsCharacter, &midCharCon);
+    defineBasicType(status, (char*)"Boolean", (char*)"java/lang/Boolean", (char*)"(Z)V", &clsBoolean, &midBoolCon);
+    defineBasicType(status, (char*)"Short", (char*)"java/lang/Short", (char*)"(S)V", &clsShort, &midShortCon);
+    defineBasicType(status, (char*)"Integer", (char*)"java/lang/Integer", (char*)"(I)V", &clsInteger, &midIntCon);
+    defineBasicType(status, (char*)"Long", (char*)"java/lang/Long", (char*)"(J)V", &clsLong, &midLongCon);
+    defineBasicType(status, (char*)"Float", (char*)"java/lang/Float", (char*)"(F)V", &clsFloat, &midFloatCon);
+    defineBasicType(status, (char*)"Double", (char*)"java/lang/Double", (char*)"(D)V", &clsDouble, &midDoubleCon);
     debug_printf ("[BINDING-COMMONS] - @Init JNI Types DONE\n");
 }
 

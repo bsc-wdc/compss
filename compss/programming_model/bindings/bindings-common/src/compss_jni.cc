@@ -290,18 +290,19 @@ void init_basic_jni_types(ThreadStatus* status) {
     debug_printf ("[BINDING-COMMONS] - @Init JNI Types DONE\n");
 }
 
-jobject init_param_type(ThreadStatus* status, jclass clsParType, jmethodID midParTypeCon, const char* type) {
+jobject init_param_field(ThreadStatus* status, jclass clsParField, jmethodID midParFieldCon, const char* field, const char* value) {
     char err_msg[256];
 
-    snprintf(err_msg, 256, "Cannot retrieve DataType.%s object", type);
-    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF(type));
+    snprintf(err_msg, 256, "Cannot retrieve %s.%s object", field, value);
+    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParField, midParFieldCon, status->localJniEnv->NewStringUTF(value));
     check_exception(status, err_msg);
 
-    snprintf(err_msg, 256, "Cannot create global reference for DataType.%s object", type);
+    snprintf(err_msg, 256, "Cannot create global reference for %s.%s object", field, value);
     jobject jobjParType = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
     check_exception(status, err_msg);
     return jobjParType;
 }
+
 
 void init_param_types(ThreadStatus* status){
 
@@ -313,36 +314,23 @@ void init_param_types(ThreadStatus* status){
     midParTypeCon = status->localJniEnv->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
     check_exception(status, "Cannot get DataType constructor");
 
-    par_type.CHAR_T = init_param_type(status, clsParType, midParTypeCon, "CHAR_T");
-    par_type.BOOLEAN_T = init_param_type(status, clsParType, midParTypeCon, "BOOLEAN_T");
-    par_type.SHORT_T = init_param_type(status, clsParType, midParTypeCon, "SHORT_T");
-    par_type.INT_T = init_param_type(status, clsParType, midParTypeCon, "INT_T");
-    par_type.LONG_T = init_param_type(status, clsParType, midParTypeCon, "LONG_T");
-    par_type.FLOAT_T = init_param_type(status, clsParType, midParTypeCon, "FLOAT_T");
-    par_type.DOUBLE_T = init_param_type(status, clsParType, midParTypeCon, "DOUBLE_T");
-    par_type.FILE_T = init_param_type(status, clsParType, midParTypeCon, "FILE_T");
-    par_type.DIRECTORY_T = init_param_type(status, clsParType, midParTypeCon, "DIRECTORY_T");
-    par_type.EXTERNAL_STREAM_T = init_param_type(status, clsParType, midParTypeCon, "EXTERNAL_STREAM_T");
-    par_type.EXTERNAL_PSCO_T = init_param_type(status, clsParType, midParTypeCon, "EXTERNAL_PSCO_T");
-    par_type.STRING_T = init_param_type(status, clsParType, midParTypeCon, "STRING_T");
-    par_type.STRING_64_T = init_param_type(status, clsParType, midParTypeCon, "STRING_64_T");
-    par_type.BINDING_OBJECT_T = init_param_type(status, clsParType, midParTypeCon, "BINDING_OBJECT_T");
-    par_type.COLLECTION_T = init_param_type(status, clsParType, midParTypeCon, "COLLECTION_T");
-    par_type.DICT_COLLECTION_T = init_param_type(status, clsParType, midParTypeCon, "DICT_COLLECTION_T");
-    par_type.NULL_T = init_param_type(status, clsParType, midParTypeCon, "NULL_T");
-}
-
-jobject init_param_direction(ThreadStatus* status, jclass clsParDir, jmethodID midParDirCon, const char* direction) {
-    char err_msg[256];
-
-    snprintf(err_msg, 256, "Cannot retrieve Direction.%s object", direction);
-    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsParDir, midParDirCon, status->localJniEnv->NewStringUTF(direction));
-    check_exception(status, err_msg);
-
-    snprintf(err_msg, 256, "Cannot create global reference for Direction.%s object", direction);
-    jobject jobjParDir = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, err_msg);
-    return jobjParDir;
+    par_type.CHAR_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "CHAR_T");
+    par_type.BOOLEAN_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "BOOLEAN_T");
+    par_type.SHORT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "SHORT_T");
+    par_type.INT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "INT_T");
+    par_type.LONG_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "LONG_T");
+    par_type.FLOAT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "FLOAT_T");
+    par_type.DOUBLE_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "DOUBLE_T");
+    par_type.FILE_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "FILE_T");
+    par_type.DIRECTORY_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "DIRECTORY_T");
+    par_type.EXTERNAL_STREAM_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "EXTERNAL_STREAM_T");
+    par_type.EXTERNAL_PSCO_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "EXTERNAL_PSCO_T");
+    par_type.STRING_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "STRING_T");
+    par_type.STRING_64_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "STRING_64_T");
+    par_type.BINDING_OBJECT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "BINDING_OBJECT_T");
+    par_type.COLLECTION_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "COLLECTION_T");
+    par_type.DICT_COLLECTION_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "DICT_COLLECTION_T");
+    par_type.NULL_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "NULL_T");
 }
 
 void init_param_directions(ThreadStatus* status) {
@@ -355,25 +343,12 @@ void init_param_directions(ThreadStatus* status) {
     midParDirCon = status->localJniEnv->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
     check_exception(status, "Cannot find Direction constructor");
 
-    par_dir.IN = init_param_direction(status, clsParDir, midParDirCon, "IN");
-    par_dir.IN_DELETE = init_param_direction(status, clsParDir, midParDirCon, "IN_DELETE");
-    par_dir.OUT = init_param_direction(status, clsParDir, midParDirCon, "OUT");
-    par_dir.INOUT = init_param_direction(status, clsParDir, midParDirCon, "INOUT");
-    par_dir.CONCURRENT = init_param_direction(status, clsParDir, midParDirCon, "CONCURRENT");
-    par_dir.COMMUTATIVE = init_param_direction(status, clsParDir, midParDirCon, "COMMUTATIVE");
-}
-
-jobject init_std_stream(ThreadStatus* status, jclass clsStdStream, jmethodID midStdStreamCon, const char* direction) {
-    char err_msg[256];
-
-    snprintf(err_msg, 256, "Cannot retrieve StdIOStream.%s object", direction);
-    jobject objLocal = status->localJniEnv->CallStaticObjectMethod(clsStdStream, midStdStreamCon, status->localJniEnv->NewStringUTF(direction));
-    check_exception(status, err_msg);
-
-    snprintf(err_msg, 256, "Cannot create global reference for StdIOStream.%s object", direction);
-    jobject jobjStdStream = (jobject)status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, err_msg);
-    return jobjStdStream;
+    par_dir.IN = init_param_field(status, clsParDir, midParDirCon, "Direction", "IN");
+    par_dir.IN_DELETE = init_param_field(status, clsParDir, midParDirCon, "Direction", "IN_DELETE");
+    par_dir.OUT = init_param_field(status, clsParDir, midParDirCon, "Direction", "OUT");
+    par_dir.INOUT = init_param_field(status, clsParDir, midParDirCon, "Direction", "INOUT");
+    par_dir.CONCURRENT = init_param_field(status, clsParDir, midParDirCon, "Direction", "CONCURRENT");
+    par_dir.COMMUTATIVE = init_param_field(status, clsParDir, midParDirCon, "Direction", "COMMUTATIVE");
 }
 
 void init_std_streams(ThreadStatus* status) {
@@ -385,10 +360,10 @@ void init_std_streams(ThreadStatus* status) {
     midParStreamCon = status->localJniEnv->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
     check_exception(status, "Cannot find StdIOStream constructor");
 
-    std_stream.STDIN = init_std_stream(status, clsParStream, midParStreamCon, "STDIN");
-    std_stream.STDOUT = init_std_stream(status, clsParStream, midParStreamCon, "STDOUT");
-    std_stream.STDERR = init_std_stream(status, clsParStream, midParStreamCon, "STDERR");
-    std_stream.UNSPECIFIED = init_std_stream(status, clsParStream, midParStreamCon, "UNSPECIFIED");   
+    std_stream.STDIN = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "STDIN");
+    std_stream.STDOUT = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "STDOUT");
+    std_stream.STDERR = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "STDERR");
+    std_stream.UNSPECIFIED = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "UNSPECIFIED");   
 }
 /**
  * Initialises the COMPSs related types.

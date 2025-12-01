@@ -313,6 +313,11 @@ def parse_sys_argv():
                                     nargs="*",
                                     help="Print all information about one or more tasks (e.g. 4 7 10-11 15-18")
 
+    parser_environment.add_argument("-m", "--methods",
+                                    type=str,
+                                    nargs="*",
+                                    help="Print all tasks executing the specified method(s)")
+
     parser_environment.add_argument("ro_crate",
                                     type=str,
                                     nargs='+',

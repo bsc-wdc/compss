@@ -15,11 +15,12 @@
 #  limitations under the License.
 #
 import os
+import re
 import shutil
 import subprocess
 from datetime import datetime
-from typing import List
 from pathlib import Path
+from typing import List
 
 import pycompss_cli.core.utils as utils
 from rich.console import Console
@@ -708,7 +709,10 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
 
 
 def local_inspect_tasks(
-    ro_crate_list, failing_tasks_only: bool, tasks_to_inspect: list[int]
+    ro_crate_list,
+    failing_tasks_only: bool,
+    tasks_to_inspect: list[int],
+    methods_to_inspect: list[str]
 ):
     from datetime import datetime
     from rich.tree import Tree
@@ -762,11 +766,16 @@ def local_inspect_tasks(
                 status = "[red]FAILED[/red]"
                 failing_tasks.add(task_id)
 
-            if (
-                (not tasks_to_inspect)
-                or (task_id in tasks_to_inspect)
-                or (failing_tasks_only and "FAILED" in status)
-            ):
+            method = e.get("instrument") or {}
+            method_name = method.get("name", "")
+
+            should_print = (
+                (methods_to_inspect is None or any(re.search(m, method_name) for m in methods_to_inspect))
+                and (not tasks_to_inspect or task_id in tasks_to_inspect)
+                and (not failing_tasks_only or "FAILED" in status)
+            )
+
+            if should_print:
                 task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
                 task_tree[task_id] = tree.add(task_label)
 
@@ -774,8 +783,6 @@ def local_inspect_tasks(
                 task_tree[task_id].add(f"Status: {status}")
 
                 # —— METHOD ——
-                method = e.get("instrument") or {}
-                method_name = method.get("name", "")
                 task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
 
                 # —— EXECUTION TIME ——

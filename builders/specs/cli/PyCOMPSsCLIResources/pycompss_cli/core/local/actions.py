@@ -344,4 +344,4 @@ class LocalActions(Actions):
                                 self.arguments.methods
             )
         else:
-            local_inspect_execution(self.arguments.ro_crate, self.arguments.verbose)
+            local_inspect_execution(self.arguments.ro_crate, self.arguments.verbose, self.arguments.data_assets)

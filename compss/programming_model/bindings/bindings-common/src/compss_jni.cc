@@ -36,19 +36,45 @@ typedef struct {
   int isAttached;
 } ThreadStatus;
 
+
+typedef struct JNIWorkflow {
+    CompssWorkflow base;
+    jobject jWorkflow;
+} JNIWorkflow;
+
 JNIEnv* globalJniEnv;
 JavaVM* globalJvm;
 pthread_mutex_t globalJniAccessMutex;
 jobject globalRuntime;
 
+CompssWorkflow* JNI_wf;
+long JNI_wf_appId;
+
+jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
 jmethodID midAppDir;                    /* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midTempDir;                   /* ID of the getTempDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
+jmethodID midRegWf;                     /* ID of the registerWorkflow method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
+jclass clsWorkflow;                     /* Class implementing the Workflow interface at runtime */
+jmethodID mid_wf_getID;                 /* ID of the getID method in the Class implementing the Workflow interface*/
+jmethodID mid_wf_openTaskGroup;
+jmethodID mid_wf_closeTaskGroup;
+jmethodID mid_wf_cancelTaskGroup;
+jmethodID mid_wf_cancelApplicationTasks;
+jmethodID mid_wf_noMoreTasks;
+jmethodID mid_wf_barrier;
+jmethodID mid_wf_barrier_withFlag;
+jmethodID mid_wf_barrierGroup;
+jmethodID mid_wf_snapshot;
+jmethodID mid_wf_deregister;
+
 jmethodID midExecute;                   /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecuteNew;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecuteHttp;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCancelApplicationTasks;    /* ID of the CancelApplicationTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midIsFileAccessed;            /* ID of the isFileAccessed method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midOpenFile;                  /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -58,24 +84,12 @@ jmethodID midGetFile;                   /* ID of the getFile method in the es.bs
 
 jmethodID midGetDirectory;              /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midBarrier; 		            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midBarrierNew;                /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midBarrierGroup;              /* ID of the barrierGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midOpenTaskGroup;             /* ID of the openTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCloseTaskGroup;            /* ID of the closeTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCancelTaskGroup;            /* ID of the cancelTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
-jmethodID midSnapshot; 		            /* ID of the snapshot method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
 jmethodID midGetBindingObject;		    /* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteBindingObject; 	    /* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
 jmethodID midGetNumberOfResources;      /* ID of the getNumberOfResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRequestResources;          /* ID of the requestResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midFreeResources;             /* ID of the freeResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
-jmethodID midNoMoreTasksIT;             /* ID of the noMoreTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
@@ -143,6 +157,7 @@ jmethodID midIntCon;      /* ID of the java.lang.Integer class constructor metho
 
 jclass clsLong;           /* java.lang.Long class */
 jmethodID midLongCon;     /* ID of the java.lang.Long class constructor method */
+jmethodID midLongVal;     /* ID of the java.lang.Long class longValue method */
 
 jclass clsFloat;          /* java.lang.Float class */
 jmethodID midFloatCon;    /* ID of the java.lang.Float class constructor method */
@@ -272,6 +287,13 @@ void defineBasicType(ThreadStatus* status, const char* label, const char* name, 
     check_exception(status, err_msg);
 }
 
+void defineBasicType(ThreadStatus* status, const char* label, const char* name, const char* args, const char* getVal,const char* getValArgs, jclass* cls, jmethodID* midCon, jmethodID* midVal){
+    char err_msg[256];
+    defineBasicType(status, label, name, args, cls, midCon);
+    snprintf(err_msg, 256, "Cannot find %s Method", getVal);
+    *midVal = status->localJniEnv->GetMethodID(*cls, getVal, getValArgs);
+    check_exception(status, err_msg);
+}
 /**
  * Initialises the JNI basic types.
  */
@@ -284,7 +306,7 @@ void init_basic_jni_types(ThreadStatus* status) {
     defineBasicType(status, (char*)"Boolean", (char*)"java/lang/Boolean", (char*)"(Z)V", &clsBoolean, &midBoolCon);
     defineBasicType(status, (char*)"Short", (char*)"java/lang/Short", (char*)"(S)V", &clsShort, &midShortCon);
     defineBasicType(status, (char*)"Integer", (char*)"java/lang/Integer", (char*)"(I)V", &clsInteger, &midIntCon);
-    defineBasicType(status, (char*)"Long", (char*)"java/lang/Long", (char*)"(J)V", &clsLong, &midLongCon);
+    defineBasicType(status, (char*)"Long", (char*)"java/lang/Long", (char*)"(J)V", "longValue", "()J", &clsLong, &midLongCon, &midLongVal);
     defineBasicType(status, (char*)"Float", (char*)"java/lang/Float", (char*)"(F)V", &clsFloat, &midFloatCon);
     defineBasicType(status, (char*)"Double", (char*)"java/lang/Double", (char*)"(D)V", &clsDouble, &midDoubleCon);
     debug_printf ("[BINDING-COMMONS] - @Init JNI Types DONE\n");
@@ -374,6 +396,9 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // JNI API method calls
     debug_printf ("[BINDING-COMMONS] - @Init JNI Methods\n");
 
+    midRegWf = status->localJniEnv->GetMethodID(clsITimpl, "registerWorkflow", "(Ljava/lang/String;Les/bsc/compss/api/ApplicationRunner;)Les/bsc/compss/api/Workflow;");
+    check_exception(status, "Cannot find registerWorkflow method");
+
     // getApplicationDirectory method
     midAppDir = status->localJniEnv->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
     check_exception(status, "Cannot find getApplicationDirectory method");
@@ -394,41 +419,9 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midExecuteHttp = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZIZZZILes/bsc/compss/types/annotations/parameter/OnFailure;I[Ljava/lang/Object;)I");
     check_exception(status, "Cannot find executeTask HTTP");
 
-    // barrier method
-    midBarrier = status->localJniEnv->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
-    check_exception(status, "Cannot find barrier");
-
-    // barrier method (with no more tasks flag)
-    midBarrierNew = status->localJniEnv->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
-    check_exception(status, "Cannot find barrier new");
-
-    // barrierGroup method
-    midBarrierGroup = status->localJniEnv->GetMethodID(clsITimpl, "barrierGroup", "(Ljava/lang/Long;Ljava/lang/String;)V");
-    check_exception(status, "Cannot find barrierGroup");
-
-    // openTaskGroup method
-    midOpenTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;ZLjava/lang/Long;)V");
-    check_exception(status, "Cannot find openTaskGroup");
-
-    // closeTaskGroup method
-    midCloseTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
-    check_exception(status, "Cannot find closeTaskGroup");
-
-    // closeTaskGroup method
-    midCancelTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "cancelTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
-    check_exception(status, "Cannot find cancelTaskGroup");
-
-    // snapshot method
-    midSnapshot = status->localJniEnv->GetMethodID(clsITimpl, "snapshot", "(Ljava/lang/Long;)V");
-    check_exception(status, "Cannot find snapshot");
-
     // EmitEvent method
     midEmitEvent = status->localJniEnv->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
     check_exception(status, "Cannot find emitEvent");
-
-    // CancelApplicationTasks method
-    midCancelApplicationTasks = status->localJniEnv->GetMethodID(clsITimpl, "cancelApplicationTasks", "(Ljava/lang/Long;)V");
-    check_exception(status, "Cannot find cancelApplicationTasks");
 
     // RegisterCE method
     midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
@@ -478,10 +471,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midFreeResources = status->localJniEnv->GetMethodID(clsITimpl, "freeResources", "(Ljava/lang/Long;ILjava/lang/String;)V");
     check_exception(status, "Cannot find freeResources");
 
-    // Load NoMoreTasks
-    midNoMoreTasksIT = status->localJniEnv->GetMethodID(clsITimpl, "noMoreTasks", "(Ljava/lang/Long;)V");
-    check_exception(status, "Cannot find noMoreTasks method.");
-
     // Load stopIT
     midStopIT = status->localJniEnv->GetMethodID(clsITimpl, "stopIT", "(Z)V");
     check_exception(status, "Cannot find stopIT method.");
@@ -527,7 +516,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Error getting null string object");
 
     debug_printf ("[BINDING-COMMONS] - @Init JNI Parameter Prefix DONE\n");
-
 
     // Done
     debug_printf ("[BINDING-COMMONS] - @Init Master DONE\n");
@@ -867,26 +855,23 @@ void JNI_On() {
     // Revoke thread access to JVM
     // debug_printf ("[BINDING-COMMONS] - @JNI_On - Revoke thread access to JVM\n");
     access_revoke(status);
+
+    CompssWorkflow* wf = JNI_RegisterWorkflow();
+    JNI_wf = wf;
+    long wf_id = wf->getId(wf);
+    JNI_wf_appId = wf_id;
+    debug_printf("[BINDING-COMMONS] - @JNI_On REgistered Workflow with id %ld\n", wf_id);
 }
 
 
 void JNI_Off(int code) {
     debug_printf("[BINDING-COMMONS] - @JNI_Off\n");
 
+    JNI_wf->noMoreTasks(JNI_wf);
+    
     // Request thread access to JVM
     // debug_printf ("[BINDING-COMMONS] - @JNI_Off - Request thread access to JVM\n");
     ThreadStatus* status = access_request();
-
-    // Create fake app Id (id = 0)
-    jobject objLocal = status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) 0);
-    check_exception(status, "Cannot instantiate application Id");
-    jobject fakeAppId = (jobject) status->localJniEnv->NewGlobalRef(objLocal);
-    check_exception(status, "Cannot create application Id");
-
-    // Call noMoreTasks
-    debug_printf("[BINDING-COMMONS] - @Off - Waiting to end tasks\n");
-    status->localJniEnv->CallVoidMethod(globalRuntime, midNoMoreTasksIT, fakeAppId, "TRUE");
-    check_exception(status, "Exception received when calling noMoreTasks.");
 
     // Call stopIT
     debug_printf("[BINDING-COMMONS] - @Off - Stopping runtime\n");
@@ -916,22 +901,69 @@ void JNI_read_command(char** command){
     // Do nothing
 }
 
-void JNI_Cancel_Application_Tasks(long appId) {
-    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks\n");
 
-    // Request thread access to JVM
+CompssWorkflow* JNI_RegisterWorkflow() {
+    debug_printf("[BINDING-COMMONS] - @JNI_RegisterWorkflow\n");
     ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+    // Register Worfklow
+    jobject jWorkflowObj = env->CallObjectMethod(globalRuntime, midRegWf, NULL, NULL);
 
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midCancelApplicationTasks,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
-    check_exception(status, "Exception received when calling cancelApplicationTasks");
+    if (clsWorkflow == NULL) {
+        clsWorkflow = env->GetObjectClass(jWorkflowObj);
+
+        mid_wf_getID = env->GetMethodID(clsWorkflow, "getId", "()Ljava/lang/Long;");
+        check_exception(status, "Cannot find the Workflow.getId method");
+        mid_wf_openTaskGroup = env->GetMethodID(clsWorkflow, "openTaskGroup", "(Ljava/lang/String;Z)V");
+        check_exception(status, "Cannot find the Workflow.openTaskGroup method");
+        mid_wf_closeTaskGroup = env->GetMethodID(clsWorkflow, "closeTaskGroup", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find the Workflow.closeTaskGroup method");
+        mid_wf_cancelTaskGroup = env->GetMethodID(clsWorkflow, "cancelTaskGroup", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find the Workflow.cancelTaskGroup method");
+        mid_wf_cancelApplicationTasks = env->GetMethodID(clsWorkflow, "cancelApplicationTasks", "()V");
+        check_exception(status, "Cannot find the Workflow.cancelApplicationTasks method");
+        mid_wf_noMoreTasks = env->GetMethodID(clsWorkflow, "noMoreTasks", "()V");
+        check_exception(status, "Cannot find the Workflow.noMoreTasks method");
+        mid_wf_barrier = env->GetMethodID(clsWorkflow, "barrier", "()V");
+        check_exception(status, "Cannot find the Workflow.barrier method");
+        mid_wf_barrier_withFlag = env->GetMethodID(clsWorkflow, "barrier", "(Z)V");
+        check_exception(status, "Cannot find the Workflow.barrier method");
+        mid_wf_barrierGroup = env->GetMethodID(clsWorkflow, "barrierGroup", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find the Workflow.barrierGroup method");
+        mid_wf_snapshot = env->GetMethodID(clsWorkflow, "snapshot", "()V");
+        check_exception(status, "Cannot find the Workflow.snapshot method");
+        mid_wf_deregister = env->GetMethodID(clsWorkflow, "deregister", "()V");
+        check_exception(status, "Cannot find the Workflow.deregister  method");
+    }
+
+    // Wrap Java Workflow object into a C struct implementing the interface
+    JNIWorkflow* wf = (JNIWorkflow*) malloc(sizeof(JNIWorkflow));
+    wf->jWorkflow = env->NewGlobalRef(jWorkflowObj);
+
+    wf->base.getId = JNI_WF_getId;
+    wf->base.deregister = JNI_WF_deregister;
+    wf->base.getId = JNI_WF_getId;
+    wf->base.deregister = JNI_WF_deregister;
+    wf->base.openTaskGroup = JNI_WF_openTaskGroup;
+    wf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
+    wf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;
+    wf->base.cancelApplicationTasks = JNI_WF_cancelApplicationTasks;
+    wf->base.noMoreTasks = JNI_WF_noMoreTasks;
+    wf->base.barrier = JNI_WF_barrier;
+    wf->base.barrierWithFlag = JNI_WF_barrierWithFlag;
+    wf->base.barrierGroup = JNI_WF_barrierGroup;
+    wf->base.snapshot = JNI_WF_snapshot;
+
 
     // Revoke thread access to JVM
     access_revoke(status);
 
-    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - Tasks cancelled\n");
+    debug_printf ("[BINDING-COMMONS] - @JNI_RegisterWorkflow - Workflow registered\n");
+    return (CompssWorkflow*)wf;
+}
+
+void JNI_Cancel_Application_Tasks(long appId) {
+    JNI_wf->cancelApplicationTasks(JNI_wf);
 }
 
 
@@ -1021,7 +1053,7 @@ void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, 
     // Call to JNI execute task method
     status->localJniEnv->CallVoidMethod(globalRuntime,
                               midExecute,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                               status->localJniEnv->NewStringUTF(className),
                               status->localJniEnv->NewStringUTF(onFailure),
                               timeout,
@@ -1085,7 +1117,7 @@ void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeou
     // Call to JNI execute task method
     status->localJniEnv->CallVoidMethod(globalRuntime,
                               midExecuteNew,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                               status->localJniEnv->NewStringUTF(signature),
                               status->localJniEnv->NewStringUTF(onFailure),
                               timeout,
@@ -1158,7 +1190,7 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
     // Call to JNI execute task method
     status->localJniEnv->CallVoidMethod(globalRuntime,
                               midExecuteHttp,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                               status->localJniEnv->NewStringUTF(signature), // declaring method
                               _priority,
                               numNodes,
@@ -1253,7 +1285,7 @@ int JNI_Accessed_File(long appId, char* fileName){
     // Perform operation
 	jboolean is_accessed = (jboolean)status->localJniEnv->CallBooleanMethod(globalRuntime,
                                                                 midIsFileAccessed,
-                                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                                 filename_str);
     check_exception(status, "Error calling runtime isFileAccessed");
     status->localJniEnv->DeleteLocalRef(filename_str);
@@ -1287,35 +1319,35 @@ void JNI_Open_File(long appId, char* fileName, int mode, char** buf) {
         case in_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                         filename_str,
                                                         par_dir.IN);
             break;
         case out_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                         filename_str,
                                                         par_dir.OUT);
             break;
         case inout_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                         filename_str,
                                                         par_dir.INOUT);
             break;
         case concurrent_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                         filename_str,
                                                         par_dir.CONCURRENT);
             break;
         case commutative_dir:
             jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                         filename_str,
                                                         par_dir.COMMUTATIVE);
             break;
@@ -1352,35 +1384,35 @@ void JNI_Close_File(long appId, char* fileName, int mode) {
         case in_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                         status->localJniEnv->NewStringUTF(fileName),
                                         par_dir.IN);
             break;
         case out_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                         status->localJniEnv->NewStringUTF(fileName),
                                         par_dir.OUT);
             break;
         case inout_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                         status->localJniEnv->NewStringUTF(fileName),
                                         par_dir.INOUT);
             break;
         case concurrent_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                         status->localJniEnv->NewStringUTF(fileName),
                                         par_dir.CONCURRENT);
             break;
         case commutative_dir:
             status->localJniEnv->CallVoidMethod(globalRuntime,
                                         midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                         status->localJniEnv->NewStringUTF(fileName),
                                         par_dir.COMMUTATIVE);
             break;
@@ -1412,7 +1444,7 @@ void JNI_Delete_File(long appId, char* fileName, int wait, int applicationDelete
     // Perform operation
     jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime,
                                             midDeleteFile,
-                                            status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                            status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                             status->localJniEnv->NewStringUTF(fileName),
                                             _wait,
                                             _applicationDelete);
@@ -1436,7 +1468,7 @@ void JNI_Get_File(long appId, char* fileName) {
     // Perform operation
     status->localJniEnv->CallVoidMethod(globalRuntime,
                                 midGetFile,
-                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                 status->localJniEnv->NewStringUTF(fileName));
     check_exception(status, "Exception received when calling getFile");
 
@@ -1455,7 +1487,7 @@ void JNI_Get_Directory(long appId, char* dirName) {
     // Perform operation
     status->localJniEnv->CallVoidMethod(globalRuntime,
                                 midGetDirectory,
-                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                 status->localJniEnv->NewStringUTF(dirName));
     check_exception(status, "Exception received when calling getDirectory");
 
@@ -1474,7 +1506,7 @@ void JNI_Get_Object(long appId, char* fileName, char** buf) {
     // Perform operation
     jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
                                                         midGetBindingObject,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                         status->localJniEnv->NewStringUTF(fileName));
     check_exception(status, "Exception received when calling getObject");
 
@@ -1500,7 +1532,7 @@ void JNI_Delete_Object(long appId, char* fileName, int** buf) {
     // Perform operation
     jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime,
                                                 midDeleteBindingObject,
-                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                                                 status->localJniEnv->NewStringUTF(fileName));
     check_exception(status, "Exception received when calling deleteObject");
     *buf = (int*) &res;
@@ -1513,21 +1545,7 @@ void JNI_Delete_Object(long appId, char* fileName, int** buf) {
 
 
 void JNI_Barrier(long appId) {
-	debug_printf("[BINDING-COMMONS] - @JNI_Barrier - Waiting tasks for APP id: %lu\n", appId);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-	status->localJniEnv->CallVoidMethod(globalRuntime,
-	                          midBarrier,
-	                          status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
-    check_exception(status, "Exception received when calling barrier");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - APP id: %lu\n", appId);
+	JNI_wf->barrier(JNI_wf);
 }
 
 
@@ -1538,123 +1556,40 @@ void JNI_BarrierNew(long appId, int noMoreTasks) {
     bool _noMoreTasks = false;
     if (noMoreTasks != 0) _noMoreTasks = true;
     debug_printf("[BINDING-COMMONS] - @JNI_Barrier - noMoreTasks: %s\n", _noMoreTasks ? "true":"false");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midBarrierNew,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
-                              _noMoreTasks);
-    check_exception(status, "Exception received when calling barrierNew");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->barrierWithFlag(JNI_wf, noMoreTasks);
     debug_printf("[BINDING-COMMONS] - @JNI_Barrier - APP id: %lu\n", appId);
 }
 
 
 void JNI_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
     debug_printf("[BINDING-COMMONS] - @JNI_BarrierGroup - COMPSs group name: %s\n", groupName);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midBarrierGroup,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
-                              status->localJniEnv->NewStringUTF(groupName));
-    check_and_get_compss_exception(status, exceptionMessage);
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->barrierGroup(JNI_wf, groupName, exceptionMessage);
     debug_printf("[BINDING-COMMONS] - @JNI_BarrierGroup - Barrier ended for COMPSs group name: %s\n", groupName);
 }
 
 
 void JNI_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
     debug_printf("[BINDING-COMMONS] - @JNI_OpenTaskGroup - Opening task group...\n");
-
-    // Local variables for JVM call
-    bool _implicitBarrier = false;
-    if (implicitBarrier != 0) _implicitBarrier = true;
-    debug_printf("[BINDING-COMMONS] - @JNI_OpenTaskGroup - implicit barrier: %s\n", _implicitBarrier ? "true":"false");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midOpenTaskGroup,
-                              status->localJniEnv->NewStringUTF(groupName),
-                              _implicitBarrier,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
-    check_exception(status, "Exception received when calling openTaskGroup");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->openTaskGroup(JNI_wf, groupName, implicitBarrier);
     debug_printf("[BINDING-COMMONS] - @JNI_OpenTaskGroup - COMPSs group name: %s\n", groupName);
 }
 
 
 void JNI_CloseTaskGroup(char* groupName, long appId){
     debug_printf("[BINDING-COMMONS] - @JNI_CloseTaskGroup - COMPSs group name: %s\n", groupName);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midCloseTaskGroup,
-                              status->localJniEnv->NewStringUTF(groupName),
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
-    check_exception(status, "Exception received when calling closeTaskGroup");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->closeTaskGroup(JNI_wf, groupName);
     debug_printf("[BINDING-COMMONS] - @JNI_CloseTaskGroup - Task group %s closed.\n", groupName);
 }
 
 void JNI_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
     debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - COMPSs group name: %s\n", groupName);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midCancelTaskGroup,
-                              status->localJniEnv->NewStringUTF(groupName),
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
-    check_and_get_compss_exception(status, exceptionMessage);
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->cancelTaskGroup(JNI_wf, groupName, exceptionMessage);
     debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - Task group %s canceled.\n", groupName);
 }
 
 void JNI_Snapshot(long appId) {
 	debug_printf("[BINDING-COMMONS] - @JNI_Snapshot - Snapshot for APP id: %lu\n", appId);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-	status->localJniEnv->CallVoidMethod(globalRuntime,
-	                          midSnapshot,
-	                          status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
-    check_exception(status, "Exception received when calling snapshot");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->snapshot(JNI_wf);
     debug_printf("[BINDING-COMMONS] - @JNI_Snapshot - APP id: %lu\n", appId);
 }
 
@@ -1712,7 +1647,7 @@ void JNI_RequestResources(long appId, int numResources, char* groupName) {
     // Perform operation
     status->localJniEnv->CallVoidMethod(globalRuntime,
                               midRequestResources,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                               numResources,
                               status->localJniEnv->NewStringUTF(groupName));
     check_exception(status, "Exception received when calling requestResources");
@@ -1735,7 +1670,7 @@ void JNI_FreeResources(long appId, int numResources, char* groupName) {
 
     status->localJniEnv->CallVoidMethod(globalRuntime,
                               midFreeResources,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
                               numResources,
                               status->localJniEnv->NewStringUTF(groupName));
     check_exception(status, "Exception received when calling freeResources");
@@ -1755,7 +1690,7 @@ void JNI_set_wall_clock(long appId, long wcl, int stopRT){
 	// Perform operation
 
 	status->localJniEnv->CallVoidMethod(globalRuntime, midSetWallClockLimit,
-			status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
+			status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
 			wcl, _stop);
 	check_exception(status, "Exception received when calling setWallClockLimit");
 
@@ -1763,12 +1698,204 @@ void JNI_set_wall_clock(long appId, long wcl, int stopRT){
 	access_revoke(status);
 }
 
+
+
+
+
+long JNI_WF_getId(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_GetId\n");
+    
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+    jobject jLong = env->CallObjectMethod(wf->jWorkflow, mid_wf_getID);
+
+    long id = (long) env->CallLongMethod(jLong, midLongVal);
+    env->DeleteLocalRef(jLong);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_GetId - Obtained id %ld\n", id);
+    return id;
+}
+
+
+void JNI_WF_deregister(CompssWorkflow* self) {
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_Deregister\n");
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_deregister);
+    check_exception(status, "Workflow.deregister failed");
+    env->DeleteGlobalRef(wf->jWorkflow);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+}
+
+
+void JNI_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool implicitBarrier) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_openTaskGroup, jGroup, implicitBarrier);
+    check_exception(status, "Workflow.openTaskGroup failed");
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup - Done\n");
+}
+
+void JNI_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_closeTaskGroup, jGroup);
+    check_exception(status, "Workflow.closeTaskGroup failed");
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup - Done\n");
+}
+
+void JNI_WF_cancelTaskGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelTaskGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelTaskGroup, jGroup);
+    check_and_get_compss_exception(status, exceptionMessage);
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelTaskGroup - Done\n");
+}
+
+void JNI_WF_cancelApplicationTasks(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelApplicationTasks\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelApplicationTasks);
+    check_exception(status, "Workflow.cancelApplicationTasks failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelApplicationTasks - Done\n");
+}
+
+void JNI_WF_noMoreTasks(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_noMoreTasks\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_noMoreTasks);
+    check_exception(status, "Workflow.noMoreTasks failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_noMoreTasks - Done\n");
+}
+
+void JNI_WF_barrier(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrier\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrier);
+    check_exception(status, "Workflow.barrier failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrier - Done\n");
+}
+
+void JNI_WF_barrierWithFlag(CompssWorkflow* self, bool noMoreTasksFlag) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierWithFlag\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrier_withFlag, noMoreTasksFlag);
+    check_exception(status, "Workflow.barrier(boolean) failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierWithFlag - Done\n");
+}
+
+void JNI_WF_barrierGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrierGroup, jGroup);
+    check_and_get_compss_exception(status, exceptionMessage);
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierGroup - Done\n");
+}
+
+void JNI_WF_snapshot(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_snapshot);
+    check_exception(status, "Workflow.snapshot failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot - Done\n");
+}
+
+
 CompssInterface setup_JNI_runtime(){
     CompssInterface iface{};
     iface.On = JNI_On;
     iface.Off = JNI_Off;
     iface.read_command = JNI_read_command;
+
+    iface.Get_AppDir = JNI_Get_AppDir;
+    iface.Get_MasterWorkingDir = JNI_Get_MasterWorkingDir;
+    iface.Set_wall_clock = JNI_set_wall_clock;
+    
+    iface.EmitEvent = JNI_EmitEvent;
+    iface.GetNumberOfResources = JNI_GetNumberOfResources;
+    iface.RequestResources = JNI_RequestResources;
+    iface.FreeResources = JNI_FreeResources;
+
+    
+    iface.registerWorkflow = JNI_RegisterWorkflow;
     iface.RegisterCE = JNI_RegisterCE;
+
     iface.ExecuteTask = JNI_ExecuteTask;
     iface.ExecuteTaskNew = JNI_ExecuteTaskNew;
     iface.ExecuteHttpTask = JNI_ExecuteHttpTask;
@@ -1786,14 +1913,8 @@ CompssInterface setup_JNI_runtime(){
     iface.CloseTaskGroup = JNI_CloseTaskGroup;
     iface.CancelTaskGroup = JNI_CancelTaskGroup;
     iface.Snapshot = JNI_Snapshot;
-    iface.GetNumberOfResources = JNI_GetNumberOfResources;
-    iface.RequestResources = JNI_RequestResources;
-    iface.FreeResources = JNI_FreeResources;
-    iface.Get_AppDir = JNI_Get_AppDir;
-    iface.Get_MasterWorkingDir = JNI_Get_MasterWorkingDir;
-    iface.EmitEvent = JNI_EmitEvent;
+
     iface.Get_Object = JNI_Get_Object;
     iface.Delete_Object = JNI_Delete_Object;
-    iface.Set_wall_clock = JNI_set_wall_clock;
     return iface;
 }

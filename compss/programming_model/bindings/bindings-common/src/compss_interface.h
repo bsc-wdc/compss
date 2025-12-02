@@ -18,6 +18,60 @@
 #ifndef COMPSS_INTERFACE_H
 #define COMPSS_INTERFACE_H
 
+typedef struct CompssWorkflow {
+    long (*getId) (
+        struct CompssWorkflow* self
+    );
+
+    void (*deregister)(
+        struct CompssWorkflow* self
+    );
+
+    void (*openTaskGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName,
+        bool implicitBarrier
+    );
+
+    void (*closeTaskGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName
+    );
+
+    void (*cancelTaskGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName,
+        char** exceptionMessage
+    );
+
+    void (*cancelApplicationTasks)(
+        struct CompssWorkflow* self
+    );
+
+    void (*noMoreTasks)(
+        struct CompssWorkflow* self
+    );
+
+    void (*barrier)(
+        struct CompssWorkflow* self
+    );
+
+    void (*barrierWithFlag)(
+        struct CompssWorkflow* self,
+        bool noMoreTasksFlag
+    );
+
+    void (*barrierGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName,
+        char** exceptionMessage
+    );
+
+    void (*snapshot)(
+        struct CompssWorkflow* self
+    );
+} CompssWorkflow;
+
 typedef struct CompssInterface {
 
     // COMPSs Runtime state
@@ -29,6 +83,9 @@ typedef struct CompssInterface {
     );
 
     void (*read_command)(char** command);
+
+    CompssWorkflow* (*registerWorkflow)(
+    );
 
     // Task methods
     void (*RegisterCE)(

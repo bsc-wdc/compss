@@ -486,6 +486,8 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                 mem_values = []
 
                 del_key = None
+                master_avg_cpu = None
+                master_avg_mem = None
                 for key, host_data in ru_dict.items():
                     if "is_master" in host_data:
                         master_avg_cpu = host_data.get("cpuAvg")
@@ -512,9 +514,10 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                             f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
                         )
                     else:
-                        usage_tree = action_tree.add(
-                            f"Resource Usage —— CPU [gold1]{master_avg_cpu} %[/] —— Mem [gold1]{master_avg_mem} %[/]"
-                        )
+                        if master_avg_cpu or master_avg_mem:
+                            usage_tree = action_tree.add(
+                                f"Resource Usage —— CPU [gold1]{master_avg_cpu} %[/] —— Mem [gold1]{master_avg_mem} %[/]"
+                            )
                 else:
                     # add to usage_tree
                     usage_tree = action_tree.add(f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)")

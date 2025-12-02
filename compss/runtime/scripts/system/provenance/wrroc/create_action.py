@@ -453,8 +453,10 @@ def wrroc_create_action(
     environment_property = []
     for name, value in os.environ.items():
         if (
-            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
+            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS", "OMP", "CUDA_"))
             and name != "SLURM_JOBID"
+        ) or (
+            ("THREADS" or "RANK") in name
         ):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}

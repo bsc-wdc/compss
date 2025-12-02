@@ -30,77 +30,11 @@ from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
 from rocrate.rocrate import ROCrate
 
-# ################ #
-# GLOBAL VARIABLES #
-# ################ #
-
-pointers = ["├── ", "└── "]
-follow_prefix = "│   "
-empty_prefix = "    "
-
-METRICS_UNITS = {
-    "maxTime": "ms",
-    "minTime": "ms",
-    "avgTime": "ms",
-    "executionTime": "ms",
-    "cpuAvg": "%",
-    "cpuMax": "%",
-    "memAvg": "%",
-    "memMax": "%",
-    "memMin": "%",
-    "byteSent": "bytes",
-    "byteRecv": "bytes",
-}
-
-ORDER = {"executions": 0, "avgTime": 1, "maxTime": 2, "minTime": 3}
-
 
 # ############# #
 # API FUNCTIONS #
 # ############# #
 
-
-def print_resource_usage_ordered(resource_usage_list: list):
-    sorted_list = sorted(
-        resource_usage_list,
-        key=lambda line: ORDER.get(
-            next((k for k in ORDER if k in line), ""), float("inf")
-        ),
-    )
-
-    for line in sorted_list:
-        print(line, end="")
-
-
-def resources_tree(
-    jsonData,
-    name="",
-    file=None,
-    prefix=empty_prefix,
-    last=False,
-    isfirst=True,
-    to_print=[],
-):
-    if isinstance(jsonData, dict):
-        if not isfirst:
-            print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
-        prefix += empty_prefix if last else follow_prefix
-        length = len(jsonData)
-        for i, key in enumerate(jsonData.keys()):
-            last = i == (length - 1)
-            resources_tree(
-                jsonData[key], key, file, prefix, last, isfirst=False, to_print=to_print
-            )
-        print_resource_usage_ordered(to_print)
-        to_print.clear()
-    else:
-        unit = METRICS_UNITS[name] if name in METRICS_UNITS.keys() else ""
-        try:
-            int_value = int(jsonData)
-            name = name + f" = {int_value:,} {unit}"
-        except ValueError:
-            name = name + f" = {jsonData} {unit}"
-        to_print.append(f"{prefix}{pointers[1] if last else pointers[0]}{name}\n")
 
 def fmt(num):
     if num in (None, "", "None"):
@@ -230,7 +164,7 @@ def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
     print("App deployed from " + local_source + " to " + dst)
 
 
-def local_inspect_execution(ro_crate_list: list, verbose: bool):
+def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
     console = Console()
 
     for ro_crate_zip_or_dir in ro_crate_list:
@@ -421,7 +355,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
 
         if e_main_entity and (
             software_requirements := e_main_entity.get("softwareRequirements")
-        ):
+        ) and verbose:
             deps_tree = root_tree.add("Software Requirements")
             if isinstance(software_requirements, list):
                 for s in software_requirements:
@@ -457,7 +391,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
 
             if e_main_entity.get("step"):
                 task_tree = action_tree.add(
-                    f"Executed Tasks: {total_tasks} —— [green]COMPLETED: {nr_of_tasks_completed}[/green] [red]FAILED: {nr_of_tasks_failed}[/red]"
+                    f"Executed Tasks: {total_tasks} —— [green]COMPLETED: {nr_of_tasks_completed}[/green] —— [red]FAILED: {nr_of_tasks_failed}[/red]"
                 )
 
             start_time = end_time = None
@@ -552,8 +486,12 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
                 mem_values = []
 
                 del_key = None
+                master_avg_cpu = None
+                master_avg_mem = None
                 for key, host_data in ru_dict.items():
                     if "is_master" in host_data:
+                        master_avg_cpu = host_data.get("cpuAvg")
+                        master_avg_mem = host_data.get("memAvg")
                         # We ingnore the data from the master to calculate the avg and merge entries
                         continue
                     cpu = host_data.get("cpuAvg")
@@ -571,23 +509,30 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
 
                 # Non-verbose
                 if not verbose:
-                    usage_tree = action_tree.add(
-                        f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
-                    )
+                    if avg_cpu and avg_mem:
+                        usage_tree = action_tree.add(
+                            f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
+                        )
+                    else:
+                        if master_avg_cpu or master_avg_mem:
+                            usage_tree = action_tree.add(
+                                f"Resource Usage —— CPU [gold1]{master_avg_cpu} %[/] —— Mem [gold1]{master_avg_mem} %[/]"
+                            )
                 else:
                     # add to usage_tree
-                    usage_tree = action_tree.add(f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/], [bright_red]Max[/], [light_green]Min[/] time in ms)")
+                    usage_tree = action_tree.add(f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)")
                     for host, host_dict in sorted(ru_dict.items()):
+                        host_executed_tasks = 0
                         master_text = (
                             " (master node)" if "is_master" in host_dict else ""
                         )
                         if host != "OVERALL":
                             host_tree = usage_tree.add(
-                                f"[blue]{host} {master_text}"
+                                f"[blue]{host}{master_text}"
                             )
                         else:
                             host_tree = usage_tree.add(
-                                f"[gold1]{host} {master_text}"
+                                f"[gold1]Overall Statistics"
                             )
                         for metric, metric_value in host_dict.items():
                             if isinstance(metric_value, dict):
@@ -598,35 +543,31 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
                                 if host != "OVERALL" and executions == "None":
                                     # None comes as a string in the host_dict, not as a real None
                                     continue  # Do not print if no executions in a host, but print in the OVERALL
+                                host_executed_tasks += int(executions)
                                 host_tree.add(
                                     f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
                                 )
                         # Deal with info about a machine direct metric
                         if "cpuAvg" in host_dict:
                             host_tree.add(
-                                f"CPU: [gold1]{host_dict.get('cpuAvg', '')} % —— [bright_red]{host_dict.get('cpuMax', '')} %"
+                                f"CPU: [gold1]{host_dict.get('cpuAvg', '')} %[/] —— [bright_red]{host_dict.get('cpuMax', '')} %"
                             )
                         elif host == "OVERALL":
-                            host_tree.add(f"CPU: [gold1]{avg_cpu} %")
+                            if avg_cpu:
+                                host_tree.add(f"CPU: [gold1]{avg_cpu} %")
+                            else:
+                                host_tree.add(f"CPU: [gold1]{master_avg_cpu} %")
                         if "memAvg" in host_dict:
                             host_tree.add(
-                                f"Memory: [gold1]{host_dict.get('memAvg', '')} % —— [bright_red]{host_dict.get('memMax', '')} %[/] —— [light_green]{host_dict.get('memMin', '')} %"
+                                f"Memory: [gold1]{host_dict.get('memAvg', '')} %[/] —— [bright_red]{host_dict.get('memMax', '')} %[/] —— [light_green]{host_dict.get('memMin', '')} %"
                             )
                         elif host == "OVERALL":
-                            host_tree.add(f"Memory: [gold1]{avg_mem} %")
-
-            if (description := e_main_create_action.get("description")) and verbose:
-                # Backwards compatible with txt files, only works when Crates are not zipped
-                args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt", "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
-                for file in args_files:
-                    try:
-                        with file.open("r", encoding="utf-8") as f:
-                            description = f.readline().strip()
-                    except Exception:
-                        pass
-                action_tree.add(
-                    f"Submission —— [dim]{description}"
-                )
+                            if avg_mem:
+                                host_tree.add(f"Memory: [gold1]{avg_mem} %")
+                            else:
+                                host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
+                        if host != "OVERALL":
+                            host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"
 
             if e_main_create_action.get("agent"):
                 agent = e_main_create_action.get("agent")
@@ -649,6 +590,19 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
                     f"Agent —— [green]{agent_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
                 )
 
+            if (description := e_main_create_action.get("description")) and verbose:
+                # Backwards compatible with txt files, only works when Crates are not zipped
+                args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt", "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
+                for file in args_files:
+                    try:
+                        with file.open("r", encoding="utf-8") as f:
+                            description = f.readline().strip()
+                    except Exception:
+                        pass
+                action_tree.add(
+                    f"Submission —— [dim]{description}"
+                )
+
             if e_main_create_action.get("environment"):
                 if verbose:
                     env_tree = action_tree.add("Environment")
@@ -661,14 +615,12 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool):
                         f"Environment —— [dark_goldenrod]{len(e_main_create_action['environment'])} variables [/dark_goldenrod]"
                     )
 
-            data_assets = False
             if not data_assets:
                 ins_e = e_main_create_action.get("object")
                 outs_e = e_main_create_action.get("result")
                 action_tree.add(
                     f"Data assets —— [dark_goldenrod]{len(ins_e) if ins_e else 0} Inputs —— [dark_goldenrod]{len(outs_e) if outs_e else 0} Outputs"
                 )
-
             else:
                 if e_main_create_action.get("object"):
                     inputs_tree = action_tree.add("Inputs:")

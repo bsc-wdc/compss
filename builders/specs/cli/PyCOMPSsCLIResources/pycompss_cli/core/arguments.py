@@ -302,8 +302,13 @@ def parse_sys_argv():
                                     action='store_true',
                                     default=False,
                                     help="Print extra information about tasks")
+    
+    parser_environment.add_argument("-d", "--data_assets",
+                                    action='store_true',
+                                    default=False,
+                                    help="Print data assets")
 
-    parser_environment.add_argument("-f", "--failing-tasks",
+    parser_environment.add_argument("-f", "--failing_tasks",
                                     action='store_true',
                                     default=False,
                                     help="Print info about failing tasks only")

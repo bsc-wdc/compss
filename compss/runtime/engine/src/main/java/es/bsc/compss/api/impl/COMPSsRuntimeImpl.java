@@ -83,7 +83,6 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
-import es.bsc.compss.types.tracing.APITracer.ThrowingRunnable;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -94,7 +93,6 @@ import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.util.Tracer;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -1742,7 +1740,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 if (timer == null) {
                     createWallClockReaper();
                 }
-                LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + "seconds.");
+                LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + " seconds.");
                 Application app = Application.registerApplication(appId);
                 WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));
                 app.setTimerTask(wcTask);

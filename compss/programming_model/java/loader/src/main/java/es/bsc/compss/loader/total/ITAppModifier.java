@@ -406,6 +406,7 @@ public final class ITAppModifier {
             .append("setupWorkflowSupplier();") //
             .append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("(loader);") //
             .append(itORVar).append(" = new ").append(LoaderConstants.CLASS_OBJECT_REGISTRY).append("(loader);");//
+
         if (WALL_CLOCK_LIMIT > 0) {
             // Setting wall clock limit with runtime stop.
             methodBody.append(itApiVar).append(".setWallClockLimit(").append(getWf).append(".getId(),")

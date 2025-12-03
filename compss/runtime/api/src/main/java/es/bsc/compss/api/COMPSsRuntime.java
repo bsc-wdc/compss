@@ -102,22 +102,6 @@ public interface COMPSsRuntime {
     Workflow registerWorkflow(String parallelismSource, ApplicationRunner runner);
 
     /**
-     * Registers in the runtime a new application with with parallelism defined by a specific source.
-     *
-     * @param parallelismSource Element defining the task within the application
-     * @param runner Element executing the application's main code.
-     * @return Id of the registered application
-     */
-    public long registerApplication(String parallelismSource, ApplicationRunner runner);
-
-    /**
-     * Deregisters an application from the runtime.
-     *
-     * @param appId Id of the application.
-     */
-    public void deregisterApplication(Long appId);
-
-    /**
      * Registers a new CoreElement in the Runtime.
      *
      * @param ced Definition of the core element to add.
@@ -259,68 +243,6 @@ public interface COMPSsRuntime {
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
         int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
-    /**
-     * Notifies the Runtime that there are no more tasks created by the current appId.
-     *
-     * @param appId The application id.
-     */
-    public void noMoreTasks(Long appId);
-
-    /**
-     * Freezes the task generation until all previous tasks have been executed.
-     *
-     * @param appId The application id.
-     */
-    public void barrier(Long appId);
-
-    /**
-     * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
-     * whether to expect new tasks after the barrier or not.
-     *
-     * @param appId The application id.
-     * @param noMoreTasks Whether the application will spawn more tasks or not.
-     */
-    public void barrier(Long appId, boolean noMoreTasks);
-
-    /**
-     * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to
-     * wait is given as a parameter.
-     *
-     * @param appId The application id.
-     * @param groupName Name of the group to wait.
-     * @throws COMPSsException Custom COMPSs exception to handle groups.
-     */
-    public void barrierGroup(Long appId, String groupName) throws COMPSsException;
-
-    /**
-     * Creates a new task group.
-     *
-     * @param groupName Group name.
-     * @param implicitBarrier {@literal true}, if the task group requires a barrier
-     */
-    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId);
-
-    /**
-     * Closes an existing task group.
-     *
-     * @param groupName Group name.
-     */
-    public void closeTaskGroup(String groupName, Long appId);
-
-    /**
-     * Cancels all tasks of the application.
-     *
-     * @param appId Application id.
-     */
-    public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException;
-
-    /**
-     * Checkpoint of the tasks and data.
-     *
-     * @param appId The application id.
-     */
-    public void snapshot(Long appId);
-
     /*
      * *****************************************************************************************************************
      * DATA ACCESS METHODS
@@ -436,13 +358,6 @@ public interface COMPSsRuntime {
      * @return true if the {@code bindingObjectName} has been deleted, false otherwise.
      */
     public boolean deleteBindingObject(Long appId, String bindingObjectName);
-
-    /**
-     * Cancels all tasks of the application.
-     *
-     * @param appId Application id.
-     */
-    public void cancelApplicationTasks(Long appId);
 
     /*
      * *****************************************************************************************************************

@@ -445,22 +445,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public long registerApplication(String parallelismSource, ApplicationRunner runner) {
-        return APITracer.traced(APIEvent.REGISTER_APP, () -> {
-            Application app = Application.registerApplication(parallelismSource, runner);
-            return app.getId();
-        });
-    }
-
-    @Override
-    public void deregisterApplication(Long appId) {
-        APITracer.traced(APIEvent.DEREGISTER_APP, (Runnable) () -> {
-            Application app = Application.deregisterApplication(appId);
-            ap.deleteAllApplicationDataRequest(app);
-        });
-    }
-
-    @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
         String... implTypeArgs) {
@@ -1202,79 +1186,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         });
     }
 
-    @Override
-    public void cancelApplicationTasks(Long appId) {
-        APITracer.traced(APIEvent.CANCEL_APP, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            ap.cancelApplicationTasks(app);
-        });
-    }
-
-    @Override
-    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        APITracer.traced(APIEvent.OPEN_GROUP, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            ap.setCurrentTaskGroup(groupName, app);
-        });
-    }
-
-    @Override
-    public void closeTaskGroup(String groupName, Long appId) {
-        APITracer.traced(APIEvent.CLOSE_GROUP, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            ap.closeCurrentTaskGroup(app);
-        });
-    }
-
-    @Override
-    public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
-        APITracer.traced(APIEvent.CANCEL_GROUP, (ThrowingRunnable) () -> {
-            Application app = Application.registerApplication(appId);
-            ap.cancelTaskGroup(app, groupName);
-            // This is required that changes in metadata have been applied before
-            // generating new tasks
-            ap.barrierGroup(app, groupName);
-        });
-    }
-
-    @Override
-    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
-        APITracer.traced(APIEvent.WAIT_FOR_GROUP_TASKS, (ThrowingRunnable) () -> {
-            Application app = Application.registerApplication(appId);
-            // Regular barrier
-            ap.barrierGroup(app, groupName);
-        });
-    }
-
-    @Override
-    public void barrier(Long appId) {
-        barrier(appId, false);
-    }
-
-    @Override
-    public void barrier(Long appId, boolean noMoreTasks) {
-        APITracer.traced(APIEvent.WAIT_FOR_ALL_TASKS, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            // Wait until all tasks have finished
-            LOGGER.info("Barrier for app " + appId + " with noMoreTasks = " + noMoreTasks);
-            if (noMoreTasks) {
-                // No more tasks expected, we can unregister application
-                noMoreTasks(app);
-            } else {
-                // Regular barrier
-                ap.barrier(app);
-            }
-        });
-    }
-
-    @Override
-    public void noMoreTasks(Long appId) {
-        APITracer.traced(APIEvent.NO_MORE_TASKS, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            noMoreTasks(app);
-        });
-    }
-
     /**
      * Notifies the runtime that an application will not produce more tasks.
      *
@@ -1357,17 +1268,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void emitEvent(int type, long id) {
         Tracer.emitEvent(type, id);
-    }
-
-    @Override
-    public void snapshot(Long appId) {
-        APITracer.traced(APIEvent.SNAPSHOT_API, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            // Wait until all tasks have finished
-            LOGGER.info("Requesting snapshot for application " + appId);
-
-            ap.snapshot(app);
-        });
     }
 
     /*

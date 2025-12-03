@@ -143,21 +143,4 @@ public interface LoaderAPI {
      */
     public void removeObject(Long appId, Object o, int hashcode);
 
-    /**
-     * Creates a new task group.
-     *
-     * @param groupName Group name.
-     * @param implicitBarrier Flag stating if the group has to perform a barrier.
-     * @param appId Application Id.
-     */
-    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId);
-
-    /**
-     * Closes an existing task group.
-     *
-     * @param groupName Group name.
-     * @param appId Application Id.
-     */
-    public void closeTaskGroup(String groupName, Long appId);
-
 }

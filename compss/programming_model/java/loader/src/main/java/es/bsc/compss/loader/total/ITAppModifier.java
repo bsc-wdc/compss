@@ -282,7 +282,7 @@ public final class ITAppModifier {
 
             if ((isMainMethod && isMainClass) || (isOrchestration && IS_WS_CLASS)) {
                 LOGGER.debug("Inserting call noMoreTasks at the end of main");
-                toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
+                toInsertAfter.insert(0, itWfVar + ".noMoreTasks();");
 
                 // Do insertions
                 if (IS_WS_CLASS) {

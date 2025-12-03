@@ -18,52 +18,44 @@ package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.api.Workflow;
 
 
 public class COMPSsGroupLoader extends COMPSsGroup {
 
-    private final COMPSsRuntime api;
-    private long appId;
+    private final Workflow wf;
 
 
     /**
      * Creates a new COMPSs group for the loader.
      * 
-     * @param api COMPSs Runtime API.
-     * @param appId Application Id.
+     * @param wf Workflow creating the group
      * @param groupName Group name.
      * @param implicitBarrier Whether to activate the implicit barrier or not.
      */
-    public COMPSsGroupLoader(COMPSsRuntime api, Long appId, String groupName, boolean implicitBarrier) {
+    public COMPSsGroupLoader(Workflow wf, String groupName, boolean implicitBarrier) {
         super(groupName, implicitBarrier);
-
-        this.api = api;
-        this.appId = appId;
-        this.api.openTaskGroup(this.groupName, implicitBarrier, this.appId);
-
+        this.wf = wf;
+        this.wf.openTaskGroup(this.groupName, implicitBarrier);
     }
 
     /**
      * Creates a new COMPSs group for the loader.
-     * 
-     * @param api COMPSs Runtime API.
-     * @param appId Application Id.
+     *
+     * @param wf Workflow creating the group
      * @param groupName Group name.
      */
-    public COMPSsGroupLoader(COMPSsRuntime api, Long appId, String groupName) {
+    public COMPSsGroupLoader(Workflow wf, String groupName) {
         super(groupName);
-
-        this.api = api;
-        this.appId = appId;
-        this.api.openTaskGroup(this.groupName, true, this.appId);
-
+        this.wf = wf;
+        this.wf.openTaskGroup(this.groupName, true);
     }
 
     @Override
     public void close() throws Exception {
-        this.api.closeTaskGroup(this.groupName, this.appId);
+        this.wf.closeTaskGroup(this.groupName);
         if (this.barrier == true) {
-            this.api.barrierGroup(appId, this.groupName);
+            this.wf.barrierGroup(this.groupName);
         }
     }
 }

@@ -70,7 +70,7 @@ public class ITAppEditor extends ExprEditor {
     // Inserted method calls
     private static final String EXECUTE_TASK = ".executeTask(";
     private static final String PROCEED = "$_ = $proceed(";
-    private static final String COMPSS_LOADER_GROUP = "es.bsc.compss.loader.total.COMPSsGroupLoader(";
+    private static final String COMPSS_LOADER_GROUP = LoaderConstants.CLASS_COMPSS_GROUP_LOADER + "(";
 
     private static final String COMPSS_API = APIHandler.class.getCanonicalName();
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
@@ -378,7 +378,7 @@ public class ITAppEditor extends ExprEditor {
         if (DEBUG) {
             LOGGER.debug("Substituting COMPSs group creation. ");
         }
-        modifiedExpr = "$_ = new  " + COMPSS_LOADER_GROUP + this.itApiVar + ", " + this.itAppIdVar + ", $$);";
+        modifiedExpr = "$_ = new  " + COMPSS_LOADER_GROUP + this.itWfVar + ", $$);";
         return modifiedExpr;
     }
 

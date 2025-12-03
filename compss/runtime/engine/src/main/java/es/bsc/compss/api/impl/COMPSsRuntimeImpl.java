@@ -435,7 +435,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public Workflow registerWorkflow(String parallelismSource, ApplicationRunner runner) {
         return APITracer.traced(APIEvent.REGISTER_APP, () -> {
-            return new WorkflowImpl(parallelismSource, runner);
+            LOGGER.info("Thread " + Thread.currentThread().getName() + " registering workflow " //
+                + (parallelismSource != null ? "parallelism source: " + parallelismSource : "") //
+                + (runner != null ? "runner: " + runner : ""));
+            Workflow wf = new WorkflowImpl(parallelismSource, runner);
+            LOGGER.info("Thread " + Thread.currentThread().getName() + " registered workflow " + wf.getId());
+            return wf;
         });
     }
 

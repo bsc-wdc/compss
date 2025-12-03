@@ -49,6 +49,8 @@
   writers=4
   FILES=14
 
+  wf_id=$(grep "registered workflow" "${output_file}" | awk '{print $8}')
+  
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/taskGroups.txt)
   if [ ${#result} -ne $writers ]; then
@@ -68,7 +70,7 @@
   fi
   
   # Check if barriers have been aded
-  output1=$(cat "${runtime_log}" | grep "Added barrier for group" | grep -v "group App1" | wc -l)
+  output1=$(cat "${runtime_log}" | grep "Added barrier for group" | grep -v "group App${wf_id}" | wc -l)
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The barriers have not been added to the groups."
   	exit 1

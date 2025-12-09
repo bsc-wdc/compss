@@ -1617,17 +1617,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case DIRECTORY_T:
             case FILE_T:
                 ap.deleteData(app, ((FileParameter<?, ?>) p).getAccess().getData(), false, false);
-                // Java case where task files are stored in the registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(app.getId(), ((FileParameter) p).getOriginalName());
-                }
                 break;
             case BINDING_OBJECT_T:
                 ap.deleteData(app, ((BindingObjectParameter) p).getAccess().getData(), false, false);
-                break;
-            case OBJECT_T:
-                ObjectParameter op = (ObjectParameter) p;
-                oReg.delete(app.getId(), op.getValue());
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:

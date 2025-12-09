@@ -23,11 +23,13 @@ public class CallGenerator {
     private static final String GET_INTERNAL_OBJECT = ".getInternalObject(";
     private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
     private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
+    private static final String DELETE_OBJECT = ".delete(";
 
     // File access methods
     private static final String NEW_FILTER_STREAM = ".newFilterStream(";
     private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
     private static final String ADD_TASK_FILE = ".addTaskFile(";
+    private static final String DELETE_TASK_FILE = ".deleteTaskFile(";
     private static final String IS_TASK_FILE = ".isTaskFile(";
     private static final String OPEN_FILE = ".openFile(";
 
@@ -77,6 +79,18 @@ public class CallGenerator {
     }
 
     /**
+     * Constructs the instruction to remove an object value from the registry.
+     *
+     * @param itOR name of the ObjectRegistry variable
+     * @param itAppId name of the variable containing the AppId
+     * @param val name of the variable containing the accessed object
+     * @return instruction calling the OR to remove the object
+     */
+    public static String oRegRemove(String itOR, String itAppId, String val) {
+        return itOR + DELETE_OBJECT + "(java.lang.Long)" + itAppId + "," + val + ")";
+    }
+
+    /**
      * Constructs the instruction to get the serialize the registered object.
      *
      * @param itOR name of the ObjectRegistry variable
@@ -97,7 +111,7 @@ public class CallGenerator {
      * @return instruction creating a new COMPSsFile instance for the given File
      */
     public static String newCOMPSsFile(String itSR, String itAppId, StringBuilder callPars) {
-        return itSR + NEW_COMPSS_FILE + "(java.lang.Long)" + itAppId + "," + callPars + ");";
+        return itSR + NEW_COMPSS_FILE + "(java.lang.Long)" + itAppId + "," + callPars + ")";
     }
 
     /**
@@ -108,7 +122,7 @@ public class CallGenerator {
      * @return instruction to request to the runtime the deletion of a file
      */
     public static String deleteFile(String itApiVar, String itAppId) {
-        return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH + "));";
+        return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH + "))";
     }
 
     /**
@@ -131,7 +145,7 @@ public class CallGenerator {
      * @return instruction to create a new stream
      */
     public static String newStreamClass(String itSR, String itAppId, String streamClass, StringBuilder callPars) {
-        return itSR + ".new" + streamClass + "(" + "(java.lang.Long)" + itAppId + "," + callPars + ");";
+        return itSR + ".new" + streamClass + "(" + "(java.lang.Long)" + itAppId + "," + callPars + ")";
     }
 
     /**
@@ -151,11 +165,11 @@ public class CallGenerator {
      *
      * @param itSR name of the StreamRegistry variable
      * @param itAppId name of the variable containing the AppId
-     * @param paramIndex parameterIndex of the file
+     * @param file file
      * @return instruction to register a file as a task parameter
      */
-    public static Object addTaskFile(String itSR, String itAppId, int paramIndex) {
-        return itSR + ADD_TASK_FILE + "(java.lang.Long)" + itAppId + "," + "$" + (paramIndex + 1) + ");";
+    public static String addTaskFile(String itSR, String itAppId, String file) {
+        return itSR + ADD_TASK_FILE + "(java.lang.Long)" + itAppId + "," + file + ")";
     }
 
     /**
@@ -166,7 +180,7 @@ public class CallGenerator {
      * @return instruction to register the stream closing
      */
     public static String closeStream(String itSR, String itAppId) {
-        return itSR + STREAM_CLOSED + "(java.lang.Long)" + itAppId + ", $0);";
+        return itSR + STREAM_CLOSED + "(java.lang.Long)" + itAppId + ", $0)";
     }
 
     /**
@@ -192,5 +206,17 @@ public class CallGenerator {
      */
     public static String openFile(String itApi, String itAppId, String file, String direction) {
         return itApi + OPEN_FILE + "(java.lang.Long)" + itAppId + "," + file + ", " + direction + ")";
+    }
+
+    /**
+     * Constructs an instruction to call the deleteTaskFile method of the StreamRegistry.
+     *
+     * @param itSR name of the StreamRegistry variable
+     * @param itAppId name of the variable containing the AppId
+     * @param file file to be checked
+     * @return instruction removing the file from the SR
+     */
+    public static String removeTaskFile(String itSR, String itAppId, String file) {
+        return itSR + DELETE_TASK_FILE + "(java.lang.Long)" + itAppId + "," + file + ")";
     }
 }

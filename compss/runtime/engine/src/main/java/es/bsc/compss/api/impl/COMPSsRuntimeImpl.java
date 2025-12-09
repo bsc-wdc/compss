@@ -966,10 +966,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
                 Application app = Application.registerApplication(appId);
                 ap.deleteData(app, new FileData(loc), waitForData, applicationDelete);
-                // Java case where task files are stored in the registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(appId, fileName);
-                }
             } catch (IOException ioe) {
                 ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             }

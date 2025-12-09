@@ -17,6 +17,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.loader.LoaderAPI;
+
 import java.io.File;
 
 
@@ -24,6 +25,7 @@ public class COMPSsFile extends File {
 
     private static final long serialVersionUID = 1L;
 
+    private final StreamRegistry sReg;
     private final LoaderAPI api;
     private final Long appId;
     private final String pathname;
@@ -32,13 +34,15 @@ public class COMPSsFile extends File {
     /**
      * Creates a new COMPSsFile instance associated to the given file {@code f} and pointing to the given LoaderAPI
      * {@code api}.
-     * 
+     *
      * @param api Associated LoaderAPI.
      * @param appId Id of the application accessing the file
+     * @param sReg StreamRegistry handling the COMPSs file
      * @param f Associated file.
      */
-    public COMPSsFile(LoaderAPI api, Long appId, File f) {
+    public COMPSsFile(LoaderAPI api, Long appId, StreamRegistry sReg, File f) {
         super(f.getAbsolutePath());
+        this.sReg = sReg;
         this.api = api;
         this.appId = appId;
         this.pathname = f.getAbsolutePath();
@@ -81,12 +85,16 @@ public class COMPSsFile extends File {
 
     @Override
     public boolean delete() {
-        return this.api.deleteFile(appId, this.pathname);
+        boolean deleted = this.api.deleteFile(appId, this.pathname);
+        if (deleted) {
+            this.sReg.deleteTaskFile(appId, this.pathname);
+        }
+        return deleted;
     }
 
     /**
      * Returns the File object after synchronizing its content.
-     * 
+     *
      * @return File File object after synchronizing its content.
      */
     public File synchFile() {
@@ -96,7 +104,7 @@ public class COMPSsFile extends File {
 
     /**
      * Synchronizes the given COMPSsFile {@code f}.
-     * 
+     *
      * @param f COMPSsFile.
      * @return File object after synchronizing its content.
      */

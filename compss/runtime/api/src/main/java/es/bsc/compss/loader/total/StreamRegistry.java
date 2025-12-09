@@ -655,7 +655,7 @@ public class StreamRegistry {
 
     private File checkAndGetNewFile(Long appId, File f) {
         if (taskFiles.contains(f.getAbsolutePath())) {
-            return new COMPSsFile(itApi, appId, f);
+            return new COMPSsFile(itApi, appId, this, f);
         } else {
             return f;
         }

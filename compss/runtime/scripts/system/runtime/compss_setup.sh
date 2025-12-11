@@ -137,10 +137,22 @@ check_compss_env() {
   check_storage_env
 
   check_tracing_env
+  check_socket_env
 
   #gen_core and appName can be empty
 }
 
+#----------------------------------------------
+# CHECK COMPSs AGENT-RELATED ENV VARIABLES
+#----------------------------------------------
+check_socket_env() {
+  if [ -z "${socket_mode}" ]; then
+    socket_mode=${DEFAULT_SOCKET_MODE}
+  fi
+  if [ -z "${socket_path}" ]; then
+    socket_path=${DEFAULT_SOCKET_PATH}
+  fi
+}
 
 #----------------------------------------------
 # Creating Execution directory
@@ -353,6 +365,7 @@ EOT
 -Dcompss.uuid=${uuid}
 -Dcompss.shutdown_in_node_failure=${shutdown_in_node_failure}
 -Dcompss.master.workingDir=${wdir_in_master}
+
 EOT
   append_analysis_jvm_options_to_file "${jvm_options_file}"
   append_worker_jvm_options_to_file "${jvm_options_file}"
@@ -519,6 +532,8 @@ append_agent_jvm_options_to_file() {
   # Add Application-specific options
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.agent.configpath=${agent_config}
+-Dcompss.socket.mode=${socket_mode}
+-Dcompss.socket.path=${socket_path}
 EOT
 }
 
@@ -577,7 +592,10 @@ start_compss_app() {
   #echo "Options file: ${jvm_options_file}"
   #cat ${jvm_options_file}
 
+  run_app_with_compss
+}
 
+run_app_with_compss() {
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
  # Launch application execution
@@ -674,6 +692,7 @@ exec_python() {
   ${tracing_monitor} \
   ${PyObject_serialize} ${storageConf} ${streaming} \
   ${streaming_master_name} ${streaming_master_port} \
+  "${socket_mode}" "${socket_path}" \
   "${fullAppPath}" ${application_args}
 
   endCode=$?

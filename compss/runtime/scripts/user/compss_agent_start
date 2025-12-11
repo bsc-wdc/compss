@@ -220,6 +220,9 @@ show_opts() {
                                             Default: None
 
     --wdir=<path>                           Directory used by the agent to store the temporary files
+    --socket=<string>, --socket             Run the application in client mode. Socket path to bind.
+                                            When no value is provided it is set to ${DEFAULT_SOCKET_PATH}
+                                            Default: ${DEFAULT_SOCKET_MODE}
 
 EOF
 }
@@ -408,6 +411,14 @@ parse_options() {
             # Specify the file where COMPSs will store the tasks profile
             scheduler_config=${OPTARG//scheduler_config_file=/}
             ;;
+          socket=*)
+            socket_mode=true
+            socket_path=${OPTARG//socket=/}
+            ;;
+          socket)
+            socket_mode=true
+            socket_path=${DEFAULT_SOCKET_PATH}
+            ;;
           summary)
             summary=true
             ;;
@@ -548,7 +559,6 @@ clean_agent(){
 ###############################################
 ###############################################
 check_compss_env
-
 
 parse_options "$@"
 # trap clean_script EXIT

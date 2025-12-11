@@ -149,6 +149,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "streaming_master_port", help="Streaming Master Port [*]"
     )
+    parser.add_argument("socket_mode", help="Socket mode [true|false]")
+    parser.add_argument("socket_path", help="Socket path [*]")
     parser.add_argument("app_path", help="Application path")
     return parser.parse_args()
 
@@ -206,7 +208,7 @@ def compss_main() -> None:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $wall_clock $log_level
            $PyObject_serialize $storage_conf $streaming_backend
            $streaming_master_name $streaming_master_port
-           $fullAppPath $application_args
+           $socket_mode $socket_path $fullAppPath $application_args
 
     :return: None.
     """
@@ -223,10 +225,10 @@ def compss_main() -> None:
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv
-    if len(sys.argv) >= 12:
-        cut = 12
+    if len(sys.argv) >= 14:
+        cut = 14
     else:
-        cut = 10
+        cut = 12
 
     user_sys_argv = sys.argv[cut:]
     sys.argv = sys.argv[:cut]
@@ -242,6 +244,10 @@ def compss_main() -> None:
     tracing_extrae = args.tracing_extrae == "true"
     tracing_monitor = args.tracing_monitor == "true"
 
+    # Setup socket mode
+    socket_mode = args.socket_mode == "true"
+    socket_path = args.socket_path if socket_mode else None
+
     # Get storage configuration at master
     storage_conf = args.storage_configuration
 
@@ -255,7 +261,13 @@ def compss_main() -> None:
             __load_user_module(args.app_path, log_level)
 
     # Start the runtime
-    compss_start(log_level, tracing_extrae, False)
+    compss_start(
+        log_level,
+        tracing_extrae,
+        interactive=False,
+        socket_mode=socket_mode,
+        socket_path=socket_path,
+    )
 
     # Register @implements core elements (they can not be registered in
     # __load_user__module__).

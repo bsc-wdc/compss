@@ -213,6 +213,18 @@ public class RuntimeConfigManager {
                 }
                 System.setProperty(COMPSsConstants.COMPSS_TO_FILE, Boolean.toString(manager.isToFile()));
 
+                if (System.getProperty(COMPSsConstants.SOCKET_MODE) == null
+                    || System.getProperty(COMPSsConstants.SOCKET_MODE).isEmpty()) {
+                    setDefaultProperty(COMPSsConstants.SOCKET_MODE, COMPSsDefaults.SOCKET_MODE);
+                } else {
+                    System.setProperty(COMPSsConstants.SOCKET_MODE, manager.getSocketMode());
+                }
+                if (System.getProperty(COMPSsConstants.SOCKET_PATH) == null
+                    || System.getProperty(COMPSsConstants.SOCKET_PATH).isEmpty()) {
+                    setDefaultProperty(COMPSsConstants.SOCKET_PATH, COMPSsDefaults.SOCKET_PATH);
+                } else {
+                    System.setProperty(COMPSsConstants.SOCKET_PATH, manager.getSocketPath());
+                }
             } else {
                 setDefaultProperties();
             }
@@ -238,6 +250,8 @@ public class RuntimeConfigManager {
         setDefaultProperty(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
         setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
         setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
+        setDefaultProperty(COMPSsConstants.SOCKET_MODE, COMPSsDefaults.SOCKET_MODE);
+        setDefaultProperty(COMPSsConstants.SOCKET_PATH, COMPSsDefaults.SOCKET_PATH);
     }
 
     private static void setDefaultProperty(String propertyName, String defaultValue) {
@@ -356,6 +370,24 @@ public class RuntimeConfigManager {
      */
     public String getAppName() {
         return config.getString(COMPSsConstants.APP_NAME);
+    }
+
+    /**
+     * Returns the socket mode.
+     * 
+     * @return The socket mode.
+     */
+    public String getSocketMode() {
+        return config.getString(COMPSsConstants.SOCKET_MODE);
+    }
+
+    /**
+     * Returns the socket path.
+     * 
+     * @return The socket path.
+     */
+    public String getSocketPath() {
+        return config.getString(COMPSsConstants.SOCKET_PATH);
     }
 
     /**

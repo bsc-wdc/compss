@@ -82,6 +82,7 @@ show_opts() {
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
                                             Default: ${DEFAULT_RESOURCES}
+    --socket=<string>, --socket             Run the application in client mode. Optional socket path to bind.
     --lang=<name>                           Language of the application (java/c/python/r)
                                             Default: Inferred is possible. Otherwise: ${DEFAULT_LANGUAGE}
     --summary                               Displays a task execution summary at the end of the application execution
@@ -355,6 +356,14 @@ get_args() {
             if [ ! -f "$resFile" ]; then
               display_warning "Resources XML file '$resFile' could not be found."
             fi
+            ;;
+          socket=*)
+            socket_mode=true
+            socket_path=${OPTARG//socket=/}
+            ;;
+          socket)
+            socket_mode=true
+            socket_path=${DEFAULT_SOCKET_PATH}
             ;;
           summary)
             summary=true
@@ -772,36 +781,56 @@ clean_env() {
 # MAIN EXECUTION
 #---------------------------------------------------
 
-# Environment
-check_compss_env
+runcompss_load_env_scripts() {
+  if [ -n "${env_script_path}" ]; then
+    echo "[RUNCOMPSS] Loading environment scripts"
+    scripts=$(echo "${env_script_path}" | tr ":" " ")
+    for script in $scripts
+    do
+      echo "[RUNCOMPSS] Loading $script"
+      source $script
+    done
+  fi
+}
 
-# Validate arguments
-all_arguments="$@"   # Store all flags in a variable, just in case we need it for provenance
-get_args "$@"
-check_args
+runcompss_standard_main() {
+  trap clean_env EXIT
+  check_compss_env
 
-# Trap to ensure clean end
-trap clean_env EXIT
+  runcompss_load_env_scripts
 
-if [ -n "${env_script_path}" ]; then
-  echo "[RUNCOMPSS] Loading environment scripts"
-  scripts=$(echo "${env_script_path}" | tr ":" " ")
-  for script in $scripts
-  do
-    echo "[RUNCOMPSS] Loading $script"
-    source $script
-  done
-fi
+  # Start the profiling process
+  start_profiling "$( [ "${log_level}" == "${DEFAULT_LOG_LEVEL_ARGUMENT}" ] && echo "true" || echo "false" )"
 
-# Start the profiling process
-start_profiling "$( [ "${log_level}" == "${DEFAULT_LOG_LEVEL_ARGUMENT}" ] && echo "true" || echo "false" )"
+  # Real runtime execution
+  start_compss_app
 
-# Real runtime execution
-start_compss_app
-
-if [ "$provenance" != false ]; then
+  if [ "$provenance" != false ]; then
     run_provenance
-fi
+  fi
 
+  unset ENQUEUE_COMPSS_ARGS
+}
 
-unset ENQUEUE_COMPSS_ARGS
+runcompss_client_main() {
+  trap clean_env EXIT
+  
+  runcompss_load_env_scripts
+
+  run_app_with_compss
+  unset ENQUEUE_COMPSS_ARGS
+}
+
+runcompss_main() {
+  all_arguments="$@"
+  get_args "$@"
+  check_args
+
+  if [ -z "${socket_mode}" ]; then
+    runcompss_standard_main
+  else
+    runcompss_client_main
+  fi
+}
+
+runcompss_main "$@"

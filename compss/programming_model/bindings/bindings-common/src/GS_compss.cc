@@ -33,7 +33,7 @@
 
 using namespace std;
 
-CompssInterface runtime = setup_JNI_runtime();
+CompssInterface runtime;
 
 
 // ******************************

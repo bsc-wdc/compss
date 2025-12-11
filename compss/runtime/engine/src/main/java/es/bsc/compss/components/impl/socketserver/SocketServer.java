@@ -63,20 +63,10 @@ public class SocketServer extends Server {
 
     private static final Logger LOGGER = LogManager.getLogger(SocketServer.class);
 
-    private static final String DEFAULT_SOCKET_PATH = "/tmp/compss.sock";
     private static final String LINE_SEPARATOR_REGEX = "\\r?\\n";
 
     private final COMPSsRuntimeImpl runtime;
 
-
-    /**
-     * Creates a server listening on the default socket path.
-     *
-     * @param runtime COMPSs runtime instance backing the server operations.
-     */
-    public SocketServer(COMPSsRuntimeImpl runtime) {
-        this(runtime, DEFAULT_SOCKET_PATH);
-    }
 
     /**
      * Creates a server listening on the given socket path.

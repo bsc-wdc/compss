@@ -64,6 +64,8 @@ def start_runtime(
     tracing: bool = False,
     interactive: bool = False,
     disable_external: bool = False,
+    socket_mode: bool = False,
+    socket_path: typing.Optional[str] = None,
 ) -> None:
     """Start the COMPSs runtime.
 
@@ -86,8 +88,13 @@ def start_runtime(
     with EventMaster(TRACING_MASTER.start_runtime_event):
         if interactive and CONTEXT.in_master() and not disable_external:
             COMPSs.load_runtime(external_process=True)
+            COMPSs.set_JNI_runtime()
         else:
             COMPSs.load_runtime(external_process=False)
+            if socket_mode:
+                COMPSs.set_socket_endpoint(socket_path)
+            else:
+                COMPSs.set_JNI_runtime()
 
         if log_level == "trace":
             # Could also be "debug" or True, but we only show the C extension

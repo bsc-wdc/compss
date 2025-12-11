@@ -26,6 +26,7 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.components.impl.socketserver.SocketServer;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.loader.LoaderAPI;
@@ -140,6 +141,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // Components
     private static AccessProcessor ap;
     private static TaskDispatcher td;
+    private static SocketServer ss;
 
     // Monitor
     private static RuntimeMonitor runtimeMonitor;
@@ -252,6 +254,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     // Initialize main runtime components
                     td = new TaskDispatcher();
                     ap = new AccessProcessor(td);
+                    if ("true".equals(System.getProperty(COMPSsConstants.SOCKET_MODE))) {
+                        String socketPath = System.getProperty(COMPSsConstants.SOCKET_PATH);
+                        ss = new SocketServer(this, socketPath);
+                        try {
+                            ss.start();
+                        } catch (IOException ioe) {
+                            ErrorManager.fatal("Unable to start runtime socket server", ioe);
+                        }
+                    }
 
                     // Initialize runtime tools components
                     runtimeMonitor = new RuntimeMonitor(ap, td);
@@ -330,7 +341,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                 LOGGER.debug("Stopping Comm...");
                 Comm.stop();
-
+                if (ss != null) {
+                    try {
+                        ss.stop();
+                    } catch (IOException ioe) {
+                        LOGGER.warn("Failed to stop socket server cleanly", ioe);
+                    }
+                }
                 // LOGGER.debug("Releasing all barriers...");
                 // In some case, when runtime is stop because an error the java process is not stopped
                 // because some threads are blocked at barriers waiting for the end of tasks

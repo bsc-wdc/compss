@@ -32,6 +32,7 @@ DEFAULT_FAMILIES = [
     "tools",
     "fault_tolerance",
     "gos",
+    "socket",
 ]
 DEFAULT_CLI_FAMILIES = ["environment", "runapps", "jupyter"]
 DEFAULT_IGNORED = [

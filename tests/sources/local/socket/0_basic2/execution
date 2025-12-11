@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Obtain parameters
+COMPSs_exec=$1
+comm=$2
+runcompss_opts=$3
+base_app_dir=$4
+COMPSs_log_folder=$5
+target_log_folder=$6
+retry_num=$7
+execution_envs=$8
+
+# Global variables
+exit_value=1
+app_name="test_basic.py"
+
+#----------------------------------------------------------------------------------
+# Generate Project.xml according to system
+sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+#----------------------------------------------------------------------------------
+# Create all working dir folders
+mkdir -p /tmp/COMPSsWorker01/
+
+# Set the python path
+export PYTHONPATH="${base_app_dir}"/src
+
+#----------------------------------------------------------------------------------
+# Run application
+echo
+echo "*** RUNNING PYTHON APPLICATION BASIC-2 WITH SOCKET"
+
+output_log="${target_log_folder}/${app_name}_0${retry_num}.outputlog"
+error_log="${target_log_folder}/${app_name}_0${retry_num}.errorlog"
+specific_log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}"
+exec_target_log_folder="${target_log_folder}/${app_name}_0${retry_num}"
+mkdir -p "${exec_target_log_folder}"
+expectedTime=720s
+
+#----------------------------------------------------------------------------------
+# Start agent
+compss_agent_start \
+    --pythonpath="${PYTHONPATH}" \
+    --debug \
+    --hostname=COMPSsWorker01 \
+    --socket=/tmp/compss.sock \
+    --log_dir="${specific_log_dir}" \
+    --rest_port=46101 &
+
+sleep 3
+
+# Set LD lib path
+export LD_LIBRARY_PATH="${JAVA_HOME}/lib/server:${SCRIPT_DIR}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH:-}"
+
+# Run application
+"${COMPSs_exec}" \
+    --pythonpath="${PYTHONPATH}" \
+    --debug \
+    --tracing=false \
+    --socket=/tmp/compss.sock \
+    --specific_log_dir="${specific_log_dir}" \
+    "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+
+# Copy LOG files
+cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+# Check timeout
+if [[ "$?" = "124" ]]; then
+  # Report time out
+  echo "[WARNING] Python Application timed out" >> "${output_log}"
+  exit_value=124
+else
+  # Check result
+  "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}"
+  exit_value=$?
+fi
+
+if [ ${exit_value} -ne 0 ]; then
+  exit ${exit_value}
+fi
+
+#----------------------------------------------------------------------------------
+# Return execution status
+exit ${exit_value}

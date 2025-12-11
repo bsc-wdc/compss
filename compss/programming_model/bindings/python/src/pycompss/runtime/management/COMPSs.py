@@ -512,13 +512,18 @@ class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
         """
         self.compss.set_pipes(pipe_in, pipe_out)
 
-    def set_socket_endpoint(self, endpoint: str) -> None:
+    def set_socket_endpoint(self, endpoint: typing.Optional[str]) -> None:
         """Set socket endpoint.
 
-        :param endpoint: Socket endpoint.
+        :param endpoint: Socket endpoint. If None, the socket mode is disabled.
         :return: None.
         """
-        self.compss.set_socket_endpoint(endpoint)
+        if endpoint:
+            self.compss.set_socket_endpoint(endpoint)
+        else:
+            raise PyCOMPSsException(
+                "Attempted to set socket endpoint but none was defined."
+            )
 
     def set_JNI_runtime(self) -> None:
         """Set JNI runtime.

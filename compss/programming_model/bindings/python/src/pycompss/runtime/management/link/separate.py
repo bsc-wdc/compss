@@ -301,6 +301,12 @@ def c_extension_link(  # pylint: disable=too-many-locals
             elif command == LINK_MESSAGES.set_pipes:
                 compss.set_pipes(*parameters)
                 out_queue.put(command_done)
+            elif command == LINK_MESSAGES.set_socket_endpoint:
+                compss.set_socket_endpoint(*parameters)
+                out_queue.put(command_done)
+            elif command == LINK_MESSAGES.set_jni_runtime:
+                compss.set_JNI_runtime()
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.read_pipes:
                 compss.read_pipes(*parameters)
                 out_queue.put(command_done)
@@ -801,6 +807,23 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.set_pipes, pipe_in, pipe_out))
+        _ = self.out_queue.get(block=True)
+
+    def set_socket_endpoint(self, endpoint: str) -> None:
+        """Set socket endpoint.
+
+        :param endpoint: Socket endpoint.
+        :return: None.
+        """
+        self.in_queue.put((LINK_MESSAGES.set_socket_endpoint, endpoint))
+        _ = self.out_queue.get(block=True)
+
+    def set_JNI_runtime(self) -> None:
+        """Set JNI runtime.
+
+        :return: None.
+        """
+        self.in_queue.put([LINK_MESSAGES.set_jni_runtime])
         _ = self.out_queue.get(block=True)
 
     def read_pipes(self) -> str:

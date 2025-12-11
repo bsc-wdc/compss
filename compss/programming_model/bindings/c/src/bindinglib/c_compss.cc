@@ -20,6 +20,12 @@
 using namespace std;
 using namespace boost;
 
+// C-bindings do not use --socket client mode, so we use JNI.
+struct InitJNI {
+    InitJNI() { GS_set_JNI_runtime(); }
+};
+
+InitJNI initJNI;
 map<void *, Entry> objectMap;
 CBindingCache * cache = NULL;
 void compss_on(void) {

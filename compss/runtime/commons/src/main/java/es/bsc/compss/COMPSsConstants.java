@@ -19,9 +19,6 @@ package es.bsc.compss;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 
 
-/**
- * COMPSS Runtime Constants.
- */
 public class COMPSsConstants {
 
     /**
@@ -84,6 +81,9 @@ public class COMPSsConstants {
     public static final String DEPLOYMENT_ID = "compss.uuid";
     public static final String EXEC_LABEL = "compss.exec.label";
     public static final String SHUTDOWN_IN_NODE_FAILURE = "compss.shutdown_in_node_failure";
+
+    public static final String SOCKET_MODE = "compss.socket.mode";
+    public static final String SOCKET_PATH = "compss.socket.path";
 
     public static final String LOG_DIR = "compss.log.dir";
     public static final String WORKING_DIR = "compss.master.workingDir";

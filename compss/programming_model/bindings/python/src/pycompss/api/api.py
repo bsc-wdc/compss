@@ -108,6 +108,8 @@ def compss_start(
     tracing: bool = False,
     interactive: bool = False,
     disable_external: bool = False,
+    socket_mode: bool = False,
+    socket_path: typing.Optional[str] = None,
 ) -> None:
     """Start the COMPSs runtime.
 
@@ -118,7 +120,14 @@ def compss_start(
     :return: None
     """
     if CONTEXT.in_pycompss():
-        __start_runtime__(log_level, tracing, interactive, disable_external)
+        __start_runtime__(
+            log_level,
+            tracing,
+            interactive,
+            disable_external,
+            socket_mode,
+            socket_path,
+        )
     else:
         __dummy_compss_start__(
             log_level, tracing, interactive, disable_external

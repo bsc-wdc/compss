@@ -27,6 +27,10 @@ import java.util.UUID;
  */
 public class COMPSsDefaults {
 
+    // SOCKET CONFIG
+    public static final String SOCKET_MODE = "false";
+    public static final String SOCKET_PATH = "/tmp/compss.sock";
+
     // DEFAULT PLUG-IN COMPONENTS
     public static final String CHECKPOINT = "es.bsc.compss.checkpoint.policies.NoCheckpoint";
 

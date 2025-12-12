@@ -467,7 +467,7 @@ def wrroc_create_action(
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
 
     environment_property = []
-    for name, value in os.environ.items():
+    for name, value in sorted(os.environ.items()):
         if (
             name.startswith(
                 (
@@ -500,7 +500,6 @@ def wrroc_create_action(
                 )
             )
             environment_property.append({"@id": "#" + name.lower()})
-    environment_property.sort()
 
     resolved_main_entity = main_entity
     for entity in compss_crate.get_entities():
@@ -865,8 +864,6 @@ def wrroc_create_action(
     # duplicated entries can be found in the metadata (i.e. a file that is part of a directory, can be added
     # independently). However, this does not add duplicated files if data_persistence is True
     # Hint for controlling duplicates: both 'ins' and 'outs' dir URIs come first on each list
-    ins.sort()
-    outs.sort()
     for item in ins:
         create_action.append_to("object", {"@id": fix_dir_url(item)})
     for item in outs:

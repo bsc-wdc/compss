@@ -865,6 +865,8 @@ def wrroc_create_action(
     # duplicated entries can be found in the metadata (i.e. a file that is part of a directory, can be added
     # independently). However, this does not add duplicated files if data_persistence is True
     # Hint for controlling duplicates: both 'ins' and 'outs' dir URIs come first on each list
+    ins.sort()
+    outs.sort()
     for item in ins:
         create_action.append_to("object", {"@id": fix_dir_url(item)})
     for item in outs:

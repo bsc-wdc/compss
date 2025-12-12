@@ -142,8 +142,8 @@ def main():
     # The list has at this point detected ins and outs, but also added any ins an outs defined by the user
     list_common_paths = []
     if (
-            "data_persistence" in compss_wf_info
-            and compss_wf_info["data_persistence"] is True
+        "data_persistence" in compss_wf_info
+        and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
@@ -154,20 +154,29 @@ def main():
         if isinstance(compss_wf_info["provenance_run"], bool):
             PROVENANCE_RUN_ENABLED = compss_wf_info["provenance_run"]
         else:
-            print(f"PROVENANCE | WARNING: 'provenance_run' in {INFO_YAML} wrongly defined. "
-                  "Reverting to default: {PROVENANCE_RUN_ENABLED}")
+            print(
+                f"PROVENANCE | WARNING: 'provenance_run' in {INFO_YAML} wrongly defined. "
+                "Reverting to default: {PROVENANCE_RUN_ENABLED}"
+            )
 
     if PROVENANCE_RUN_ENABLED and not WORKER_LOGS:
         PROVENANCE_RUN_ENABLED = False
-        print("PROVENANCE | WARNING: Missing worker log files. Cannot generate metadata with the Provenance Run Crate"
-              "Profile (Level 3). Reverting back to Workflow Run Crate (Level 2).")
+        print(
+            "PROVENANCE | WARNING: Missing worker log files. Cannot generate metadata with the Provenance Run Crate"
+            "Profile (Level 3). Reverting back to Workflow Run Crate (Level 2)."
+        )
 
     if "param_size_limit" in compss_wf_info:
-        if isinstance(compss_wf_info["param_size_limit"], int) and int(compss_wf_info["param_size_limit"]) > 0:
+        if (
+            isinstance(compss_wf_info["param_size_limit"], int)
+            and int(compss_wf_info["param_size_limit"]) > 0
+        ):
             PARAM_SIZE_LIMIT = compss_wf_info["param_size_limit"]
         else:
-            print(f"PROVENANCE | WARNING: 'param_size_limit' in {INFO_YAML} wrongly defined. "
-                  f"Reverting to default: {PARAM_SIZE_LIMIT}")
+            print(
+                f"PROVENANCE | WARNING: 'param_size_limit' in {INFO_YAML} wrongly defined. "
+                f"Reverting to default: {PARAM_SIZE_LIMIT}"
+            )
 
     successful_execution = True
     added_logs = set()
@@ -180,7 +189,9 @@ def main():
 
         update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
 
-        fixed_ins = set()  # ins are file://host/path/file, fixed_ins are crate_path/file
+        fixed_ins = (
+            set()
+        )  # ins are file://host/path/file, fixed_ins are crate_path/file
         fixed_outs = set()
         steps = []
         step_control_actions = []
@@ -207,7 +218,9 @@ def main():
                 if (task.tid, param.name) in added_formal_params:
                     param.formal_instance = added_formal_params[(task.tid, param.name)]
                 else:
-                    param.formal_instance = add_parameter_definition(compss_crate, param)
+                    param.formal_instance = add_parameter_definition(
+                        compss_crate, param
+                    )
                     added_formal_params[(task.tid, param.name)] = param.formal_instance
 
                 if not task.succeeded and param.direction == "OUT":
@@ -215,8 +228,12 @@ def main():
 
                 # Add the actual parameter value (File/PropertyValue)
                 # for files:
-                if ("File" in param.dtype or "Dataset" in param.dtype) and param.is_array == False:
-                    added_value = add_dataset_file_to_crate(compss_crate, param.value, persistence, list_common_paths)
+                if (
+                    "File" in param.dtype or "Dataset" in param.dtype
+                ) and param.is_array == False:
+                    added_value = add_dataset_file_to_crate(
+                        compss_crate, param.value, persistence, list_common_paths
+                    )
                     if added_value:
                         if param.value in ins or f"{param.value}/" in ins:
                             fixed_ins.add(added_value)
@@ -227,29 +244,45 @@ def main():
 
                         # Cross-reference the file parameter definition (FormalParameter) with its value (File) through "exampleOfWork"
                         file_instance = compss_crate.dereference(param.value)
-                        if file_instance and param.formal_instance not in file_instance.get("exampleOfWork", []):
+                        if (
+                            file_instance
+                            and param.formal_instance
+                            not in file_instance.get("exampleOfWork", [])
+                        ):
                             param.actual_instance = {"@id": param.value}
-                            file_instance.append_to("exampleOfWork", param.formal_instance)
+                            file_instance.append_to(
+                                "exampleOfWork", param.formal_instance
+                            )
 
                 # for regular parameters:
                 else:
-                    param.actual_instance = add_parameter_value(compss_crate, param, PARAM_SIZE_LIMIT)
+                    param.actual_instance = add_parameter_value(
+                        compss_crate, param, PARAM_SIZE_LIMIT
+                    )
 
                 # Collect the FormalParameter - PropertyValue/File cross-references for later update
                 if param.formal_instance and param.actual_instance:
                     formal_to_actuals.setdefault(param.formal_instance, set())
-                    formal_to_actuals[param.formal_instance].add(param.actual_instance["@id"])
+                    formal_to_actuals[param.formal_instance].add(
+                        param.actual_instance["@id"]
+                    )
 
             # -------------------- TASK-related ENTITIES -------------------- #
 
             # Add a SoftwareSourceCode entity representing the method that has been decorated with @task
             if task.signature not in defined_tools:
-                defined_tools[task.signature] = add_formal_method_of_task(compss_crate, task)
+                defined_tools[task.signature] = add_formal_method_of_task(
+                    compss_crate, task
+                )
 
             # Add the information related to the task: HowToStep, CreateAction, ControlAction
             step = add_how_to_step(compss_crate, task, defined_tools[task.signature])
-            create_action = add_create_action_for_task(compss_crate, task, defined_tools[task.signature])
-            control_action = add_control_action_for_step(compss_crate, step, create_action)
+            create_action = add_create_action_for_task(
+                compss_crate, task, defined_tools[task.signature]
+            )
+            control_action = add_control_action_for_step(
+                compss_crate, step, create_action
+            )
 
             steps.append(step)
             step_control_actions.append(control_action)
@@ -264,7 +297,9 @@ def main():
         # Cross-reference parameter definitions (FormalParameter) with their value (PropertyValue) through "workExample"
         for formal_param, actual_params in formal_to_actuals.items():
             formal_instance = compss_crate.get(formal_param["@id"])
-            formal_instance.append_to("workExample", [{"@id": pid} for pid in actual_params])
+            formal_instance.append_to(
+                "workExample", [{"@id": pid} for pid in actual_params]
+            )
 
         pr_part_time1 = time.time() - pr_part_time1
 
@@ -272,8 +307,11 @@ def main():
         part_time = time.time()
         fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
         for item in ins:
-            in_url = add_dataset_file_to_crate(compss_crate, item, persistence, list_common_paths)
-            if in_url: fixed_ins.append(in_url)
+            in_url = add_dataset_file_to_crate(
+                compss_crate, item, persistence, list_common_paths
+            )
+            if in_url:
+                fixed_ins.append(in_url)
         print(
             f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
             f"{time.time() - part_time} s"
@@ -282,8 +320,11 @@ def main():
         part_time = time.time()
         fixed_outs = []
         for item in outs:
-            out_url = add_dataset_file_to_crate(compss_crate, item, persistence, list_common_paths)
-            if out_url: fixed_outs.append(out_url)
+            out_url = add_dataset_file_to_crate(
+                compss_crate, item, persistence, list_common_paths
+            )
+            if out_url:
+                fixed_outs.append(out_url)
         print(
             f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
             f"{time.time() - part_time} s"
@@ -311,6 +352,8 @@ def main():
     # Can update Agent details from online search
 
     part_time = time.time()
+    fixed_ins = sorted(fixed_ins)  # Avoid duplicating memory footprint
+    fixed_outs = sorted(fixed_outs)  # Avoid duplicating memory footprint
     main_create_action, agent = wrroc_create_action(
         compss_crate,
         main_entity,
@@ -324,7 +367,7 @@ def main():
         run_uuid,
         auxiliary_file_list,
         successful_execution,
-        PROVENANCE_RUN_ENABLED
+        PROVENANCE_RUN_ENABLED,
     )
     print(
         f"PROVENANCE | RO-Crate adding CreateAction TIME: "
@@ -333,7 +376,9 @@ def main():
 
     if PROVENANCE_RUN_ENABLED:
         pr_part_time2 = time.time()
-        update_main_entity_with_formal_methods(compss_crate, list(defined_tools.values()))
+        update_main_entity_with_formal_methods(
+            compss_crate, list(defined_tools.values())
+        )
         update_main_entity_with_steps(compss_crate, steps)
 
         compss_runtime = add_workflow_engine(compss_crate, compss_ver)
@@ -342,7 +387,7 @@ def main():
             objects=step_control_actions,
             result=main_create_action,
             workflow_engine=compss_runtime,
-            agent=agent
+            agent=agent,
         )
         pr_part_time2 = time.time() - pr_part_time2
         print(

@@ -352,12 +352,14 @@ def main():
     # Can update Agent details from online search
 
     part_time = time.time()
+    fixed_ins = sorted(fixed_ins)  # Avoid duplicating memory footprint
+    fixed_outs = sorted(fixed_outs)  # Avoid duplicating memory footprint
     main_create_action, agent = wrroc_create_action(
         compss_crate,
         main_entity,
         author_list,
-        sorted(fixed_ins),
-        sorted(fixed_outs),
+        fixed_ins,
+        fixed_outs,
         yaml_content,
         INFO_YAML,
         PATH_LOG,

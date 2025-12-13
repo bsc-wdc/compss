@@ -23,10 +23,12 @@ import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.total.ITAppModifier;
+import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -142,6 +144,40 @@ public class JavaNestedInvoker extends JavaInvoker {
             } finally {
                 this.completeNestedApplication(wf);
             }
+        }
+    }
+
+    @Override
+    protected void handleSimpleInputValue(Workflow wf, InvocationParam p) {
+        switch (p.getType()) {
+            case OBJECT_T:
+            case PSCO_T:
+                Object o = p.getValue();
+                this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), o, p.getSourceDataId());
+                break;
+            default:
+                super.handleSimpleInputValue(wf, p);
+        }
+    }
+
+    @Override
+    protected void handleSimpleOutputValue(Workflow wf, InvocationParam p) {
+        switch (p.getType()) {
+            case OBJECT_T:
+            case PSCO_T: {
+                Object o = p.getValue();
+                String dataId = p.getDataMgmtId();
+                ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
+                if (!or.bindToDataIfExisting(wf.getId(), o, dataId)) {
+                    Object internal = or.collectObjectLastValue(wf.getId(), p.getValue());
+                    p.setValue(internal);
+                } else {
+                    p.resultIsForwarded();
+                }
+            }
+                break;
+            default:
+                super.handleSimpleOutputValue(wf, p);
         }
     }
 }

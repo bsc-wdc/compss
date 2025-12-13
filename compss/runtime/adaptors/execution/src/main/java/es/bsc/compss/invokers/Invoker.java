@@ -24,7 +24,6 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
@@ -452,23 +451,15 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
                 handleInputValue(wf, sp);
             }
         } else {
-            switch (p.getType()) {
-                case OBJECT_T:
-                case PSCO_T: {
-                    Object o = p.getValue();
-                    this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), o, p.getSourceDataId());
-                }
-                    break;
-                case FILE_T: {
-                    String originalName = p.getOriginalName();
-                    this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), originalName, p.getSourceDataId());
-                }
-                    break;
-                default:
-                    // Do Nothing
-            }
+            handleSimpleInputValue(wf, p);
         }
+    }
 
+    protected void handleSimpleInputValue(Workflow wf, InvocationParam p) {
+        if (p.getType() == DataType.FILE_T) {
+            String originalName = p.getOriginalName();
+            this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), originalName, p.getSourceDataId());
+        }
     }
 
     @Override
@@ -508,33 +499,18 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
                 handleOutputValue(wf, sp);
             }
         } else {
-            switch (p.getType()) {
-                case OBJECT_T:
-                case PSCO_T: {
-                    Object o = p.getValue();
-                    String dataId = p.getDataMgmtId();
-                    ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
-                    if (!or.bindToDataIfExisting(wf.getId(), o, dataId)) {
-                        Object internal = or.collectObjectLastValue(wf.getId(), p.getValue());
-                        p.setValue(internal);
-                    } else {
-                        p.resultIsForwarded();
-                    }
-                }
-                    break;
-                case FILE_T: {
-                    String originalName = (String) p.getValue();
-                    String dataId = p.getDataMgmtId();
-                    if (this.context.getRuntimeAPI().bindExistingVersionToData(wf.getId(), originalName, dataId)) {
-                        p.resultIsForwarded();
-                    }
-                }
-                    break;
-                default:
-                    // Do Nothing
+            handleSimpleOutputValue(wf, p);
+        }
+    }
+
+    protected void handleSimpleOutputValue(Workflow wf, InvocationParam p) {
+        if (p.getType() == DataType.FILE_T) {
+            String originalName = (String) p.getValue();
+            String dataId = p.getDataMgmtId();
+            if (this.context.getRuntimeAPI().bindExistingVersionToData(wf.getId(), originalName, dataId)) {
+                p.resultIsForwarded();
             }
         }
-
     }
 
     protected void logProvenanceOfParameters(List<? extends InvocationParam> params, String direction) {

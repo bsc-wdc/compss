@@ -17,8 +17,6 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.api.ApplicationRunner;
-import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
 import es.bsc.compss.exceptions.InvokeExecutionException;
@@ -436,35 +434,34 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
 
     protected Workflow becomesNestedApplication(String parallelismSource) {
         Workflow wf = this.context.getRuntimeAPI().registerWorkflow(parallelismSource, this);
-        long appId = wf.getId();
-        LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+        LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + wf.getId());
         for (InvocationParam p : this.invocation.getParams()) {
-            handleInputValue(appId, p);
+            handleInputValue(wf, p);
         }
         InvocationParam p = this.invocation.getTarget();
         if (p != null) {
-            handleInputValue(appId, p);
+            handleInputValue(wf, p);
         }
         return wf;
     }
 
-    private void handleInputValue(Long appId, InvocationParam p) {
+    private void handleInputValue(Workflow wf, InvocationParam p) {
         if (p.isCollective()) {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
             for (InvocationParam sp : cp.getCollectionParameters()) {
-                handleInputValue(appId, sp);
+                handleInputValue(wf, sp);
             }
         } else {
             switch (p.getType()) {
                 case OBJECT_T:
                 case PSCO_T: {
                     Object o = p.getValue();
-                    this.context.getRuntimeAPI().registerData(appId, p.getType(), o, p.getSourceDataId());
+                    this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), o, p.getSourceDataId());
                 }
                     break;
                 case FILE_T: {
                     String originalName = p.getOriginalName();
-                    this.context.getRuntimeAPI().registerData(appId, p.getType(), originalName, p.getSourceDataId());
+                    this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), originalName, p.getSourceDataId());
                 }
                     break;
                 default:
@@ -487,29 +484,28 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
     }
 
     protected void completeNestedApplication(Workflow wf) {
-        long appId = wf.getId();
         // Wait for all nested tasks to end
         wf.barrier();
 
         // Handle Output Parameters
         for (InvocationParam p : this.invocation.getParams()) {
             if (p.isWriteFinalValue()) {
-                handleOutputValue(appId, p);
+                handleOutputValue(wf, p);
             }
         }
         for (InvocationParam p : this.invocation.getResults()) {
-            handleOutputValue(appId, p);
+            handleOutputValue(wf, p);
         }
 
         // Removing internal application
         wf.deregister();
     }
 
-    private void handleOutputValue(Long appId, InvocationParam p) {
+    private void handleOutputValue(Workflow wf, InvocationParam p) {
         if (p.isCollective()) {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
             for (InvocationParam sp : cp.getCollectionParameters()) {
-                handleOutputValue(appId, sp);
+                handleOutputValue(wf, sp);
             }
         } else {
             switch (p.getType()) {
@@ -518,8 +514,8 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
                     Object o = p.getValue();
                     String dataId = p.getDataMgmtId();
                     ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
-                    if (!or.bindToDataIfExisting(appId, o, dataId)) {
-                        Object internal = or.collectObjectLastValue(appId, p.getValue());
+                    if (!or.bindToDataIfExisting(wf.getId(), o, dataId)) {
+                        Object internal = or.collectObjectLastValue(wf.getId(), p.getValue());
                         p.setValue(internal);
                     } else {
                         p.resultIsForwarded();
@@ -529,7 +525,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
                 case FILE_T: {
                     String originalName = (String) p.getValue();
                     String dataId = p.getDataMgmtId();
-                    if (this.context.getRuntimeAPI().bindExistingVersionToData(appId, originalName, dataId)) {
+                    if (this.context.getRuntimeAPI().bindExistingVersionToData(wf.getId(), originalName, dataId)) {
                         p.resultIsForwarded();
                     }
                 }

@@ -796,6 +796,7 @@ runcompss_load_env_scripts() {
 runcompss_standard_main() {
   trap clean_env EXIT
   check_compss_env
+  check_args
 
   runcompss_load_env_scripts
 
@@ -814,7 +815,8 @@ runcompss_standard_main() {
 
 runcompss_client_main() {
   trap clean_env EXIT
-  
+  check_args
+
   runcompss_load_env_scripts
 
   run_app_with_compss
@@ -824,7 +826,6 @@ runcompss_client_main() {
 runcompss_main() {
   all_arguments="$@"
   get_args "$@"
-  check_args
 
   if [ -z "${socket_mode}" ]; then
     runcompss_standard_main

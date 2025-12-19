@@ -93,6 +93,7 @@ import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.util.Tracer;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -1609,22 +1610,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     private void deleteParameter(Application app, Parameter p) {
-        switch (p.getType()) {
-            case DIRECTORY_T:
-            case FILE_T:
-                ap.deleteData(app, ((FileParameter<?, ?>) p).getAccess().getData(), false, false);
-                break;
-            case BINDING_OBJECT_T:
-                ap.deleteData(app, ((BindingObjectParameter) p).getAccess().getData(), false, false);
-                break;
-            case COLLECTION_T:
-            case DICT_COLLECTION_T:
-                for (Parameter sp : ((CollectiveParameter) p).getElements()) {
-                    deleteParameter(app, sp);
-                }
-                break;
-            default:
-                break;
+        if (p.isCollective()) {
+            for (Parameter sp : ((CollectiveParameter) p).getElements()) {
+                deleteParameter(app, sp);
+            }
+        } else {
+            switch (p.getType()) {
+                case DIRECTORY_T:
+                case FILE_T:
+                case BINDING_OBJECT_T:
+                    ap.deleteData(app, p.getAccess().getData(), false, false);
+                    break;
+                default:
+                    // Do nothing
+            }
         }
     }
 

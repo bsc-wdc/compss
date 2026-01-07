@@ -294,7 +294,9 @@ def parse_sys_argv():
                                                aliases=["ins"],
                                                help="Inspect RO-Crate(s) from a COMPSs application run.",  # noqa: E501
                                                parents=[parent_parser],
-                                               formatter_class=FORMATTER_CLASS)
+                                               formatter_class=FORMATTER_CLASS,
+                                               usage="pycompss inspect ro_crate [ro_crate ...] "
+                                                     "[-v] [-d] [-f] [-m [METHODS ...]] [-t [TASKS]]")
 
     parser_environment.set_defaults(action='inspect')
 

@@ -99,10 +99,7 @@ def update_tasks_from_worker_logs(
                         if ("str" not in log_dict["BASICTYPE"] and "String" not in log_dict["BASICTYPE"]) or not any(
                                 x in param.dtype for x in ("File", "Dataset")):
                             schema_type = map_datatype(ptypes[0])
-                            if schema_type == "DataType":
-                                param.dtype = [schema_type] + ptypes
-                            else:
-                                param.dtype = schema_type
+                            param.dtype = [schema_type] + ptypes
                             param.value = deserialized_value
 
                     elif "STARTTIME" in log_dict:

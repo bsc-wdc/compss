@@ -354,7 +354,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                 total_tasks += 1
 
         if e_main_entity and (
-            software_requirements := e_main_entity.get("softwareRequirements")
+                software_requirements := e_main_entity.get("softwareRequirements")
         ) and verbose:
             deps_tree = root_tree.add("Software Requirements")
             if isinstance(software_requirements, list):
@@ -378,7 +378,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
             exec_info_str = e_main_create_action.get("@id")
             if (
-                ca_name := e_main_create_action.get("name")
+                    ca_name := e_main_create_action.get("name")
             ) and not exec_info_str.startswith("#COMPSs"):
                 action_tree.add(f"Name —— [green]{ca_name}")
 
@@ -520,7 +520,8 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                             )
                 else:
                     # add to usage_tree
-                    usage_tree = action_tree.add(f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)")
+                    usage_tree = action_tree.add(
+                        f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)")
                     for host, host_dict in sorted(ru_dict.items()):
                         host_executed_tasks = 0
                         master_text = (
@@ -592,7 +593,8 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
             if (description := e_main_create_action.get("description")) and verbose:
                 # Backwards compatible with txt files, only works when Crates are not zipped
-                args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt", "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
+                args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt",
+                                                                      "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
                 for file in args_files:
                     try:
                         with file.open("r", encoding="utf-8") as f:
@@ -661,10 +663,10 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
 
 def local_inspect_tasks(
-    ro_crate_list,
-    failing_tasks_only: bool,
-    tasks_to_inspect: list[int],
-    methods_to_inspect: list[str]
+        ro_crate_list,
+        failing_tasks_only: bool,
+        tasks_to_inspect: list[int],
+        methods_to_inspect: list[str]
 ):
     from datetime import datetime
     from rich.tree import Tree
@@ -677,7 +679,7 @@ def local_inspect_tasks(
             crate = ROCrate(ro_crate_zip_or_dir)
         except Exception as e:
             console.print(
-                f"[bold red] Error loading the RO-Crate[/bold red] from [yellow]{ro_crate_zip_or_dir}[/yellow]: {e}"
+                f"[bold red] Error loading RO-Crate[/bold red] from [yellow]{ro_crate_zip_or_dir}[/yellow]: {e}"
             )
             continue
 
@@ -687,21 +689,31 @@ def local_inspect_tasks(
         failing_tasks = set()
         task_create_actions = []
 
-        # OrganizeAction -> object: ControlAction's of tasks, result: main CreateAction
-        # ControlAction's of tasks -> object: CreateAction of the task
+        if crate.mainEntity.get("programmingLanguage").id == "#compss":
+            is_compss_wf = True
+        else:
+            is_compss_wf = False
+
+        # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
+        # ControlAction  -> object: CreateAction of the task
+
         for e in crate.get_entities():
-            # Get only the ControlAction's from the OrganizeAction
+            # Get all the ControlActions from the OrganizeAction
             if "OrganizeAction" in e.type:
-                for cont_act_task in e.get("object"):
-                    task_create_actions.append(cont_act_task.get("object"))
+                for control_action in e.get("object", []):
+                    create_action = control_action.get("object")
+                    if isinstance(create_action, list) and len(create_action) == 1:
+                        create_action = create_action[0]
+                    if create_action:
+                        task_create_actions.append(create_action)
 
             # —— LOGS ——
             if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
-                task_id = int(e.get("about").get("@id").split("_")[1])
+                task_id = e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
                 if (
-                    (not tasks_to_inspect)
-                    or (task_id in tasks_to_inspect)
-                    or (failing_tasks_only and task_id in failing_tasks)
+                        (not tasks_to_inspect)
+                        or (task_id in tasks_to_inspect)
+                        or (failing_tasks_only and task_id in failing_tasks)
                 ):
                     log_tree.setdefault(task_id, [])
                     log_tree[task_id].append(e.id)
@@ -710,32 +722,43 @@ def local_inspect_tasks(
         task_counter = 0
 
         for e in task_create_actions:
-            task_id = int(e.id.split("_")[1])
+            task_id = e.id.split("_")[1] if is_compss_wf else e.id
             task_counter += 1
+
             if "CompletedActionStatus" in e.get("actionStatus", ""):
                 status = "[green]COMPLETED[/green]"
-            else:
+            elif "FailedActionStatus" in e.get("actionStatus", ""):
                 status = "[red]FAILED[/red]"
                 failing_tasks.add(task_id)
+            elif "PotentialActionStatus" in e.get("actionStatus", ""):
+                status = "[yellow]CANCELED[/yellow]"
+            else:
+                status = ""
 
-            method = e.get("instrument") or {}
+            method = e.get("instrument", {})
             method_name = method.get("name", "")
+            method_input_params = method.get("input", [])
+            method_output_params = method.get("output", [])
 
-            should_print = (
-                (methods_to_inspect is None or any(re.search(m, method_name) for m in methods_to_inspect))
-                and (not tasks_to_inspect or task_id in tasks_to_inspect)
-                and (not failing_tasks_only or "FAILED" in status)
-            )
+            try:
+                should_print = (
+                        (methods_to_inspect is None or any(re.search(m, method_name) for m in methods_to_inspect))
+                        and (not tasks_to_inspect or task_id in tasks_to_inspect)
+                        and (not failing_tasks_only or "FAILED" in status)
+                )
+            except re.error:
+                print("Error: Invalid regex for method name")
+                exit(1)
 
             if should_print:
                 task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
                 task_tree[task_id] = tree.add(task_label)
 
                 # —— STATUS ——
-                task_tree[task_id].add(f"Status: {status}")
+                if status: task_tree[task_id].add(f"Status: {status}")
 
                 # —— METHOD ——
-                task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+                if method_name: task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
 
                 # —— EXECUTION TIME ——
                 start_time = end_time = None
@@ -757,69 +780,99 @@ def local_inspect_tasks(
                     )
 
                 # —— HOST ——
-                if e.get("name"):
+                if e.get("name") and is_compss_wf:
                     name_before, _, name_host = e.get("name").rpartition(" ")
-                    host = name_host if name_before.endswith("host") else None
-                    task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+                    host = name_host if name_before.endswith("host") else ""
+                    if host: task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
                 # —— INPUTS ——
                 t_inputs = task_tree[task_id].add("[bold green]Inputs:[/bold green]")
-                input_values = e.get("object", [])
-                input_params = method.get("input", [])
-                for index, param in enumerate(input_params):
+
+                property_values = e.get("object", [])
+                for index, pv in enumerate(property_values):
                     param_section = t_inputs.add(f"Parameter {index + 1}")
-                    param_section.add(f"Name: [cyan]{param.get('name', '')}[/cyan]")
-                    param_section.add(
-                        f"Type: [grey50]{param.get('additionalType') or param.get('@type', '')}[/grey50]"
-                    )
-                    val = next(
-                        (v for v in param.get("workExample", []) if v in input_values),
-                        {},
-                    )
-                    param_section.add(
-                        f"Value: [dark_goldenrod]{val.get('value', val.get('@id'))}[/dark_goldenrod]"
-                    )
+
+                    # Get the corresponding FormalParameter for this PropertyValue
+                    formal_params = pv.get("exampleOfWork", [])
+
+                    # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
+                    # In this case, we have to look for the one that belongs to the method of the current task
+                    fp = None
+                    if isinstance(formal_params, list):
+                        for _fp in formal_params:
+                            if _fp in method_input_params:
+                                fp = _fp
+                    else:
+                        fp = formal_params
+
+                    if fp and pv:
+                        # In case of Collection of files we only print the main file name:
+                        if pv.get("@type") == "Collection":
+                            pv = pv.get("mainEntity", {})
+
+                        param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
+                        additional_type = fp.get("additionalType") or fp.get("@type", "")
+                        type_str = ", ".join(additional_type[1:]) if isinstance(additional_type,
+                                                                                list) else additional_type
+                        param_section.add(f"Type: [grey50]{type_str}[/grey50]")
+                        param_section.add(
+                            f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
+                        )
 
                 # —— OUTPUTS ——
-                if "COMPLETED" in status:
-                    output_values = e.get("result", [])
-                    output_params = method.get("output", [])
-                    for index, param in enumerate(output_params):
+                if "COMPLETED" in status or not status:
+                    property_values = e.get("result", [])
+                    for index, pv in enumerate(property_values):
                         if index == 0:
                             t_outputs = task_tree[task_id].add(
                                 "[bold green]Outputs:[/bold green]"
                             )
+
                         param_section = t_outputs.add(f"Parameter {index + 1}")
-                        param_section.add(f"Name: [cyan]{param.get('name', '')}[/cyan]")
-                        param_section.add(
-                            f"Type: [grey50]{param.get('additionalType') or param.get('@type', '')}[/grey50]"
-                        )
-                        val = next(
-                            (
-                                v
-                                for v in param.get("workExample", [])
-                                if v in output_values
-                            ),
-                            {},
-                        )
-                        param_section.add(
-                            f"Value: [dark_goldenrod]{val.get('value', val.get('@id'))}[/dark_goldenrod]"
-                        )
+
+                        # Get the corresponding FormalParameter for this PropertyValue
+                        formal_params = pv.get("exampleOfWork", [])
+
+                        # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
+                        # In this case, we have to look for the one that belongs to the method of the current task
+                        fp = None
+                        if isinstance(formal_params, list):
+                            for _fp in formal_params:
+                                if _fp in method_output_params:
+                                    fp = _fp
+                        else:
+                            fp = formal_params
+
+                        if fp and pv:
+                            # In case of Collection of files we only print the main file name:
+                            if pv.get("@type") == "Collection":
+                                pv = pv.get("mainEntity", {})
+
+                            param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
+                            additional_type = fp.get("additionalType") or fp.get("@type", "")
+                            type_str = ", ".join(additional_type[1:]) if isinstance(additional_type,
+                                                                                    list) else additional_type
+                            param_section.add(f"Type: [grey50]{type_str}[/grey50]")
+                            param_section.add(
+                                f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
+                            )
 
         for task_id, logs in log_tree.items():
-            log_section = task_tree[task_id].add("[bold green]Logs:[/bold green]")
-            for log in logs:
-                log_section.add(f"[dim]{log}[/dim]")
+            if task_id in task_tree:
+                log_section = task_tree[task_id].add("[bold green]Logs:[/bold green]")
+                for log in logs:
+                    log_section.add(f"[dim]{log}[/dim]")
 
         tree.add(f"[bold cyan]Total Tasks —— {task_counter}")
         if failing_tasks_only:
             tree.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
 
         if crate.mainEntity and not crate.mainEntity.get("step"):
-            warning_panel = Panel(
-                "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
-                border_style="yellow",
+            console.print(
+                Panel(
+                    "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
+                    border_style="yellow"
+                )
             )
-            console.print(warning_panel)
 
         console.print(tree)

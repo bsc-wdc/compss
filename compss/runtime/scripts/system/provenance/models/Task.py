@@ -31,7 +31,7 @@ class Task:
     in_params: Dict[str, Parameter] = field(default_factory=dict)
     out_params: Dict[str, Parameter] = field(default_factory=dict)
 
-    succeeded: bool = True
+    status: str = "UNKNOWN"
     starttime: str = ""
     endtime: str = ""
     logs: List[str] = field(default_factory=list)

@@ -24,8 +24,11 @@ from rocrate.model import ContextEntity, Entity
 from rocrate.rocrate import ROCrate
 
 action_status_dict = {
-    True: "http://schema.org/CompletedActionStatus",
-    False: "http://schema.org/FailedActionStatus"
+    "UNKNOWN": "http://schema.org/PotentialActionStatus",
+    "CANCELED": "http://schema.org/PotentialActionStatus",
+    "FAILED": "http://schema.org/FailedActionStatus",
+    "FINISHED": "http://schema.org/CompletedActionStatus",
+    "RECOVERED": "http://schema.org/CompletedActionStatus",
 }
 
 
@@ -73,7 +76,7 @@ def add_create_action_for_task(
 
     l_object = [param.actual_instance for param in task.in_params.values() if param.actual_instance]
 
-    if task.succeeded:
+    if task.status in ["FINISHED", "RECOVERED"]:
         l_result = [param.actual_instance for param in task.out_params.values() if param.actual_instance]
     else:
         # If the task failed, we include its logs instead of the OUT parameters as results
@@ -83,7 +86,7 @@ def add_create_action_for_task(
         "@type": "CreateAction",
         "instrument": tool,
         "actionStatus": {
-            "@id": action_status_dict[task.succeeded]  ## MAY (optional)
+            "@id": action_status_dict[task.status]  # MAY (optional)
         }
     }
 
@@ -91,10 +94,12 @@ def add_create_action_for_task(
     if task.endtime: properties["endTime"] = task.endtime
     if l_object: properties["object"] = l_object
     if l_result: properties["result"] = l_result
-    if task.host:
-        properties["name"] = f"Run of Task {task.tid} at host {task.host}"
-    elif not task.succeeded:
+    if task.status == "FINISHED":
+        properties["name"] = f"Run of Task {task.tid}{f' on host {task.host}' if task.host else ''}"
+    elif task.status == "FAILED":
         properties["name"] = f"Failed execution of Task {task.tid}"
+    elif task.status == "CANCELED":
+        properties["name"] = f"Canceled execution of Task {task.tid}{f' on host {task.host}' if task.host else ''}"
 
     return compss_crate.add(ContextEntity(
         crate=compss_crate,

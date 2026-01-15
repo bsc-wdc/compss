@@ -15,15 +15,22 @@
 #  limitations under the License.
 #
 import socket
+import time
 import typing
 import uuid
 from pathlib import Path
-from urllib.parse import urlsplit
-
-import time
 from provenance.models.Parameter import Parameter
 from provenance.models.Task import Task
 from provenance.utils.type_mapping import map_datatype
+from urllib.parse import urlsplit
+
+STATUS_PRIORITY = {
+    "UNKNOWN": -1,
+    "CANCELED": 0,
+    "FAILED": 1,
+    "RECOVERED": 2,
+    "FINISHED": 3
+}
 
 
 def is_future_object(name: str):
@@ -55,7 +62,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
     inputs = set()
     outputs = set()
     tasks = {
-        "master": Task(tid="master", succeeded=True)
+        "master": Task(tid="master", status="FINISHED")
     }
 
     task_params: dict[str, dict] = {}
@@ -128,6 +135,16 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
             # since we only have the serialized version and the COMPSs type at this point
             if line_record[0] == "task":
                 task_id = line_record[1]
+
+                if line_record[2] == "status" and task_id in tasks:
+                    new_status = line_record[3]
+
+                    # Priority checking is needed because resubmitted tasks appear with more statuses
+                    if STATUS_PRIORITY[new_status] > STATUS_PRIORITY[tasks[task_id].status]:
+                        tasks[task_id].status = new_status
+
+                    continue
+
                 signature = line_record[2]  # Signature = filename + methodname
                 file_name, method_name = line_record[2].rsplit(".", 1)
 
@@ -175,8 +192,8 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                 task_params.clear()
 
             # -------------------- WORKFLOW STATUS -------------------- #
-            if line_record[0] == "FAILED":
-                tasks["master"].succeeded = False
+            if line_record[0] == "master":
+                tasks["master"].status = line_record[2]
 
     l_ins = list(inputs)
     l_ins.sort()  # Put directories first

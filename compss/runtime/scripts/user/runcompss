@@ -83,6 +83,7 @@ show_opts() {
     --resources=<path>                      Path to the resources XML file
                                             Default: ${DEFAULT_RESOURCES}
     --socket=<string>, --socket             Run the application in client mode. Optional socket path to bind.
+    --socket=<string>, --socket             Run the application in client mode. Optional socket path to bind.
     --lang=<name>                           Language of the application (java/c/python/r)
                                             Default: Inferred is possible. Otherwise: ${DEFAULT_LANGUAGE}
     --summary                               Displays a task execution summary at the end of the application execution
@@ -773,6 +774,10 @@ check_args() {
 }
 
 clean_env() {
+  if [ "$provenance" != false ]; then
+    run_provenance
+  fi
+
   clear_compss_app
 }
 
@@ -806,12 +811,11 @@ runcompss_standard_main() {
   # Real runtime execution
   start_compss_app
 
-  if [ "$provenance" != false ]; then
-    run_provenance
-  fi
-
   unset ENQUEUE_COMPSS_ARGS
 }
+
+# Real runtime execution
+start_compss_app
 
 runcompss_client_main() {
   trap clean_env EXIT

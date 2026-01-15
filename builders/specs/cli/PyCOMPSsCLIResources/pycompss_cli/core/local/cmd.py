@@ -181,6 +181,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
         nr_of_tasks_completed = 0
         nr_of_tasks_failed = 0
+        nr_of_tasks_canceled = 0
         total_tasks = 0
         profiles = []
         e_main_create_action = None
@@ -351,6 +352,8 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                     nr_of_tasks_completed += 1
                 elif "Failed" in action_status:
                     nr_of_tasks_failed += 1
+                elif "Potential" in action_status:
+                    nr_of_tasks_canceled += 1
                 total_tasks += 1
 
         if e_main_entity and (
@@ -391,7 +394,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
             if e_main_entity.get("step"):
                 task_tree = action_tree.add(
-                    f"Executed Tasks: {total_tasks} —— [green]COMPLETED: {nr_of_tasks_completed}[/green] —— [red]FAILED: {nr_of_tasks_failed}[/red]"
+                    f"Executed Tasks: {total_tasks} —— [green]COMPLETED: {nr_of_tasks_completed}[/green] —— [red]FAILED: {nr_of_tasks_failed}[/red] —— [yellow]CANCELED: {nr_of_tasks_canceled}[/yellow]"
                 )
 
             start_time = end_time = None
@@ -794,6 +797,10 @@ def local_inspect_tasks(
                 for index, pv in enumerate(property_values):
                     param_section = t_inputs.add(f"Parameter {index + 1}")
 
+                    if isinstance(pv, str):
+                        param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+                        continue
+
                     # Get the corresponding FormalParameter for this PropertyValue
                     formal_params = pv.get("exampleOfWork", [])
 
@@ -819,7 +826,7 @@ def local_inspect_tasks(
                         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
                         if is_compss_wf:
                             param_section.add(
-                                f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') == 'File' else pv.get('value')}[/dark_goldenrod]"
+                                f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') in ['File', 'Dataset'] else pv.get('value')}[/dark_goldenrod]"
                             )
                         else:
                             param_section.add(
@@ -836,6 +843,10 @@ def local_inspect_tasks(
                             )
 
                         param_section = t_outputs.add(f"Parameter {index + 1}")
+
+                        if isinstance(pv, str):
+                            param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+                            continue
 
                         # Get the corresponding FormalParameter for this PropertyValue
                         formal_params = pv.get("exampleOfWork", [])
@@ -862,7 +873,7 @@ def local_inspect_tasks(
                             param_section.add(f"Type: [grey50]{type_str}[/grey50]")
                             if is_compss_wf:
                                 param_section.add(
-                                    f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') == 'File' else pv.get('value')}[/dark_goldenrod]"
+                                    f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') in ['File', 'Dataset']  else pv.get('value')}[/dark_goldenrod]"
                                 )
                             else:
                                 param_section.add(

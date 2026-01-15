@@ -203,7 +203,6 @@ def add_parameter_value(compss_crate: ROCrate, param: Parameter, character_limit
 
     properties = {
         "@type": "PropertyValue",
-        "exampleOfWork": param.formal_instance,
         "value": param.value
     }
 

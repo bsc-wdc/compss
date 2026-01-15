@@ -541,8 +541,10 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                                 if "executionTime" in metric_value:
                                     continue  # Ignore executionTime metric
                                 executions = metric_value.get('executions')
-                                if host != "OVERALL" and executions == "None":
+                                if executions == "None":
                                     # None comes as a string in the host_dict, not as a real None
+                                    executions = 0
+                                if host != "OVERALL" and executions == 0:
                                     continue  # Do not print if no executions in a host, but print in the OVERALL
                                 host_executed_tasks += int(executions)
                                 host_tree.add(
@@ -665,7 +667,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 def local_inspect_tasks(
         ro_crate_list,
         failing_tasks_only: bool,
-        tasks_to_inspect: list[int],
+        tasks_to_inspect: list[str],
         methods_to_inspect: list[str]
 ):
     from datetime import datetime
@@ -815,9 +817,14 @@ def local_inspect_tasks(
                         type_str = ", ".join(additional_type[1:]) if isinstance(additional_type,
                                                                                 list) else additional_type
                         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-                        param_section.add(
-                            f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
-                        )
+                        if is_compss_wf:
+                            param_section.add(
+                                f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') == 'File' else pv.get('value')}[/dark_goldenrod]"
+                            )
+                        else:
+                            param_section.add(
+                                f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
+                            )
 
                 # —— OUTPUTS ——
                 if "COMPLETED" in status or not status:
@@ -853,9 +860,14 @@ def local_inspect_tasks(
                             type_str = ", ".join(additional_type[1:]) if isinstance(additional_type,
                                                                                     list) else additional_type
                             param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-                            param_section.add(
-                                f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
-                            )
+                            if is_compss_wf:
+                                param_section.add(
+                                    f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') == 'File' else pv.get('value')}[/dark_goldenrod]"
+                                )
+                            else:
+                                param_section.add(
+                                    f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
+                                )
 
         for task_id, logs in log_tree.items():
             if task_id in task_tree:

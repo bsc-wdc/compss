@@ -28,6 +28,7 @@ class TaskIDAction(argparse.Action):
     into a single flat list of ints stored in namespace.
     Raises argparse.ArgumentError for bad tokens/ranges so argparse prints a friendly error.
     """
+
     def __call__(self, parser, namespace, values, option_string=None):
         existing = getattr(namespace, self.dest, None)
         if existing is None:
@@ -49,7 +50,7 @@ class TaskIDAction(argparse.Action):
 
                 # single integer
                 if re.fullmatch(r'\d+', p):
-                    existing.append(int(p))
+                    existing.append(p)
                     continue
 
                 # range "start-end"
@@ -61,7 +62,7 @@ class TaskIDAction(argparse.Action):
                         raise argparse.ArgumentError(self,
                                                      f"Invalid range '{part}': start must be <= end")
                     # inclusive range
-                    existing.extend(range(start, end + 1))
+                    existing.extend(str(elem) for elem in range(start, end + 1))
                     continue
 
                 # anything else is invalid

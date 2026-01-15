@@ -197,7 +197,7 @@ def main():
         step_control_actions = []
         added_formal_params = {}
         defined_tools = {}
-        formal_to_actuals = {}
+        actual_to_formals = {}
 
         # Process each task
         for task in tasks_dict.values():
@@ -234,25 +234,16 @@ def main():
                     added_value = add_dataset_file_to_crate(
                         compss_crate, param.value, persistence, list_common_paths
                     )
-                    if added_value:
-                        if param.value in ins or f"{param.value}/" in ins:
-                            fixed_ins.add(added_value)
-                        if param.value in outs or f"{param.value}/" in outs:
-                            fixed_outs.add(added_value)
+                    if not added_value:
+                        continue
 
-                        param.value = added_value
+                    if param.value in ins or f"{param.value}/" in ins:
+                        fixed_ins.add(added_value)
+                    if param.value in outs or f"{param.value}/" in outs:
+                        fixed_outs.add(added_value)
 
-                        # Cross-reference the file parameter definition (FormalParameter) with its value (File) through "exampleOfWork"
-                        file_instance = compss_crate.dereference(param.value)
-                        if (
-                            file_instance
-                            and param.formal_instance
-                            not in file_instance.get("exampleOfWork", [])
-                        ):
-                            param.actual_instance = {"@id": param.value}
-                            file_instance.append_to(
-                                "exampleOfWork", param.formal_instance
-                            )
+                    param.value = added_value
+                    param.actual_instance = {"@id": param.value}
 
                 # for regular parameters:
                 else:
@@ -260,12 +251,9 @@ def main():
                         compss_crate, param, PARAM_SIZE_LIMIT
                     )
 
-                # Collect the FormalParameter - PropertyValue/File cross-references for later update
+                # Collect the FormalParameter - ActualValue relationships
                 if param.formal_instance and param.actual_instance:
-                    formal_to_actuals.setdefault(param.formal_instance, set())
-                    formal_to_actuals[param.formal_instance].add(
-                        param.actual_instance["@id"]
-                    )
+                    actual_to_formals.setdefault(param.actual_instance["@id"], set()).add(param.formal_instance["@id"])
 
             # -------------------- TASK-related ENTITIES -------------------- #
 
@@ -294,12 +282,15 @@ def main():
                     add_file_to_crate(compss_crate, source, "logs", task, create_action)
                     added_logs.add(filename)
 
-        # Cross-reference parameter definitions (FormalParameter) with their value (PropertyValue) through "workExample"
-        for formal_param, actual_params in formal_to_actuals.items():
-            formal_instance = compss_crate.get(formal_param["@id"])
-            formal_instance.append_to(
-                "workExample", [{"@id": pid} for pid in actual_params]
-            )
+        # Enforce symmetry between FormalParameter.workExample and ActualValue.exampleOfWork
+        for actual_id, formal_ids in actual_to_formals.items():
+            actual_entity = compss_crate.get(actual_id)
+
+            for formal_id in formal_ids:
+                formal_entity = compss_crate.get(formal_id)
+
+                actual_entity.append_to("exampleOfWork", {"@id": formal_id})
+                formal_entity.append_to("workExample", {"@id": actual_id})
 
         pr_part_time1 = time.time() - pr_part_time1
 

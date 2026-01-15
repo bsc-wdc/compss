@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointGroup;
@@ -460,6 +461,10 @@ public class Task extends AbstractTask {
         boolean isFree = this.isFree();
         TaskState taskState = this.getStatus();
         LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
+
+        if (DP_ENABLED) {
+            DP_LOGGER.info("task {} status {}", taskId, taskState);
+        }
 
         // Check status
         if (!isFree) {

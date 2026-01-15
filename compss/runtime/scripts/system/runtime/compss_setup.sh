@@ -698,6 +698,8 @@ exec_python() {
   endCode=$?
   stop_tracing
 
+  export COMPSS_EXIT_CODE=$endCode
+
   if [ $endCode -ne 0 ]; then
     fatal_error "${RUNTIME_ERROR}" ${endCode}
   fi

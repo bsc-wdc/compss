@@ -1369,7 +1369,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public boolean handleFatalError() {
         if (DP_ENABLED) {
-            DP_LOGGER.info("FAILED");
+            DP_LOGGER.info("master status FAILED");
         }
         ErrorManager.info("Shutting down COMPSs...", null, System.err);
         new Thread() {

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -38,7 +39,11 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
+    protected static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+
+    protected static final boolean DP_ENABLED =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     // Task fields
     private final Application app;

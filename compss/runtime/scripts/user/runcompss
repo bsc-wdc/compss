@@ -779,6 +779,7 @@ clean_env() {
   fi
 
   clear_compss_app
+  unset ENQUEUE_COMPSS_ARGS
 }
 
 
@@ -810,8 +811,6 @@ runcompss_standard_main() {
 
   # Real runtime execution
   start_compss_app
-
-  unset ENQUEUE_COMPSS_ARGS
 }
 
 # Real runtime execution
@@ -824,7 +823,6 @@ runcompss_client_main() {
   runcompss_load_env_scripts
 
   run_app_with_compss
-  unset ENQUEUE_COMPSS_ARGS
 }
 
 runcompss_main() {

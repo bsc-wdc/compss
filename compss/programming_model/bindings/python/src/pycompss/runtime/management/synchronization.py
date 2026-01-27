@@ -36,7 +36,6 @@ from pycompss.util.storages.persistent import get_id
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.typing_helper import typing
 
-
 LOGGER = logging.getLogger(__name__)
 
 

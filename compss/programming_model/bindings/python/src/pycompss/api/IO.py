@@ -112,7 +112,7 @@ class IO:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def __configure_core_element__(
-        kwargs: typing.Dict[str, typing.Any]
+        kwargs: typing.Dict[str, typing.Any],
     ) -> None:
         """Include the registering info related to @IO.
 

@@ -170,7 +170,9 @@ def get_imports(
             if not path:
                 if debug:
                     result[imp] = "(built-in or not found)"
-                unique_imports.add(f"{current_prefix}.{imp}" if current_prefix else imp)
+                unique_imports.add(
+                    f"{current_prefix}.{imp}" if current_prefix else imp
+                )
                 continue
 
             if is_standard_library(path):
@@ -278,7 +280,9 @@ def parse_arguments():
         default=2,
         help="Maximum depth for processing (default: 2)",
     )
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument(
+        "--debug", action="store_true", help="Enable debug mode"
+    )
     return parser.parse_args()
 
 

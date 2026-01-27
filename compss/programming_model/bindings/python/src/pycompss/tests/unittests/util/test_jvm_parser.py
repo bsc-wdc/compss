@@ -89,8 +89,7 @@ def test_jvm_parser():
         "other": True,
     }
     with open(jvm_opt_file, "w") as f_jvm:
-        f_jvm.write(
-            """-Djdk.lang.Process.launchMechanism=fork
+        f_jvm.write("""-Djdk.lang.Process.launchMechanism=fork
 -XX:+PerfDisableSharedMem
 -XX:-UsePerfData
 -XX:+UseG1GC
@@ -147,10 +146,7 @@ def test_jvm_parser():
 -Dcompss.python.propagate_virtualenvironment=true
 -Dcompss.python.mpi_worker=false
 other
-""".format(
-                temp_folder
-            )  # noqa
-        )
+""".format(temp_folder))  # noqa
     result = convert_to_dict(jvm_opt_file)
     assert len(result) == len(
         jvm_expected_result

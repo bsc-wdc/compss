@@ -53,7 +53,6 @@ from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
-
 if __debug__:
     import logging
 

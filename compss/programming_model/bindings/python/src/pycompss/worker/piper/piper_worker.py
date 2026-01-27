@@ -22,6 +22,7 @@ PyCOMPSs Worker - Piper - Multiprocessing worker.
 
 This file contains the multiprocessing piper worker code.
 """
+
 import os
 import signal
 import sys

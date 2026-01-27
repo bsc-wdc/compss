@@ -21,5 +21,4 @@
 
 from pycompss.util.location import get_binding_location
 
-
 PYCOMPSS_HOME = get_binding_location()

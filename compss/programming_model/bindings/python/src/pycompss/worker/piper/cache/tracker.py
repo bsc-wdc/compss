@@ -23,6 +23,7 @@ PyCOMPSs Worker - Piper - Cache Tracker.
 This file contains the cache object tracker.
 IMPORTANT: Only used with python >= 3.8.
 """
+
 import base64
 import logging
 import os

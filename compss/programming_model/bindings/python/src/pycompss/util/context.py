@@ -23,6 +23,7 @@ PyCOMPSs Util - Context.
 This file contains the methods to detect the origin of the call stack.
 Useful to detect if we are in the master or in the worker.
 """
+
 import inspect
 from contextlib import contextmanager
 

@@ -23,7 +23,6 @@ PyCOMPSs Worker - Piper - Cache Tracker Manager process.
 This file contains the cache object tracker manager process.
 """
 
-
 from multiprocessing import Queue
 from typing import Union
 import base64
@@ -41,7 +40,6 @@ from pycompss.worker.piper.cache.profiler import profiler_print_message
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import get_file_name
 from pycompss.worker.piper.cache.tracker import get_file_name_clean
-
 
 CACHE_MANAGER_HEADER = "[PYTHON CACHE MANAGER]"
 
@@ -571,7 +569,7 @@ def __remove_from_cache__(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
     :param gpu_arr_ptr: Gpu array pointer.
     :return: Type, size and device identifier.
     """
-    (cache_id, _, _, size, current_hits, shared_type) = cache_ids.pop(f_name)
+    cache_id, _, _, size, current_hits, shared_type = cache_ids.pop(f_name)
 
     if __is_shared_type_cuda__(shared_type):
         gpu_ptr, device_id = gpu_arr_ptr.pop(cache_id)

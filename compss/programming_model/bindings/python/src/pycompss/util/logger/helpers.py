@@ -37,7 +37,6 @@ from pycompss.util.logger.level import check_log_level
 from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.typing_helper import typing
 
-
 LOG_CFG_PATH = os.path.join(PYCOMPSS_HOME, "util", "logger", "cfg")
 CONFIG_FUNC = config.dictConfig
 # Keep configs to avoid read the cfg many times

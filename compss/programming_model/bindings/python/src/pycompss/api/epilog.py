@@ -23,6 +23,7 @@ PyCOMPSs API - Epilog decorator.
 This file contains the Epilog class, needed for the task epilog definition
 through the decorator.
 """
+
 import typing
 from functools import wraps
 

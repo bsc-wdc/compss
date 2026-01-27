@@ -28,7 +28,6 @@ from tempfile import mkdtemp
 
 from pycompss.util.typing_helper import typing  # noqa: F401
 
-
 #######################################
 # Global variables set in this module #
 #######################################

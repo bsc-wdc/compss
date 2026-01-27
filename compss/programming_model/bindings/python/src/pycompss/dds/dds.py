@@ -84,7 +84,7 @@ class DDS:  # pylint: disable=too-many-public-methods
         if not total:
             return self
 
-        chunk_sizes = [(total // num_of_parts)] * num_of_parts
+        chunk_sizes = [total // num_of_parts] * num_of_parts
         extras = total % num_of_parts
         for i in range(extras):
             chunk_sizes[i] += 1
@@ -176,7 +176,7 @@ class DDS:  # pylint: disable=too-many-public-methods
         files = sorted(os.listdir(dir_path))
         total = len(files)
         num_of_parts = total if num_of_parts < 0 else num_of_parts
-        partition_sizes = [(total // num_of_parts)] * num_of_parts
+        partition_sizes = [total // num_of_parts] * num_of_parts
         extras = total % num_of_parts
         for i in range(extras):
             partition_sizes[i] += 1

@@ -22,6 +22,7 @@ PyCOMPSs runtime - Task - Worker.
 
 This file contains the task core functions when acting as worker.
 """
+
 import gc
 import logging
 import os

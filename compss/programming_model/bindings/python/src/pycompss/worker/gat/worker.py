@@ -41,7 +41,6 @@ from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.worker.commons.worker import execute_task
 
-
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
 

@@ -22,6 +22,7 @@ PyCOMPSs Util - Serialization - Extended support.
 
 This file contains the serialization extensions.
 """
+
 import types
 
 from pycompss.util.typing_helper import typing

@@ -27,6 +27,7 @@ import logging
 import os
 import pkgutil
 from concurrent.futures import ThreadPoolExecutor
+from pycompss.util.process import import_finder
 from pycompss.util.typing_helper import typing
 
 
@@ -154,6 +155,17 @@ def __load_import(library: str) -> None:
             print(f"WARNING: Pre-load import {library} failed: {e}")
 
 
+def __filter_extrae(unique_imports: typing.Set[str]) -> typing.List[str]:
+    """Removes all entries in unique_imports list that contain extrae.
+
+    This method avoids preloading extrae without the configuration.
+
+    :param unique_imports: List of imports to be filtered.
+    :return: Filtered list of strings.
+    """
+    return [cadena for cadena in unique_imports if "extrae" not in cadena]
+
+
 def preload_imports(
     logger: logging.Logger, header: str, subheader: str
 ) -> None:
@@ -206,6 +218,15 @@ def preload_imports(
                     and name not in ["setup", "__init__"]
                 ):
                     to_be_imported.append(name.strip())
+    elif "AUTOMATIC" in imports:
+        # If the variable contains AUTOMATIC, perform automatic import discovery
+        depth = int(imports.split(",")[1])
+        file_path = imports.split(",")[2]
+        _, unique_imports = import_finder.get_imports(
+            file_path, depth, __debug__
+        )
+        unique_imports_without_extrae = __filter_extrae(unique_imports)
+        to_be_imported.extend(unique_imports_without_extrae)
     elif ";" in imports:
         # If the variable specifies explicitly a semicolon separated list of
         # packages to be pre imported.

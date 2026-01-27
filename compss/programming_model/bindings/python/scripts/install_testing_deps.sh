@@ -9,11 +9,13 @@ python3 -m pip install pylint bandit prospector py --user
 
 # General
 python3 -m pip install mpi4py --user
-python3 -m pip install numpy dill guppy3 memory_profiler matplotlib decorator --user
+python3 -m pip install pybind11 "contourpy==1.1.0" --no-build-isolation --user
+python3 -m pip install "numpy==2.2.6" dill guppy3 memory_profiler matplotlib decorator --user
 python3 -m pip install jupyter pytest nbval pytest-cov pytest-notebook ipyparallel jupyter_nbextensions_configurator jupyterlab --user
 python3 -m ipykernel install --user
 
 # Jupyter specific
+python3 -m pip install pygraphviz --no-build-isolation --user
 python3 -m pip install pytest nbval pytest-cov pytest-html-profiling pytest-metadata pytest-profiling pytest-subprocess pytest-sugar --user
 
 # DDS specific

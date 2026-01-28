@@ -156,7 +156,7 @@ def __load_import(library: str) -> None:
 
 
 def __filter_extrae(unique_imports: typing.Set[str]) -> typing.List[str]:
-    """Removes all entries in unique_imports list that contain extrae.
+    """Remove all entries in unique_imports list that contain extrae.
 
     This method avoids preloading extrae without the configuration.
 
@@ -219,7 +219,8 @@ def preload_imports(
                 ):
                     to_be_imported.append(name.strip())
     elif "AUTOMATIC" in imports:
-        # If the variable contains AUTOMATIC, perform automatic import discovery
+        # If the variable contains AUTOMATIC, then perform automatic
+        # import discovery
         depth = int(imports.split(",")[1])
         file_path = imports.split(",")[2]
         _, unique_imports = import_finder.get_imports(

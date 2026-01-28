@@ -48,23 +48,23 @@ import ast
 import importlib.util
 import sys
 import sysconfig
+import typing
 from pathlib import Path
+from typing import Optional
+from typing import Set
+from typing import Union
 
 
-def get_imports_from_file(file_path):
-    """
-    Parses a Python file and extracts all import statements (including from-imports).
+def get_imports_from_file(file_path: Union[str, Path]) -> Set[str]:
+    """Parse a Python file and extracts all import statements.
 
-    Args:
-        file_path (str or Path): The path to the Python file to analyze.
+    TIP: including from-imports
 
-    Returns:
-        set: A set of fully qualified import names (e.g., 'pandas.core.frame').
-
-    Raises:
-        FileNotFoundError: If the file is not found.
-        SyntaxError: If the file contains invalid Python syntax.
-        UnicodeDecodeError: If there is a problem decoding the file.
+    :param file_path: The path to the Python file to analyze.
+    :return: A set of fully qualified import names (e.g., 'pandas.core.frame').
+    :raises FileNotFoundError: If the file is not found.
+    :raises SyntaxError: If the file contains invalid Python syntax.
+    :raises UnicodeDecodeError: If there is a problem decoding the file.
     """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -83,16 +83,11 @@ def get_imports_from_file(file_path):
     return imports
 
 
-def resolve_module_path(module_name):
-    """
-    Resolves the file system path of a module based on its name.
+def resolve_module_path(module_name: str) -> Optional[Path]:
+    """Resolve the file system path of a module based on its name.
 
-    Args:
-        module_name (str): The name of the module to resolve (e.g., 'pandas').
-
-    Returns:
-        Path or None: Returns the file path of the module if found, otherwise
-                      None.
+    :param module_name: The name of the module to resolve (e.g., 'pandas').
+    :return: Returns the file path of the module if found, otherwise None.
     """
     try:
         spec = importlib.util.find_spec(module_name)
@@ -107,38 +102,28 @@ def resolve_module_path(module_name):
     return path if path.exists() else None
 
 
-def is_standard_library(path):
-    """
-    Determines if a given file path belongs to the Python standard library.
+def is_standard_library(path: Path) -> bool:
+    """Determine if a given file path belongs to the Python standard library.
 
-    Args:
-        path (Path): The path to check.
-
-    Returns:
-        bool: True if the path is part of the standard library, False otherwise.
+    :param path: The path to check.
+    :return: True if the path is part of the standard library, False otherwise.
     """
     stdlib_dir = Path(sysconfig.get_paths()["stdlib"])
     return stdlib_dir in path.parents or path == stdlib_dir
 
 
 def get_imports(
-    file_path,
-    max_depth=2,
-    debug=False,
-):
+    file_path: Union[str, Path],
+    max_depth: int = 2,
+    debug: bool = False,
+) -> typing.Tuple[typing.Dict, typing.Set]:
     """
-    Recursively collects imported modules from a Python file, and submodules
-    up to a maximum depth.
+    Recursively collects imported modules from a Python file and submodules.
 
-    Args:
-        file_path (str or Path): The Python file to analyze for imports.
-        max_depth (int, optional): The maximum recursion depth to follow
-                                   sub-imports (default is 2).
-        debug (bool, optional): Whether to output debug information
-                                (default is False).
-
-    Returns:
-        tuple: A tuple containing:
+    :param file_path: The Python file to analyze for imports.
+    :param max_depth: The maximum recursion depth to follow sub-imports.
+    :param debug: Whether to output debug information.
+    :return: A tuple containing:
             - result (dict): A dictionary representing the nested structure
                              of imports.
             - unique_imports (set): A set of unique imports found across
@@ -196,13 +181,11 @@ def get_imports(
     return result, unique_imports
 
 
-def print_import_tree(tree, indent=0):
-    """
-    Prints the nested structure of imports in a readable format.
+def print_import_tree(tree: dict, indent: int = 0):
+    """Print the nested structure of imports in a readable format.
 
-    Args:
-        tree (dict): A dictionary representing the nested import tree.
-        indent (int, optional): The indentation level for each line of output (default is 0).
+    :param tree: A dictionary representing the nested import tree.
+    :param indent: The indentation level for each line of output.
     """
     for module, sub in tree.items():
         print("  " * indent + f"- {module}")
@@ -212,24 +195,16 @@ def print_import_tree(tree, indent=0):
             print("  " * (indent + 1) + sub)
 
 
-def main(file_path, max_depth=2, debug=False):
-    """
-    Main function to analyze imports in a given Python file and recursively
-    explore sub-imports.
+def main(file_path: Union[str, Path], max_depth: int = 2, debug: bool = False):
+    """Analyze imports in a given Python file and submodules.
 
-    Args:
-        file_path (str or Path): The path to the Python file to analyze.
-        max_depth (int, optional): Maximum depth for sub-import exploration
-                                   (default is 2).
-        debug (bool, optional): Whether to enable debug mode
-                                (default is False).
-
-    Returns:
-        tuple: A tuple containing:
-            - result_tree (dict): A dictionary representing the nested
-                                  import tree.
-            - result_unique_imports (set): A set of unique imports found across
-                                           the file and sub-imports.
+    :param file_path (str or Path): The path to the Python file to analyze.
+    :param max_depth (int, optional): Maximum depth for sub-import exploration.
+    :param debug (bool, optional): Whether to enable debug mode.
+    :return: A tuple containing:
+            - result_tree: A dictionary representing the nested import tree.
+            - result_unique_imports: A set of unique imports found across
+                                     the file and sub-imports.
     """
     if debug:
         print(f"Analyzing imports in: {file_path}")
@@ -243,17 +218,11 @@ def main(file_path, max_depth=2, debug=False):
 
 
 def file_exists(path_string: str) -> Path:
-    """
-    Custom argument type for argparse to check if the given file exists.
+    """Check if the given file exist.
 
-    Args:
-        path_string (str): The path to check.
-
-    Returns:
-        Path: The Path object corresponding to the file.
-
-    Raises:
-        argparse.ArgumentTypeError: If the file does not exist.
+    :param path_string: The path to check.
+    :return: The Path object corresponding to the file.
+    :raises argparse.ArgumentTypeError: If the file does not exist.
     """
     path = Path(path_string)
     if not path.exists():
@@ -261,12 +230,10 @@ def file_exists(path_string: str) -> Path:
     return path
 
 
-def parse_arguments():
-    """
-    Parse command-line arguments using argparse.
+def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments using argparse.
 
-    Returns:
-        Namespace: The parsed arguments as a Namespace object.
+    :return: Namespace: The parsed arguments as a Namespace object.
     """
     parser = argparse.ArgumentParser(
         description="Process the file and other parameters."

@@ -5,19 +5,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>compss-scheduler</artifactId>
+    <artifactId>compss-scheduler-predefined</artifactId>
     <packaging>pom</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-runtime</artifactId>
+        <artifactId>compss-scheduler</artifactId>
         <version>3.3.3.post2601</version>
+        <relativePath>..</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>COMPSs Scheduler</name>
-    <description>Collection of available schedulers to execute tasks on remote workers.</description>
+    <name>COMPSs Scheduler Predefined</name>
+    <description>Scheduler to replay scheduling executed before.</description>
     <url>http://www.bsc.es</url>
-    <inceptionYear>2015</inceptionYear>
+    <inceptionYear>2025</inceptionYear>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -31,11 +32,6 @@
 
     <!-- SUB-MODULES -->
     <modules>
-        <module>commons</module>
-        <module>test</module>
-        <module>fullgraph</module>
-        <module>orderstrict</module>
-        <module>lookahead</module>
-        <module>predefined</module>
+        <module>base</module>
     </modules>
 </project>

@@ -87,7 +87,8 @@ Usage: /apps/COMPSs/3.1/Runtime/scripts/user/runcompss [options] application_nam
                                                   ├── es.bsc.compss.scheduler.lookahead.successors.lifo.LifoTS
                                                   ├── es.bsc.compss.scheduler.lookahead.mt.successors.lifo.LifoTS
                                                   ├── es.bsc.compss.scheduler.lookahead.successors.locality.LocalityTS
-                                                  └── es.bsc.compss.scheduler.lookahead.mt.successors.locality.LocalityTS
+                                                  ├── es.bsc.compss.scheduler.lookahead.mt.successors.locality.LocalityTS
+                                                  └── es.bsc.compss.scheduler.predefined.PredefinedTS
                                             Default: es.bsc.compss.scheduler.lookahead.locality.LocalityTS
     --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
                                             Default: Empty

@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,7 +62,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     // Task running in the resource
     private final List<AllocatableAction> running;
     // Task without enough resources to be executed right now
-    protected final PriorityQueue<AllocatableAction> blocked;
+    protected final Queue<AllocatableAction> blocked;
 
     // Worker assigned to the resource scheduler
     protected final Worker<T> myWorker;
@@ -83,15 +84,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     public ResourceScheduler(Worker<T> w, JSONObject defaultResource, JSONObject defaultImplementations) {
         this.running = new LinkedList<>();
-        this.blocked = new PriorityQueue<>(20, new Comparator<AllocatableAction>() {
-
-            @Override
-            public int compare(AllocatableAction a1, AllocatableAction a2) {
-                Score score1 = generateBlockedScore(a1);
-                Score score2 = generateBlockedScore(a2);
-                return score1.compareTo(score2);
-            }
-        });
+        this.blocked = constructBlockedQueue();
 
         this.myWorker = w;
         this.pendingModifications = new LinkedList<>();
@@ -107,6 +100,24 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         }
         this.profiles = loadProfiles(resMap, defaultImplementations);
 
+    }
+
+    /**
+     * Queue initialization.
+     * 
+     * @return
+     */
+    public Queue<AllocatableAction> constructBlockedQueue() {
+
+        return new PriorityQueue<>(20, new Comparator<AllocatableAction>() {
+
+            @Override
+            public int compare(AllocatableAction a1, AllocatableAction a2) {
+                Score score1 = generateBlockedScore(a1);
+                Score score2 = generateBlockedScore(a2);
+                return score1.compareTo(score2);
+            }
+        });
     }
 
     /*
@@ -442,7 +453,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
                 throw new BlockedActionException();
             }
         }
-
         // Run action
         return this.runAction(action);
     }
@@ -520,9 +530,9 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Returns all the blocked actions.
      *
-     * @return All the blocked actions.
+     * @return All the blocked actions as a generic Queue.
      */
-    public PriorityQueue<AllocatableAction> getBlockedActions() {
+    public Queue<AllocatableAction> getBlockedActions() {
         return this.blocked;
     }
 

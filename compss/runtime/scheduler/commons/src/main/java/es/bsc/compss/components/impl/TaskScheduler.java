@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1200,7 +1201,7 @@ public class TaskScheduler {
      * @param worker Worker.
      * @return The blocked actions assigned to the given resource.
      */
-    public final <T extends WorkerResourceDescription> PriorityQueue<AllocatableAction> getBlockedActionsOnResource(
+    public final <T extends WorkerResourceDescription> Queue<AllocatableAction> getBlockedActionsOnResource(
         Worker<T> worker) {
         LOGGER.info("[TaskScheduler] Get Blocked actions on worker " + worker.getName());
         ResourceScheduler<T> ui = workers.get(worker);

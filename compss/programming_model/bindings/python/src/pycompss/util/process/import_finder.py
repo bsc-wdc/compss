@@ -53,6 +53,8 @@ from pathlib import Path
 from typing import Optional
 from typing import Set
 from typing import Union
+from typing import List
+from typing import Tuple
 
 
 def get_imports_from_file(file_path: Union[str, Path]) -> Set[str]:
@@ -96,10 +98,13 @@ def resolve_module_path(module_name: str) -> Optional[Path]:
     if not spec or spec.origin in (None, "built-in", "frozen"):
         return None
     origin = spec.origin
-    if origin.endswith((".pyc", ".pyo")):
-        origin = origin[:-1]
-    path = Path(origin)
-    return path if path.exists() else None
+    if origin:
+        if origin.endswith((".pyc", ".pyo")):
+            origin = origin[:-1]
+        path = Path(origin)
+        if path.exists():
+            return path
+    return None
 
 
 def is_standard_library(path: Path) -> bool:
@@ -133,7 +138,7 @@ def get_imports(
     unique_imports = set()
 
     result = {}
-    stack = [
+    stack: List[Tuple[Union[str, Path], Optional[str], int]] = [
         (file_path, None, 0)
     ]  # (current_file_path, current_prefix, current_depth)
 

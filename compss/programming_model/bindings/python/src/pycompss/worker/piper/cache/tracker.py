@@ -272,7 +272,10 @@ class CacheTracker:
         )
         output = NP.empty(obj_shape, dtype=obj_d_type)
         NP.copyto(output, shm_np)
-        object_size = len(existing_shm.buf)
+        if existing_shm.buf:
+            object_size = len(existing_shm.buf)
+        else:
+            object_size = 0
         return existing_shm, output, object_size
 
     def __get_shared_cupy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):

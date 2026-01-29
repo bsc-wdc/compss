@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="impi/2021.10.0 mkl/2023.2.0 oneapi/2023.2.0 intel/2024.0.1-sycl_cuda java-openjdk/21.0.3+9 ear-tools/ear-lite/5.0 papi/7.1.0 gcc/11.4.0"
+  modules="impi/2021.10.0 mkl/2023.2.0 oneapi/2023.2.0 intel/2024.0.1-sycl_cuda java-openjdk/21.0.3+9 papi/7.1.0 gcc/11.4.0"
   unload_before_python=""
   # Plain python modules:
   run_before_py3_modules="ignore"

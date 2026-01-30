@@ -16,7 +16,7 @@ configure() {
     else
       echo "Info: JAVA_HOME found."
       echo "  Loading JRE_HOME from JAVA_HOME"
-      JRE_HOME=$JAVA_HOME/jre
+      JRE_HOME=$JAVA_HOME
     fi 
   fi
   export JRE_HOME

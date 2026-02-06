@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.execution.types.InvocationResources;
@@ -39,7 +40,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 
-public class JuliaInvoker extends Invoker {
+public class JuliaInvoker extends Invoker<Workflow> {
 
     private static final int NUM_BASE_JULIA_ARGS = 9;
 

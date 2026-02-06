@@ -58,7 +58,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class Invoker extends DoNothingApplicationMonitor {
+public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMonitor {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
     protected static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
@@ -431,8 +431,8 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
             this.context.getThreadErrStream(), null, executable.isFailByExitValue());
     }
 
-    protected Workflow becomesNestedApplication(String parallelismSource) {
-        Workflow wf = this.context.getRuntimeAPI().registerWorkflow(parallelismSource, this);
+    protected W becomesNestedApplication(String parallelismSource) {
+        W wf = registerWorkflow(parallelismSource);
         LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + wf.getId());
         for (InvocationParam p : this.invocation.getParams()) {
             handleInputValue(wf, p);
@@ -444,7 +444,11 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         return wf;
     }
 
-    private void handleInputValue(Workflow wf, InvocationParam p) {
+    public W registerWorkflow(String parallelismSource) {
+        return (W) this.context.getRuntimeAPI().registerWorkflow(parallelismSource, this);
+    }
+
+    private void handleInputValue(W wf, InvocationParam p) {
         if (p.isCollective()) {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
             for (InvocationParam sp : cp.getCollectionParameters()) {
@@ -455,7 +459,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         }
     }
 
-    protected void handleSimpleInputValue(Workflow wf, InvocationParam p) {
+    protected void handleSimpleInputValue(W wf, InvocationParam p) {
         if (p.getType() == DataType.FILE_T) {
             String originalName = p.getOriginalName();
             this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), originalName, p.getSourceDataId());
@@ -474,7 +478,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         this.runner.readyToContinueExecution(sem);
     }
 
-    protected void completeNestedApplication(Workflow wf) {
+    protected void completeNestedApplication(W wf) {
         // Wait for all nested tasks to end
         wf.barrier();
 
@@ -492,7 +496,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         wf.deregister();
     }
 
-    private void handleOutputValue(Workflow wf, InvocationParam p) {
+    private void handleOutputValue(W wf, InvocationParam p) {
         if (p.isCollective()) {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
             for (InvocationParam sp : cp.getCollectionParameters()) {
@@ -503,7 +507,7 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         }
     }
 
-    protected void handleSimpleOutputValue(Workflow wf, InvocationParam p) {
+    protected void handleSimpleOutputValue(W wf, InvocationParam p) {
         if (p.getType() == DataType.FILE_T) {
             String originalName = (String) p.getValue();
             String dataId = p.getDataMgmtId();

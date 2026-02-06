@@ -18,6 +18,7 @@ package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.execution.types.InvocationResources;
@@ -47,7 +48,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 
-public class COMPSsInvoker extends Invoker {
+public class COMPSsInvoker extends Invoker<Workflow> {
 
     private static final String RELATIVE_PATH_XML_GENERATION =
         "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator + "xmls" + File.separator;

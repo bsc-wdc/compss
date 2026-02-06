@@ -18,7 +18,6 @@ package es.bsc.compss.loader.total;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.COMPSsGroup;
-import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
@@ -29,7 +28,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;

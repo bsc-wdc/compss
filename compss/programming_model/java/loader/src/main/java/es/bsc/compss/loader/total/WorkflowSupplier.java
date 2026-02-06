@@ -18,24 +18,35 @@ package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.loader.JavaWorkflow;
 
 
-public class WorkflowSupplier extends ThreadLocal<Workflow> {
+public class WorkflowSupplier extends ThreadLocal<JavaWorkflow> {
 
     private static COMPSsRuntime runtime = null;
 
 
-    protected Workflow initialValue() {
-        Workflow wf;
-        if (runtime != null) {
-            wf = runtime.registerWorkflow(null, null);
-        } else {
-            wf = null;
-        }
-        return wf;
-    }
-
     public static void setRuntime(COMPSsRuntime rt) {
         runtime = rt;
     }
+
+    protected JavaWorkflow initialValue() {
+        return registerWorkflow();
+    }
+
+    /**
+     * Registers a new Java Workflow in the runtime.
+     *
+     * @return registered workflow.
+     */
+    public static JavaWorkflow registerWorkflow() {
+        try {
+            return new JavaWorkflow(runtime);
+        } catch (Exception e) {
+            System.err.println("Cannot register workflow");
+            e.printStackTrace(System.err);
+            return null;
+        }
+    }
+
 }

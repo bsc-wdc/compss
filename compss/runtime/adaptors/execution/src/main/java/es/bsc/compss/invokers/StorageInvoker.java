@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;

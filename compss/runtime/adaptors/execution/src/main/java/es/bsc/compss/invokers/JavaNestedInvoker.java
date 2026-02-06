@@ -20,10 +20,12 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
+import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.total.WorkflowSupplier;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -113,7 +115,7 @@ public class JavaNestedInvoker extends JavaInvoker {
         if (this.ceiClass == null) {
             super.runMethod();
         } else {
-            Workflow wf = becomesNestedApplication(this.ceiName);
+            JavaWorkflow wf = becomesNestedApplication(this.ceiName);
             // Register Core Elements on Runtime
             List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
             for (CoreElementDefinition ced : ceds) {
@@ -148,7 +150,12 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    protected void handleSimpleInputValue(Workflow wf, InvocationParam p) {
+    public JavaWorkflow registerWorkflow(String parallelismSource) {
+        return new JavaWorkflow(this.context.getRuntimeAPI(), parallelismSource, this);
+    }
+
+    @Override
+    protected void handleSimpleInputValue(JavaWorkflow wf, InvocationParam p) {
         switch (p.getType()) {
             case OBJECT_T:
             case PSCO_T:
@@ -161,7 +168,7 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    protected void handleSimpleOutputValue(Workflow wf, InvocationParam p) {
+    protected void handleSimpleOutputValue(JavaWorkflow wf, InvocationParam p) {
         switch (p.getType()) {
             case OBJECT_T:
             case PSCO_T: {

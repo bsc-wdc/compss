@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.execution.types.InvocationResources;
@@ -47,7 +48,7 @@ import java.util.Base64;
 import java.util.List;
 
 
-public class ContainerInvoker extends Invoker {
+public class ContainerInvoker extends Invoker<Workflow> {
 
     private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 19;
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 8;

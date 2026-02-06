@@ -371,30 +371,6 @@ public final class ITAppModifier {
         appClass.addMethod(m);
 
         /*
-         * Overloaded method to retrieve the runtime instead of instantiating a new one passing both SR and OR objects
-         * instead of the loader
-         */
-        methodBody = new StringBuilder();
-        methodBody.append("public static void setCOMPSsVariables( ") //
-            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime, ") //
-            .append(LoaderConstants.CLASS_STREAM_REGISTRY).append(" streamRegistry, ") //
-            .append(LoaderConstants.CLASS_OBJECT_REGISTRY).append(" objectRegistry, ")//
-            .append(LoaderConstants.CLASS_WORKFLOW).append(" wf").append(") {") //
-            .append(itApiVar).append("= runtime;") //
-            .append("setupWorkflowSupplier();") //
-            .append(itSRVar).append("= streamRegistry;") //
-            .append(itORVar).append("= objectRegistry;"); //
-        if (perThreadWf) {
-            wfSetInstr = itWfVar + ".set(wf)";
-        } else {
-            wfSetInstr = itWfVar + " = wf";
-        }
-        methodBody.append(wfSetInstr).append(";");
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
-
-        /*
          * Insert method to retrieve the runtime instead of instantiating a new one
          */
         methodBody = new StringBuilder();

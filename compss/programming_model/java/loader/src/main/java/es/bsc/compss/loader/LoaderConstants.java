@@ -20,7 +20,6 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.total.ArrayAccessWatcher;
 import es.bsc.compss.loader.total.COMPSsGroupLoader;
 import es.bsc.compss.loader.total.ObjectRegistry;
@@ -61,7 +60,7 @@ public class LoaderConstants {
     public static final String CLASS_COMPSS_GROUP_LOADER = COMPSsGroupLoader.class.getCanonicalName();
     public static final String CLASS_COMPSS_GROUP = COMPSsGroup.class.getCanonicalName();
     public static final String CLASS_WORKFLOW_SUPPLIER = WorkflowSupplier.class.getCanonicalName();
-    public static final String CLASS_WORKFLOW = Workflow.class.getCanonicalName();
+    public static final String CLASS_WORKFLOW = JavaWorkflow.class.getCanonicalName();
 
     // Strings for Loader variables
     public static final String STR_COMPSS_PREFIX = "compss";

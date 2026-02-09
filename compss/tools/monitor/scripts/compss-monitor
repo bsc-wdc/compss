@@ -16,7 +16,13 @@ configure() {
     else
       echo "Info: JAVA_HOME found."
       echo "  Loading JRE_HOME from JAVA_HOME"
-      JRE_HOME=$JAVA_HOME
+      if [ -d "$[JAVA_HOME}/jre" ]; then
+        echo "    - jre folder found"
+        JRE_HOME=${JAVA_HOME}/jre
+      else
+        echo "    - jre folder NOT found"
+        JRE_HOME=${JAVA_HOME}/
+      fi
     fi 
   fi
   export JRE_HOME

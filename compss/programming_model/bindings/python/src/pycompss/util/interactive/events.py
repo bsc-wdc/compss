@@ -42,34 +42,37 @@ except ImportError:
 #######################################
 
 
-def __pre_execute() -> None:
+def __pre_execute(*args: typing.Any) -> None:
     """Fire prior to interactive execution.
 
+    :param args: Anything included by jupyter.
     :return: None.
     """
     print("pre_execute")
 
 
-def __pre_run_cell() -> None:
+def __pre_run_cell(*args: typing.Any) -> None:
     """Like pre_run_cell, but is triggered prior to any execution.
 
     Sometimes code can be executed by libraries, etc. which skipping the
     history/display mechanisms, in which cases pre_run_cell will not fire.
 
+    :param args: Anything included by jupyter.
     :return: None.
     """
     print("pre_run_cell")
 
 
-def __post_execute() -> None:
+def __post_execute(*args: typing.Any) -> None:
     """Run after interactive execution (e.g. a cell in a notebook).
 
+    :param args: Anything included by jupyter.
     :return: None.
     """
     print("post_execute")
 
 
-def __post_run_cell() -> None:
+def __post_run_cell(*args: typing.Any) -> None:
     """Run for all cells after execution.
 
     The same as pre_execute, post_execute is like post_run_cell, but
@@ -77,6 +80,7 @@ def __post_run_cell() -> None:
 
     Notifies if any exception or task has been cancelled to the user.
 
+    :param args: Anything included by jupyter.
     :return: None.
     """
     messages = STDW.get_messages()

@@ -211,7 +211,7 @@ class TaskMaster:
         decorator_arguments: TaskArguments,
         decorated_function: FunctionDefinition,
         registered_signatures: typing.Dict[
-            str, typing.Dict[str, typing.List[str]]
+            str, typing.Dict[str, typing.List[typing.Union[str, int]]]
         ] = {},
         constraint_args: typing.Dict[str, ConstraintDescription] = {},
     ) -> None:

@@ -129,7 +129,7 @@ class Task:  # pylint: disable=R0902, R0903
         self.decorated_function = FunctionDefinition()
         self.registered_signatures = (
             {}
-        )  # type: typing.Dict[str, typing.Dict[str, typing.List[str]]]
+        )  # type: typing.Dict[str, typing.Dict[str, typing.List[typing.Union[str, int]]]]
         self.constraint_args = (
             {}
         )  # type: typing.Dict[str, ConstraintDescription]

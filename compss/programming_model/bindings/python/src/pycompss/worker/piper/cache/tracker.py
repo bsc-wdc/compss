@@ -309,7 +309,9 @@ class CacheTracker:
         """
         existing_shm = ShareableList(name=obj_id)
         output = i_type(existing_shm)
-        object_size = len(existing_shm.shm.buf)
+        object_size = 0
+        if existing_shm.shm.buf:
+            object_size = len(existing_shm.shm.buf)
         return existing_shm, output, object_size
 
     def close_cupy_mem_handles(self):

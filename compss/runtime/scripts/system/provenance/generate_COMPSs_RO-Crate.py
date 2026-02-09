@@ -200,8 +200,8 @@ def main():
 
         # Process each task
         for task in tasks_dict.values():
+            successful_execution &= task.status == "FINISHED"
             if task.tid == "master":
-                successful_execution &= task.status == "FINISHED"
                 continue
 
             # -------------------- PARAMETER-related ENTITIES -------------------- #

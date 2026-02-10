@@ -180,11 +180,7 @@ def main():
 
     added_logs = set()
     job_logs_available = has_files(os.path.join(sys.argv[2], "jobs"))
-    exit_code = int(os.environ.get("COMPSS_EXIT_CODE", "0"))                # Variable set in compss_setup.sh
-    successful_execution = True
-
-    if exit_code != "0":
-        successful_execution = False
+    successful_execution = int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0  #COMPSS_EXIT_CODE set in compss_setup.sh
 
     # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
     if PROVENANCE_RUN_ENABLED:
@@ -204,8 +200,8 @@ def main():
 
         # Process each task
         for task in tasks_dict.values():
+            successful_execution &= task.status == "FINISHED"
             if task.tid == "master":
-                successful_execution = task.status == "FINISHED"
                 continue
 
             # -------------------- PARAMETER-related ENTITIES -------------------- #

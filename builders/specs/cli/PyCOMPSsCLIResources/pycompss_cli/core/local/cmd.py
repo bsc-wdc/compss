@@ -356,9 +356,11 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                     nr_of_tasks_canceled += 1
                 total_tasks += 1
 
-        if e_main_entity and (
-                software_requirements := e_main_entity.get("softwareRequirements")
-        ) and verbose:
+        if (
+            e_main_entity
+            and (software_requirements := e_main_entity.get("softwareRequirements"))
+            and verbose
+        ):
             deps_tree = root_tree.add("Software Requirements")
             if isinstance(software_requirements, list):
                 for s in software_requirements:
@@ -381,7 +383,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
             exec_info_str = e_main_create_action.get("@id")
             if (
-                    ca_name := e_main_create_action.get("name")
+                ca_name := e_main_create_action.get("name")
             ) and not exec_info_str.startswith("#COMPSs"):
                 action_tree.add(f"Name —— [green]{ca_name}")
 
@@ -524,35 +526,39 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                 else:
                     # add to usage_tree
                     usage_tree = action_tree.add(
-                        f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)")
+                        f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)"
+                    )
                     for host, host_dict in sorted(ru_dict.items()):
                         host_executed_tasks = 0
                         master_text = (
                             " (master node)" if "is_master" in host_dict else ""
                         )
                         if host != "OVERALL":
-                            host_tree = usage_tree.add(
-                                f"[blue]{host}{master_text}"
-                            )
+                            host_tree = usage_tree.add(f"[blue]{host}{master_text}")
                         else:
-                            host_tree = usage_tree.add(
-                                f"[gold1]Overall Statistics"
-                            )
+                            host_tree = usage_tree.add(f"[gold1]Overall Statistics")
                         for metric, metric_value in host_dict.items():
                             if isinstance(metric_value, dict):
                                 # Info about a method
                                 if "executionTime" in metric_value:
                                     continue  # Ignore executionTime metric
-                                executions = metric_value.get('executions')
+                                executions = metric_value.get("executions")
                                 if executions == "None":
                                     # None comes as a string in the host_dict, not as a real None
                                     executions = 0
+                                else:
+                                    executions = int(executions)
                                 if host != "OVERALL" and executions == 0:
                                     continue  # Do not print if no executions in a host, but print in the OVERALL
-                                host_executed_tasks += int(executions)
-                                host_tree.add(
-                                    f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
-                                )
+                                host_executed_tasks += executions
+                                if executions > 0:
+                                    host_tree.add(
+                                        f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
+                                    )
+                                else:
+                                    host_tree.add(
+                                        f"[cyan]{metric}[/] ({metric_value.get('executions', '')})"
+                                    )
                         # Deal with info about a machine direct metric
                         if "cpuAvg" in host_dict:
                             host_tree.add(
@@ -598,17 +604,20 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
             if (description := e_main_create_action.get("description")) and verbose:
                 # Backwards compatible with txt files, only works when Crates are not zipped
-                args_files = [Path(ro_crate_zip_or_dir) / f for f in ["compss_command_line_arguments.txt",
-                                                                      "compss_submission_command_line.txt"]]  # Backward compatible with COMPSs < 3.3.3
+                args_files = [
+                    Path(ro_crate_zip_or_dir) / f
+                    for f in [
+                        "compss_command_line_arguments.txt",
+                        "compss_submission_command_line.txt",
+                    ]
+                ]  # Backward compatible with COMPSs < 3.3.3
                 for file in args_files:
                     try:
                         with file.open("r", encoding="utf-8") as f:
                             description = f.readline().strip()
                     except Exception:
                         pass
-                action_tree.add(
-                    f"Submission —— [dim]{description}"
-                )
+                action_tree.add(f"Submission —— [dim]{description}")
 
             if e_main_create_action.get("environment"):
                 if verbose:
@@ -668,10 +677,10 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
 
 def local_inspect_tasks(
-        ro_crate_list,
-        failing_tasks_only: bool,
-        tasks_to_inspect: list[str],
-        methods_to_inspect: list[str]
+    ro_crate_list,
+    failing_tasks_only: bool,
+    tasks_to_inspect: list[str],
+    methods_to_inspect: list[str],
 ):
     from datetime import datetime
     from rich.tree import Tree
@@ -692,6 +701,7 @@ def local_inspect_tasks(
 
         log_tree = {}
         failing_tasks = set()
+        canceled_tasks = set()
         task_create_actions = []
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
@@ -714,11 +724,13 @@ def local_inspect_tasks(
 
             # —— LOGS ——
             if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
-                task_id = e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
+                task_id = (
+                    e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
+                )
                 if (
-                        (not tasks_to_inspect)
-                        or (task_id in tasks_to_inspect)
-                        or (failing_tasks_only and task_id in failing_tasks)
+                    (not tasks_to_inspect)
+                    or (task_id in tasks_to_inspect)
+                    or (failing_tasks_only and task_id in failing_tasks)
                 ):
                     log_tree.setdefault(task_id, [])
                     log_tree[task_id].append(e.id)
@@ -737,6 +749,7 @@ def local_inspect_tasks(
                 failing_tasks.add(task_id)
             elif "PotentialActionStatus" in e.get("actionStatus", ""):
                 status = "[yellow]CANCELED[/yellow]"
+                canceled_tasks.add(task_id)
             else:
                 status = ""
 
@@ -747,9 +760,12 @@ def local_inspect_tasks(
 
             try:
                 should_print = (
-                        (methods_to_inspect is None or any(re.search(m, method_name) for m in methods_to_inspect))
-                        and (not tasks_to_inspect or task_id in tasks_to_inspect)
-                        and (not failing_tasks_only or "FAILED" in status)
+                    (
+                        methods_to_inspect is None
+                        or any(re.search(m, method_name) for m in methods_to_inspect)
+                    )
+                    and (not tasks_to_inspect or task_id in tasks_to_inspect)
+                    and (not failing_tasks_only or "FAILED" in status)
                 )
             except re.error:
                 print("Error: Invalid regex for method name")
@@ -760,10 +776,12 @@ def local_inspect_tasks(
                 task_tree[task_id] = tree.add(task_label)
 
                 # —— STATUS ——
-                if status: task_tree[task_id].add(f"Status: {status}")
+                if status:
+                    task_tree[task_id].add(f"Status: {status}")
 
                 # —— METHOD ——
-                if method_name: task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+                if method_name:
+                    task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
 
                 # —— EXECUTION TIME ——
                 start_time = end_time = None
@@ -788,7 +806,8 @@ def local_inspect_tasks(
                 if e.get("name") and is_compss_wf:
                     name_before, _, name_host = e.get("name").rpartition(" ")
                     host = name_host if name_before.endswith("host") else ""
-                    if host: task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+                    if host:
+                        task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
                 # —— INPUTS ——
                 t_inputs = task_tree[task_id].add("[bold green]Inputs:[/bold green]")
@@ -798,7 +817,9 @@ def local_inspect_tasks(
                     param_section = t_inputs.add(f"Parameter {index + 1}")
 
                     if isinstance(pv, str):
-                        param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+                        param_section.add(
+                            f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]"
+                        )
                         continue
 
                     # Get the corresponding FormalParameter for this PropertyValue
@@ -820,9 +841,14 @@ def local_inspect_tasks(
                             pv = pv.get("mainEntity", {})
 
                         param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
-                        additional_type = fp.get("additionalType") or fp.get("@type", "")
-                        type_str = ", ".join(additional_type[1:]) if isinstance(additional_type,
-                                                                                list) else additional_type
+                        additional_type = fp.get("additionalType") or fp.get(
+                            "@type", ""
+                        )
+                        type_str = (
+                            "[" + ", ".join(additional_type[1:]) + "]"
+                            if isinstance(additional_type, list)
+                            else additional_type
+                        )
                         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
                         if is_compss_wf:
                             param_section.add(
@@ -845,7 +871,9 @@ def local_inspect_tasks(
                         param_section = t_outputs.add(f"Parameter {index + 1}")
 
                         if isinstance(pv, str):
-                            param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+                            param_section.add(
+                                f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]"
+                            )
                             continue
 
                         # Get the corresponding FormalParameter for this PropertyValue
@@ -866,10 +894,17 @@ def local_inspect_tasks(
                             if pv.get("@type") == "Collection":
                                 pv = pv.get("mainEntity", {})
 
-                            param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
-                            additional_type = fp.get("additionalType") or fp.get("@type", "")
-                            type_str = ", ".join(additional_type[1:]) if isinstance(additional_type,
-                                                                                    list) else additional_type
+                            param_section.add(
+                                f"Name: [cyan]{fp.get('name', '')}[/cyan]"
+                            )
+                            additional_type = fp.get("additionalType") or fp.get(
+                                "@type", ""
+                            )
+                            type_str = (
+                                "[" + ", ".join(additional_type[1:]) + "]"
+                                if isinstance(additional_type, list)
+                                else additional_type
+                            )
                             param_section.add(f"Type: [grey50]{type_str}[/grey50]")
                             if is_compss_wf:
                                 param_section.add(
@@ -886,15 +921,15 @@ def local_inspect_tasks(
                 for log in logs:
                     log_section.add(f"[dim]{log}[/dim]")
 
-        tree.add(f"[bold cyan]Total Tasks —— {task_counter}")
-        if failing_tasks_only:
-            tree.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
+        total_t = tree.add(f"[bold cyan]Total Tasks —— {task_counter}")
+        total_t.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
+        total_t.add(f"[yellow]Canceled Tasks —— {len(canceled_tasks)}[/yellow]")
 
         if crate.mainEntity and not crate.mainEntity.get("step"):
             console.print(
                 Panel(
                     "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
-                    border_style="yellow"
+                    border_style="yellow",
                 )
             )
 

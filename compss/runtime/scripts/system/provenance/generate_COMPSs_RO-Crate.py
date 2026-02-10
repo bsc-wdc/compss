@@ -180,7 +180,9 @@ def main():
 
     added_logs = set()
     job_logs_available = has_files(os.path.join(sys.argv[2], "jobs"))
-    successful_execution = int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0  #COMPSS_EXIT_CODE set in compss_setup.sh
+    successful_execution = (
+        int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0
+    )  # COMPSS_EXIT_CODE set in compss_setup.sh
 
     # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
     if PROVENANCE_RUN_ENABLED:
@@ -200,7 +202,9 @@ def main():
 
         # Process each task
         for task in tasks_dict.values():
-            successful_execution &= task.status == "FINISHED"
+            successful_execution &= (
+                task.status >= 2
+            )  # This covers both RECOVERED and FINISHED states (>=2)
             if task.tid == "master":
                 continue
 
@@ -249,7 +253,9 @@ def main():
 
                 # Collect the FormalParameter - ActualValue relationships
                 if param.formal_instance and param.actual_instance:
-                    actual_to_formals.setdefault(param.actual_instance["@id"], set()).add(param.formal_instance["@id"])
+                    actual_to_formals.setdefault(
+                        param.actual_instance["@id"], set()
+                    ).add(param.formal_instance["@id"])
 
             # -------------------- TASK-related ENTITIES -------------------- #
 
@@ -285,8 +291,10 @@ def main():
             for formal_id in formal_ids:
                 formal_entity = compss_crate.get(formal_id)
 
-                if actual_entity: actual_entity.append_to("exampleOfWork", {"@id": formal_id})
-                if formal_entity: formal_entity.append_to("workExample", {"@id": actual_id})
+                if actual_entity:
+                    actual_entity.append_to("exampleOfWork", {"@id": formal_id})
+                if formal_entity:
+                    formal_entity.append_to("workExample", {"@id": actual_id})
 
         pr_part_time1 = time.time() - pr_part_time1
 

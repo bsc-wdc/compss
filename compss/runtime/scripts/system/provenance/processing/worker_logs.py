@@ -32,15 +32,12 @@ def parse_log_line(line):
         parse_log_line("TASK=1 STATUS=SUCCESS MESSAGE=All done")
         {'TASK': '1', 'STATUS': 'SUCCESS', 'MESSAGE': 'All done'}
     """
-    pattern = r'([A-Z_]+)=(.*?)(?=\s[A-Z_]+=|$)'
+    pattern = r"([A-Z_]+)=(.*?)(?=\s[A-Z_]+=|$)"
     matches = re.findall(pattern, line)
     return {k: v.strip() for k, v in matches}
 
 
-def update_tasks_from_worker_logs(
-        log_files: [str],
-        tasks: dict[int, Task]
-) -> None:
+def update_tasks_from_worker_logs(log_files: list[str], tasks: dict[int, Task]) -> None:
     """
     Updates the parameter values and other task information (start time, end time, log files)
     from the workers logs (static_binding_dp.log).
@@ -53,7 +50,7 @@ def update_tasks_from_worker_logs(
     for log_file in log_files:
         if __debug__:
             print(f"PROVENANCE | DEBUG: Reading log file: {log_file}")
-        with (open(log_file, "r", encoding="UTF-8") as dp_file):
+        with open(log_file, "r", encoding="UTF-8") as dp_file:
             for line in dp_file:
                 try:
                     log_dict = parse_log_line(line)
@@ -88,7 +85,9 @@ def update_tasks_from_worker_logs(
                             continue
 
                         if "IS_ARRAY" in log_dict:
-                            param.is_array = False if log_dict["IS_ARRAY"] == "False" else True
+                            param.is_array = (
+                                False if log_dict["IS_ARRAY"] == "False" else True
+                            )
                         if "DESCRIPTION" in log_dict:
                             param.description = log_dict["DESCRIPTION"]
 
@@ -96,8 +95,10 @@ def update_tasks_from_worker_logs(
                         #   1. it's either a real file, in which case the type is already updated
                         #   2. it's a serialized object, in which case we update the type and the value
 
-                        if ("str" not in log_dict["BASICTYPE"] and "String" not in log_dict["BASICTYPE"]) or not any(
-                                x in param.dtype for x in ("File", "Dataset")):
+                        if (
+                            "str" not in log_dict["BASICTYPE"]
+                            and "String" not in log_dict["BASICTYPE"]
+                        ) or not any(x in param.dtype for x in ("File", "Dataset")):
                             schema_type = map_datatype(ptypes[0])
                             param.dtype = [schema_type] + ptypes
                             param.value = deserialized_value
@@ -115,4 +116,6 @@ def update_tasks_from_worker_logs(
                         current_task.logs.append(filename)
 
                 except Exception as e:
-                    print(f"PROVENANCE | ERROR: Failed to process line in {log_file}. {e}")
+                    print(
+                        f"PROVENANCE | ERROR: Failed to process line in {log_file}. {e}"
+                    )

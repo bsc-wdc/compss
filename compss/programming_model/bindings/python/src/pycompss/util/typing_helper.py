@@ -24,6 +24,9 @@ This file contains the typing helpers.
 """
 
 import typing
+from typing import Dict
+from typing import List
+from typing import Union
 
 
 class DummyMypycAttr:

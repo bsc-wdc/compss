@@ -554,7 +554,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     :return: None
     """
     logger = logging.getLogger(__name__)
-    global_builtins =globals()["__builtins__"]
+    global_builtins = globals()["__builtins__"]
     try:
         ipython = global_builtins["get_ipython"]()
     except TypeError:

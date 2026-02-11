@@ -1,14 +1,17 @@
 COMP Superscalar Framework ChangeLog
+------------------------------------
+
+All notable changes to this project will be documented in this file.
 
 
 Release number: 1.1.1
-Release date: 1-Oct-2013 
+Release date: 1-Oct-2013
 -------------------------------
 This is the first public release of the COMP Superscalar Framework.
 
 
 Release number: 1.1.2
-Release date: 5-Jun-2014 
+Release date: 5-Jun-2014
 -------------------------------
  * C/C++ binding.
  * Python binding.
@@ -24,7 +27,7 @@ Release date: 5-Jun-2014
 
 
 Release number: 1.2
-Release date: Nov-2014 
+Release date: Nov-2014
 -------------------------------
  * N implementations for task methods, each with its own constraints.
  * Constraint-aware resource management.
@@ -35,9 +38,7 @@ Release date: Nov-2014
  * Update cloud connector for rOCCI to work with rocci-cli v4.2.5.
  * Enhance rOCCI connector to compute the real VM creation times.
  * Extended resources schema to support Virtual Appliances pricing.
- 
  * New LSF GAT adaptor.
-
  * Deprecated Azure and EMOTIVE Cloud connectors.
  * Deprecated Azure GAT adaptor.
 
@@ -48,10 +49,10 @@ Release date: Nov-2015
 New features:
         * Runtime:
                 - Persistent workers: workers can be deployed on computing nodes and persist during all the application lifetime, reducing runtime overhead.
-		  Previous implementation of workers based on a per task process is still supported.
+                  Previous implementation of workers based on a per task process is still supported.
                 - Enhanced logging system
                 - Interoperable communication layer: different inter-nodes communication protocol is supported by implementing the Adaptor interface (JavaGAT
-		  and NIO implementations already included)
+                  and NIO implementations already included)
                 - Simplified cloud connectors interface
                 - JClouds connector
 
@@ -76,71 +77,71 @@ Known Limitations:
      * Support limited to SOAP based services
      * Persistent Workers do NOT isolate task executions in a sandbox
 
+
 Release number: 1.4
 Release date: April-2016
 -------------------------------
 New features:
-	* Runtime:
+        * Runtime:
                     - Support for Dockers added
                     - Support for Chameleon added
                     - Object cache for persistent workers
                     - Improved error management
                     - Connector for submitting tasks to MN supercomputer from external COMPSs applications added
-		    - Bug-fixes
+                    - Bug-fixes
 
-	* Python:                    
-                    - Bug-fixes                    
+        * Python:
+                    - Bug-fixes
 
-	* Tools:
+        * Tools:
                     - Enhanced Tracing mechanism:
                         · Reduced overhead using native java API
                         · Support for communications instrumentation added
                         · Support for PAPI hardware counters added
 
 Known Limitations:
-        * When executing python applications with constraints in the cloud the initial VMs
- must be set to 0
+        * When executing python applications with constraints in the cloud the initial VMs must be set to 0
 
 
 Release number: 2.0 Amapola (Poppy)
 Release date: November-2016
 -------------------------------
 New features:
-	* Runtime:
-		- Upgrade to Java 8
-		- Support to remote input files (input files already at workers)
-		- Integration with Persistent Objects
-		- Elasticity with Docker and Mesos
-		- Multi-processor support (CPUs, GPUs, FPGAs)
-		- Dynamic constraints with environment variables
-		- Scheduling taking into account the full tasks graph (not only ready tasks)
-		- Support for SLURM clusters
-		- Initial COMPSs/OmpSs integration
-		- Replicated tasks: Tasks executed in all the workers
-		- Explicit Barrier
+        * Runtime:
+                - Upgrade to Java 8
+                - Support to remote input files (input files already at workers)
+                - Integration with Persistent Objects
+                - Elasticity with Docker and Mesos
+                - Multi-processor support (CPUs, GPUs, FPGAs)
+                - Dynamic constraints with environment variables
+                - Scheduling taking into account the full tasks graph (not only ready tasks)
+                - Support for SLURM clusters
+                - Initial COMPSs/OmpSs integration
+                - Replicated tasks: Tasks executed in all the workers
+                - Explicit Barrier
 
-	* Python:
-		- Python user events and HW counters tracing
-		- Improved PyCOMPSs serialization. Added support for lambda and generator parameters.
+        * Python:
+                - Python user events and HW counters tracing
+                - Improved PyCOMPSs serialization. Added support for lambda and generator parameters.
 
-	* C:
-		- Constraints support
+        * C:
+                - Constraints support
 
-	* Tools:
-		- Improved current graph visualization on COMPSs Monitor
+        * Tools:
+                - Improved current graph visualization on COMPSs Monitor
 
 Improvements:
-	- Simplified Resource and Project files (NO retrocompatibility)
-	- Improved binding workers execution (use pipes instead of Java Process Builders)
-	- Simplifies cluster job scripts and supercomputers configuration
-	- Several bug fixes
+        - Simplified Resource and Project files (NO retrocompatibility)
+        - Improved binding workers execution (use pipes instead of Java Process Builders)
+        - Simplifies cluster job scripts and supercomputers configuration
+        - Several bug fixes
 
 Known Limitations:
-        * When executing python applications with constraints in the cloud the initial VMs
- must be set to 0
+        * When executing python applications with constraints in the cloud the initial VMs must be set to 0
+
 
 Release number: 2.1 Bougainvillea
-Release date: June-2017                                                                                                                                                                                                                     
+Release date: June-2017
 -------------------------------
 New features:
         * Runtime:
@@ -167,12 +168,12 @@ New features:
 
         * Tools:
                 - Visualization of not-running tasks in current graph of the COMPSs Monitor
- 
+
 Improvements:
         - Improved PyCOMPSs serialization
         - Improvements in cluster job scripts and supercomputers configuration
         - Several bug fixes
- 
+
 Known Limitations:
         - When executing Python applications with constraints in the cloud the <InitialVMs> property must be set to 0
         - Tasks that invoke Numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to
@@ -198,7 +199,7 @@ New features:
                 - Added support for dictionary unrolling on task call
 
         * C:
-                - Persistent worker in C-binding (enabled with persistent_worker_c=true) 
+                - Persistent worker in C-binding (enabled with persistent_worker_c=true)
                 - Inter-task object cache
                 - Support for object methods as tasks
                 - Added support applications with threads in master code
@@ -211,7 +212,7 @@ Improvements:
 Known Limitations:
         - Tasks that invoke Numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to
           the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another.
-	
+
 
 Release number: 2.3 Daisy
 Release date: June-2018
@@ -248,6 +249,7 @@ Improvements:
 Known Limitations:
          - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
 
+
 Release number: 2.4 Elderflower
 Release date: November-2018
 -------------------------------
@@ -258,14 +260,14 @@ New features:
          * Python:
                  - Autoparallel Module to automatically taskify affine loop nests
                  - Support for Python notebook execution in Supercomputers
-                 - Distributed Data Set library that eases development of PyCOMPSs applications by distributing data, and/or providing most common data operations such as map, filter, reduce, etc.  
+                 - Distributed Data Set library that eases development of PyCOMPSs applications by distributing data, and/or providing most common data operations such as map, filter, reduce, etc.
 
          * C:
-                 - Multi-architecture and Cross-compiling build support 
+                 - Multi-architecture and Cross-compiling build support
 
 Improvements:
          - New example applications distributed on Github
-         - Reduced overhead of c-binding 
+         - Reduced overhead of c-binding
          - Task sandbox reuse to reduce execution overheads
          - Script to clean COMPSs zombie processes
          - Several bug fixes
@@ -280,18 +282,18 @@ Release date: June-2019
 -------------------------------
 New features:
          * Runtime:
-		 - New task property "targetDirection" to indicate direction of the target object in object methods. Substitutes the "isModifier" task property.
+                 - New task property "targetDirection" to indicate direction of the target object in object methods. Substitutes the "isModifier" task property.
                  - New Concurrent direction type for task parameter.
-		 - Multi-node tasks support for native (Java, Python) tasks. Previously, multi-node tasks were only posible with @mpi or @decaf tasks.
+                 - Multi-node tasks support for native (Java, Python) tasks. Previously, multi-node tasks were only possible with @mpi or @decaf tasks.
                  - @Compss decorator for executing compss applications as tasks.
-		 - New runtime api to synchronize files without opening them.
-		 - Customizable task failure management with the "onFailure" task property. 
-		 - Enabled master node to execute tasks.
+                 - New runtime api to synchronize files without opening them.
+                 - Customizable task failure management with the "onFailure" task property.
+                 - Enabled master node to execute tasks.
 
          * Python:
                  - Partial support of numba in tasks.
                  - Support for collection as task parameter.
-		 - Warnings for deprecated or incorrect task parameters.
+                 - Warnings for deprecated or incorrect task parameters.
                  - Supported task inheritance.
                  - New persistent MPI worker mode (alternative to subprocess).
                  - Support to ARM MAP and DDT tools (with MPI worker mode).
@@ -308,44 +310,46 @@ Known Limitations:
          - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
          - C++ Objects declared as arguments in a coarse-grain tasks must be passed in the task methods as object pointers in order to have a proper dependency management.
          - Master as worker is not working for executions with persistent worker in C++.
-	 - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlaying distributed storage system.
-	 - Delete file calls for files used as input can produce a significant synchronization of the main code.  
+         - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlaying distributed storage system.
+         - Delete file calls for files used as input can produce a significant synchronization of the main code.
+
 
 Release number: 2.6 Gardenia
 Release date: November-2019
 -------------------------------
 New features:
          * Runtime:
-		- New Commutative direction type for task parameter. It indicates that the order of modifications done by tasks of the same type to the parameter does not affect the final result, i.e., tasks operating on a given commutative parameter can be executed in any order between them.
-		- New "Stream" parameter type, to enable the combination of data-flows and task-based workflows in the same application. The stream parameter type is defined to enable communication of streamed data between tasks.
+                - New Commutative direction type for task parameter. It indicates that the order of modifications done by tasks of the same type to the parameter does not affect the final result, i.e., tasks operating on a given commutative parameter can be executed in any order between them.
+                - New "Stream" parameter type, to enable the combination of data-flows and task-based workflows in the same application. The stream parameter type is defined to enable communication of streamed data between tasks.
                 - Timeout property for tasks. Tasks lasting more than their timeout will be cancelled and considered as failed. This property can be combined with the "onFailure" mechanism.
-		- Enable the definition of task groups.
-		- Support for throwing special exceptions (COMPSsExceptions) in tasks and catching them in task groups.
-		- Task cancellation management in the occurrence of a task group exception and unexpected application finalization (Exception or exit code different from 0)
+                - Enable the definition of task groups.
+                - Support for throwing special exceptions (COMPSsExceptions) in tasks and catching them in task groups.
+                - Task cancellation management in the occurrence of a task group exception and unexpected application finalization (Exception or exit code different from 0)
 
          * Python:
                 - Enable the declaration of a list of strings as a file collection task parameter.
-		- Support for Python MPI tasks
+                - Support for Python MPI tasks
 
          * C:
-                - Support for tasks with fine-grain parallelization with OmpSs-2 programming model. 
+                - Support for tasks with fine-grain parallelization with OmpSs-2 programming model.
 
 Improvements:
          - New multi-threaded ready scheduler with better scalability.
-         - Support for task with "isReplicated" properties and parameters with INOUT/OUT direction. 
-	 - Optimization in deletion of python objects to avoid large synchronizations in shared file systems.
-	 - Improved the AutoParallel submodule to define data blocks as collection types.
-	 - Several Bug fixes
+         - Support for task with "isReplicated" properties and parameters with INOUT/OUT direction.
+         - Optimization in deletion of python objects to avoid large synchronizations in shared file systems.
+         - Improved the AutoParallel submodule to define data blocks as collection types.
+         - Several Bug fixes
 
 Known Limitations:
          - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
          - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
          - Master as worker is not working for executions with persistent worker in C++.
-	 - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	 - Delete file calls for files used as input can produce a significant synchronization of the main code.
-	 - Defining a parameter as OUT is only allowed for files and collection files.   
+         - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+         - Delete file calls for files used as input can produce a significant synchronization of the main code.
+         - Defining a parameter as OUT is only allowed for files and collection files.
 
-Release number: 2.7 Hyacinth 
+
+Release number: 2.7 Hyacinth
 Release date: June-2020
 -------------------------------
 New features:
@@ -387,7 +391,8 @@ Known Limitations:
          - Delete file calls for files used as input can produce a significant synchronization of the main code.
          - Defining a parameter as OUT is only allowed for files and collection files.
 
-Release number: 2.8 (Iris) 
+
+Release number: 2.8 (Iris)
 Release date: November-2020
 -------------------------------
 New features:
@@ -433,7 +438,8 @@ Known Limitations:
         - Delete file calls for files used as input can produce a significant synchronization of the main code.
         - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-Release number: 2.9 (Jasmine) 
+
+Release number: 2.9 (Jasmine)
 Release date: June-2021
 -------------------------------
 New features
@@ -473,213 +479,233 @@ Known Limitations:
         - Delete file calls for files used as input can produce a significant synchronization of the main code.
         - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-Release number: 2.10 (Kumquat) 
+
+Release number: 2.10 (Kumquat)
 Release date: November-2021
 -------------------------------
 New features
          * Runtime:
-		- Support for http requests (@http decorator). 
-		- Support for Java versions higher than 8.
-		- Enable grouping processes in MPI tasks with the processes_per_node flag. 
-		- Partial support for OSX systems 
+                - Support for http requests (@http decorator).
+                - Support for Java versions higher than 8.
+                - Enable grouping processes in MPI tasks with the processes_per_node flag.
+                - Partial support for OSX systems
 
          * Python:
-		- PyArrow object serialization support
-		- Cache profiling enabled
+                - PyArrow object serialization support
+                - Cache profiling enabled
 
 Improvements:
-	- Fixes in managing directory parameters.
+        - Fixes in managing directory parameters.
         - Improvements in asynchronous file system operations.
-	- Improvements visualizing collections in task dependency graphs. 
+        - Improvements visualizing collections in task dependency graphs.
         - Improvements and fixes in the support for different MPI versions (COMPSS_MPIRUN_TYPE)
-	- Improvements in tracing system. Fixes in events and cfgs
-	- Configuration files for Karolina, Mahti and CTE-AMD system.
-	- Several Bug fixes.
+        - Improvements in tracing system. Fixes in events and cfgs
+        - Configuration files for Karolina, Mahti and CTE-AMD system.
+        - Several Bug fixes.
 
 Known Limitations:
-	- Collections are not supported in http tasks
-	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
+        - Collections are not supported in http tasks
+        - OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
         - Reduce operations can consume more disk space than the manually programmed n-ary reduction
-	- Objects used as task parameters must be serializable.
+        - Objects used as task parameters must be serializable.
         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.
         - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
         - Master as worker feature is not working for executions with persistent worker in C++.
-	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-Release number: 3.0 (Lavender) 
+
+Release number: 3.0 (Lavender)
 Release date: June-2022
 -------------------------------
 New features
-	 - CLI to unify executions of application in different environents.
-         - Automatic creation of RO-Create descriptions from workflow executions. 
-	 - Transparent task-based checkpointing support.
-	 - Support for MPMD MPI applications as tasks.
-	 - Support for task epilog and prolog.
-	 - Generic support for reusable descriptions of external software execution inside a COMPSs task (@Software). 
-	 - Mypy compilation of python binding.
-	 - Integartion with DLB DROM forimproving affinity in OpenMP tasks.
-	 - RISC-V 64bit support.
+         - CLI to unify executions of application in different environents.
+         - Automatic creation of RO-Create descriptions from workflow executions.
+         - Transparent task-based checkpointing support.
+         - Support for MPMD MPI applications as tasks.
+         - Support for task epilog and prolog.
+         - Generic support for reusable descriptions of external software execution inside a COMPSs task (@Software).
+         - Mypy compilation of python binding.
+         - Integartion with DLB DROM forimproving affinity in OpenMP tasks.
+         - RISC-V 64bit support.
 
 Deprecated Features:
-	- Python 2 support
-	- Autoparallel module (requires python2)
-	- SOAP Service tasks
-		
+        - Python 2 support
+        - Autoparallel module (requires python2)
+        - SOAP Service tasks
+
 Improvements:
-	- wait_on and wait_on_file API homogeneization.
-	- Improvements in the support for task nesting.
-	- Improvements in memory profiling reports.
-	- Improvements in tracing system: Offline tracing generation, and support for changes of working directory
-	- Configuration files for Nord3v2 and LaPalma system.
-	- Several Bug fixes.
+        - wait_on and wait_on_file API homogeneization.
+        - Improvements in the support for task nesting.
+        - Improvements in memory profiling reports.
+        - Improvements in tracing system: Offline tracing generation, and support for changes of working directory
+        - Configuration files for Nord3v2 and LaPalma system.
+        - Several Bug fixes.
 
 Known Limitations:
-	- Issues when using tracing with Java 14+
-	- Collections are not supported in http tasks
-	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
+        - Issues when using tracing with Java 14+
+        - Collections are not supported in http tasks
+        - OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
         - Reduce operations can consume more disk space than the manually programmed n-ary reduction
-	- Objects used as task parameters must be serializable.
-        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag. 
+        - Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag.
         - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
         - Master as worker feature is not working for executions with persistent worker in C++.
-	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-Release number: 3.1 (Margarita) 
+
+Release number: 3.1 (Margarita)
 Release date: November-2022
 -------------------------------
 New features
-	- Support for Julia applications as tasks
-	- Support for uDocker for container tasks.
-	- New decorator to apply a transformation to a parameter (@data_transformation)
-	- Automatic creation of Data Provenance information from Java applications.
-	- Constraint to force execution in the local agent. (is_local=True)
-	- Extended external software description (JSON file in Software decorator) to allow the definition of task parameters.
-	- Enable the specification of master working directory (location where data serializations are stored).  
+        - Support for Julia applications as tasks
+        - Support for uDocker for container tasks.
+        - New decorator to apply a transformation to a parameter (@data_transformation)
+        - Automatic creation of Data Provenance information from Java applications.
+        - Constraint to force execution in the local agent. (is_local=True)
+        - Extended external software description (JSON file in Software decorator) to allow the definition of task parameters.
+        - Enable the specification of master working directory (location where data serializations are stored).
 
 Improvements:
-	- Data Provenance: enhanced addition of source files using directories
-	- Fix issues when wait_on cancelled data. Get the latest version.
-	- Swap distutils with setuptools in the Python binding installation.
-	- Improvements in the management of tasks returning a modified parameter (a=task(a)).
-	- Container decorator allows to define flags to be passed to the container execution commands. 
-	- Improvements in the support for agents and task nesting.
-	- Improvements in pluggable schedulers.
-	- Improvements in python cache.
-	- Improvements in tracing system: Fix assigned gpus events, include python cache events.
-	- Fix issues in Collection graph generation
-	- Configuration files for Hawk, Mahti, Dardel and Lenox system.
-	- Several Bug fixes.
+        - Data Provenance: enhanced addition of source files using directories
+        - Fix issues when wait_on cancelled data. Get the latest version.
+        - Swap distutils with setuptools in the Python binding installation.
+        - Improvements in the management of tasks returning a modified parameter (a=task(a)).
+        - Container decorator allows to define flags to be passed to the container execution commands.
+        - Improvements in the support for agents and task nesting.
+        - Improvements in pluggable schedulers.
+        - Improvements in python cache.
+        - Improvements in tracing system: Fix assigned gpus events, include python cache events.
+        - Fix issues in Collection graph generation
+        - Configuration files for Hawk, Mahti, Dardel and Lenox system.
+        - Several Bug fixes.
 
 Known Limitations:
-	- Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"  
-	- Collections are not supported in http tasks.
-	- macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). Tracing is not available.
-	- Reduce operations can consume more disk space than the manually programmed n-ary reduction.
-	- Objects used as task parameters must be serializable.
-	- Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag. 
-	- C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
-	- Master as worker feature is not working for executions with persistent worker in C++.
-	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
+        - Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"
+        - Collections are not supported in http tasks.
+        - macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). Tracing is not available.
+        - Reduce operations can consume more disk space than the manually programmed n-ary reduction.
+        - Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag.
+        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+        - Master as worker feature is not working for executions with persistent worker in C++.
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-Release number: 3.2 (Narcissus) 
+
+Release number: 3.2 (Narcissus)
 Release date: May-2023
 -------------------------------
 New features
-	- Support for Containers in MPI and MPMD tasks
-	- Cache for cuPy Objects in GPU tasks.
-	- New SSH/SCP Adaptor to submit tasks to remote clusters (GOS Adaptor).
+        - Support for Containers in MPI and MPMD tasks
+        - Cache for cuPy Objects in GPU tasks.
+        - New SSH/SCP Adaptor to submit tasks to remote clusters (GOS Adaptor).
 
 Improvements:
         - Workflow Provenance: support the new Workflow Run Crate profile (v0.1), improved the structuring of source files for the application, new term to specify a submitter, more details on the machine that run the workflow (architecture and COMPSs environment variables)
-	- Configuration files for Jusuf system.
-	- Several Bug fixes.
+        - Configuration files for Jusuf system.
+        - Several Bug fixes.
 
 Known Limitations:
-	- Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"  
-	- Collections are not supported in http tasks.
-	- macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). Tracing is not available.
-	- Reduce operations can consume more disk space than the manually programmed n-ary reduction.
-	- Objects used as task parameters must be serializable.
-	- Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag. 
-	- C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
-	- Master as worker feature is not working for executions with persistent worker in C++.
-	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
+        - Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"
+        - Collections are not supported in http tasks.
+        - macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). Tracing is not available.
+        - Reduce operations can consume more disk space than the manually programmed n-ary reduction.
+        - Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag.
+        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+        - Master as worker feature is not working for executions with persistent worker in C++.
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
-Release number: 3.3 (Orchid) 
+
+Release number: 3.3 (Orchid)
 Release date: Nov-2023
 -------------------------------
 New features:
-	- New Jupyter kernel and JupyterLab extension to manage PyCOMPSs in the Jupyter ecosystem (https://github.com/bsc-wdc/jupyter-extension).
-	- Integration with Energy Aware Runtime (EAR) to obtain energy profiles in python-based applications (https://www.bsc.es/research-and-development/software-and-apps/software-list/ear-energy-management-framework-hpc).
-	- Support for users-defined dynamic constraints based on of task parameters values.
-	- GPU cache for PyTorch tensors.
+        - New Jupyter kernel and JupyterLab extension to manage PyCOMPSs in the Jupyter ecosystem (https://github.com/bsc-wdc/jupyter-extension).
+        - Integration with Energy Aware Runtime (EAR) to obtain energy profiles in python-based applications (https://www.bsc.es/research-and-development/software-and-apps/software-list/ear-energy-management-framework-hpc).
+        - Support for users-defined dynamic constraints based on of task parameters values.
+        - GPU cache for PyTorch tensors.
 
 Improvements:
-	- The support of interactive Python and Jupyter notebooks has been extended to work in non shared disk environment.   
-	- Data transformations are supporting the data conversion to directory types.
-	- Workflow Provenance: new data persistence feature, new inputs and outputs terms to define data assets by hand, new sources term, improved common paths detection, and minimal YAML support.
-	- Configuration files for Leonardo and Galileo HPC systems.
-	- Several Bug fixes.
+        - The support of interactive Python and Jupyter notebooks has been extended to work in non shared disk environment.
+        - Data transformations are supporting the data conversion to directory types.
+        - Workflow Provenance: new data persistence feature, new inputs and outputs terms to define data assets by hand, new sources term, improved common paths detection, and minimal YAML support.
+        - Configuration files for Leonardo and Galileo HPC systems.
+        - Several Bug fixes.
 
 Known Limitations:
-	- Dynamic constrains are limited to task parameters declared as IN which are not future objects (generated by previous tasks).
-	- Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"  
-	- Collections are not supported in http tasks.
-	- macOS support is limited to Java and Python without CPU affinity (requires to execute with --cpu_affinity=disable). Tracing is not available.
-	- Reduce operations can consume more disk space than the manually programmed n-ary reduction.
-	- Objects used as task parameters must be serializable.
-	- Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag. 
-	- C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
-	- Master as worker feature is not working for executions with persistent worker in C++.
-	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
-
-For further information, please refer to the COMPSs Documentation at: 
-	https://compss-doc.readthedocs.io/en/stable/
-
-Please find more details about the COMP Superscalar framework at: 
-	http://compss.bsc.es/
-
-Release number: 3.4 (TBD) 
-Release date: Nov-2025
--------------------------------
-New features:
-	- Upgraded support for Java 21.
-	- 
-	- 
-	- 
-
-Improvements:
-	- 
-	- 
-	- Configuration files for MN5 HPC systems.
-	- Several Bug fixes.
-
-Known Limitations:
-	- Dynamic constrains are limited to task parameters declared as IN which are not future objects (generated by previous tasks).
-	- Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"
-	- Collections are not supported in http tasks.
-	- macOS support is limited to Java and Python without CPU affinity (requires to execute with --cpu_affinity=disable). Tracing is not available.
-	- Reduce operations can consume more disk space than the manually programmed n-ary reduction.
-	- Objects used as task parameters must be serializable.
-	- Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag.
-	- C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
-	- Master as worker feature is not working for executions with persistent worker in C++.
-	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
-	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
+        - Dynamic constrains are limited to task parameters declared as IN which are not future objects (generated by previous tasks).
+        - Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"
+        - Collections are not supported in http tasks.
+        - macOS support is limited to Java and Python without CPU affinity (requires to execute with --cpu_affinity=disable). Tracing is not available.
+        - Reduce operations can consume more disk space than the manually programmed n-ary reduction.
+        - Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag.
+        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+        - Master as worker feature is not working for executions with persistent worker in C++.
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
 
 For further information, please refer to the COMPSs Documentation at:
-	https://compss-doc.readthedocs.io/en/stable/
+        https://compss-doc.readthedocs.io/en/stable/
 
 Please find more details about the COMP Superscalar framework at:
-	http://compss.bsc.es/
+        http://compss.bsc.es/
+
+
+Release number: 3.4
+Release date: Feb-2026
+-------------------------------
+New features:
+        - Upgraded support for Java 21.
+        - Upgraded support for Python 3.12.
+        - Support for R language (RCOMPSs).
+        - Provenance debugging tool.
+        - Reproducibility service based in previous provenance records.
+        - Support for the usage of sockets between the bindings or agents and the COMPSs runtime.
+        - New basic agent-local monitor.
+        - New scheduler "es.bsc.compss.scheduler.predefined.PredefinedTS" to enable the explicit scheduling policy.
+
+Improvements:
+        - Provenance information gathering now includes execution metrics (profiling).
+        - Support for provenance Run Crate (Level 3) WRROC Profile features.
+        - Provenance support for failed application executions.
+        - The integration with EAR has been improved for energy consumption metrics gathering and their inclusion into the traces.
+        - The integration with DLB has been completed using DROM (Dynamic Resource Ownership Manager) and tested in MareNostrum 5.
+        - Improved support for macOS ARM architectures
+        - Sandbox management.
+        - Configuration files for MN5 HPC systems.
+        - Enhanced documentation, with new structure, sections and updated examples.
+        - Several Bug fixes.
+
+Deprecations:
+        - Dropped support for "generated_jit" decorator from Numba.
+        - Support for just-in-time functions within classes has been dropped.
+
+Known Limitations:
+        - Dynamic constrains are limited to task parameters declared as IN which are not future objects (generated by previous tasks).
+        - Collections are not supported in http tasks.
+        - macOS support is limited to Java and Python without CPU affinity (requires to execute with --cpu_affinity=disable). Tracing is not available.
+        - Reduce operations can consume more disk space than the manually programmed n-ary reduction.
+        - Objects used as task parameters must be serializable.
+        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag.
+        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+        - Master as worker feature is not working for executions with persistent worker in C++.
+        - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+        - Delete file calls for files used as input can produce a significant synchronization of the main code.
+        - Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.
+
+
+For further information, please refer to the COMPSs Documentation at:
+        https://compss-doc.readthedocs.io/en/stable/
+
+Please find more details about the COMP Superscalar framework at:
+        http://compss.bsc.es/

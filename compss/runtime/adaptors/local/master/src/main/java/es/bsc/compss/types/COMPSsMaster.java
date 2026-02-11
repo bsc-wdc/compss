@@ -311,11 +311,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         boolean reuse = Boolean.parseBoolean(System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK));
         this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, reuse, 0,
             ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 0);
-        try {
-            this.executionManager.init();
-        } catch (InitializationException ie) {
-            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
-        }
     }
 
     @Override
@@ -345,6 +340,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 return;
             }
             this.started = true;
+        }
+        try {
+            this.executionManager.init();
+        } catch (InitializationException ie) {
+            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
     }
 

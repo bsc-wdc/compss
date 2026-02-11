@@ -123,11 +123,11 @@ public class ExecutorTest {
 
         @Override
         public ExecutorRequest getJob() {
-            return this.queue.dequeue();
+            return this.queue.poll();
         }
 
         public void execute(ExecutorRequest job) {
-            this.queue.enqueue(job);
+            this.queue.add(job);
         }
 
         @Override

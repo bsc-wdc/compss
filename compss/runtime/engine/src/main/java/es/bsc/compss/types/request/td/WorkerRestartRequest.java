@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
@@ -27,7 +28,7 @@ import es.bsc.compss.types.tracing.TraceEvent;
 /**
  * To restart a failed worker.
  */
-public class WorkerRestartRequest<T extends WorkerResourceDescription> extends TDRequest {
+public class WorkerRestartRequest<T extends WorkerResourceDescription> extends TaskDispatcher.AsynchTDRequest {
 
     private final Worker<T> worker;
     private final ResourceUpdate<T> ru;
@@ -36,10 +37,12 @@ public class WorkerRestartRequest<T extends WorkerResourceDescription> extends T
     /**
      * Constructs a WorkerRestartRequest with all its parameters.
      *
+     * @param td TaskDispatcher processing the event
      * @param worker Worker that has been added.
      * @param update Resource update.
      */
-    public WorkerRestartRequest(Worker<T> worker, ResourceUpdate<T> update) {
+    public WorkerRestartRequest(TaskDispatcher td, Worker<T> worker, ResourceUpdate<T> update) {
+        td.super();
         this.worker = worker;
         this.ru = update;
     }

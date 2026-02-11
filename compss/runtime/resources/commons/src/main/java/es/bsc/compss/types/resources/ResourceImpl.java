@@ -353,7 +353,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         }
         Semaphore sem = new Semaphore(0);
         SafeCopyListener listener = new SafeCopyListener(sem);
-        Set<LogicalData> lds = getAllDataFromHost();
+        Set<LogicalData> lds;
+        lds = getAllDataFromHost();
 
         Map<SharedDisk, String> disks = new HashMap<>();
         for (SharedDisk sd : this.sharedDisks) {
@@ -361,6 +362,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             disks.put(sd, mountpoint);
         }
         this.sharedDisks.clear();
+        this.sharedDisk2Mountpoint.clear();
 
         for (LogicalData ld : lds) {
             if (ld.getCopiesInProgress().size() > 0) {

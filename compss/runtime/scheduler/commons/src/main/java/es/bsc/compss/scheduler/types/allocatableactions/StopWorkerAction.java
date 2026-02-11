@@ -17,10 +17,10 @@
 package es.bsc.compss.scheduler.types.allocatableactions;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
@@ -61,16 +61,16 @@ public class StopWorkerAction extends AllocatableAction {
      * Creates a new StopWorkerAction instance.
      *
      * @param schedulingInformation Associated scheduling information.
+     * @param orchestrator Action Orchestrator (task Dispatcher).
      * @param worker Associated worker ResourceScheduler.
-     * @param ts Associated TaskScheduler.
      * @param modification Stop modification.
      */
     @SuppressWarnings("unchecked")
-    public StopWorkerAction(SchedulingInformation schedulingInformation,
-        ResourceScheduler<? extends WorkerResourceDescription> worker, TaskScheduler ts,
+    public StopWorkerAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+        ResourceScheduler<? extends WorkerResourceDescription> worker,
         PerformedReduction<? extends WorkerResourceDescription> modification) {
 
-        super(schedulingInformation, ts.getOrchestrator());
+        super(schedulingInformation, orchestrator);
         this.worker = worker;
         this.ru = (PerformedReduction<WorkerResourceDescription>) modification;
         if (worker.getResource().getType() == ResourceType.WORKER) {
@@ -121,9 +121,9 @@ public class StopWorkerAction extends AllocatableAction {
                 } catch (Exception e) {
                     LOGGER.error("ERROR: Exception raised on worker shutdown", e);
                     ErrorManager.warn("Exception stopping worker. Check runtime.log for more details", e);
-                    notifyError();
+                    notifyOrchestratorError();
                 }
-                notifyCompleted();
+                notifyOrchestratorCompleted();
 
             }
         }).start();

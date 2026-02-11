@@ -23,6 +23,8 @@ import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionListener;
+import es.bsc.compss.scheduler.types.ActionListenerAdapter;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
@@ -41,10 +43,12 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.updates.IdleResources;
+import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -53,6 +57,7 @@ import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ExternalAdaptationManager;
 import es.bsc.compss.util.JSONStateManager;
+import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
 import es.bsc.compss.util.Tracer;
@@ -130,8 +135,8 @@ public class TaskScheduler {
      * @throws ExceptionInInitializerError if the initialization provoked by this method fails.
      */
     public static TaskScheduler constructScheduler(String schedFQN, ActionOrchestrator orchestrator)
-        throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
-        IllegalArgumentException, ExceptionInInitializerError {
+            throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
+            IllegalArgumentException, ExceptionInInitializerError {
         Class<?> schedClass = Class.forName(schedFQN);
         Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
         TaskScheduler scheduler = (TaskScheduler) schedCnstr.newInstance(orchestrator);
@@ -191,31 +196,127 @@ public class TaskScheduler {
     }
 
     /**
-     * Returns the Action Orchestrator assigned to this scheduler.
-     *
-     * @return The Action Orchestrator assigned to this scheduler.
+     * Shutdown the Task Scheduler.
      */
-    public final ActionOrchestrator getOrchestrator() {
-        return this.orchestrator;
+    public final void shutdown(ShutdownListener sl) {
+        // Stop Resource Optimizer
+        TaskScheduler.this.ro.shutdown();
+        if (TaskScheduler.this.externalAdaptation) {
+            TaskScheduler.this.extAdaptationManager.shutdown();
+        }
+
+        ShutdownHook sh = new ShutdownHook(sl);
+        for (ResourceScheduler<?> w : new ArrayList<>(workers.values())) {
+            shutdownWorker(w, sh);
+        }
+        sh.enable();
+    }
+
+    private <T extends WorkerResourceDescription> void shutdownWorker(ResourceScheduler<T> w, ShutdownHook sh) {
+        sh.addOperation();
+        if (w.myWorker.canFeaturesChange()) {
+            if (w.hasPendingModifications()) {
+                for (ReduceWorkerAction<T> pr : w.getReducingActions()) {
+                    ActionListener<ReduceWorkerAction<T>> l = new ActionListenerAdapter<ReduceWorkerAction<T>>() {
+                        @Override
+                        public void onActionCompleted(ReduceWorkerAction<T> action) {
+                            if (workers.get(w.myWorker) == null) {
+                                // Worker is being stopped
+                                sh.completed();
+                            } else {
+                                // Some resource remaining.
+                                reduceFullWorker(w, sh);
+                            }
+                        }
+
+                        @Override
+                        public void onActionFailed(ReduceWorkerAction<T> action) {
+                            // Retry reduction with new description
+                            reduceFullWorker(w, sh);
+                        }
+                    };
+                    pr.addListener(l);
+                }
+            } else {
+                reduceFullWorker(w, sh);
+            }
+        } else {
+            stopWorker(w, null, sh);
+        }
+    }
+
+    private <T extends WorkerResourceDescription>  void reduceFullWorker(ResourceScheduler<T> w, ShutdownHook sh) {
+        T reduction = (T) w.myWorker.getDescription().copy();
+        PendingReduction<T> pr = new PendingReduction<>(reduction);
+        reduceWorkerResources(w, pr, sh);
+    }
+
+    public interface ShutdownListener {
+        void onShutdown();
+    }
+
+    private class ShutdownHook implements ActionListener {
+        private int pendingOps = 1; //starts 1 because of enabling
+        private final ShutdownListener sl;
+
+        private ShutdownHook(ShutdownListener sl) {
+            this.sl = sl;
+        }
+
+        private void enable() {
+            pendingOps--;
+            if (pendingOps == 0) {
+                completed();
+            }
+        }
+
+        private void addOperation() {
+            this.pendingOps++;
+        }
+
+        @Override
+        public void onActionStarted(AllocatableAction action) {
+            // Do nothing
+        }
+
+        @Override
+        public void onActionCompleted(AllocatableAction action) {
+            this.pendingOps--;
+            if (pendingOps == 0) {
+                completed();
+            }
+        }
+
+        @Override
+        public void onActionFailed(AllocatableAction action) {
+            this.pendingOps--;
+            if (pendingOps == 0) {
+                completed();
+            }
+        }
+
+        @Override
+        public void onActionException(AllocatableAction action, COMPSsException e) {
+            //Shouldn't happen
+        }
+
+        private void completed() {
+            sl.onShutdown();
+        }
     }
 
     /**
-     * Shutdown the Task Scheduler.
+     * Performs the shutdown of the Task Scheduler.
      */
-    public final void shutdown() {
+    public void confirmShutdown() {
         customSchedulerShutdown();
-        // Stop Resource Optimizer
-        this.ro.shutdown();
-        this.so.shutdown();
-        if (this.externalAdaptation) {
-            this.extAdaptationManager.shutdown();
-        }
+        TaskScheduler.this.so.shutdown();
         try {
             updateState();
-            this.jsm.write();
+            TaskScheduler.this.jsm.write();
             if (DP_ENABLED) {
                 // Write application execution metrics to dataprovenance.log file
-                this.jsm.writeDataProvenance(DP_LOGGER);
+                TaskScheduler.this.jsm.writeDataProvenance(DP_LOGGER);
             }
         } catch (Exception e) {
             LOGGER.error(e);
@@ -223,7 +324,7 @@ public class TaskScheduler {
     }
 
     protected void customSchedulerShutdown() {
-        // Do nothing. Overriden if necessary by Task Scheduler extension.
+        // Do nothing. Overridden if necessary by Task Scheduler extension.
     }
 
     /*
@@ -373,7 +474,7 @@ public class TaskScheduler {
     }
 
     public void customCoreElementsUpdated() {
-        // Do nothing. Overriden if necessary by Task Scheduler extension.
+        // Do nothing. Overridden if necessary by Task Scheduler extension.
     }
 
     /**
@@ -838,7 +939,21 @@ public class TaskScheduler {
      * @param ui ResourceScheduler whose worker is to contextualize.
      */
     private <T extends WorkerResourceDescription> void startWorker(ResourceScheduler<T> ui) {
-        StartWorkerAction<T> action = new StartWorkerAction<>(generateSchedulingInformation(ui, null, null), ui, this);
+        SchedulingInformation si = generateSchedulingInformation(ui, null, null);
+        StartWorkerAction<T> action = new StartWorkerAction<>(si, this.orchestrator, ui);
+        ActionListener<StartWorkerAction<T>> listener = new ActionListenerAdapter<StartWorkerAction<T>>() {
+            @Override
+            public void onActionFailed(StartWorkerAction<T> action) {
+                removeResource(ui);
+                Worker<?> wNode = ui.getResource();
+                ResourceDescription rd = wNode.getDescription();
+                rd.reduce(rd);
+                ui.getResource().updatedFeatures();
+                SchedulingInformation.changesOnWorker(ui);
+                ResourceManager.removeWorker(wNode);
+            }
+        };
+        action.addListener(listener);
         try {
             action.schedule(ui, (Score) null);
             action.tryToLaunch();
@@ -856,7 +971,7 @@ public class TaskScheduler {
                 // Can't happen
                 break;
             case REDUCE:
-                reduceWorkerResources(worker, modification);
+                reduceWorkerResources(worker, (PendingReduction<T>) modification, null);
                 break;
             case BUSY:
                 busyWorkerResources(worker, modification);
@@ -867,10 +982,24 @@ public class TaskScheduler {
     }
 
     private <T extends WorkerResourceDescription> void reduceWorkerResources(ResourceScheduler<T> worker,
-        ResourceUpdate<T> modification) {
-        worker.pendingModification(modification);
+        PendingReduction<T> modification, ShutdownHook sh) {
         SchedulingInformation schedInfo = generateSchedulingInformation(worker, null, null);
-        ReduceWorkerAction<T> action = new ReduceWorkerAction<>(schedInfo, worker, this, modification);
+        ActionListener<ReduceWorkerAction<T>> listener = new ActionListenerAdapter<ReduceWorkerAction<T>>() {
+            @Override
+            public void onActionCompleted(ReduceWorkerAction<T> action) {
+                worker.completedReduction(action);
+                SchedulingInformation.changesOnWorker(worker);
+                reducedWorkerResources(worker, new PerformedReduction<T>(modification.getModification()), sh);
+            }
+
+            @Override
+            public void onActionFailed(ReduceWorkerAction<T> action) {
+                LOGGER.error("Error waiting for tasks allocated on " + worker.getName() + " to end");
+            }
+        };
+        ReduceWorkerAction<T> action = new ReduceWorkerAction<>(schedInfo, this.orchestrator, worker, modification);
+        action.addListener(listener);
+        worker.pendingModification(action);
         try {
             action.schedule(worker, (Score) null);
             action.tryToLaunch();
@@ -884,7 +1013,7 @@ public class TaskScheduler {
         ResourceUpdate<T> modification) {
 
         SchedulingInformation schedInfo = generateSchedulingInformation(worker, null, null);
-        BusyWorkerAction<T> action = new BusyWorkerAction<>(schedInfo, worker, this, modification);
+        BusyWorkerAction<T> action = new BusyWorkerAction<>(schedInfo, this.orchestrator, worker, modification);
         try {
             action.schedule(worker, (Score) null);
             action.tryToLaunch();
@@ -904,14 +1033,13 @@ public class TaskScheduler {
     @SuppressWarnings("unchecked")
     private <T extends WorkerResourceDescription> void completedResourceUpdate(ResourceScheduler<T> worker,
         ResourceUpdate<T> modification) {
-        worker.completedModification(modification);
         SchedulingInformation.changesOnWorker((ResourceScheduler<WorkerResourceDescription>) worker);
         switch (modification.getType()) {
             case INCREASE:
                 increasedWorkerResources(worker, modification);
                 break;
             case REDUCE:
-                reducedWorkerResources(worker, (PerformedReduction<T>) modification);
+                reducedWorkerResources(worker, (PerformedReduction<T>) modification, null);
                 break;
             case IDLE:
                 idleWorkerResources(worker, (IdleResources<T>) modification);
@@ -941,7 +1069,7 @@ public class TaskScheduler {
 
     @SuppressWarnings("unchecked")
     private <T extends WorkerResourceDescription> void reducedWorkerResources(ResourceScheduler<T> worker,
-        PerformedReduction<T> modification) {
+        PerformedReduction<T> modification, ShutdownHook sh) {
 
         // Update worker features
         // When a worker is reduced it never unblocks actions
@@ -955,23 +1083,41 @@ public class TaskScheduler {
         LOGGER.info("Resources for worker " + worker.getName() + " have been reduced");
         DynamicMethodWorker dynamicWorker = (DynamicMethodWorker) worker.getResource();
         if (dynamicWorker.shouldBeStopped()) {
-            LOGGER.info("Starting stop process for worker " + worker.getName());
-            workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
-            StopWorkerAction action;
-            action = new StopWorkerAction(generateSchedulingInformation(worker, null, null), worker,
-                this, modification);
-            try {
-                action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
-                action.tryToLaunch();
-            } catch (UnassignedActionException | InvalidSchedulingException e) {
-                // Can not be blocked nor unassigned
-                LOGGER.error("WARN: Stop action has been blocked or unassigned. It should not happen!");
-            }
+            stopWorker(worker, modification, sh);
         } else {
             dynamicWorker.destroyResources(modification.getModification());
         }
     }
 
+    private <T extends WorkerResourceDescription> void stopWorker(ResourceScheduler<T> worker,
+            PerformedReduction<T> modification, ShutdownHook sh) {
+        LOGGER.info("Starting stop process for worker " + worker.getName());
+        workerStopped(worker);
+        StopWorkerAction action;
+        SchedulingInformation si = generateSchedulingInformation(worker, null, null);
+        action = new StopWorkerAction(si, this.orchestrator, worker, modification);
+        if (sh != null) {
+            ActionListener<StopWorkerAction> stopListener = new ActionListenerAdapter<StopWorkerAction>() {
+                @Override
+                public void onActionCompleted(StopWorkerAction action) {
+                    sh.onActionCompleted(action);
+                }
+
+                @Override
+                public void onActionFailed(StopWorkerAction action) {
+                    sh.onActionFailed(action);
+                }
+            };
+            action.addListener(stopListener);
+        }
+        try {
+            action.schedule(worker, (Score) null);
+            action.tryToLaunch();
+        } catch (UnassignedActionException | InvalidSchedulingException e) {
+            // Can not be blocked nor unassigned
+            LOGGER.error("WARN: Stop action has been blocked or unassigned. It should not happen!");
+        }
+    }
 
     private <T extends WorkerResourceDescription> void idleWorkerResources(ResourceScheduler<T> worker,
         IdleResources<T> modification) {
@@ -1005,15 +1151,15 @@ public class TaskScheduler {
                 int implId = impl.getImplementationId();
 
                 LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
-                    + " before removing:" + offVMsProfiles[coreId][implId]);
+                        + " before removing:" + offVMsProfiles[coreId][implId]);
                 Profile p = resource.getProfile(coreId, implId);
                 if (p != null) {
                     LOGGER.info(" Accumulating worker profile data for CoreId: " + coreId + ", ImplId: " + implId
-                        + " in removed workers profile");
+                            + " in removed workers profile");
                     offVMsProfiles[coreId][implId].accumulate(p);
                 }
                 LOGGER.debug("Removed Workers profile for CoreId: " + coreId + ", ImplId: " + implId
-                    + " after removing:" + offVMsProfiles[coreId][implId]);
+                        + " after removing:" + offVMsProfiles[coreId][implId]);
             }
         }
 
@@ -1615,17 +1761,16 @@ public class TaskScheduler {
     public ResourceScheduler<? extends WorkerResourceDescription> getNextResourForDistributed(int coreId) {
         LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> resourceList =
             this.distributedTasksResources.computeIfAbsent(coreId,
-                resources -> new LinkedList<ResourceScheduler<? extends WorkerResourceDescription>>(getWorkers()));
+                resources -> new LinkedList<>(getWorkers()));
         // Get the first and add at the end
         ResourceScheduler<? extends WorkerResourceDescription> res = resourceList.poll();
         resourceList.add(res);
         return res;
     }
 
-    private class WorkersMap {
+    private static class WorkersMap {
 
-        private final Map<Resource,
-            ResourceScheduler<? extends WorkerResourceDescription>> map;
+        private final Map<Resource, ResourceScheduler<? extends WorkerResourceDescription>> map;
 
 
         public WorkersMap() {

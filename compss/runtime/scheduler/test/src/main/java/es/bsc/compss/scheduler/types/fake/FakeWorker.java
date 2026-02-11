@@ -38,6 +38,11 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     }
 
     @Override
+    public final boolean canFeaturesChange() {
+        return false;
+    }
+
+    @Override
     public int compareTo(Resource rsrc) {
         return 0;
     }

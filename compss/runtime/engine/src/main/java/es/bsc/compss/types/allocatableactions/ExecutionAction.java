@@ -74,13 +74,11 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
      * Creates a new execution action.
      *
      * @param schedulingInformation Associated scheduling information.
-     * @param orchestrator Task orchestrator.
      * @param ap Access processor.
      * @param task Associated task.
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
         AccessProcessor ap, Task task) {
-
         super(schedulingInformation, orchestrator);
         this.ap = ap;
         this.task = task;
@@ -245,7 +243,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         int taskId = this.task.getId();
         String workerName = getAssignedResource().getName();
         ErrorManager.warn("Transfers for running task " + taskId + " on worker " + workerName + " have failed.");
-        this.notifyError();
+        this.notifyOrchestratorError();
     }
 
     @Override
@@ -348,7 +346,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
 
     @Override
     public final void jobCancelled(Job<?> job) {
-        notifyError();
+        notifyOrchestratorError();
     }
 
     /**
@@ -368,7 +366,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
             }
         }
 
-        notifyException(e);
+        notifyOrchestratorException(e);
 
     }
 
@@ -383,7 +381,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         LOGGER.debug("Job " + job.getJobId() + " failed");
         this.profile.end(System.currentTimeMillis());
 
-        notifyError();
+        notifyOrchestratorError();
     }
 
     /**
@@ -398,7 +396,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         this.profile.end(System.currentTimeMillis());
 
         // Notify completion
-        notifyCompleted();
+        notifyOrchestratorCompleted();
     }
 
     @Override

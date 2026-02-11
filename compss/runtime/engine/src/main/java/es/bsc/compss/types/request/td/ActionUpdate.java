@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -26,7 +27,7 @@ import es.bsc.compss.worker.COMPSsException;
 /**
  * The ActionUpdate class represents the notification of an update on the state of an allocatable action.
  */
-public class ActionUpdate extends TDRequest {
+public class ActionUpdate extends TaskDispatcher.AsynchTDRequest {
 
     /**
      * Possible Updates applied to the action.
@@ -56,10 +57,12 @@ public class ActionUpdate extends TDRequest {
     /**
      * Constructs a new NotifyAllocatableActionEnd for the task.
      *
+     * @param td TaskDispatcher processing the event
      * @param action Associated action.
      * @param update Update to be notified.
      */
-    public ActionUpdate(AllocatableAction action, Update update) {
+    public ActionUpdate(TaskDispatcher td, AllocatableAction action, Update update) {
+        td.super();
         this.action = action;
         this.update = update;
         this.exception = null;

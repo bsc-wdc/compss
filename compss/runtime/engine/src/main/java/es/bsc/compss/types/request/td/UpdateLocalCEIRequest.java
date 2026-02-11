@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -23,24 +24,22 @@ import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 
-public class UpdateLocalCEIRequest extends TDRequest {
+public class UpdateLocalCEIRequest extends TaskDispatcher.SynchTDRequest<Void> {
 
     private final Class<?> ceiClass;
-    private final Semaphore sem;
 
 
     /**
      * Creates a new request to update the local CoreElement Interface class.
-     * 
+     *
+     * @param td TaskDispatcher processing the event
      * @param ceiClass CoreElement Interface class to update.
-     * @param sem Waiting semaphore.
      */
-    public UpdateLocalCEIRequest(Class<?> ceiClass, Semaphore sem) {
+    public UpdateLocalCEIRequest(TaskDispatcher td, Class<?> ceiClass) {
+        td.super();
         this.ceiClass = ceiClass;
-        this.sem = sem;
     }
 
     /**
@@ -52,23 +51,14 @@ public class UpdateLocalCEIRequest extends TDRequest {
         return this.ceiClass;
     }
 
-    /**
-     * Returns the semaphore where to synchronize until the operation is done.
-     *
-     * @return Semaphore where to synchronize until the operation is done.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
-    }
-
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
-        LOGGER.debug("Treating request to update core elements");
+        TaskDispatcher.LOGGER.debug("Treating request to update core elements");
 
         // Load new coreElements
         List<Integer> newCores = CEIParser.loadJava(this.ceiClass);
-        if (DEBUG) {
-            LOGGER.debug("New methods: " + newCores);
+        if (TaskDispatcher.DEBUG) {
+            TaskDispatcher.LOGGER.debug("New methods: " + newCores);
         }
         // Update Resources structures
         ResourceManager.coreElementUpdates(newCores);
@@ -76,8 +66,8 @@ public class UpdateLocalCEIRequest extends TDRequest {
         ts.coreElementsUpdated();
 
         // Release
-        LOGGER.debug("Data structures resized and CE-resources links updated");
-        this.sem.release();
+        TaskDispatcher.LOGGER.debug("Data structures resized and CE-resources links updated");
+        this.onCompletion();
     }
 
     @Override

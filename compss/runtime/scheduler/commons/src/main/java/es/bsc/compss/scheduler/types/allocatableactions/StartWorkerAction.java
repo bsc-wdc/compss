@@ -23,6 +23,7 @@ import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
@@ -32,11 +33,9 @@ import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
@@ -47,7 +46,6 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     private final ResourceScheduler<T> worker;
     private final Implementation impl;
-    private final TaskScheduler ts;
     private static final boolean STOP_EXEC_IN_NODE_FAIL =
         Boolean.parseBoolean(System.getProperty(COMPSsConstants.SHUTDOWN_IN_NODE_FAILURE));
 
@@ -61,14 +59,13 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
      * Creates a new StartWorkerAction instance.
      * 
      * @param schedulingInformation Associated scheduling information.
+     * @param orchestrator Action Orchestrator (task Dispatcher).
      * @param worker Associated worker ResourceScheduler.
-     * @param ts Associated Task Scheduler
      */
-    public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
-        TaskScheduler ts) {
+    public StartWorkerAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+        ResourceScheduler<T> worker) {
 
-        super(schedulingInformation, ts.getOrchestrator());
-        this.ts = ts;
+        super(schedulingInformation, orchestrator);
         this.worker = worker;
         this.worker.getResource().startingNode();
 
@@ -131,11 +128,11 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
                 Thread.currentThread().setName(workerResource.getName() + " starter");
                 try {
                     workerResource.start();
-                    notifyCompleted();
+                    notifyOrchestratorCompleted();
                 } catch (InitNodeException e) {
                     LOGGER.error("Error starting resource", e);
                     ErrorManager.warn("Exception creating worker. Check runtime.log for more details", e);
-                    notifyError();
+                    notifyOrchestratorError();
                 }
             }
         }).start();
@@ -148,6 +145,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
      */
     @Override
     protected void doAbort() {
+        // Do nothing.
     }
 
     @Override
@@ -167,16 +165,6 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
         if (STOP_EXEC_IN_NODE_FAIL) {
             ErrorManager.fatal(" Execution stopped due to node: " + this.worker.getName() + " failure.");
         }
-
-        this.ts.removeResource(this.worker);
-
-        ResourceDescription rd = this.worker.getResource().getDescription();
-        rd.reduce(rd);
-        this.worker.getResource().updatedFeatures();
-        SchedulingInformation.changesOnWorker(this.worker);
-
-        Worker wNode = this.worker.getResource();
-        ResourceManager.removeWorker(wNode);
     }
 
     @Override
@@ -187,7 +175,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void doFailIgnored() {
-
+        // Do nothing.
     }
 
     @Override

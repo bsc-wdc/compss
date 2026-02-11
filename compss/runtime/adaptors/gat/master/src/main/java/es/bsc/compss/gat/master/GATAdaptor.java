@@ -227,7 +227,7 @@ public class GATAdaptor implements CommAdaptor {
     }
 
     public static void enqueueCopy(Copy c) {
-        copyQueue.enqueue(c);
+        copyQueue.add(c);
     }
 
     public static GATContext getTransferContext() {

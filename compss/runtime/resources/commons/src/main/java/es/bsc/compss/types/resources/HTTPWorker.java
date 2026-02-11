@@ -37,6 +37,11 @@ public class HTTPWorker extends Worker<HTTPResourceDescription> {
     }
 
     @Override
+    public final boolean canFeaturesChange() {
+        return false;
+    }
+
+    @Override
     public boolean canRun(Implementation implementation) {
 
         if (!implementation.getTaskType().equals(TaskType.HTTP)) {

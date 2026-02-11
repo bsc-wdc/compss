@@ -17,10 +17,10 @@
 package es.bsc.compss.scheduler.types.allocatableactions;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
@@ -33,7 +33,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.PendingReduction;
-import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -46,7 +45,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     private final ResourceScheduler<T> worker;
     private final Implementation impl;
-    private final PendingReduction<T> ru;
+    private final PendingReduction<T> pr;
 
 
     /*
@@ -58,16 +57,16 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      * Creates a new ReduceWorkerAction to update the worker information.
      * 
      * @param schedulingInformation Associated scheduling information.
+     * @param orchestrator Action Orchestrator (task Dispatcher).
      * @param worker Worker to reduce.
-     * @param ts Associated Task scheduler.
      * @param modification Modification to perform.
      */
-    public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
-        TaskScheduler ts, ResourceUpdate<T> modification) {
+    public ReduceWorkerAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+        ResourceScheduler<T> worker, PendingReduction<T> modification) {
 
-        super(schedulingInformation, ts.getOrchestrator());
+        super(schedulingInformation, orchestrator);
         this.worker = worker;
-        this.ru = (PendingReduction<T>) modification;
+        this.pr = modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
             impl =
                 AbstractMethodImplementation.generateDummy((MethodResourceDescription) modification.getModification());
@@ -98,26 +97,31 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void doAction() {
-        (new Thread() {
 
-            @SuppressWarnings("unchecked")
-            @Override
-            public void run() {
-                Thread.currentThread().setName(worker.getName() + " stopper");
-                DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
-                PendingReduction<WorkerResourceDescription> red = (PendingReduction<WorkerResourceDescription>) ru;
-                ResourceManager.reduceDynamicWorker(w, red);
-                w.endTask((MethodResourceDescription) getResourceConsumption());
-                try {
-                    ru.waitForCompletion();
-                } catch (Exception e) {
-                    LOGGER.error("ERROR: Exception raised on worker reduction", e);
-                    ErrorManager.warn("Exception reducing worker. Check runtime.log for more details", e);
-                    notifyError();
-                }
-                notifyCompleted();
-            }
-        }).start();
+        DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
+        // Removes the amount of resources in the scheduler
+        w.endTask((MethodResourceDescription) getResourceConsumption());
+        // Removes the resources form the pool
+        ResourceManager.reduceDynamicWorker(w, pr);
+
+        // all operations should be synchronous
+        try {
+            ReduceWorkerAction.this.pr.waitForCompletion();
+        } catch (Exception e) {
+            LOGGER.error("ERROR: Exception raised on worker reduction", e);
+            ErrorManager.warn("Exception reducing worker. Check runtime.log for more details", e);
+            notifyOrchestratorError();
+        }
+        notifyOrchestratorCompleted();
+    }
+
+    /**
+     * Returns the pending reduction that the action will perform.
+     * 
+     * @return pending reduction that the action will perform
+     */
+    public PendingReduction<T> getReduction() {
+        return pr;
     }
 
     /*
@@ -127,12 +131,12 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      */
     @Override
     protected void doAbort() {
+        // Do nothing.
     }
 
     @Override
     protected void doCompleted() {
-        Worker<T> w = worker.getResource();
-        ResourceManager.confirmWorkerReduction(w, ru);
+        // Do nothing.
     }
 
     @Override
@@ -142,18 +146,17 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void doFailed() {
-        LOGGER.error("Error waiting for tasks to end");
+        // Do nothing
     }
 
     @Override
     protected boolean doCanceled() {
         return true;
-
     }
 
     @Override
     protected void doFailIgnored() {
-
+        // Do nothing.
     }
 
     @Override

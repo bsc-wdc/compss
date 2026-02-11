@@ -25,11 +25,13 @@ import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
 
@@ -67,7 +69,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     // Worker assigned to the resource scheduler
     protected final Worker<T> myWorker;
     // Modifications pending to be applied
-    private final List<ResourceUpdate<T>> pendingModifications;
+    private final List<ReduceWorkerAction<T>> pendingReductions;
 
     // Profile information of the task executions
     private Profile[][] profiles;
@@ -87,7 +89,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         this.blocked = constructBlockedQueue();
 
         this.myWorker = w;
-        this.pendingModifications = new LinkedList<>();
+        this.pendingReductions = new LinkedList<>();
         JSONObject resMap;
         if (defaultResource != null) {
             try {
@@ -176,8 +178,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @param modification Pending modification.
      */
-    public final void pendingModification(ResourceUpdate<T> modification) {
-        this.pendingModifications.add(modification);
+    public final void pendingModification(ReduceWorkerAction<T> modification) {
+        this.pendingReductions.add(modification);
     }
 
     /**
@@ -186,7 +188,16 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @return {@literal true} if there are pending modifications, {@literal false} otherwise.
      */
     public final boolean hasPendingModifications() {
-        return !this.pendingModifications.isEmpty();
+        return !this.pendingReductions.isEmpty();
+    }
+
+    /**
+     * Returns the pending actions modifying the resource.
+     *
+     * @return The pending actions modifying the resource.
+     */
+    public final List<ReduceWorkerAction<T>> getReducingActions() {
+        return this.pendingReductions;
     }
 
     /**
@@ -194,8 +205,12 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @return The pending modifications on the resource.
      */
-    public final List<ResourceUpdate<T>> getPendingModifications() {
-        return this.pendingModifications;
+    public final List<PendingReduction<T>> getPendingReductions() {
+        List<PendingReduction<T>> l = new LinkedList<>();
+        for (ReduceWorkerAction<T> pr : this.pendingReductions) {
+            l.add(pr.getReduction());
+        }
+        return l;
     }
 
     /**
@@ -203,8 +218,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @param modification Modification to remove.
      */
-    public final void completedModification(ResourceUpdate<T> modification) {
-        this.pendingModifications.remove(modification);
+    public final void completedReduction(ReduceWorkerAction<T> modification) {
+        this.pendingReductions.remove(modification);
     }
 
     /*
@@ -686,7 +701,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         LOGGER.debug("[ResourceScheduler] Clear resource scheduler " + getName());
         this.running.clear();
         this.blocked.clear();
-        this.pendingModifications.clear();
+        this.pendingReductions.clear();
         this.myWorker.releaseAllResources();
     }
 

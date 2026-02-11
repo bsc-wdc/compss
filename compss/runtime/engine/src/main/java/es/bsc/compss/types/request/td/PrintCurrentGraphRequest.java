@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.AbstractTask;
@@ -37,21 +38,16 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 
 
 /**
  * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all
  * the worker nodes of the resource pool.
  */
-public class PrintCurrentGraphRequest extends TDRequest {
+public class PrintCurrentGraphRequest extends TaskDispatcher.SynchTDRequest<Void> {
 
     private static final String ERROR_PRINT_CURRENT_GRAPH = "ERROR: Cannot print current graph state";
 
-    /**
-     * Semaphore to synchronize until the representation is constructed.
-     */
-    private final Semaphore sem;
     /**
      * BufferedWriter describing the graph file where to write the information.
      */
@@ -61,21 +57,12 @@ public class PrintCurrentGraphRequest extends TDRequest {
     /**
      * Constructs a GetCurrentScheduleRequest.
      *
-     * @param sem Semaphore to synchronize until the representation is constructed.
+     * @param td TaskDispatcher processing the event
      * @param graph BufferedWriter to print the graph.
      */
-    public PrintCurrentGraphRequest(Semaphore sem, BufferedWriter graph) {
-        this.sem = sem;
+    public PrintCurrentGraphRequest(TaskDispatcher td, BufferedWriter graph) {
+        td.super();
         this.graph = graph;
-    }
-
-    /**
-     * Returns the semaphore to synchronize until the representation is constructed.
-     *
-     * @result Semaphore to synchronize until the representation is constructed.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
     }
 
     @Override
@@ -332,10 +319,10 @@ public class PrintCurrentGraphRequest extends TDRequest {
             /* Force flush before end ***************************************** */
             this.graph.flush();
         } catch (IOException e) {
-            LOGGER.error(ERROR_PRINT_CURRENT_GRAPH);
+            TaskDispatcher.LOGGER.error(ERROR_PRINT_CURRENT_GRAPH);
         }
 
-        this.sem.release();
+        this.onCompletion();
     }
 
     @Override

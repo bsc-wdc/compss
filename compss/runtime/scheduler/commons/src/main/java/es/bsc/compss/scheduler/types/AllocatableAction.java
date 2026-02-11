@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -78,8 +79,8 @@ public abstract class AllocatableAction {
     protected static final long ACTION_REDUCE_WORKER = -1L;
     protected static final long ACTION_OPTIMIZE = -1L;
 
-    // Orchestrator
     protected final ActionOrchestrator orchestrator;
+    private final List<ActionListener> listeners;
 
     // Id of the current AllocatableAction
     private final long id;
@@ -120,11 +121,12 @@ public abstract class AllocatableAction {
      * Registers a new allocatable action.
      *
      * @param schedulingInformation Associated scheduling information.
-     * @param orchestrator Action Orchestrator (scheduler).
+     * @param orchestrator Action Orchestrator (task Dispatcher).
      */
     public AllocatableAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator) {
         this.id = NEXT_ID.getAndIncrement();
         this.orchestrator = orchestrator;
+        this.listeners = new CopyOnWriteArrayList<>();
         this.dataPredecessors = new LinkedList<>();
         this.dataSuccessors = new LinkedList<>();
         this.streamDataProducers = new LinkedList<>();
@@ -138,6 +140,49 @@ public abstract class AllocatableAction {
         this.mutexGroups = new LinkedList<>();
     }
 
+    /**
+     * Adds the given {@link ActionListener} to this action. The listener will be notified of lifecycle events of this
+     * action. Thread-safety: this method is safe to call from multiple threads.
+     *
+     * @param listener the listener to add
+     */
+    public void addListener(ActionListener listener) {
+        this.listeners.add(listener);
+    }
+
+    /**
+     * Adds all the given {@link ActionListener}s to this action. All listeners will be notified of lifecycle events of
+     * this action. Thread-safety: this method is safe to call from multiple threads.
+     *
+     * @param listeners listeners to add
+     */
+    public void addListeners(Collection<ActionListener> listeners) {
+        this.listeners.addAll(listeners);
+    }
+
+    /**
+     * Removes the given {@link ActionListener} from this action. If the listener is not registered, this method has no
+     * effect. Thread-safety: this method is safe to call from multiple threads.
+     *
+     * @param listener the listener to remove
+     */
+    public void removeListener(ActionListener listener) {
+        this.listeners.remove(listener);
+    }
+
+    /**
+     * Returns an unmodifiable view of the listeners currently registered for this action. The returned collection
+     * contains all {@link ActionListener} instances that will be notified of this action's lifecycle events (started,
+     * completed, error, exception). Thread-safety: the underlying listener list is thread-safe; however, callers should
+     * not modify the returned collection directly. To add or remove listeners, use {@link #addListener(ActionListener)}
+     * or {@link #removeListener(ActionListener)}.
+     *
+     * @return a collection of all listeners registered for this action
+     */
+    public Collection<ActionListener> getListeners() {
+        return this.listeners;
+    }
+
     /*
      * ***************************************************************************************************************
      * ORCHESTRATOR OPERATIONS
@@ -147,9 +192,9 @@ public abstract class AllocatableAction {
     /**
      * Notify action running to the orchestrator.
      */
-    protected void notifyRunning() {
+    protected void notifyOrchestratorRunning() {
         if (DEBUG) {
-            LOGGER.debug("Notify running " + this + " to orchestrator " + this.orchestrator);
+            LOGGER.debug("Notify running " + this);
         }
         this.orchestrator.actionRunning(this);
     }
@@ -157,9 +202,9 @@ public abstract class AllocatableAction {
     /**
      * Notify action completed to the orchestrator.
      */
-    protected void notifyCompleted() {
+    protected void notifyOrchestratorCompleted() {
         if (DEBUG) {
-            LOGGER.debug("Notify completed of " + this + " to orchestrator " + this.orchestrator);
+            LOGGER.debug("Notify completion of " + this);
         }
         this.orchestrator.actionCompletion(this);
     }
@@ -167,17 +212,85 @@ public abstract class AllocatableAction {
     /**
      * Notify action failed to the orchestrator.
      */
-    protected void notifyError() {
-        LOGGER.warn("Notify error of " + this + " to orchestrator " + this.orchestrator);
+    protected void notifyOrchestratorError() {
+        if (DEBUG) {
+            LOGGER.debug("Notify error during action" + this);
+        }
         this.orchestrator.actionError(this);
     }
 
     /**
      * Notify action raised a COMPSs exception to the orchestrator.
      */
-    protected void notifyException(COMPSsException e) {
-        LOGGER.warn("Notify COMPSs exception of " + this + " to orchestrator " + this.orchestrator);
+    protected void notifyOrchestratorException(COMPSsException e) {
+        if (DEBUG) {
+            LOGGER.debug("Notify COMPSs Exception of " + this);
+        }
         this.orchestrator.actionException(this, e);
+    }
+
+    /**
+     * Notify action running to registered listeners.
+     */
+    protected void notifyListenersRunning() {
+        if (DEBUG) {
+            LOGGER.debug("Notify running " + this);
+        }
+        for (ActionListener listener : listeners) {
+            try {
+                listener.onActionStarted(this);
+            } catch (Exception e) {
+                LOGGER.debug("Error notifying action " + this + " running state to " + listener, e);
+            }
+        }
+    }
+
+    /**
+     * Notify action completed to registered listeners.
+     */
+    protected void notifyListenersCompleted() {
+        if (DEBUG) {
+            LOGGER.debug("Notify completion of " + this);
+        }
+        for (ActionListener listener : listeners) {
+            try {
+                listener.onActionCompleted(this);
+            } catch (Exception e) {
+                LOGGER.debug("Error notifying action " + this + " completed state to " + listener, e);
+            }
+        }
+    }
+
+    /**
+     * Notify action failed to registered listeners.
+     */
+    protected void notifyListenersFailure() {
+        if (DEBUG) {
+            LOGGER.debug("Notify error during action" + this);
+        }
+        for (ActionListener listener : listeners) {
+            try {
+                listener.onActionFailed(this);
+            } catch (Exception e) {
+                LOGGER.debug("Error notifying error during action " + this + " to " + listener, e);
+            }
+        }
+    }
+
+    /**
+     * Notify action raised a COMPSs exception to registered listeners.
+     */
+    protected void notifyListenersException(COMPSsException e) {
+        if (DEBUG) {
+            LOGGER.debug("Notify COMPSs Exception of " + this);
+        }
+        for (ActionListener listener : listeners) {
+            try {
+                listener.onActionException(this, e);
+            } catch (Exception e2) {
+                LOGGER.debug("Error notifying COMPSsException action " + this + " completed state to " + listener, e2);
+            }
+        }
     }
 
     /*
@@ -738,7 +851,8 @@ public abstract class AllocatableAction {
         doAction();
 
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
-        notifyRunning();
+        notifyOrchestratorRunning();
+        notifyListenersRunning();
     }
 
     /**
@@ -833,6 +947,7 @@ public abstract class AllocatableAction {
 
         // Action notification
         doCompleted();
+        notifyListenersCompleted();
         return freeActions;
     }
 
@@ -879,7 +994,7 @@ public abstract class AllocatableAction {
 
         this.dataPredecessors.clear();
         this.dataSuccessors.clear();
-
+        notifyListenersException(e);
         return cancel;
     }
 
@@ -909,7 +1024,7 @@ public abstract class AllocatableAction {
 
         this.dataPredecessors.clear();
         this.dataSuccessors.clear();
-
+        notifyListenersFailure();
         return failed;
     }
 

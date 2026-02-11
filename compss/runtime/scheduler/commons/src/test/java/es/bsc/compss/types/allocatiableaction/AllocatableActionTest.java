@@ -457,7 +457,7 @@ public class AllocatableActionTest {
         LOGGER.info("testComplexGraph");
         /*
          * Data dependency Graph
-         * 
+         *
          * 1 2 3 \ | / \|/ 4 /\ / \ 5 6 | 7
          */
         try {
@@ -1042,7 +1042,7 @@ public class AllocatableActionTest {
      --------------------------------------------------------*/
     /**
      * Marks the action as completed.
-     * 
+     *
      * @param action Completed action.
      * @throws BlockedActionException When the action is blocked.
      * @throws UnassignedActionException When the action has no resource assigned.
@@ -1066,7 +1066,7 @@ public class AllocatableActionTest {
 
     /**
      * Marks the action execution as error.
-     * 
+     *
      * @param action Failed action.
      * @throws BlockedActionException When the action is blocked.
      * @throws UnassignedActionException When the action has no resource assigned.
@@ -1158,7 +1158,7 @@ public class AllocatableActionTest {
 
     /**
      * Adds a new dependency to the action.
-     * 
+     *
      * @param pred Predecessor action.
      * @param succ Successor action.
      */

@@ -16,22 +16,33 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ResourceManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
  * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all
  * the worker nodes of the resource pool.
  */
-public class PrintCurrentLoadRequest extends TDRequest {
+public class PrintCurrentLoadRequest extends TaskDispatcher.AsynchTDRequest {
+
+    private static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
+    private static final boolean RESOURCES_LOGGER_DEBUG = RESOURCES_LOGGER.isDebugEnabled();
+
 
     /**
      * Constructs a PrintCurrentLoadRequest.
+     *
+     * @param td TaskDispatcher processing the event
      */
-    public PrintCurrentLoadRequest() {
+    public PrintCurrentLoadRequest(TaskDispatcher td) {
+        td.super();
     }
 
     @Override

@@ -88,6 +88,11 @@ public class DynamicMethodWorker extends MethodWorker {
     }
 
     @Override
+    public final boolean canFeaturesChange() {
+        return true;
+    }
+
+    @Override
     public MethodResourceDescription getDescription() {
         return (MethodResourceDescription) super.getDescription();
     }

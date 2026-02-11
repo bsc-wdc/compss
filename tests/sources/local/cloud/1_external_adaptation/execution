@@ -57,6 +57,7 @@
     --classpath="${base_app_dir}/${jar_name}" \
     \
     "${app_name}" $counterVal $numTasks $minVM $maxVM $creationTime > >(tee "${output_log}") 2> >(tee "${error_log}" >&2) &
+  pid=$(jobs -p | tail -n1)
 
   sleep $creationTime
   sleep 1
@@ -70,10 +71,12 @@
   compss_adapt_resources localhost simple.SimpleExtAdaptation_0"${retry_num}" REMOVE BSC 127.0.0.101 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}" >&2)
   fg %1
 
+  wait "${pid}" 1>/dev/null 2>/dev/null
+  ev="$?"
   # Copy LOG files
   cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   # Check timeout
-  if [[ "$?" = "124" ]]; then
+  if [[ "${ev}" = "124" ]]; then
      # Report time out
     echo "[WARNING] Java Application timed out" >> "${output_log}"
     exit_value=124

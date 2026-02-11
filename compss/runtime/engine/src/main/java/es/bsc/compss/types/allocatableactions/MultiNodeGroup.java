@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
+import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
 
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ public class MultiNodeGroup {
     // Group definition
     private final long groupId;
     private final int groupSize;
+    private final TaskScheduler scheduler;
     private AtomicInteger nextProcessId;
     private boolean isAnyActionRunning;
     private final Set<MultiNodeExecutionAction> remainingActions;
@@ -60,10 +62,10 @@ public class MultiNodeGroup {
      *
      * @param groupSize Group size.
      */
-    public MultiNodeGroup(int groupSize) {
+    public MultiNodeGroup(int groupSize, TaskScheduler ts) {
         LOGGER.debug("[MultiNodeGroup] Creating new group of size " + groupSize);
         this.groupId = NEXT_GROUP_ID.getAndIncrement();
-
+        this.scheduler = ts;
         this.groupSize = groupSize;
         this.nextProcessId = new AtomicInteger(groupSize);
         this.isAnyActionRunning = false;
@@ -79,7 +81,7 @@ public class MultiNodeGroup {
 
     /**
      * Returns the group Id.
-     * 
+     *
      * @return The group Id.
      */
     public long getGroupId() {
@@ -97,7 +99,7 @@ public class MultiNodeGroup {
 
     /**
      * Returns whether there is an action running whithin the group or not.
-     * 
+     *
      * @return {@literal true} if an action within the group is running, {@literal false} otherwise.
      */
     public boolean isAnyActionRunning() {
@@ -113,7 +115,7 @@ public class MultiNodeGroup {
 
     /**
      * Returns whether the group is cancelled or not.
-     * 
+     *
      * @return {@literal true} if an the group is cancelled, {@literal false} otherwise.
      */
     public boolean isCancelled() {
@@ -131,33 +133,36 @@ public class MultiNodeGroup {
      * Registers a new process into the group and returns its assigned process Id.
      *
      * @param action ExecutionAction to register into the group.
-     * @return The assigned process group Id.
+     * @return The assigned process within the group Id. Null if the process was already registered.
      */
-    public int registerProcess(MultiNodeExecutionAction action) {
-        int actionId = this.nextProcessId.getAndDecrement();
-        remainingActions.remove(action);
-        if (actionId == ID_MASTER_PROC) {
-            // Register process as master
-            LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as master of group " + this.groupId);
-            this.registeredMaster = action;
-        } else {
-            // Register process as slave
-            LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as slave of group " + this.groupId);
-            this.registeredSlaves.put(actionId, action);
+    public Integer registerProcess(MultiNodeExecutionAction action) {
+        if (remainingActions.remove(action)) {
+            int actionId = this.nextProcessId.getAndDecrement();
+            if (actionId == ID_MASTER_PROC) {
+                // Register process as master
+                LOGGER.debug(
+                    "[MultiNodeGroup] Register action " + action.getId() + " as master of group " + this.groupId);
+                this.registeredMaster = action;
+            } else {
+                // Register process as slave
+                LOGGER
+                    .debug("[MultiNodeGroup] Register action " + action.getId() + " as slave of group " + this.groupId);
+                this.registeredSlaves.put(actionId, action);
 
-            if (remainingActions.size() == this.groupSize - 1) {
-                // First registered task, a change could be done in the othe group scores
-                LOGGER.debug("[MultiNodeGroup] Upgrading actions of group " + this.groupId);
-                updateRemainingActionScore();
+                if (remainingActions.size() == this.groupSize - 1) {
+                    // First registered task, a change could be done in the othe group scores
+                    LOGGER.debug("[MultiNodeGroup] Upgrading actions of group " + this.groupId);
+                    updateRemainingActionScore();
+                }
             }
+            return actionId;
         }
-
-        return actionId;
+        return null;
     }
 
     private void updateRemainingActionScore() {
         for (MultiNodeExecutionAction action : this.remainingActions) {
-            action.upgrade();
+            scheduler.upgradeAction(action);
         }
     }
 
@@ -199,7 +204,7 @@ public class MultiNodeGroup {
     public void actionCompletion() {
         LOGGER.debug("[MultiNodeGroup] Notify action completion to all slaves of group " + this);
         for (Entry<Integer, MultiNodeExecutionAction> entry : this.registeredSlaves.entrySet()) {
-            entry.getValue().notifyCompleted();
+            entry.getValue().notifyOrchestratorCompleted();
         }
     }
 
@@ -211,7 +216,7 @@ public class MultiNodeGroup {
         this.isAnyActionRunning = false;
         LOGGER.debug("[MultiNodeGroup] Notify action error to all slaves of group " + this);
         for (Entry<Integer, MultiNodeExecutionAction> entry : this.registeredSlaves.entrySet()) {
-            entry.getValue().notifyError();
+            entry.getValue().notifyOrchestratorError();
         }
     }
 

@@ -30,7 +30,6 @@ public class FakeActionOrchestrator implements ActionOrchestrator {
     public FakeActionOrchestrator() {
         super();
         this.ts = new TaskScheduler(this);
-        ;
     }
 
     // Notification thread
@@ -57,15 +56,16 @@ public class FakeActionOrchestrator implements ActionOrchestrator {
         this.ts.exceptionOnAction(action, e);
     }
 
-    @Override
-    public void actionUpgrade(AllocatableAction action) {
-        this.ts.upgradeAction(action);
-    }
-
     /**
      * Stops the Fake Orchestrator
      */
     public void shutdown() {
-        ts.shutdown();
+        ts.shutdown(new TaskScheduler.ShutdownListener() {
+
+            @Override
+            public void onShutdown() {
+                // Do nothing
+            }
+        });
     }
 }

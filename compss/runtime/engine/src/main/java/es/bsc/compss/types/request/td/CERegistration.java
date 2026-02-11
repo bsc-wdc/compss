@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
@@ -24,33 +25,22 @@ import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.LinkedList;
-import java.util.concurrent.Semaphore;
 
 
-public class CERegistration extends TDRequest {
+public class CERegistration extends TaskDispatcher.SynchTDRequest<Void> {
 
     private final CoreElementDefinition ced;
-    private final Semaphore sem;
 
 
     /**
      * Creates a new CoreElement registration request.
      *
+     * @param td TaskDispatcher processing the event
      * @param ced CoreElementDefinition to register.
-     * @param sem Waiting semaphore.
      */
-    public CERegistration(CoreElementDefinition ced, Semaphore sem) {
+    public CERegistration(TaskDispatcher td, CoreElementDefinition ced) {
+        td.super();
         this.ced = ced;
-        this.sem = sem;
-    }
-
-    /**
-     * Returns the semaphore where to synchronize until the operation is done.
-     *
-     * @return Semaphore where to synchronize until the operation is done.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
     }
 
     /**
@@ -75,8 +65,8 @@ public class CERegistration extends TDRequest {
         // Update the Scheduler structures
         ts.coreElementsUpdated();
 
-        LOGGER.debug("Data structures resized and CE-resources links updated");
-        this.sem.release();
+        TaskDispatcher.LOGGER.debug("Data structures resized and CE-resources links updated");
+        this.onCompletion();
     }
 
     @Override

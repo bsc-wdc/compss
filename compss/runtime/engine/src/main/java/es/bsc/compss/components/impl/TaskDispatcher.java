@@ -23,6 +23,7 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.listener.RequestListener;
 import es.bsc.compss.types.request.td.ActionUpdate;
@@ -33,14 +34,12 @@ import es.bsc.compss.types.request.td.MonitoringDataRequest;
 import es.bsc.compss.types.request.td.PrintCurrentGraphRequest;
 import es.bsc.compss.types.request.td.PrintCurrentLoadRequest;
 import es.bsc.compss.types.request.td.ShutdownRequest;
-import es.bsc.compss.types.request.td.TDRequest;
 import es.bsc.compss.types.request.td.TaskSummaryRequest;
 import es.bsc.compss.types.request.td.UpdateLocalCEIRequest;
 import es.bsc.compss.types.request.td.WorkerRestartRequest;
 import es.bsc.compss.types.request.td.WorkerUpdateRequest;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.CEIParser;
@@ -61,26 +60,120 @@ import org.apache.logging.log4j.Logger;
  * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task
  * execution, task status, etc.
  */
-public class TaskDispatcher extends RequestDispatcher<TDRequest> implements ResourceUser, ActionOrchestrator {
+public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?>>
+    implements ResourceUser, ActionOrchestrator {
 
     // Schedulers jars path
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
-    // Subcomponents
-    protected TaskScheduler scheduler;
-
     // Logging
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    public static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
+    public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
+
+
+    /**
+     * The TDRequest class represents any interaction with the TaskDispatcher component.
+     */
+    public abstract class TDRequest<T> implements Request {
+
+        public abstract void process(TaskScheduler ts) throws ShutdownException;
+
+        /**
+         * Adds the request to the queue for being processed.
+         *
+         * @param errMsg message to print if there was an error
+         */
+        public T offer(String errMsg) {
+            offerRequest(this, errMsg);
+            return null;
+        }
+
+        /**
+         * Gives access to the enclosing dispatcher instance.
+         *
+         * @return the enclosing TaskDispatcher
+         */
+        protected final TaskDispatcher getTaskDispatcher() {
+            return TaskDispatcher.this;
+        }
+    }
+
+    /**
+     * The TDRequest class represents asynchronous interactions with the TaskDispatcher component.
+     */
+    public abstract class AsynchTDRequest extends TDRequest<Void> {
+
+        /**
+         * Adds the request to the queue for being processed.
+         *
+         * @param errMsg message to print if there was an error
+         */
+        public void offerWithPriority(String errMsg) {
+            offerRequestWithPriority(this, errMsg);
+        }
+    }
+
+    /**
+     * The TDRequest class represents synchronous interactions with the TaskDispatcher component.
+     */
+    public abstract class SynchTDRequest<T> extends TDRequest<T> {
+
+        private final Semaphore sem;
+
+
+        public SynchTDRequest() {
+            sem = new Semaphore(0);
+        }
+
+        /**
+         * Adds the request to the queue for being processed, waits until it is completed, and returns the result of the
+         * operation, if any.
+         *
+         * @param errMsg message to print if there was an error
+         * @return result of the operation
+         */
+        @Override
+        public T offer(String errMsg) {
+            offerRequest(this, errMsg);
+            try {
+                sem.acquire();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return getResult();
+        }
+
+        protected void onCompletion() {
+            this.sem.release();
+        }
+
+        /**
+         * Returns the semaphore where to synchronize until the current state is described.
+         *
+         * @return the semaphore where to synchronize until the current state is described.
+         */
+        protected Semaphore getSemaphore() {
+            return this.sem;
+        }
+
+        protected T getResult() {
+            return null;
+        }
+
+    }
+
+
+    // Subcomponents
+    protected TaskScheduler scheduler;
 
 
     /**
      * Creates a new task dispatcher instance.
      */
     @SuppressWarnings("unchecked")
-    public <A extends WorkerResourceDescription> TaskDispatcher() {
+    public TaskDispatcher() {
         super("Task Dispatcher", LOGGER);
 
         // Load scheduler jars
@@ -92,7 +185,7 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
         // Load resources
         ResourceManager.load(this);
 
-        // Initialize structures
+        // Initialize Scheduler. It could have been done earlier, but it may avoid some data structure re-creation.
         String schedFQN = System.getProperty(COMPSsConstants.SCHEDULER);
         try {
             scheduler = TaskScheduler.constructScheduler(schedFQN, this);
@@ -100,11 +193,6 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
             ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }
 
-        // Insert workers
-        for (Worker<?> worker : ResourceManager.getStaticResources()) {
-            Worker<A> w = (Worker<A>) worker;
-            scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
-        }
         start();
         LOGGER.info("Initialization finished");
     }
@@ -115,7 +203,7 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
     }
 
     @Override
-    public void handleRequest(TDRequest request) throws ShutdownException, COMPSsException {
+    public void handleRequest(TDRequest<?> request) throws ShutdownException, COMPSsException {
         request.process(scheduler);
     }
 
@@ -131,8 +219,8 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
             sb.append(task.getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
             LOGGER.debug(sb);
         }
-        ExecuteTasksRequest request = new ExecuteTasksRequest(ap, (Task) task);
-        offerRequest(request, "execute task");
+        ExecuteTasksRequest request = new ExecuteTasksRequest(this, ap, task);
+        request.offer("execute task");
     }
 
     /**
@@ -142,42 +230,37 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
      * @param listener object to notify when the tasks have been cancelled
      */
     public void cancelTasks(Task task, RequestListener listener) {
-        CancelTaskRequest request = new CancelTaskRequest(task, listener);
-        offerRequest(request, "cancel tasks");
+        CancelTaskRequest request = new CancelTaskRequest(this, task, listener);
+        request.offer("cancel tasks");
     }
 
     // Notification thread
     @Override
     public void actionRunning(AllocatableAction action) {
-        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.RUNNING);
-        offerRequest(request, "action running");
+        ActionUpdate request = new ActionUpdate(this, action, ActionUpdate.Update.RUNNING);
+        request.offer("action running");
     }
 
     // Notification thread
     @Override
     public void actionCompletion(AllocatableAction action) {
-        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
-        offerRequest(request, "action completed");
+        ActionUpdate request = new ActionUpdate(this, action, ActionUpdate.Update.COMPLETED);
+        request.offer("action completed");
     }
 
     // Notification thread
     @Override
     public void actionError(AllocatableAction action) {
-        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.ERROR);
-        offerRequest(request, "action error");
+        ActionUpdate request = new ActionUpdate(this, action, ActionUpdate.Update.ERROR);
+        request.offer("action error");
     }
 
     // Notification thread
     @Override
     public void actionException(AllocatableAction action, COMPSsException e) {
-        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.EXCEPTION);
+        ActionUpdate request = new ActionUpdate(this, action, ActionUpdate.Update.EXCEPTION);
         request.setCOMPSsException(e);
-        offerRequest(request, "action exception");
-    }
-
-    @Override
-    public void actionUpgrade(AllocatableAction action) {
-        scheduler.upgradeAction(action);
+        request.offer("action exception");
     }
 
     /**
@@ -186,14 +269,8 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
      * @param logger Logger whether to print the tasks summary.
      */
     public void getTaskSummary(Logger logger) {
-        Semaphore sem = new Semaphore(0);
-        TaskSummaryRequest request = new TaskSummaryRequest(logger, sem);
-        offerRequest(request, "get task summary");
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        TaskSummaryRequest request = new TaskSummaryRequest(this, logger);
+        request.offer("get task summary");
     }
 
     /**
@@ -202,23 +279,16 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
      * @return The description of the current tasks in the graph.
      */
     public String getCurrentMonitoringData() {
-        Semaphore sem = new Semaphore(0);
-        MonitoringDataRequest request = new MonitoringDataRequest(sem);
-        offerRequest(request, "getMonitorData");
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        return request.getResponse();
+        MonitoringDataRequest request = new MonitoringDataRequest(this);
+        return request.offer("getMonitorData");
     }
 
     /**
      * Adds a new request to print the current state.
      */
     public void printCurrentState() {
-        PrintCurrentLoadRequest request = new PrintCurrentLoadRequest();
-        offerRequest(request, "print current state");
+        PrintCurrentLoadRequest request = new PrintCurrentLoadRequest(this);
+        request.offer("print current state");
     }
 
     /**
@@ -227,28 +297,20 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
      * @param graph BufferedWriter whether to print the current monitor graph.
      */
     public void printCurrentGraph(BufferedWriter graph) {
-        Semaphore sem = new Semaphore(0);
-        PrintCurrentGraphRequest request = new PrintCurrentGraphRequest(sem, graph);
-        offerRequest(request, "print current GRaph");
-
-        // Synchronize until request has been processed
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        PrintCurrentGraphRequest request = new PrintCurrentGraphRequest(this, graph);
+        request.offer("print current GRaph");
     }
 
     @Override
     public <T extends WorkerResourceDescription> void restartedResource(Worker<T> r, ResourceUpdate<T> modification) {
-        WorkerRestartRequest<T> request = new WorkerRestartRequest<>(r, modification);
-        offerRequestWithPriority(request, "restart resource");
+        WorkerRestartRequest<T> request = new WorkerRestartRequest<>(this, r, modification);
+        request.offerWithPriority("restart resource");
     }
 
     @Override
     public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification) {
-        WorkerUpdateRequest<T> request = new WorkerUpdateRequest<>(r, modification);
-        offerRequestWithPriority(request, "update resource");
+        WorkerUpdateRequest<T> request = new WorkerUpdateRequest<>(this, r, modification);
+        request.offerWithPriority("update resource");
     }
 
     /**
@@ -260,15 +322,8 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
         if (DEBUG) {
             LOGGER.debug("Updating CEI " + forName.getName());
         }
-        Semaphore sem = new Semaphore(0);
-        UpdateLocalCEIRequest request = new UpdateLocalCEIRequest(forName, sem);
-        offerRequest(request, "add interface");
-
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        UpdateLocalCEIRequest request = new UpdateLocalCEIRequest(this, forName);
+        request.offer("add interface");
 
         if (DEBUG) {
             LOGGER.debug("Updated CEI " + forName.getName());
@@ -286,23 +341,14 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
             LOGGER.debug("Requesting the registration of new CoreElement " + ced);
         }
 
-        Semaphore sem = new Semaphore(0);
-
-        CERegistration request = new CERegistration(ced, sem);
+        CERegistration request = new CERegistration(this, ced);
         if (request.isUseful()) {
             if (DEBUG) {
                 LOGGER.debug("All implementations of CoreElement " + ced.getCeSignature() + " already registered");
             }
             return;
         }
-        offerRequest(request, "register new CoreElement");
-
-        // Waiting for registration
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        request.offer("register new CoreElement");
 
         if (DEBUG) {
             LOGGER.debug("Registered new CoreElement");
@@ -313,14 +359,8 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
      * Shuts down the component.
      */
     public void shutdown() {
-        Semaphore sem = new Semaphore(0);
-        ShutdownRequest request = new ShutdownRequest(sem);
-        offerRequest(request, "shutdown");
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        ShutdownRequest request = new ShutdownRequest(this);
+        request.offer("shutdown");
     }
 
     @Override
@@ -339,5 +379,4 @@ public class TaskDispatcher extends RequestDispatcher<TDRequest> implements Reso
 
         Classpath.loadJarsInPath(compssHome + SCHEDULERS_REL_PATH, LOGGER);
     }
-
 }

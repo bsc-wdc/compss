@@ -215,6 +215,13 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     /**
+     * Indicates whether the characteristics of the worker can change during the execution or if they are static.
+     *
+     * @return @literal{true}, if the worker characteristics can change; @literal{false}, otherwise.
+     */
+    public abstract boolean canFeaturesChange();
+
+    /**
      * Updates the internal features.
      */
     @SuppressWarnings("unchecked")

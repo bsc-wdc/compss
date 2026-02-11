@@ -140,7 +140,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final Map<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
 
-    private static final Map<Connection, ClosingExecutor> STOPPING_EXECUTORS = new HashMap<>();
+    private static final Map<Connection, ClosingExecutor> STOPPING_EXECUTORS = new ConcurrentHashMap<>();
 
     private static final Map<Connection, Semaphore> PENDING_MODIFICATIONS = new HashMap<>();
 

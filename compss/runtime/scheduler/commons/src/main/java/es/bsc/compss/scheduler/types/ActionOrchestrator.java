@@ -23,39 +23,31 @@ public interface ActionOrchestrator {
 
     /**
      * Notify that a given action is Running.
-     * 
+     *
      * @param action Running action.
      */
     public void actionRunning(AllocatableAction action);
 
     /**
      * Notify that a given action is Completed.
-     * 
+     *
      * @param action Completed action.
      */
     public void actionCompletion(AllocatableAction action);
 
     /**
      * Notify that a given action has failed.
-     * 
+     *
      * @param action Failed action.
      */
     public void actionError(AllocatableAction action);
 
     /**
      * Notify that a given action has raised a COMPSs exception.
-     * 
+     *
      * @param action Action which raised the exception.
      * @param e COMPSs action exception.
      */
     public void actionException(AllocatableAction action, COMPSsException e);
-
-    /**
-     * Notify that a given action should be upgraded because another action of the multinode group is waiting for a
-     * resource.
-     *
-     * @param action Action which raised the exception.
-     */
-    public void actionUpgrade(AllocatableAction action);
 
 }

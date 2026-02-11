@@ -17,10 +17,10 @@
 package es.bsc.compss.scheduler.types.allocatableactions;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
@@ -55,14 +55,14 @@ public class BusyWorkerAction<T extends WorkerResourceDescription> extends Alloc
      * Creates a new BusyWorkerAction to update the worker information.
      * 
      * @param schedulingInformation Associated scheduling information.
+     * @param orchestrator Action Orchestrator (task Dispatcher).
      * @param worker Worker to reduce.
-     * @param ts Associated Task scheduler.
      * @param modification Modification to perform.
      */
-    public BusyWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts,
-        ResourceUpdate<T> modification) {
+    public BusyWorkerAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+        ResourceScheduler<T> worker, ResourceUpdate<T> modification) {
 
-        super(schedulingInformation, ts.getOrchestrator());
+        super(schedulingInformation, orchestrator);
         this.worker = worker;
         this.ru = (BusyResources<T>) modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
@@ -96,7 +96,7 @@ public class BusyWorkerAction<T extends WorkerResourceDescription> extends Alloc
     @Override
     protected void doAction() {
         ru.notifyCompletion();
-        notifyCompleted();
+        notifyOrchestratorCompleted();
     }
 
     /*
@@ -119,7 +119,7 @@ public class BusyWorkerAction<T extends WorkerResourceDescription> extends Alloc
 
     @Override
     protected void doFailed() {
-        LOGGER.error("Error waiting for tasks to end");
+        // Do nothing
     }
 
     @Override

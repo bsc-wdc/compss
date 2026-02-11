@@ -676,6 +676,66 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
         console.rule()
 
 
+def render_parameters(
+    parent_node,
+    title,
+    property_values,
+    valid_formal_params,
+    is_compss_wf,
+):
+    section = parent_node.add(f"[bold green]{title}:[/bold green]")
+
+    for index, pv in enumerate(property_values):
+        param_section = section.add(f"Parameter {index + 1}")
+
+        # Simple literal value
+        if isinstance(pv, str):
+            param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+            continue
+
+        # Get the corresponding FormalParameter for this PropertyValue
+        formal_params = pv.get("exampleOfWork", [])
+
+        # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
+        # In this case, we have to look for the one that belongs to the method of the current task
+        fp = None
+        if isinstance(formal_params, list):
+            for _fp in formal_params:
+                if _fp in valid_formal_params:
+                    fp = _fp
+                    # Should we break here once the first is found??? Or do we need the last?
+        else:
+            fp = formal_params
+
+        if not (fp and pv):
+            continue
+
+        # In case of Collection of files we only print the main file name:
+        if pv.get("@type") == "Collection":
+            pv = pv.get("mainEntity", {})
+
+        param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
+
+        additional_type = fp.get("additionalType") or fp.get("@type", "")
+        type_str = (
+            "[" + ", ".join(additional_type) + "]"
+            if isinstance(additional_type, list)
+            else additional_type
+        )
+        param_section.add(f"Type: [grey50]{type_str}[/grey50]")
+
+        if is_compss_wf:
+            value = (
+                pv.get("@id")
+                if pv.get("@type") in ["File", "Dataset"]
+                else pv.get("value")
+            )
+        else:
+            value = pv.get("value") or pv.get("alternateName") or pv.get("@id")
+
+        param_section.add(f"Value: [dark_goldenrod]{value}[/dark_goldenrod]")
+
+
 def local_inspect_tasks(
     ro_crate_list,
     failing_tasks_only: bool,
@@ -810,110 +870,23 @@ def local_inspect_tasks(
                         task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
                 # —— INPUTS ——
-                t_inputs = task_tree[task_id].add("[bold green]Inputs:[/bold green]")
-
-                property_values = e.get("object", [])
-                for index, pv in enumerate(property_values):
-                    param_section = t_inputs.add(f"Parameter {index + 1}")
-
-                    if isinstance(pv, str):
-                        param_section.add(
-                            f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]"
-                        )
-                        continue
-
-                    # Get the corresponding FormalParameter for this PropertyValue
-                    formal_params = pv.get("exampleOfWork", [])
-
-                    # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
-                    # In this case, we have to look for the one that belongs to the method of the current task
-                    fp = None
-                    if isinstance(formal_params, list):
-                        for _fp in formal_params:
-                            if _fp in method_input_params:
-                                fp = _fp
-                    else:
-                        fp = formal_params
-
-                    if fp and pv:
-                        # In case of Collection of files we only print the main file name:
-                        if pv.get("@type") == "Collection":
-                            pv = pv.get("mainEntity", {})
-
-                        param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
-                        additional_type = fp.get("additionalType") or fp.get(
-                            "@type", ""
-                        )
-                        type_str = (
-                            "[" + ", ".join(additional_type[1:]) + "]"
-                            if isinstance(additional_type, list)
-                            else additional_type
-                        )
-                        param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-                        if is_compss_wf:
-                            param_section.add(
-                                f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') in ['File', 'Dataset'] else pv.get('value')}[/dark_goldenrod]"
-                            )
-                        else:
-                            param_section.add(
-                                f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
-                            )
+                render_parameters(
+                    parent_node=task_tree[task_id],
+                    title="Inputs",
+                    property_values=e.get("object", []),
+                    valid_formal_params=method_input_params,
+                    is_compss_wf=is_compss_wf,
+                )
 
                 # —— OUTPUTS ——
                 if "COMPLETED" in status or not status:
-                    property_values = e.get("result", [])
-                    for index, pv in enumerate(property_values):
-                        if index == 0:
-                            t_outputs = task_tree[task_id].add(
-                                "[bold green]Outputs:[/bold green]"
-                            )
-
-                        param_section = t_outputs.add(f"Parameter {index + 1}")
-
-                        if isinstance(pv, str):
-                            param_section.add(
-                                f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]"
-                            )
-                            continue
-
-                        # Get the corresponding FormalParameter for this PropertyValue
-                        formal_params = pv.get("exampleOfWork", [])
-
-                        # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
-                        # In this case, we have to look for the one that belongs to the method of the current task
-                        fp = None
-                        if isinstance(formal_params, list):
-                            for _fp in formal_params:
-                                if _fp in method_output_params:
-                                    fp = _fp
-                        else:
-                            fp = formal_params
-
-                        if fp and pv:
-                            # In case of Collection of files we only print the main file name:
-                            if pv.get("@type") == "Collection":
-                                pv = pv.get("mainEntity", {})
-
-                            param_section.add(
-                                f"Name: [cyan]{fp.get('name', '')}[/cyan]"
-                            )
-                            additional_type = fp.get("additionalType") or fp.get(
-                                "@type", ""
-                            )
-                            type_str = (
-                                "[" + ", ".join(additional_type[1:]) + "]"
-                                if isinstance(additional_type, list)
-                                else additional_type
-                            )
-                            param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-                            if is_compss_wf:
-                                param_section.add(
-                                    f"Value: [dark_goldenrod]{pv.get('@id') if pv.get('@type') in ['File', 'Dataset']  else pv.get('value')}[/dark_goldenrod]"
-                                )
-                            else:
-                                param_section.add(
-                                    f"Value: [dark_goldenrod]{pv.get('value') or pv.get('alternateName') or pv.get('@id')}[/dark_goldenrod]"
-                                )
+                    render_parameters(
+                        parent_node=task_tree[task_id],
+                        title="Outputs",
+                        property_values=e.get("result", []),
+                        valid_formal_params=method_output_params,
+                        is_compss_wf=is_compss_wf,
+                    )
 
         for task_id, logs in log_tree.items():
             if task_id in task_tree:

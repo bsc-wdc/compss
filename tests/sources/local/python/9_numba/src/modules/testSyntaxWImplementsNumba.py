@@ -23,8 +23,6 @@ import numpy as np
 
 from numba import jit
 from numba import njit
-from numba import generated_jit, types
-
 
 
 @constraint(computing_units="100")  # force to choose the implementation
@@ -84,56 +82,6 @@ def decrement_slow2(value):
 def decrement_fast2(value):
     return value - 1
 
-
-@constraint(computing_units="100")  # force to choose the implementation
-@task(returns=1)
-@generated_jit(nopython=True)
-def is_missing_slow1(x):
-    return -1 # wrong result if chooses this
-
-
-@implement(source_class="modules.testSyntaxWImplementsNumba",
-           method="is_missing_slow1")
-@constraint(computing_units="1")
-@task(returns=1)
-@generated_jit(nopython=True)
-def is_missing_fast1(x):
-    """
-    Return True if the value is missing, False otherwise.
-    """
-    if isinstance(x, types.Float):
-        return lambda x: np.isnan(x)
-    elif isinstance(x, (types.NPDatetime, types.NPTimedelta)):
-        # The corresponding Not-a-Time value
-        missing = x('NaT')
-        return lambda x: x == missing
-    else:
-        return lambda x: False
-
-
-@constraint(computing_units="100")  # force to choose the implementation
-@task(returns=1)
-@generated_jit(nopython=True)
-def is_missing_slow2(x):
-    return -1 # wrong result if chooses this
-
-
-@implement(source_class="modules.testSyntaxWImplementsNumba",
-           method="is_missing_slow2")
-@constraint(computing_units="1")
-@task(returns=1, numba='generated_jit')
-def is_missing_fast2(x):
-    """
-    Return True if the value is missing, False otherwise.
-    """
-    if isinstance(x, types.Float):
-        return lambda x: np.isnan(x)
-    elif isinstance(x, (types.NPDatetime, types.NPTimedelta)):
-        # The corresponding Not-a-Time value
-        missing = x('NaT')
-        return lambda x: x == missing
-    else:
-        return lambda x: False
 
 @constraint(computing_units="100")  # force to choose the implementation
 @task(returns=1)
@@ -223,16 +171,6 @@ class testSyntaxWImplementsNumba(unittest.TestCase):
         result = decrement_slow2(1)
         result = compss_wait_on(result)
         self.assertEqual(result, 0)
-
-    def testGeneratedJit(self):
-        result = is_missing_slow1(5)
-        result = compss_wait_on(result)
-        self.assertEqual(result, False)
-
-    def testGeneratedJit2(self):
-        result = is_missing_slow2(5)
-        result = compss_wait_on(result)
-        self.assertEqual(result, False)
 
     def testVectorize(self):
         matrix = np.arange(6)

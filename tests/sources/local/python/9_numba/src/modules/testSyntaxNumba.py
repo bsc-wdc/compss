@@ -21,7 +21,6 @@ import numpy as np
 
 from numba import jit
 from numba import njit
-from numba import generated_jit, types
 
 
 @task(returns=1, numba=True)
@@ -66,37 +65,6 @@ def decrement2(value):
 @task(returns=1, numba='njit')
 def subtractNjit(value1, value2):
     return value1 - value2
-
-
-@task(returns=1)
-@generated_jit(nopython=True)
-def is_missing(x):
-    """
-    Return True if the value is missing, False otherwise.
-    """
-    if isinstance(x, types.Float):
-        return lambda x: np.isnan(x)
-    elif isinstance(x, (types.NPDatetime, types.NPTimedelta)):
-        # The corresponding Not-a-Time value
-        missing = x('NaT')
-        return lambda x: x == missing
-    else:
-        return lambda x: False
-
-
-@task(returns=1, numba='generated_jit')
-def is_missing2(x):
-    """
-    Return True if the value is missing, False otherwise.
-    """
-    if isinstance(x, types.Float):
-        return lambda x: np.isnan(x)
-    elif isinstance(x, (types.NPDatetime, types.NPTimedelta)):
-        # The corresponding Not-a-Time value
-        missing = x('NaT')
-        return lambda x: x == missing
-    else:
-        return lambda x: False
 
 
 @task(returns=1,
@@ -175,16 +143,6 @@ class testSyntaxNumba(unittest.TestCase):
         result = compss_wait_on(result)
         self.assertEqual(result, 1)
 
-    def testGeneratedJit(self):
-        result = is_missing(5)
-        result = compss_wait_on(result)
-        self.assertEqual(result, False)
-
-    def testGeneratedJit2(self):
-        result = is_missing2(5)
-        result = compss_wait_on(result)
-        self.assertEqual(result, False)
-
     def testVectorize(self):
         matrix = np.arange(6)
         result = vectorized_add(matrix, matrix)
@@ -224,8 +182,7 @@ class testSyntaxNumba(unittest.TestCase):
 
     def testExternalClassFuncs(self):
         obj = example(10)
-        obj.increment(20)  # numba task within class
-        obj.calcul(50)     # numba task within class wich calls another numba constrained task (task within task)
-        obj = compss_wait_on(obj)
-        result = obj.get_v()
+        v = obj.increment(obj.v, 20)
+        v = obj.calcul(v, 50)
+        result = compss_wait_on(v)
         self.assertEqual(result, 55)

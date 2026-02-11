@@ -776,6 +776,8 @@ def local_inspect_tasks(
             # Get all the ControlActions from the OrganizeAction
             if "OrganizeAction" in e.type:
                 for control_action in e.get("object", []):
+                    if not isinstance(control_action, Entity):
+                        break  # Nextflow has ControlActions as strings, which should not be correct
                     create_action = control_action.get("object")
                     if isinstance(create_action, list) and len(create_action) == 1:
                         create_action = create_action[0]
@@ -799,6 +801,7 @@ def local_inspect_tasks(
         task_counter = 0
 
         for e in task_create_actions:
+            # Possible improvement: task_id could have been obtained from the Task ControlAction -> instrument -> position
             task_id = e.id.split("_")[1] if is_compss_wf else e.id
             task_counter += 1
 

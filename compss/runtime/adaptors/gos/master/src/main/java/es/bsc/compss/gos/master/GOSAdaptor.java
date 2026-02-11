@@ -19,7 +19,6 @@ package es.bsc.compss.gos.master;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.comm.Dispatcher;
 import es.bsc.compss.gos.master.configuration.GOSConfiguration;
-import es.bsc.compss.gos.master.exceptions.GOSException;
 import es.bsc.compss.gos.master.monitoring.GOSMonitoring;
 import es.bsc.compss.gos.master.sshutils.SSHGlobalHostCollection;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
@@ -85,7 +84,7 @@ public class GOSAdaptor implements CommAdaptor {
     }
 
     public void enqueueCopy(GOSCopy copy) {
-        copyQueue.enqueue(copy);
+        copyQueue.add(copy);
     }
 
     @Override

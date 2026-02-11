@@ -37,25 +37,54 @@ public class JobDispatcher {
     public static final String POOL_NAME = "Job Submitter";
 
     // Requests queue
-    protected static RequestQueue<JobImpl<?>> queue;
+    private static RequestCollection<JobImpl<?>> pendingJobs;
     // Pool of worker threads and queue of requests
-    private static ThreadPool pool;
+    private static final ThreadPool pool;
 
     static {
-        queue = new RequestQueue<>();
-        pool = new ThreadPool(POOL_SIZE, POOL_NAME, new JobSubmitter(queue));
+        RequestQueue<JobImpl<?>> pendingJobs = new RequestQueue<>();
+        JobDispatcher.pendingJobs = pendingJobs;
+        pool = new ThreadPool(POOL_SIZE, POOL_NAME, new JobSubmitter(pendingJobs));
         pool.startThreads();
     }
 
 
     public static void dispatch(JobImpl<?> job) {
-        queue.enqueue(job);
+        pendingJobs.add(job);
     }
 
     public static void shutdown() {
+        pendingJobs = new StoppedCollection();
         pool.stopThreads();
     }
 
+
+    private static class StoppedCollection implements RequestCollection<JobImpl<?>> {
+
+        private static final String STOPPED = "JobDispatcher was shut down.";
+
+
+        @Override
+        public void add(JobImpl<?> job) {
+            LOGGER.error(SUBMISSION_ERROR + job.getJobId() + ". " + STOPPED);
+            job.failed(JobEndStatus.SUBMISSION_FAILED);
+        }
+
+        @Override
+        public JobImpl<?> poll() {
+            return null;
+        }
+
+        @Override
+        public void remove(JobImpl<?> request) {
+            // do nothing
+        }
+
+        @Override
+        public int getSize() {
+            return 0;
+        }
+    }
 
     private static class JobSubmitter extends RequestDispatcher<JobImpl<?>> {
 
@@ -69,7 +98,7 @@ public class JobDispatcher {
                 if (DEBUG) {
                     LOGGER.debug("Waiting for new jobs to submit...");
                 }
-                JobImpl<?> job = queue.dequeue();
+                JobImpl<?> job = queue.poll();
                 if (job == null) {
                     break;
                 }

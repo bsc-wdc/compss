@@ -44,7 +44,7 @@ public class Dispatcher extends RequestDispatcher<DataOperation> {
     public void processRequests() {
         DataOperation fOp;
         while (true) {
-            fOp = queue.dequeue();
+            fOp = queue.poll();
             if (fOp == null) {
                 break;
             }

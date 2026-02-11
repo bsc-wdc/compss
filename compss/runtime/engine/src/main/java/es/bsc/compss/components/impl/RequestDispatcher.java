@@ -23,7 +23,11 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.Logger;
 
@@ -34,7 +38,7 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
     private final Logger logger;
 
     // Tasks to be processed
-    private final LinkedBlockingDeque<T> requestQueue;
+    private final RequestQueue<T> requestQueue;
 
     // Processor thread
     private final Thread processor;
@@ -50,7 +54,7 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
     public RequestDispatcher(String threadName, Logger logger) {
         this.threadName = threadName;
         this.logger = logger;
-        this.requestQueue = new LinkedBlockingDeque<>();
+        this.requestQueue = new RequestQueue<>();
 
         keepGoing = true;
         processor = new Thread(this);
@@ -128,7 +132,7 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
      * @return {@literal true} if the request was properly added to the queue; {@literal false}, otherwise
      */
     protected final boolean offerRequestWithPriority(T req, String errMsg) {
-        if (!this.requestQueue.offerFirst(req)) {
+        if (!this.requestQueue.offerWithPriority(req)) {
             String errQueueMsg = "ERROR: %s queue offer error on %s";
             String msg = String.format(errQueueMsg, threadName, errMsg);
             ErrorManager.error(msg);
@@ -152,4 +156,35 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
      * @throws COMPSsException Exception raised by user
      */
     public abstract void handleRequest(T request) throws ShutdownException, COMPSsException;
+
+
+    private static class RequestQueue<T> {
+
+        private final Queue<T> regularQueue = new LinkedList<>();
+        private final Queue<T> priorityQueue = new LinkedList<>();
+        private final Semaphore available = new Semaphore(0);
+
+
+        public synchronized boolean offer(T request) {
+            boolean b = regularQueue.add(request);
+            available.release();
+            return b;
+        }
+
+        public synchronized boolean offerWithPriority(T request) {
+            boolean b = priorityQueue.add(request);
+            available.release();
+            return b;
+        }
+
+        public T take() throws InterruptedException {
+            available.acquire();
+            synchronized (this) {
+                if (priorityQueue.isEmpty()) {
+                    return regularQueue.poll();
+                }
+                return priorityQueue.poll();
+            }
+        }
+    }
 }

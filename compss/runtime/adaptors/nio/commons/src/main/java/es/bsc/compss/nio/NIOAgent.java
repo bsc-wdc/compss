@@ -799,7 +799,7 @@ public abstract class NIOAgent {
         requestTransfers();
 
         // Check if shutdown and ready
-        if (this.finish == true && !hasPendingTransfers()) {
+        if (this.finish && !hasPendingTransfers()) {
             shutdown(closingConnection);
         }
     }
@@ -904,7 +904,7 @@ public abstract class NIOAgent {
      * @param requester Requester connection of the shutdown.
      * @param filesToSend List of files to send.
      */
-    public void receivedShutdown(Connection requester, List<NIOData> filesToSend) {
+    public synchronized void receivedShutdown(Connection requester, List<NIOData> filesToSend) {
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Command for shutdown received. Preparing for shutdown...");
         }
@@ -1011,7 +1011,7 @@ public abstract class NIOAgent {
         requestTransfers();
 
         // Check if shutdown and ready
-        if (this.finish == true && !hasPendingTransfers()) {
+        if (this.finish && !hasPendingTransfers()) {
             shutdown(this.closingConnection);
         }
         return true;

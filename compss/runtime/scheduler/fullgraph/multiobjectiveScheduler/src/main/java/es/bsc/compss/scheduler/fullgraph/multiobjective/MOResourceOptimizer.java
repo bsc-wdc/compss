@@ -33,6 +33,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
@@ -479,7 +480,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             }
 
             if (r.hasPendingModifications()) {
-                for (ResourceUpdate<T> ru : r.getPendingModifications()) {
+                for (ResourceUpdate<T> ru : r.getPendingReductions()) {
                     Map<CloudInstanceTypeDescription, int[]> modificationComposition =
                         ((CloudMethodResourceDescription) ru.getModification()).getTypeComposition();
                     for (Map.Entry<CloudInstanceTypeDescription, int[]> entry : modificationComposition.entrySet()) {
@@ -842,9 +843,9 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             return true;
         }
 
-        private List<ResourceUpdate<T>> getPendingModifications() {
+        private List<PendingReduction<T>> getPendingReductions() {
             if (this.worker != null) {
-                return this.worker.getPendingModifications();
+                return this.worker.getPendingReductions();
             }
             return new LinkedList<>();
         }

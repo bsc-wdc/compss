@@ -32,8 +32,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 
 public class OptimizationAction extends AllocatableAction {

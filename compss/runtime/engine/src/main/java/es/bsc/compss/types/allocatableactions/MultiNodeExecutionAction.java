@@ -42,7 +42,6 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      * Creates a new master action with a fixed amount of slaves.
      *
      * @param schedulingInformation Scheduling information.
-     * @param orchestrator Task orchestrator.
      * @param ap Access Processor.
      * @param task Associated task.
      * @param group Multi-node group.
@@ -51,7 +50,6 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         AccessProcessor ap, Task task, MultiNodeGroup group) {
 
         super(schedulingInformation, orchestrator, ap, task);
-
         this.group = group;
     }
 
@@ -66,36 +64,35 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      * ***************************************************************************************************************
      */
     @Override
-    protected void notifyCompleted() {
+    protected void notifyOrchestratorCompleted() {
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             if (DEBUG) {
-                LOGGER.debug("Notify completed of " + this + " to orchestrator " + this.orchestrator);
+                LOGGER.debug("Notify completed of " + this);
             }
             this.group.actionCompletion();
         }
         // Notify orchestrator
         if (isPending()) {
-            this.orchestrator.actionCompletion(this);
+            super.notifyOrchestratorCompleted();
         }
     }
 
     @Override
-    protected void notifyError() {
+    protected void notifyOrchestratorError() {
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
-
             if (DEBUG) {
-                LOGGER.debug("Notify error of " + this + " to orchestrator " + this.orchestrator);
+                LOGGER.debug("Notify error of " + this);
             }
             this.group.actionError();
-            this.orchestrator.actionError(this);
+            super.notifyOrchestratorError();
         } else {
             if (isRunning()) {
                 // Notify orchestrator
-                LOGGER.debug("Notify slave " + this + " to orchestrator " + this.orchestrator);
-                this.orchestrator.actionError(this);
+                LOGGER.debug("Notify slave " + this);
+                super.notifyOrchestratorError();
             } else if (isCancelling()) {
-                LOGGER.debug("Notify slave cancelation " + this + " to orchestrator " + this.orchestrator);
-                this.orchestrator.actionError(this);
+                LOGGER.debug("Notify slave cancelation " + this);
+                super.notifyOrchestratorError();
             }
         }
     }
@@ -224,10 +221,6 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     public String toString() {
         return "MultiNodeExecutionAction (Task " + this.task.getId() + ", CE name "
             + this.task.getTaskDescription().getName() + ") with GroupId = " + this.group.getGroupId();
-    }
-
-    public void upgrade() {
-        orchestrator.actionUpgrade(this);
     }
 
 }

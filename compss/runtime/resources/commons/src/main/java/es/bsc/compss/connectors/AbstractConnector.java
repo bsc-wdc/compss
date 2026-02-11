@@ -122,7 +122,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         this.dead.start();
 
         // Ender hook
-        Runtime.getRuntime().addShutdownHook(new Ender(this));
+        Runtime.getRuntime().addShutdownHook(new Ender());
     }
 
     /**
@@ -266,7 +266,6 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 LOGGER.info("[Abstract Connector] Retrieving data from VM " + vm.getName());
                 vm.getWorker().disableExecution();
                 vm.getWorker().retrieveTracingAndDebugData();
-                LOGGER.info("[Abstract Connector] Destroying VM " + vm.getName());
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
                 vm.getWorker().stop(sl);
@@ -277,7 +276,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                     LOGGER.error("ERROR: Exception raised on worker shutdown");
                 }
                 try {
-                    destroy(vm.getEnvId());
+                    destroy(vm);
                 } catch (Exception e) {
                     LOGGER.error("ERROR: Exception while trying to destroy the virtual machine " + vm.getName(), e);
                 }
@@ -373,9 +372,14 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         }
     }
 
+    private void destroy(VM vm) throws ConnectorException {
+        LOGGER.info("[Abstract Connector] Destroying VM " + vm.getName());
+        destroy(vm.getEnvId());
+    }
+
     @Override
     public void poweroff(VM vm) throws ConnectorException {
-        destroy(vm.getEnvId());
+        destroy(vm);
         removeMachine(vm);
     }
 
@@ -481,23 +485,15 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
      */
     private class Ender extends Thread {
 
-        private final AbstractConnector ac;
-
-
-        public Ender(AbstractConnector ac) {
-            this.ac = ac;
-        }
-
         @Override
         public void run() {
             for (VM vm : ip2vm.values()) {
                 try {
-                    LOGGER.info("[Abstract Connector] Destroying VM " + vm.getName());
-                    this.ac.destroy(vm.getEnvId());
+                    AbstractConnector.this.destroy(vm);
                 } catch (ConnectorException e) {
                     LOGGER.info("[Abstract Connector] Error while trying to  the virtual machine " + vm.getName());
                 } finally {
-                    this.ac.close();
+                    AbstractConnector.this.close();
                 }
             }
         }

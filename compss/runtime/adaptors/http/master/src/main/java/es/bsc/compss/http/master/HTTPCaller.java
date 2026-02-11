@@ -25,7 +25,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -63,7 +62,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
     @Override
     public void processRequests() {
         while (true) {
-            HTTPJob job = queue.dequeue();
+            HTTPJob job = queue.poll();
             if (job == null) {
                 break;
             }

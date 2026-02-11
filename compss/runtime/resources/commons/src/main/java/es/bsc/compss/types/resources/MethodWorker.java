@@ -359,6 +359,11 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
+    public boolean canFeaturesChange() {
+        return false;
+    }
+
+    @Override
     public String getMonitoringData(String prefix) {
         // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
@@ -502,7 +507,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     @Override
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
         // Should notify the resource user that such resources are no longer available
-        ResourceManager.notifyResourcesReacquisition((MethodWorker) this, (MethodResourceDescription) resources);
+        ResourceManager.notifyResourcesReacquisition(this, (MethodResourceDescription) resources);
     }
 
     @Override

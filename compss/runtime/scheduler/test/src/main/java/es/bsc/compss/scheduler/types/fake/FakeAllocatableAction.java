@@ -35,7 +35,6 @@ import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 
 public class FakeAllocatableAction extends AllocatableAction {
@@ -48,7 +47,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     /**
      * Creates a new FakeAllocatableAction instance.
-     * 
+     *
      * @param td Associated task dispatcher.
      * @param id AllocatableAction id.
      * @param ce Core Element executed by the Action

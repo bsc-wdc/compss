@@ -92,8 +92,15 @@ public class LogicalData {
 
     private boolean accessedByMain;
 
+
     // The data has been removed
-    private boolean isDeleted;
+    private enum DataState {
+        RESERVED, CREATED, DELETED_KEEP_VALUES, FULL_DELETION;
+
+    }
+
+
+    private DataState state;
 
     /*
      * Constructors
@@ -116,7 +123,7 @@ public class LogicalData {
         this.size = 0;
         this.locMonitors = new LinkedList<>();
         this.accessedByMain = false;
-        this.isDeleted = false;
+        this.state = DataState.CREATED;
     }
 
     /**
@@ -285,7 +292,7 @@ public class LogicalData {
      * @param alias The new alias that the data is known as
      */
     public synchronized void addKnownAlias(String alias) {
-        isDeleted = false;
+        this.state = DataState.CREATED;
         if (this.knownAlias.add(alias)) {
             if (this.isInMemory()) {
                 String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
@@ -314,7 +321,7 @@ public class LogicalData {
     public synchronized void removeKnownAlias(String alias, boolean asynch) {
         if (this.knownAlias.remove(alias)) {
             if (this.knownAlias.isEmpty()) {
-                this.isDeleted = true;
+                this.state = DataState.FULL_DELETION;
                 for (Resource res : this.getAllHosts()) {
                     res.addObsolete(this);
                 }
@@ -344,6 +351,16 @@ public class LogicalData {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Deletes the data without removing the value.
+     */
+    public void deleteKeepingValue() {
+        this.state = DataState.DELETED_KEEP_VALUES;
+        for (Resource res : getAllHosts()) {
+            res.removeLogicalData(this);
         }
     }
 
@@ -467,8 +484,17 @@ public class LogicalData {
                 this.pscoId[0] = ((PersistentLocation) loc).getId();
                 break;
         }
-        if (isDeleted) {
-            deleteLocation(loc);
+        switch (state) {
+            case FULL_DELETION:
+                deleteLocation(loc);
+                break;
+            case DELETED_KEEP_VALUES:
+                for (Resource res : loc.getHosts()) {
+                    res.removeLogicalData(this);
+                }
+                break;
+            default:
+                // Do nothing
         }
     }
 

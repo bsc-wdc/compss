@@ -74,7 +74,7 @@ Family 9000000 Binding
 8001001 range 1 89 220
 8001002 event 0 undefined      # 1689
 8001002 range 1 83 undefined   # 1689
-8001003 event 0 8
+8001003 event 0 7
 8001003 range 1 9 14,15,16  # TODO: WHY THIS EVENT APPEARS 9, 10 OR 11 TIMES?
 8001006 event 0 2
 8001006 range 1 3 6

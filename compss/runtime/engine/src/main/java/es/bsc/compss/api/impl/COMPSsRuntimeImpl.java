@@ -34,6 +34,7 @@ import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.scheduler.types.ActionListener;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
@@ -103,7 +104,6 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

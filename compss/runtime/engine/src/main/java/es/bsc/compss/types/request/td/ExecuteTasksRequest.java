@@ -19,9 +19,10 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.scheduler.types.ActionListener;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElement;
@@ -32,6 +33,7 @@ import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.allocatableactions.MultiNodeExecutionAction;
 import es.bsc.compss.types.allocatableactions.MultiNodeGroup;
 import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -39,6 +41,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +50,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * The ExecuteTasksRequest class represents the request to execute a task.
  */
-public class ExecuteTasksRequest extends TDRequest {
+public class ExecuteTasksRequest extends TaskDispatcher.AsynchTDRequest {
 
     private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
     private static final boolean IS_TIMER_COMPSS_ENABLED;
@@ -66,10 +69,12 @@ public class ExecuteTasksRequest extends TDRequest {
     /**
      * Constructs a new ScheduleTasks Request.
      *
+     * @param td TaskDispatcher processing the event
      * @param ap Access Processor to be notified when the task ends.
      * @param t Task to run.
      */
-    public ExecuteTasksRequest(AccessProcessor ap, Task t) {
+    public ExecuteTasksRequest(TaskDispatcher td, AccessProcessor ap, Task t) {
+        td.super();
         this.ap = ap;
         this.task = t;
     }
@@ -98,8 +103,9 @@ public class ExecuteTasksRequest extends TDRequest {
 
     private void processTask(TaskScheduler ts) throws ShutdownException {
         int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
-        if (DEBUG) {
-            LOGGER.debug("Treating Scheduling request for task " + this.task.getId() + "(core " + coreId + ")");
+        if (TaskDispatcher.DEBUG) {
+            TaskDispatcher.LOGGER
+                .debug("Treating Scheduling request for task " + this.task.getId() + "(core " + coreId + ")");
         }
 
         this.task.setStatus(TaskState.TO_EXECUTE);
@@ -109,8 +115,8 @@ public class ExecuteTasksRequest extends TDRequest {
 
         if (isReplicated) {
             // Method annotation forces to replicate task to all nodes
-            if (DEBUG) {
-                LOGGER.debug("Replicating task " + this.task.getId());
+            if (TaskDispatcher.DEBUG) {
+                TaskDispatcher.LOGGER.debug("Replicating task " + this.task.getId());
             }
 
             Collection<ResourceScheduler<? extends WorkerResourceDescription>> resources = ts.getWorkers();
@@ -120,8 +126,8 @@ public class ExecuteTasksRequest extends TDRequest {
             }
         } else if (isDistributed) {
             // Method annotation forces RoundRobin among nodes
-            if (DEBUG) {
-                LOGGER.debug("Distributing task " + this.task.getId());
+            if (TaskDispatcher.DEBUG) {
+                TaskDispatcher.LOGGER.debug("Distributing task " + this.task.getId());
             }
 
             ResourceScheduler<? extends WorkerResourceDescription> selectedResource =
@@ -130,16 +136,17 @@ public class ExecuteTasksRequest extends TDRequest {
             submitTask(ts, numNodes, selectedResource);
         } else {
             // Normal task
-            if (DEBUG) {
-                LOGGER.debug("Submitting task " + this.task.getId());
+            if (TaskDispatcher.DEBUG) {
+                TaskDispatcher.LOGGER.debug("Submitting task " + this.task.getId());
             }
 
             this.task.setExecutionCount(numNodes);
             submitTask(ts, numNodes, null);
         }
 
-        if (DEBUG) {
-            LOGGER.debug("Treated Scheduling request for task " + this.task.getId() + " (core " + coreId + ")");
+        if (TaskDispatcher.DEBUG) {
+            TaskDispatcher.LOGGER
+                .debug("Treated Scheduling request for task " + this.task.getId() + " (core " + coreId + ")");
         }
     }
 
@@ -157,18 +164,18 @@ public class ExecuteTasksRequest extends TDRequest {
     private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts,
         ResourceScheduler<T> specificResource) {
         ExecutionAction action;
-        ActionOrchestrator orch = ts.getOrchestrator();
         if (this.task.isReduction()) {
-            LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated as singleTask");
+            TaskDispatcher.LOGGER
+                .debug("Scheduling request for reduce task " + this.task.getId() + " treated as singleTask");
             SchedulingInformation sInfo = new SchedulingInformation();
             // No need for a specific scheduling information
-            action = new ReduceExecutionAction(sInfo, orch, this.ap, (ReduceTask) this.task, ts);
+            action = new ReduceExecutionAction(sInfo, getTaskDispatcher(), this.ap, (ReduceTask) this.task, ts);
         } else {
-            LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
+            TaskDispatcher.LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
             int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
             SchedulingInformation sInfo =
                 ts.generateSchedulingInformation(specificResource, this.task.getParameters(), coreId);
-            action = new ExecutionAction(sInfo, orch, this.ap, this.task);
+            action = new ExecutionAction(sInfo, getTaskDispatcher(), this.ap, this.task);
         }
         ts.newAllocatableAction(action);
     }
@@ -176,20 +183,21 @@ public class ExecuteTasksRequest extends TDRequest {
     private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,
         ResourceScheduler<T> specificResource) {
         boolean toBlocked = false;
-        LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as multiNodeTask with " + numNodes
-            + " nodes");
+        TaskDispatcher.LOGGER.debug("Scheduling request for task " + this.task.getId()
+            + " treated as multiNodeTask with " + numNodes + " nodes");
         if (exceedsMaxResources(numNodes, this.task.getTaskDescription().getCoreElement())) {
             ErrorManager.warn("Task " + this.task.getId() + " can't be executed because exceeds the maximum number "
                 + "of available cores. Adding actions to blocked.");
             toBlocked = true;
         }
         // Can use one or more resources depending on the computingNodes
-        MultiNodeGroup group = new MultiNodeGroup(numNodes);
+        MultiNodeGroup group = new MultiNodeGroup(numNodes, ts);
         for (int i = 0; i < numNodes; ++i) {
-            MultiNodeExecutionAction action = new MultiNodeExecutionAction(
-                ts.generateSchedulingInformation(specificResource, this.task.getTaskDescription().getParameters(),
-                    this.task.getTaskDescription().getCoreElement().getCoreId()),
-                ts.getOrchestrator(), this.ap, this.task, group);
+            List<? extends Parameter> params = this.task.getTaskDescription().getParameters();
+            int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
+            SchedulingInformation si = ts.generateSchedulingInformation(specificResource, params, coreId);
+            MultiNodeExecutionAction action =
+                new MultiNodeExecutionAction(si, getTaskDispatcher(), this.ap, this.task, group);
             group.addAction(action);
             if (toBlocked) {
                 ts.addToBlocked(action);

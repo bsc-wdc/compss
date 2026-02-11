@@ -62,26 +62,30 @@
     exit 2
   fi
 
-  #elasticity_value_GOT=$(grep "CURRENT_VM" "${resources_log}" | rev | cut -c -1 | sort | tail -n 1)
-  #elasticity_value_EXPECTED="$maxVM"
-  elasticity_creation_GOT=$(grep "currentVMs" "${runtime_log}"  | awk '{ print $(NF-4) }' | sort -nr | head -n 1)
-  elasticity_creation_EXPECTED="$maxVM"
+  elasticity_created=$(grep -c "Virtual machine created" "${runtime_log}")
+
+  elasticity_maxVMs_GOT=$(grep "currentVMs" "${runtime_log}"  | awk '{ print $(NF-4) }' | sort -nr | head -n 1)
+  elasticity_maxVMs_EXPECTED="$maxVM"
+
+  elasticity_lastVMs_GOT=$(grep "currentVMs" "${runtime_log}" | tail -n 1 | awk '{ print $(NF-4) }')
+  elasticity_lastVMs_EXPECTED="${minVM}"
+
   elasticity_termination_GOT=$(grep -c "Destroying VM" "${runtime_log}")
-  elasticity_termination_EXPECTED=$minVM
+  elasticity_termination_EXPECTED=${elasticity_created}
 
-  #if [ "${elasticity_value_GOT}" != "${elasticity_value_EXPECTED}" ]; then
-  #  echo "[ERROR] Elasticity not reaching maxVM" | tee ${output_file}
-  #  exit 3
-  #fi
-
-  if [ "${elasticity_creation_GOT}" != "${elasticity_creation_EXPECTED}" ]; then
+  if [ "${elasticity_maxVMs_GOT}" != "${elasticity_maxVMs_EXPECTED}" ]; then
     echo "[ERROR] Elasticity not adquiring maxVM" | tee "${output_file}"
     exit 4
   fi
-
+  
+  if [ "${elasticity_lastVMs_GOT}" != "${elasticity_lastVMs_EXPECTED}" ]; then
+    echo "[ERROR] Elasticity not terminating intermediate VMs (${elasticity_lastVMs_GOT} VMs remaining-> Expected: ${elasticity_lastVMs_EXPECTED})" | tee "${output_file}"
+    exit 5
+  fi
+  
   if [ "${elasticity_termination_GOT}" != "${elasticity_termination_EXPECTED}" ]; then
     echo "[ERROR] Elasticity not reaching minVM at the end (${elasticity_termination_GOT} -> Expected: ${elasticity_termination_EXPECTED}" | tee "${output_file}"
-    exit 5
+    exit 6
   fi
 
   # Report result status

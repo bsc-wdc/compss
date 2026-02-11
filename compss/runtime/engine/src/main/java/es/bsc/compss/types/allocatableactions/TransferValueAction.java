@@ -67,7 +67,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
      * Creates a new transfer value action.
      *
      * @param schedulingInformation Associated scheduling information.
-     * @param orchestrator Task orchestrator.
+     * @param orchestrator Action Orchestrator (task Dispatcher).
      * @param dp Dependency parameter to transfer.
      * @param receiver ResourceScheduler representing the worker receiver.
      */
@@ -108,13 +108,13 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     // Private method that performs data transfers
-    private void transferData(DependencyParameter dataToTransfer, ObtainDataListener listener) {
+    private void transferData(DependencyParameter<?> dataToTransfer, ObtainDataListener listener) {
         if (dataToTransfer.isCollective()) {
             CollectiveParameter cp = (CollectiveParameter) dataToTransfer;
             JOB_LOGGER.debug("Detected CollectionParameter " + cp);
             // TODO: Handle basic data types
             for (Parameter p : cp.getElements()) {
-                DependencyParameter dp = (DependencyParameter) p;
+                DependencyParameter<?> dp = (DependencyParameter<?>) p;
                 transferData(dp, listener);
             }
         }
@@ -166,7 +166,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
      */
     public final void completedTransfer() {
         // Notify completion
-        notifyCompleted();
+        notifyOrchestratorCompleted();
     }
 
     /*
@@ -176,7 +176,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
      */
     @Override
     protected void doCompleted() {
-
+        // Do nothing.
     }
 
     @Override
@@ -342,7 +342,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
             }
             if (finished && enabled) {
                 if (failed) {
-                    TransferValueAction.this.notifyError();
+                    TransferValueAction.this.notifyOrchestratorError();
                 } else {
                     flushCopies();
                 }
@@ -363,7 +363,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
                 enabled = this.enabled;
             }
             if (enabled && finished) {
-                TransferValueAction.this.notifyError();
+                TransferValueAction.this.notifyOrchestratorError();
             }
         }
 
@@ -377,7 +377,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
             }
             if (finished) {
                 if (failed) {
-                    TransferValueAction.this.notifyError();
+                    TransferValueAction.this.notifyOrchestratorError();
                 } else {
                     flushCopies();
                 }
@@ -398,7 +398,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
         @Override
         public void notifyFailure(DataOperation d, Exception excptn) {
-            TransferValueAction.this.notifyError();
+            TransferValueAction.this.notifyOrchestratorError();
         }
 
     }

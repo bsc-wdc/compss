@@ -90,6 +90,11 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
+    public final boolean canFeaturesChange() {
+        return false;
+    }
+
+    @Override
     public boolean canRun(Implementation implementation) {
 
         if (this.isLost()) {

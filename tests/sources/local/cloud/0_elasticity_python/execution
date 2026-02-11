@@ -62,11 +62,12 @@
       --specific_log_dir="${specific_log_dir}" \
       \
       "${base_app_dir}/src/${app_name}" $counterVal $numTasks > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-
+    ev="${?}"
+    
     # Copy LOG files
     cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
     # Check timeout
-    if [[ "$?" = "124" ]]; then
+    if [[ "${ev}" = "124" ]]; then
       # Report time out
       echo "[WARNING] Python Application timed out" >> "${output_log}"
       exit_value=124

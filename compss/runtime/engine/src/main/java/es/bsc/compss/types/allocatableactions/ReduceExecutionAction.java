@@ -19,6 +19,7 @@ package es.bsc.compss.types.allocatableactions;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.scheduler.types.ActionListener;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
@@ -36,6 +37,7 @@ import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,7 +81,6 @@ public class ReduceExecutionAction extends ExecutionAction {
      * Creates a new reduce execution action.
      *
      * @param schedulingInformation Associated scheduling information.
-     * @param orchestrator Task orchestrator.
      * @param ap Access processor.
      * @param task Associated reduce task.
      */
@@ -415,9 +416,9 @@ public class ReduceExecutionAction extends ExecutionAction {
                 break;
             }
         }
-        ExecutionAction partialReduceAction = new ExecutionAction(
-            ts.generateSchedulingInformation(partialReduceScheduler, taskP, td.getCoreElement().getCoreId()),
-            this.orchestrator, this.ap, partialTask);
+        int coreId = td.getCoreElement().getCoreId();
+        SchedulingInformation si = ts.generateSchedulingInformation(partialReduceScheduler, taskP, coreId);
+        ExecutionAction partialReduceAction = new ExecutionAction(si, this.orchestrator, this.ap, partialTask);
         int previous = getDataPredecessors().size();
         addDataPredecessor(partialReduceAction);
         LOGGER.debug("Current predec: " + getDataPredecessors().size() + " previous: " + previous);

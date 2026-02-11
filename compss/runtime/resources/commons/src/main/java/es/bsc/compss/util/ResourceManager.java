@@ -183,53 +183,6 @@ public class ResourceManager {
             }
             RESOURCES_LOGGER.info("INFO_MSG = [Cloud instances terminated]");
         }
-
-        // Stop static workers - Order its destruction from runtime and transfer files
-        // Physical worker (COMM) is erased now - because of cloud
-        if (pool != null && !pool.getStaticResources().isEmpty()) {
-            RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
-            for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
-                r.disableExecution();
-                r.retrieveTracingAndDebugData();
-            }
-            Semaphore sem = new Semaphore(0);
-            ShutdownListener sl = new ShutdownListener(sem);
-            RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
-            for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
-                r.stop(sl);
-            }
-            RUNTIME_LOGGER.debug("Waiting for workers to shutdown...");
-            RESOURCES_LOGGER.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");
-            sl.enable();
-
-            try {
-                sem.acquire();
-            } catch (Exception e) {
-                RUNTIME_LOGGER.error("ERROR: Exception raised on worker shutdown", e);
-                RESOURCES_LOGGER.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
-            }
-            RESOURCES_LOGGER.info("INFO_MSG = [Workers stopped]");
-        }
-
-        // Stopping worker at master process
-        RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
-        Comm.getAppHost().disableExecution();
-        Comm.getAppHost().retrieveTracingAndDebugData();
-
-        mergeProfilerFiles();
-        Semaphore sem = new Semaphore(0);
-        ShutdownListener sl = new ShutdownListener(sem);
-        RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
-        Comm.getAppHost().stop(sl);
-        sl.enable();
-        RUNTIME_LOGGER.debug("Waiting for local worker to shutdown...");
-        try {
-            sem.acquire();
-        } catch (Exception e) {
-            RUNTIME_LOGGER.info("ERROR: Exception raised on worker shutdown", e);
-            RESOURCES_LOGGER.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
-        }
-        RESOURCES_LOGGER.info("INFO_MSG = [Worker in master stopped]");
     }
 
     /*
@@ -284,6 +237,10 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
         }
+
+        ResourceUpdate<T> ru = new PerformedIncrease<>(worker.getDescription());
+        resourceUser.updatedResource(worker, ru);
+
         // Log new resource
         RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
@@ -496,16 +453,25 @@ public class ResourceManager {
     }
 
     /**
-     * Confirms the reduction of a given worker.
+     * Notifies the reduction of the whole worker.
      *
-     * @param worker Decreased worker.
-     * @param reduction Decreased reduction.
+     * @param name Worker name.
      */
-    public static <T extends WorkerResourceDescription> void confirmWorkerReduction(Worker<T> worker,
-        PendingReduction<T> reduction) {
+    public static void notifyWholeWorkerReduction(String name) {
+        DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
+        if (worker != null) {
+            notifyWholeWorkerReduction(worker);
+        }
+    }
 
-        ResourceUpdate<T> ru = new PerformedReduction<>(reduction.getModification());
-        resourceUser.updatedResource(worker, ru);
+    /**
+     * Notifies the reduction of the whole worker.
+     *
+     * @param worker Worker.
+     */
+    public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
+        MethodResourceDescription reduction = worker.getDescription();
+        notifyWorkerReduction(worker, reduction);
     }
 
     /**
@@ -516,35 +482,7 @@ public class ResourceManager {
      */
     public static void notifyWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
         worker.applyReduction(new PendingReduction<>(reduction));
-        MethodResourceDescription modification = reduction;
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
-        resourceUser.updatedResource(worker, ru);
-    }
-
-    /**
-     * Notifies the reduction of the whole worker.
-     *
-     * @param name Worker name.
-     */
-    public static void notifyWholeWorkerReduction(String name) {
-        DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
-        MethodResourceDescription reduction = worker.getDescription();
-        worker.applyReduction(new PendingReduction<>(reduction));
-        MethodResourceDescription modification = reduction;
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
-        resourceUser.updatedResource(worker, ru);
-    }
-
-    /**
-     * Notifies the reduction of the whole worker.
-     *
-     * @param worker Worker.
-     */
-    public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
-        MethodResourceDescription reduction = worker.getDescription();
-        worker.applyReduction(new PendingReduction<>(reduction));
-        MethodResourceDescription modification = reduction;
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(reduction);
         resourceUser.updatedResource(worker, ru);
     }
 
@@ -1028,107 +966,6 @@ public class ResourceManager {
         sb.append(pool.getCurrentState(prefix)).append("\n");
         sb.append(cloudManager.getCurrentState(prefix));
         return sb.toString();
-    }
-
-    private static void mergeProfilerFiles() {
-        String logPath = LoggerManager.getWorkersLogDir();
-        File folder = new File(logPath);
-        String[] paths = folder.list();
-        HashMap<String, HashMap<String, HashMap<String, Object>>> cacheProfiler = new HashMap<>();
-        boolean filesExist = false;
-        for (String f : paths) {
-            if (f.startsWith("cache_profiler")) {
-                filesExist = true;
-                try {
-                    JSONTokener tokener = new JSONTokener(new FileReader(logPath + f));
-                    JSONObject object = new JSONObject(tokener);
-                    for (String function : object.keySet()) {
-                        if (!cacheProfiler.containsKey(function)) {
-                            cacheProfiler.put(function, new HashMap<>());
-                        }
-                        for (String parameter : object.getJSONObject(function).keySet()) {
-                            if (!cacheProfiler.get(function).containsKey(parameter)) {
-                                cacheProfiler.get(function).put(parameter, new HashMap<>());
-                            }
-                            for (String key : object.getJSONObject(function).getJSONObject(parameter).keySet()) {
-                                if (!cacheProfiler.get(function).get(parameter).containsKey(key)) {
-                                    if (key.equals("USED")) {
-                                        cacheProfiler.get(function).get(parameter).put(key, new ArrayList<>());
-                                        for (Object s : (JSONArray) object.getJSONObject(function)
-                                            .getJSONObject(parameter).get(key)) {
-                                            if (!((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
-                                                .contains(s.toString())) {
-                                                ((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
-                                                    .add(s.toString());
-                                            }
-                                        }
-                                    } else {
-                                        cacheProfiler.get(function).get(parameter).put(key, Integer.valueOf(object
-                                            .getJSONObject(function).getJSONObject(parameter).get(key).toString()));
-                                    }
-                                } else {
-                                    if (key.equals("USED")) {
-                                        for (Object s : (JSONArray) object.getJSONObject(function)
-                                            .getJSONObject(parameter).get(key)) {
-                                            if (!((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
-                                                .contains(s.toString())) {
-                                                ((ArrayList) cacheProfiler.get(function).get(parameter).get(key))
-                                                    .add(s.toString());
-                                            }
-                                        }
-                                    } else {
-                                        cacheProfiler.get(function).get(parameter).put(key,
-                                            Integer
-                                                .valueOf(object.getJSONObject(function).getJSONObject(parameter)
-                                                    .get(key).toString())
-                                                + Integer.valueOf(
-                                                    cacheProfiler.get(function).get(parameter).get(key).toString()));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                File file = new File(logPath + f);
-                file.delete();
-            }
-
-        }
-        if (filesExist) {
-            try {
-                int totalGets = 0;
-                int totalPuts = 0;
-                String filename = "profiler_cache_summary.out";
-                FileWriter writer = new FileWriter(logPath + filename);
-                writer.write("PROFILER SUMMARY" + "\n");
-                for (String function : cacheProfiler.keySet()) {
-                    writer.write('\t' + "FUNCTION: " + function + "\n");
-                    for (String parameter : cacheProfiler.get(function).keySet()) {
-                        writer.write('\t' + " " + '\t' + " " + '\t' + "PARAMETER: " + parameter + "\n");
-                        int puts = (int) cacheProfiler.get(function).get(parameter).get("PUT");
-                        int gets = (int) cacheProfiler.get(function).get(parameter).get("GET");
-                        totalGets += gets;
-                        totalPuts += puts;
-                        ArrayList<String> used =
-                            (ArrayList<String>) cacheProfiler.get(function).get(parameter).get("USED");
-                        if (used.size() > 0 || gets > 0) {
-                            writer.write('\t' + " " + '\t' + " " + '\t' + " " + '\t' + "PUTS: " + puts + " GETS: "
-                                + gets + ". USED IN: " + used + "\n");
-                        } else {
-                            writer.write('\t' + " " + '\t' + " " + '\t' + " " + '\t' + "[NOT USED]  PUTS: " + puts
-                                + " GETS: " + gets + "\n");
-                        }
-                    }
-                }
-                writer.write("TOTAL GETS: " + totalGets + "\n");
-                writer.write("TOTAL PUTS: " + totalPuts + "\n");
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }

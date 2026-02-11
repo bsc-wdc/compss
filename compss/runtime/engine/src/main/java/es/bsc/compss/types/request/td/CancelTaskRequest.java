@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.Task;
@@ -27,7 +28,7 @@ import es.bsc.compss.types.tracing.TraceEvent;
 /**
  * The CancelTaskRequest class represents the request to cancel a task's executions.
  */
-public class CancelTaskRequest extends TDRequest {
+public class CancelTaskRequest extends TaskDispatcher.AsynchTDRequest {
 
     private Task task;
     private final RequestListener listener;
@@ -36,9 +37,11 @@ public class CancelTaskRequest extends TDRequest {
     /**
      * Constructs a new request to cancel the tasks passed in as a parameter whose end won't be notified.
      *
+     * @param td TaskDispatcher processing the event
      * @param task task to cancel
      */
-    public CancelTaskRequest(Task task) {
+    public CancelTaskRequest(TaskDispatcher td, Task task) {
+        td.super();
         this.task = task;
         this.listener = null;
     }
@@ -47,10 +50,12 @@ public class CancelTaskRequest extends TDRequest {
      * Constructs a new request to cancel the tasks passed in as a parameter whose completion will be notified to a
      * given listener.
      *
+     * @param td TaskDispatcher processing the event
      * @param task task to cancel
      * @param listener listener to notify when the task has been cancelled
      */
-    public CancelTaskRequest(Task task, RequestListener listener) {
+    public CancelTaskRequest(TaskDispatcher td, Task task, RequestListener listener) {
+        td.super();
         this.task = task;
         this.listener = listener;
     }

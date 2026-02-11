@@ -37,6 +37,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
+import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -295,6 +296,9 @@ public class Comm {
      * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob.
      */
     public static void stop() {
+        // Shutdown Job Dispatcher
+        JobDispatcher.shutdown();
+
         appHost.deleteIntermediate();
         for (CommAdaptor adaptor : ADAPTORS.values()) {
             adaptor.stop();
@@ -598,9 +602,7 @@ public class Comm {
         LOGGER.debug("Removing data " + renaming);
         LogicalData ld = DATA.remove(renaming);
         if (ld != null) {
-            for (Resource res : ld.getAllHosts()) {
-                res.removeLogicalData(ld);
-            }
+            ld.deleteKeepingValue();
         }
 
     }

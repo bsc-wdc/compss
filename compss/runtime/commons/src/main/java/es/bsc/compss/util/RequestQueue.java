@@ -28,7 +28,7 @@ import java.util.List;
  * 
  * @param <T> Type of the Requests
  */
-public class RequestQueue<T> {
+public class RequestQueue<T> implements RequestCollection<T> {
 
     /**
      * Queue of requests.
@@ -54,8 +54,19 @@ public class RequestQueue<T> {
      * 
      * @param request Request to be added
      */
-    public synchronized void enqueue(T request) {
+    @Override
+    public synchronized void add(T request) {
         this.queue.add(request);
+        notify();
+    }
+
+    /**
+     * Adds a new request on the head of the queue.
+     *
+     * @param request Request to be added.
+     */
+    public synchronized void addToFront(T request) {
+        this.queue.addFirst(request);
         notify();
     }
 
@@ -65,7 +76,8 @@ public class RequestQueue<T> {
      * 
      * @return The first request from the queue.
      */
-    public synchronized T dequeue() {
+    @Override
+    public synchronized T poll() {
         while (this.queue.isEmpty()) {
             this.waiting++;
             try {
@@ -80,31 +92,13 @@ public class RequestQueue<T> {
 
     }
 
-    /**
-     * Removes a request from the queue.
-     * 
-     * @param request Request to be removed from the queue.
-     */
+    @Override
     public synchronized void remove(T request) {
         this.queue.remove(request);
     }
 
-    /**
-     * Adds a new request on the head of the queue.
-     * 
-     * @param request Request to be added.
-     */
-    public synchronized void addToFront(T request) {
-        this.queue.addFirst(request);
-        notify();
-    }
-
-    /**
-     * Returns the number of pending requests.
-     * 
-     * @return Number of pending requests in the queue.
-     */
-    public synchronized int getNumRequests() {
+    @Override
+    public synchronized int getSize() {
         return this.queue.size();
     }
 

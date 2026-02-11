@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
@@ -27,7 +28,7 @@ import es.bsc.compss.types.tracing.TraceEvent;
 /**
  * The AddCloudNodeRequest represents a request to add a new resource ready to execute to the resource pool.
  */
-public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TDRequest {
+public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TaskDispatcher.AsynchTDRequest {
 
     private final Worker<T> worker;
     private final ResourceUpdate<T> ru;
@@ -36,10 +37,12 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TD
     /**
      * Constructs a AddCloudNodeRequest with all its parameters.
      *
+     * @param td TaskDispatcher processing the event
      * @param worker Worker that has been added.
      * @param update Resource update.
      */
-    public WorkerUpdateRequest(Worker<T> worker, ResourceUpdate<T> update) {
+    public WorkerUpdateRequest(TaskDispatcher td, Worker<T> worker, ResourceUpdate<T> update) {
+        td.super();
         this.worker = worker;
         this.ru = update;
     }

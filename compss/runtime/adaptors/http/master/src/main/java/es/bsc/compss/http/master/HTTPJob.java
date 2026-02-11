@@ -117,7 +117,7 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
 
     @Override
     public void submitJob() {
-        callerQueue.enqueue(this);
+        callerQueue.add(this);
     }
 
     @Override

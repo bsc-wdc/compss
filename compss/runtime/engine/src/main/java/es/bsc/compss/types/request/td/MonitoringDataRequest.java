@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
@@ -23,15 +24,11 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ResourceManager;
 
-import java.util.concurrent.Semaphore;
-
 
 /**
  * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run.
  */
-public class MonitoringDataRequest extends TDRequest {
-
-    private final Semaphore sem;
+public class MonitoringDataRequest extends TaskDispatcher.SynchTDRequest<String> {
 
     private String response;
 
@@ -39,27 +36,14 @@ public class MonitoringDataRequest extends TDRequest {
     /**
      * Constructs a new TaskStateRequest.
      *
-     * @param sem semaphore where to synchronize until the current state is described.
+     * @param td TaskDispatcher processing the event
      */
-    public MonitoringDataRequest(Semaphore sem) {
-        this.sem = sem;
+    public MonitoringDataRequest(TaskDispatcher td) {
+        td.super();
     }
 
-    /**
-     * Returns the semaphore where to synchronize until the current state is described.
-     *
-     * @return the semaphore where to synchronize until the current state is described.
-     */
-    public Semaphore getSemaphore() {
-        return this.sem;
-    }
-
-    /**
-     * Returns the progress description in an xml format string.
-     *
-     * @return progress description in an xml format string.
-     */
-    public String getResponse() {
+    @Override
+    protected String getResult() {
         return this.response;
     }
 
@@ -104,7 +88,7 @@ public class MonitoringDataRequest extends TDRequest {
         monitorData.append(prefix).append("</Statistics>").append("\n");
 
         this.response = monitorData.toString();
-        this.sem.release();
+        this.onCompletion();
     }
 
     @Override

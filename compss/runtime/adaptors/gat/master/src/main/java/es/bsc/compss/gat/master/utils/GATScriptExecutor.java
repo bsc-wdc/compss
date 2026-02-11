@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.gat.master.utils;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.GATWorkerNode;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
@@ -155,7 +154,7 @@ public class GATScriptExecutor {
                     }
                 }
 
-                this.sdQueue.enqueue(sd);
+                this.sdQueue.add(sd);
             } catch (Exception e) {
                 LOGGER.error(CLEAN_JOB_ERR, e);
                 return false;
@@ -165,7 +164,7 @@ public class GATScriptExecutor {
         // Poll for completion of the clean jobs
         Long timeout = System.currentTimeMillis() + 60_000L;
         while (this.jobCount > 0 && System.currentTimeMillis() < timeout) {
-            Job job = this.jobQueue.dequeue();
+            Job job = this.jobQueue.poll();
             if (job == null) {
                 synchronized (this.jobQueue) {
                     this.jobCount--;
@@ -180,7 +179,7 @@ public class GATScriptExecutor {
                     this.jobCount--;
                 }
             } else {
-                this.jobQueue.enqueue(job);
+                this.jobQueue.add(job);
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -272,7 +271,7 @@ public class GATScriptExecutor {
          */
         public void processRequests() {
             while (true) {
-                SoftwareDescription sd = this.queue.dequeue();
+                SoftwareDescription sd = this.queue.poll();
 
                 if (sd == null) {
                     break;
@@ -281,10 +280,10 @@ public class GATScriptExecutor {
                     URI brokerURI = new URI((String) sd.getObjectAttribute("uri"));
                     ResourceBroker broker = GAT.createResourceBroker(node.getContext(), brokerURI);
                     Job job = broker.submitJob(new JobDescription(sd));
-                    this.jobQueue.enqueue(job);
+                    this.jobQueue.add(job);
                 } catch (Exception e) {
                     LOGGER.error("Error submitting clean job", e);
-                    this.jobQueue.enqueue((Job) null);
+                    this.jobQueue.add((Job) null);
                 }
             }
         }

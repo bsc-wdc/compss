@@ -184,16 +184,38 @@ def main():
         int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0
     )  # COMPSS_EXIT_CODE set in compss_setup.sh
 
+    part_time = time.time()
+    fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
+    for item in ins:
+        in_url = add_dataset_file_to_crate(
+            compss_crate, item, persistence, list_common_paths
+        )
+        if in_url:
+            fixed_ins.append(in_url)
+    print(
+        f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
+        f"{time.time() - part_time} s"
+    )
+
+    part_time = time.time()
+    fixed_outs = []
+    for item in outs:
+        out_url = add_dataset_file_to_crate(
+            compss_crate, item, persistence, list_common_paths
+        )
+        if out_url:
+            fixed_outs.append(out_url)
+    print(
+        f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
+        f"{time.time() - part_time} s"
+    )
+
     # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
     if PROVENANCE_RUN_ENABLED:
         pr_part_time1 = time.time()
 
         update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
 
-        fixed_ins = (
-            set()
-        )  # ins are file://host/path/file, fixed_ins are crate_path/file
-        fixed_outs = set()
         steps = []
         step_control_actions = []
         added_formal_params = {}
@@ -202,9 +224,10 @@ def main():
 
         # Process each task
         for task in tasks_dict.values():
-            successful_execution &= (
-                task.status >= 2
-            )  # This covers both RECOVERED and FINISHED states (>=2)
+            successful_execution &= task.status in {
+                "FINISHED",
+                "RECOVERED",
+            }  # If tasks have been recovered from a checkpoint, the execution worked
             if task.tid == "master":
                 continue
 
@@ -237,11 +260,6 @@ def main():
                     if not added_value:
                         continue
 
-                    if param.value in ins or f"{param.value}/" in ins:
-                        fixed_ins.add(added_value)
-                    if param.value in outs or f"{param.value}/" in outs:
-                        fixed_outs.add(added_value)
-
                     param.value = added_value
                     param.actual_instance = {"@id": param.value}
 
@@ -256,6 +274,8 @@ def main():
                     actual_to_formals.setdefault(
                         param.actual_instance["@id"], set()
                     ).add(param.formal_instance["@id"])
+
+            # Process general ins and outs of the workflow
 
             # -------------------- TASK-related ENTITIES -------------------- #
 
@@ -297,33 +317,6 @@ def main():
                     formal_entity.append_to("workExample", {"@id": actual_id})
 
         pr_part_time1 = time.time() - pr_part_time1
-
-    else:
-        part_time = time.time()
-        fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
-        for item in ins:
-            in_url = add_dataset_file_to_crate(
-                compss_crate, item, persistence, list_common_paths
-            )
-            if in_url:
-                fixed_ins.append(in_url)
-        print(
-            f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
-            f"{time.time() - part_time} s"
-        )
-
-        part_time = time.time()
-        fixed_outs = []
-        for item in outs:
-            out_url = add_dataset_file_to_crate(
-                compss_crate, item, persistence, list_common_paths
-            )
-            if out_url:
-                fixed_outs.append(out_url)
-        print(
-            f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
-            f"{time.time() - part_time} s"
-        )
 
     # Check for the presence of job log files in any case:
     # - Their presence indicates either: failure or debug mode enabled

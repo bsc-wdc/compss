@@ -30,6 +30,25 @@ from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
 from rocrate.rocrate import ROCrate
 
+from dataclasses import dataclass, field
+
+
+@dataclass
+class _CrateContext:
+    crate: ROCrate
+    root: Entity | None = None
+    main_entity: Entity | None = None
+    create_action: Entity | None = None
+    profiles: list[str] = field(default_factory=list)
+    task_stats: dict = field(
+        default_factory=lambda: {
+            "completed": 0,
+            "failed": 0,
+            "canceled": 0,
+            "total": 0,
+        }
+    )
+
 
 # ############# #
 # API FUNCTIONS #
@@ -162,6 +181,212 @@ def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
         with open(app_dir + "/.compss", "w") as f:
             f.write(dst)
     print("App deployed from " + local_source + " to " + dst)
+
+
+def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool):
+    ca = ctx.create_action
+    if not ca:
+        return
+
+    action_tree = tree.add("Execution details")
+
+    if name := ca.get("name"):
+        action_tree.add(f"Name —— [green]{name}")
+
+    # _render_action_status(action_tree, ca)
+    # _render_task_summary(action_tree, ctx)
+    # _render_times(action_tree, ca, verbose)
+    # _render_host_info(action_tree, ctx.crate, ca)
+    # _render_resource_usage(action_tree, ca, verbose)
+    # _render_agent(action_tree, ca)
+    # _render_submission(action_tree, ca, ctx.crate, verbose)
+    # _render_environment(action_tree, ca, verbose)
+    # _render_data_assets(action_tree, ca, data_assets)
+
+
+def _render_main_entity(tree, main_entity):
+    if not main_entity:
+        return
+
+    me_tree = tree.add(f"Main entity —— [green]{main_entity.get('@id', '')}")
+
+    if pl := main_entity.get("programmingLanguage"):
+        name = pl.get("name", "")
+        ver = pl.get("version")
+        me_tree.add(
+            f"Programming language —— [green]{name} {f'({ver})' if ver else ''}"
+        )
+
+
+def _render_publish_date(tree, entity):
+    raw = entity.get("datePublished")
+    try:
+        dt = datetime.fromisoformat(raw)
+        tree.add(
+            f"Date Published —— [green]{dt.strftime('%A, %d of %B of %Y - %H:%M %Z')}"
+        )
+    except Exception:
+        if raw:
+            tree.add(f"Date Published —— [green]{raw}")
+
+
+def _render_license(tree, entity):
+    lic = entity.get("license")
+    if not lic:
+        return
+
+    if isinstance(lic, ContextEntity):
+        name = lic.get("name", "")
+        url = lic.get("url", "")
+        tree.add(f"License —— [green]{name} {f'({url})' if url else ''}")
+    else:
+        tree.add(f"License —— [green]{lic}")
+
+
+def _format_email(cp):
+    if isinstance(cp, ContextEntity):
+        return cp.get("email", "")
+    if isinstance(cp, str):
+        return cp
+    return ""
+
+
+def _format_affiliation(aff):
+    if isinstance(aff, ContextEntity):
+        return aff.get("name", aff.get("@id", ""))
+    return str(aff or "")
+
+
+def _build_name(author):
+    given = author.get("givenName")
+    family = author.get("familyName")
+    if given and family:
+        return f"{family}, {given}"
+    return given or family or author.get("@id", "")
+
+
+def _format_author(author):
+    if isinstance(author, str):
+        return f"[green]{author}"
+
+    name = author.get("name") or _build_name(author)
+    affiliation = _format_affiliation(author.get("affiliation"))
+    email = _format_email(author.get("contactPoint"))
+
+    return (
+        f"[green]{name}[/green]"
+        f"{f' [dark_orange]({affiliation})[/]' if affiliation else ''}"
+        f"{f' [cyan]({email})[/]' if email else ''}"
+    )
+
+
+def _add_authors(tree, entity, field):
+    if field not in entity:
+        return
+
+    authors_tree = tree.add("Authors")
+    authors = entity.get(field)
+    if not isinstance(authors, list):
+        authors = [authors]
+
+    for author in authors:
+        authors_tree.add(_format_author(author))
+
+
+def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
+    e = ctx.root
+    if not e:
+        return
+
+    if name := e.get("name"):
+        tree.add(f"Name —— [green]{name}")
+
+    if desc := e.get("description"):
+        tree.add(f"Description —— [green]{desc}")
+
+    _add_authors(tree, e, "creator")
+    _add_authors(tree, e, "author")
+
+    _render_license(tree, e)
+    _render_publish_date(tree, e)
+    _render_main_entity(tree, ctx.main_entity)
+
+    if verbose and ctx.profiles:
+        prof_tree = tree.add("RO-Crate compliance")
+        for prof in ctx.profiles:
+            prof_tree.add(f"[green]{prof}")
+
+
+def update_task_stats(stats, action):
+    status = action.get("actionStatus", "")
+    if "Completed" in status:
+        stats["completed"] += 1
+    elif "Failed" in status:
+        stats["failed"] += 1
+    elif "Potential" in status:
+        stats["canceled"] += 1
+    stats["total"] += 1
+
+
+def _collect_profiles(ctx, entity):
+    conforms_to = entity.get("conformsTo")
+    if not conforms_to:
+        return
+
+    if not isinstance(conforms_to, list):
+        conforms_to = [conforms_to]
+
+    for prof in conforms_to:
+        if isinstance(prof, ContextEntity):
+            ctx.profiles.append(f"{prof.get('name', '')} ({prof.get('version', '')})")
+        elif isinstance(prof, str):
+            ctx.profiles.append(prof)
+
+
+def _inspect_crate(crate: ROCrate) -> _CrateContext:
+    ctx = _CrateContext(crate=crate)
+
+    for e in crate.get_entities():
+        if e.id == "./":
+            ctx.root = e
+            ctx.main_entity = e.get("mainEntity")
+            _collect_profiles(ctx, e)
+
+        elif "CreateAction" in e.type and e.get("instrument") == ctx.main_entity:
+            ctx.create_action = e
+
+        elif "ControlAction" in e.type:
+            update_task_stats(ctx.task_stats, e)
+    return ctx
+
+
+def _load_crate(path, console):
+    try:
+        return ROCrate(path)
+    except Exception as e:
+        console.print(f"[red]Error loading the RO-Crate from {path}: {e}")
+        return None
+
+
+def NEW_local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
+    console = Console()
+
+    for path in ro_crate_list:
+        console.rule("RO-Crate Inspection")
+
+        crate = _load_crate(path, console)
+        if not crate:
+            continue
+
+        root_tree = Tree(f"[bold cyan]CRATE {path}")
+
+        ctx = _inspect_crate(crate)
+
+        _render_general_info(root_tree, ctx, verbose)
+        _render_execution(root_tree, ctx, verbose, data_assets)
+
+        console.print(root_tree)
+        console.rule()
 
 
 def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):

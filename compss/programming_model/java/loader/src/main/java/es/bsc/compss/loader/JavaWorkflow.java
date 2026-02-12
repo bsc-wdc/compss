@@ -19,7 +19,7 @@ public class JavaWorkflow implements Workflow {
 
     public JavaWorkflow(COMPSsRuntime runtime, String parallelismSource, ApplicationRunner runner) {
         this.workflow = runtime.registerWorkflow(parallelismSource, runner);
-        this.oReg = null;
+        this.oReg = new ObjectRegistry((LoaderAPI) runtime);
     }
 
     /**

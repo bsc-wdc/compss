@@ -100,25 +100,11 @@ public interface LoaderAPI {
     public void serializeObject(Object o, int hashCode, String destDir);
 
     /**
-     * Returns the Object Registry instance.
-     * 
-     * @return The Object Registry instance.
-     */
-    public ObjectRegistry getObjectRegistry();
-
-    /**
      * Returns the Stream Registry instance.
      * 
      * @return The Stream Registry instance.
      */
     public StreamRegistry getStreamRegistry();
-
-    /**
-     * Associates a new Object Registry.
-     * 
-     * @param oReg Object Registry.
-     */
-    public void setObjectRegistry(ObjectRegistry oReg);
 
     /**
      * Associates a new Stream Registry instance.

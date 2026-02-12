@@ -167,11 +167,6 @@ public final class ITAppModifier {
         appClass.addField(srField);
         getters.put("getStreamRegistry", srField);
 
-        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
-        CtField orField = buildField(classPool, appClass, LoaderConstants.CLASS_OBJECT_REGISTRY, itORVar);
-        appClass.addField(orField);
-        getters.put("getObjectRegistry", orField);
-
         String itWfVar = varName + LoaderConstants.STR_COMPSS_WORKFLOW;
         String instAppId;
         String instWf;
@@ -188,6 +183,7 @@ public final class ITAppModifier {
             setupWkSupplySrc = ""; // No workflow supply exists. Do nothing
         }
         instAppId = instWf + ".getId()";
+        String itORVar = instWf + ".getObjectRegistry()";
 
         // Instrument class
         instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instWf, instAppId, isMainClass);
@@ -207,7 +203,7 @@ public final class ITAppModifier {
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
 
-        addModifyVariablesMethods(appClass, itApiVar, itSRVar, itORVar, itWfVar, perThreadWf, isMainClass);
+        addModifyVariablesMethods(appClass, itApiVar, itSRVar, itWfVar, perThreadWf, isMainClass);
         return appClass;
     }
 
@@ -322,8 +318,8 @@ public final class ITAppModifier {
         }
     }
 
-    private static void addModifyVariablesMethods(CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-        String itWfVar, boolean perThreadWf, boolean isMainClass) throws CannotCompileException {
+    private static void addModifyVariablesMethods(CtClass appClass, String itApiVar, String itSRVar, String itWfVar,
+        boolean perThreadWf, boolean isMainClass) throws CannotCompileException {
 
         String getWf;
         if (perThreadWf) {
@@ -339,7 +335,6 @@ public final class ITAppModifier {
         methodBody.append("public static void printCOMPSsVariables() { ");
         methodBody.append("System.out.println(\"Api Var: \" + ").append(itApiVar).append(");");
         methodBody.append("System.out.println(\"SR Var: \" + ").append(itSRVar).append(");");
-        methodBody.append("System.out.println(\"OR Var: \" + ").append(itORVar).append(");");
         methodBody.append("System.out.println(\"App Id: \" + ").append(getWf).append(".getId());");
         methodBody.append("}");
         CtMethod m;
@@ -357,8 +352,7 @@ public final class ITAppModifier {
             .append(") {") //
             .append(itApiVar).append("= runtime;") //
             .append("setupWorkflowSupplier();") //
-            .append(itSRVar).append("= loader.getStreamRegistry();") //
-            .append(itORVar).append("= loader.getObjectRegistry();"); //
+            .append(itSRVar).append("= loader.getStreamRegistry();"); //
         String wfSetInstr;
         if (perThreadWf) {
             wfSetInstr = itWfVar + ".set(wf)";
@@ -380,8 +374,7 @@ public final class ITAppModifier {
             .append(") {") //
             .append(itApiVar).append("= runtime;") //
             .append("setupWorkflowSupplier();") //
-            .append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("(loader);") //
-            .append(itORVar).append(" = new ").append(LoaderConstants.CLASS_OBJECT_REGISTRY).append("(loader);");//
+            .append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("(loader);");//
 
         if (WALL_CLOCK_LIMIT > 0) {
             // Setting wall clock limit with runtime stop.

@@ -174,7 +174,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             case PSCO_T: {
                 Object o = p.getValue();
                 String dataId = p.getDataMgmtId();
-                ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
+                ObjectRegistry or = wf.getObjectRegistry();
                 if (!or.bindToDataIfExisting(wf.getId(), o, dataId)) {
                     Object internal = or.collectObjectLastValue(wf.getId(), p.getValue());
                     p.setValue(internal);

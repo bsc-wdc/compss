@@ -49,8 +49,6 @@ public class ObjectRegistry {
         this.itApi = api;
         this.serialDir = api.getTempDir();
         this.apps = new TreeMap<>();
-
-        this.itApi.setObjectRegistry(this);
     }
 
     /**

@@ -51,7 +51,6 @@ public class LoaderConstants {
     public static final String CLASS_COMPSS_API = COMPSs.class.getCanonicalName();
     public static final String CLASS_COMPSSRUNTIME_API = COMPSsRuntime.class.getCanonicalName();
     public static final String CLASS_STREAM_REGISTRY = StreamRegistry.class.getCanonicalName();
-    public static final String CLASS_OBJECT_REGISTRY = ObjectRegistry.class.getCanonicalName();
     public static final String CLASS_ARRAY_ACCESS_WATCHER = ArrayAccessWatcher.class.getCanonicalName();
     public static final String CLASS_COMPSS_API_IMPL = "es.bsc.compss.api.impl.COMPSsRuntimeImpl";
     public static final String CLASS_LOADERAPI = LoaderAPI.class.getCanonicalName();
@@ -63,10 +62,8 @@ public class LoaderConstants {
     public static final String CLASS_WORKFLOW = JavaWorkflow.class.getCanonicalName();
 
     // Strings for Loader variables
-    public static final String STR_COMPSS_PREFIX = "compss";
     public static final String STR_COMPSS_API = "Api";
     public static final String STR_COMPSS_STREAM_REGISTRY = "SR";
-    public static final String STR_COMPSS_OBJECT_REGISTRY = "OR";
     public static final String STR_COMPSS_WORKFLOW = "Workflow";
 
     // Supported Stream Types

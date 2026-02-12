@@ -141,7 +141,6 @@ public class Agent {
 
         };
         ErrorManager.init(feh);
-        RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
 
         INTERFACES = new LinkedList<>();

@@ -135,7 +135,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     protected static final Lang DEFAULT_LANG;
 
     // Registries
-    private static ObjectRegistry oReg;
     private static StreamRegistry sReg;
 
     // Components
@@ -386,19 +385,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * ************************************* RUNTIME SETUP MANAGEMENT *********************************************
      * ************************************************************************************************************
      */
-    @Override
-    public ObjectRegistry getObjectRegistry() {
-        return oReg;
-    }
 
     @Override
     public StreamRegistry getStreamRegistry() {
         return sReg;
-    }
-
-    @Override
-    public void setObjectRegistry(ObjectRegistry oReg) {
-        COMPSsRuntimeImpl.oReg = oReg;
     }
 
     @Override

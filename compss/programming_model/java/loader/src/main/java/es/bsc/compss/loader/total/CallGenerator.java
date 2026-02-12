@@ -22,6 +22,8 @@ public class CallGenerator {
     // ObjectRegistry methods
     private static final String GET_INTERNAL_OBJECT = ".getInternalObject(";
     private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
+    private static final String NEW_OBJECT_PARAM = ".newObjectParameter(";
+
     private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
     private static final String DELETE_OBJECT = ".delete(";
 
@@ -76,6 +78,18 @@ public class CallGenerator {
     public static String oRegNewObjectAccess(String itOR, String itAppId, String val, boolean isWriter) {
         return itOR + NEW_OBJECT_ACCESS + "(java.lang.Long)" + itAppId + "," + val + "," + " (boolean)" + isWriter
             + ")";
+    }
+
+    /**
+     * Constructs the instruction to register a new object access.
+     *
+     * @param itOR name of the ObjectRegistry variable
+     * @param itAppId name of the variable containing the AppId
+     * @param val name of the variable containing the accessed object
+     * @return instruction calling the runtime to register a new object access
+     */
+    public static String oRegNewObjectParameter(String itOR, String itAppId, String val) {
+        return itOR + NEW_OBJECT_PARAM + "(java.lang.Long)" + itAppId + "," + val + ")";
     }
 
     /**

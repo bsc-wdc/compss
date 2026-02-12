@@ -530,8 +530,8 @@ public class ITAppEditor extends ExprEditor {
             executeTask.append("null);");
         } else {
             Annotation[][] paramAnnot = declaredMethod.getParameterAnnotations();
-            CallInformation callInformation = new CallInformation(declaredMethod, paramAnnot, paramTypes, isVoid,
-                isStatic, isMethod, numParams, retType);
+            TaskCall callInformation =
+                new TaskCall(declaredMethod, paramAnnot, paramTypes, isVoid, isStatic, isMethod, retType);
             executeTask.insert(0, callInformation.getPreCall());
             executeTask.append(callInformation.getCallParameters()).append(");");
             executeTask.append(callInformation.getPostCall());
@@ -736,320 +736,26 @@ public class ITAppEditor extends ExprEditor {
     }
 
 
-    private class ParameterInformation {
+    private class TaskCall {
 
-        private final String paramPreparation;
-        private final String paramDesc;
-        private final String paramCleanup;
-
-
-        public ParameterInformation(int paramIndex, Parameter par, Class<?> formalType) {
-            String paramPreparation = "";
-            String paramCleanup = "";
-            String parVal = "$" + (paramIndex + 1);
-            String parType;
-            String parContent = "";
-            switch (par.type()) {
-                case FILE:
-                    // The File type needs to be specified explicitly, since its formal type is String
-                    parType = DATA_TYPES + ".FILE_T";
-                    parContent = "FILE";
-                    paramPreparation = CallGenerator.addTaskFile(itSRVar, itAppIdVar, parVal) + ";";
-                    if (par.direction() == Direction.IN_DELETE) {
-                        paramCleanup = CallGenerator.removeTaskFile(itSRVar, itAppIdVar, parVal) + ";";
-                    }
-                    break;
-                case STRING:
-                    // Mechanism to make a String be treated like a list of chars instead of like another object.
-                    // Dependencies won't be watched for the string.
-                    parType = DATA_TYPES + ".STRING_T";
-                    break;
-                case STREAM:
-                    parType = DATA_TYPES + ".STREAM_T";
-                    break;
-                default:
-                    // Process the regular parameter value
-                    if (formalType.isPrimitive()) {
-                        if (formalType.equals(boolean.class)) {
-                            parType = DATA_TYPES + ".BOOLEAN_T";
-                            parVal = "new Boolean($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(char.class)) {
-                            parType = DATA_TYPES + ".CHAR_T";
-                            parVal = "new Character($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(byte.class)) {
-                            parType = DATA_TYPES + ".BYTE_T";
-                            parVal = "new Byte($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(short.class)) {
-                            parType = DATA_TYPES + ".SHORT_T";
-                            parVal = "new Short($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(int.class)) {
-                            parType = DATA_TYPES + ".INT_T";
-                            parVal = "new Integer($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(long.class)) {
-                            parType = DATA_TYPES + ".LONG_T";
-                            parVal = "new Long($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(float.class)) {
-                            parType = DATA_TYPES + ".FLOAT_T";
-                            parVal = "new Float($" + (paramIndex + 1) + (")");
-                        } else if (formalType.equals(double.class)) {
-                            parType = DATA_TYPES + ".DOUBLE_T";
-                            parVal = "new Double($" + (paramIndex + 1) + (")");
-                        } else {
-                            LOGGER.warn("ERROR: Unrecognised formal type " + formalType.getCanonicalName()
-                                + " on parameter " + paramIndex);
-                            parType = "";
-                        }
-                    } else { // Object or Self-Contained Object or Persistent SCO
-                        parType = CHECK_SCO_TYPE + "$" + (paramIndex + 1) + ")";
-                        if (par.direction() == Direction.IN_DELETE) {
-                            paramCleanup = CallGenerator.oRegRemove(itORVar, itAppIdVar, "$" + (paramIndex + 1)) + ";";
-                        }
-                    }
-                    break;
-            }
-            this.paramPreparation = paramPreparation;
-            this.paramDesc = buildParameter(parVal, parType, par.direction().name(), par.stream().name(), par.prefix(),
-                par.name(), parContent, par.weight(), par.keepRename());
-            this.paramCleanup = paramCleanup;
-        }
-
-        public String getParamPreparation() {
-            return this.paramPreparation;
-        }
-
-        public String getParamDesc() {
-            return this.paramDesc;
-        }
-
-        public String getParamCleanup() {
-            return paramCleanup;
-        }
-    }
-
-
-    private static String buildParameter(String parValue, String parType, String direction, String stream,
-        String prefix, String name, String contentType, String weight, boolean keepRename) {
-        return parValue + ',' + // value
-            parType + ',' + // type
-            DATA_DIRECTION + "." + direction + ',' + // direction
-            DATA_STREAM + "." + stream + ',' + // stream
-            "\"" + prefix + "\"" + ',' + // prefix
-            "\"" + name + "\"," + // param name
-            "\"" + contentType + "\"" + ',' + // content
-            "\"" + weight + "\"" + ',' + // weight
-            "new Boolean(" + keepRename + ")"; // keep rename
-    }
-
-    private static String buildParameter(String parValue, String parType, String direction, String contentType) {
-        return buildParameter(parValue, parType, direction, "UNSPECIFIED", Constants.PREFIX_EMPTY, "", contentType,
-            "1.0", false);
-    }
-
-    private static String buildOutParameter(String parValue, String parType, String contentType) {
-        return buildParameter(parValue, parType, "OUT", contentType);
-    }
-
-    /**
-     * Process the target object of a given method call.
-     */
-    private String processTargetObject(Method declaredMethod, boolean isMethod) {
-        String tgtVal;
-        String tgtType;
-        tgtVal = "$0";
-        tgtType = CHECK_SCO_TYPE + "$0)";
-
-        // Add direction
-        String parDirection;
-        // Check if the method will modify the target object (default yes)
-        if (isMethod) {
-            Direction targetDirection = null;
-            if (declaredMethod.isAnnotationPresent(es.bsc.compss.types.annotations.task.Method.class)) {
-                es.bsc.compss.types.annotations.task.Method methodAnnot =
-                    declaredMethod.getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
-                targetDirection = methodAnnot.targetDirection();
-            } else if (declaredMethod.isAnnotationPresent(MultiNode.class)) {
-                MultiNode multiNodeAnnot = declaredMethod.getAnnotation(MultiNode.class);
-                targetDirection = multiNodeAnnot.targetDirection();
-            }
-            parDirection = targetDirection.name();
-        } else {
-            // Service
-            parDirection = "INOUT";
-        }
-
-        StringBuilder targetObj = new StringBuilder();
-        targetObj.append(buildParameter(tgtVal, tgtType, parDirection, ""));
-
-        return targetObj.toString();
-    }
-
-
-    /**
-     * Process the return object of a given method call.
-     */
-    private class ReturnInformation {
-
-        private final String dummyCreation;
-        private final String paramDesc;
-        private final String resultCollection;
-
-
-        public ReturnInformation(Class<?> retType) throws CannotCompileException {
-            StringBuilder dummyCreation = new StringBuilder();
-            String param = "";
-            StringBuilder resCollection = new StringBuilder();
-
-            String parValue;
-            String parType;
-            String contentType = "";
-            if (retType.isPrimitive()) {
-                /*
-                 * ********************************* PRIMITIVE *********************************
-                 */
-                String tempRetVar = "ret" + System.nanoTime();
-                dummyCreation.append("Object ").append(tempRetVar).append(" = ");
-                String cast;
-                String converterMethod;
-                if (retType.isAssignableFrom(boolean.class)) {
-                    dummyCreation.append("new Boolean(false);");
-                    cast = "(Boolean)";
-                    converterMethod = "booleanValue()";
-                } else if (retType.isAssignableFrom(char.class)) {
-                    dummyCreation.append("new Character(Character.MIN_VALUE);");
-                    cast = "(Character)";
-                    converterMethod = "charValue()";
-                } else if (retType.isAssignableFrom(byte.class)) {
-                    dummyCreation.append("new Byte(Byte.MIN_VALUE);");
-                    cast = "(Byte)";
-                    converterMethod = "byteValue()";
-                } else if (retType.isAssignableFrom(short.class)) {
-                    dummyCreation.append("new Short(Short.MIN_VALUE);");
-                    cast = "(Short)";
-                    converterMethod = "shortValue()";
-                } else if (retType.isAssignableFrom(int.class)) {
-                    dummyCreation.append("new Integer(Integer.MIN_VALUE);");
-                    cast = "(Integer)";
-                    converterMethod = "intValue()";
-                } else if (retType.isAssignableFrom(long.class)) {
-                    dummyCreation.append("new Long(Long.MIN_VALUE);");
-                    cast = "(Long)";
-                    converterMethod = "longValue()";
-                } else if (retType.isAssignableFrom(float.class)) {
-                    dummyCreation.append("new Float(Float.MIN_VALUE);");
-                    cast = "(Float)";
-                    converterMethod = "floatValue()";
-                } else { // (retType.isAssignableFrom(double.class))
-                    dummyCreation.append("new Double(Double.MIN_VALUE);");
-                    cast = "(Double)";
-                    converterMethod = "doubleValue()";
-                }
-
-                parValue = tempRetVar;
-                parType = DATA_TYPES + ".OBJECT_T";
-                contentType = retType.toString();
-
-                /*
-                 * After execute task, register an access to the wrapper object, get its (remotely) generated value and
-                 * assign it to the application's primitive type var
-                 */
-                resCollection.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, tempRetVar)).append(";");
-                resCollection.append("$_ = (").append(cast)
-                    .append(CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, tempRetVar)).append(").")
-                    .append(converterMethod).append(";");
-            } else if (retType.isArray()) {
-                // ARRAY
-                String typeName = retType.getName();
-                Class<?> compType = retType.getComponentType();
-                int numDim = typeName.lastIndexOf('[');
-                String dims = "[0]";
-                while (numDim-- > 0) {
-                    dims += "[]";
-                }
-                while (compType.getComponentType() != null) {
-                    compType = compType.getComponentType();
-                }
-
-                parValue = "$_";
-                parType = DATA_TYPES + ".OBJECT_T";
-                String compTypeName = compType.getName();
-                dummyCreation.append("$_ = new ").append(compTypeName).append(dims).append(';');
-
-            } else {
-                // OBJECT
-                // Wrapper for a primitive type: return a default value
-                if (retType.isAssignableFrom(Boolean.class)) {
-                    dummyCreation.append("$_ = new Boolean(false);");
-                } else if (retType.isAssignableFrom(Character.class)) {
-                    dummyCreation.append("$_ = new Character(Character.MIN_VALUE);");
-                } else if (retType.isAssignableFrom(Byte.class)) {
-                    dummyCreation.append("$_ = new Byte(Byte.MIN_VALUE);");
-                } else if (retType.isAssignableFrom(Short.class)) {
-                    dummyCreation.append("$_ = new Short(Short.MIN_VALUE);");
-                } else if (retType.isAssignableFrom(Integer.class)) {
-                    dummyCreation.append("$_ = new Integer(Integer.MIN_VALUE);");
-                } else if (retType.isAssignableFrom(Long.class)) {
-                    dummyCreation.append("$_ = new Long(Long.MIN_VALUE);");
-                } else if (retType.isAssignableFrom(Float.class)) {
-                    dummyCreation.append("$_ = new Float(Float.MIN_VALUE);");
-                } else if (retType.isAssignableFrom(Double.class)) {
-                    dummyCreation.append("$_ = new Double(Double.MIN_VALUE);");
-                } else {
-                    // Object (maybe String): use the no-args constructor
-                    // Check that object class has empty constructor
-                    String typeName = retType.getName();
-                    try {
-                        Class.forName(typeName).getConstructor();
-                    } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-                        throw new CannotCompileException(ERROR_NO_EMPTY_CONSTRUCTOR + typeName);
-                    }
-
-                    dummyCreation.append("$_ = new ").append(typeName).append("();");
-                }
-
-                parValue = "$_";
-                parType = CHECK_SCO_TYPE + "$_)";
-            }
-            param = buildOutParameter(parValue, parType, contentType);
-
-            this.dummyCreation = dummyCreation.toString();
-            this.paramDesc = param;
-            this.resultCollection = resCollection.toString();
-        }
-
-        public String getParamDesc() {
-            return this.paramDesc;
-        }
-
-        public String getDummyCreation() {
-            return this.dummyCreation;
-        }
-
-        public String getResultCollection() {
-            return this.resultCollection;
-        }
-
-    }
-
-    private class CallInformation {
-
-        ParameterInformation[] params;
-        String targetObject;
+        ArgumentInformation[] params;
+        TargetInformation targetObject;
         ReturnInformation returnInfo;
 
 
-        public CallInformation(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes, boolean isVoid,
-            boolean isStatic, boolean isMethod, int numParams, Class<?> retType) throws CannotCompileException {
+        public TaskCall(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes, boolean isVoid,
+            boolean isStatic, boolean isMethod, Class<?> retType) throws CannotCompileException {
 
-            this.params = new ParameterInformation[paramAnnot.length];
+            this.params = new ArgumentInformation[paramAnnot.length];
             for (int i = 0; i < paramAnnot.length; i++) {
                 Class<?> formalType = paramTypes[i];
                 Parameter par = ((Parameter) paramAnnot[i][0]);
-                this.params[i] = new ParameterInformation(i, par, formalType);
+                this.params[i] = new ArgumentInformation(i, par, formalType);
             }
             if (isStatic) {
                 this.targetObject = null;
             } else {
-                this.targetObject = processTargetObject(declaredMethod, isMethod);
+                this.targetObject = new TargetInformation(declaredMethod, isMethod);
             }
             if (isVoid) {
                 this.returnInfo = null;
@@ -1060,7 +766,7 @@ public class ITAppEditor extends ExprEditor {
 
         public String getPreCall() {
             StringBuilder preCall = new StringBuilder();
-            for (ParameterInformation pi : params) {
+            for (ArgumentInformation pi : params) {
                 preCall.append(pi.getParamPreparation());
             }
             if (returnInfo != null) {
@@ -1072,7 +778,7 @@ public class ITAppEditor extends ExprEditor {
         public String getCallParameters() {
             boolean addedParameter = false;
             StringBuilder onCall = new StringBuilder("new Object[]{");
-            for (ParameterInformation p : this.params) {
+            for (ArgumentInformation p : this.params) {
                 if (addedParameter) {
                     onCall.append(",");
                 } else {
@@ -1086,7 +792,7 @@ public class ITAppEditor extends ExprEditor {
                 } else {
                     addedParameter = true;
                 }
-                onCall.append(this.targetObject);
+                onCall.append(this.targetObject.getParamDesc());
             }
             if (returnInfo != null) {
                 // Assuming object, it is unlikely that a user selects a method invoked on an array
@@ -1101,7 +807,7 @@ public class ITAppEditor extends ExprEditor {
 
         public String getPostCall() {
             StringBuilder postCall = new StringBuilder();
-            for (ParameterInformation pi : params) {
+            for (ArgumentInformation pi : params) {
                 postCall.append(pi.getParamCleanup());
             }
             if (returnInfo != null) {
@@ -1110,5 +816,309 @@ public class ITAppEditor extends ExprEditor {
             return postCall.toString();
         }
 
+        private String buildParameter(String parValue, String parType, String direction, String stream, String prefix,
+            String name, String contentType, String weight, boolean keepRename) {
+            return parValue + ',' + // value
+                parType + ',' + // type
+                DATA_DIRECTION + "." + direction + ',' + // direction
+                DATA_STREAM + "." + stream + ',' + // stream
+                "\"" + prefix + "\"" + ',' + // prefix
+                "\"" + name + "\"," + // param name
+                "\"" + contentType + "\"" + ',' + // content
+                "\"" + weight + "\"" + ',' + // weight
+                "new Boolean(" + keepRename + ")"; // keep rename
+        }
+
+        private String buildParameter(String parValue, String parType, String direction, String contentType) {
+            return buildParameter(parValue, parType, direction, "UNSPECIFIED", Constants.PREFIX_EMPTY, "", contentType,
+                "1.0", false);
+        }
+
+        private String buildOutParameter(String parValue, String parType, String contentType) {
+            return buildParameter(parValue, parType, "OUT", contentType);
+        }
+
+
+        /**
+         * Represents an argument of a given task call.
+         */
+        private class ArgumentInformation {
+
+            private final String paramPreparation;
+            private final String paramDesc;
+            private final String paramCleanup;
+
+
+            public ArgumentInformation(int paramIndex, Parameter par, Class<?> formalType) {
+                String paramPreparation = "";
+                String paramCleanup = "";
+                String parVal = "$" + (paramIndex + 1);
+                String parType;
+                String parContent = "";
+                switch (par.type()) {
+                    case FILE:
+                        // The File type needs to be specified explicitly, since its formal type is String
+                        parType = DATA_TYPES + ".FILE_T";
+                        parContent = "FILE";
+                        paramPreparation = CallGenerator.addTaskFile(itSRVar, itAppIdVar, parVal) + ";";
+                        if (par.direction() == Direction.IN_DELETE) {
+                            paramCleanup = CallGenerator.removeTaskFile(itSRVar, itAppIdVar, parVal) + ";";
+                        }
+                        break;
+                    case STRING:
+                        // Mechanism to make a String be treated like a list of chars instead of like another object.
+                        // Dependencies won't be watched for the string.
+                        parType = DATA_TYPES + ".STRING_T";
+                        break;
+                    case STREAM:
+                        parType = DATA_TYPES + ".STREAM_T";
+                        break;
+                    default:
+                        // Process the regular parameter value
+                        if (formalType.isPrimitive()) {
+                            if (formalType.equals(boolean.class)) {
+                                parType = DATA_TYPES + ".BOOLEAN_T";
+                                parVal = "new Boolean($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(char.class)) {
+                                parType = DATA_TYPES + ".CHAR_T";
+                                parVal = "new Character($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(byte.class)) {
+                                parType = DATA_TYPES + ".BYTE_T";
+                                parVal = "new Byte($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(short.class)) {
+                                parType = DATA_TYPES + ".SHORT_T";
+                                parVal = "new Short($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(int.class)) {
+                                parType = DATA_TYPES + ".INT_T";
+                                parVal = "new Integer($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(long.class)) {
+                                parType = DATA_TYPES + ".LONG_T";
+                                parVal = "new Long($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(float.class)) {
+                                parType = DATA_TYPES + ".FLOAT_T";
+                                parVal = "new Float($" + (paramIndex + 1) + (")");
+                            } else if (formalType.equals(double.class)) {
+                                parType = DATA_TYPES + ".DOUBLE_T";
+                                parVal = "new Double($" + (paramIndex + 1) + (")");
+                            } else {
+                                LOGGER.warn("ERROR: Unrecognised formal type " + formalType.getCanonicalName()
+                                    + " on parameter " + paramIndex);
+                                parType = "";
+                            }
+                        } else { // Object or Self-Contained Object or Persistent SCO
+                            parType = CHECK_SCO_TYPE + "$" + (paramIndex + 1) + ")";
+                            if (par.direction() == Direction.IN_DELETE) {
+                                paramCleanup =
+                                    CallGenerator.oRegRemove(itORVar, itAppIdVar, "$" + (paramIndex + 1)) + ";";
+                            }
+                        }
+                        break;
+                }
+                this.paramPreparation = paramPreparation;
+                this.paramDesc = buildParameter(parVal, parType, par.direction().name(), par.stream().name(),
+                    par.prefix(), par.name(), parContent, par.weight(), par.keepRename());
+                this.paramCleanup = paramCleanup;
+            }
+
+            public String getParamPreparation() {
+                return this.paramPreparation;
+            }
+
+            public String getParamDesc() {
+                return this.paramDesc;
+            }
+
+            public String getParamCleanup() {
+                return paramCleanup;
+            }
+        }
+
+        /**
+         * Represents the target object of a given task call.
+         */
+        private class TargetInformation {
+
+            private final String paramDescription;
+
+
+            public TargetInformation(Method declaredMethod, boolean isMethod) {
+                String tgtVal;
+                String tgtType;
+                tgtVal = "$0";
+                tgtType = CHECK_SCO_TYPE + "$0)";
+
+                // Add direction
+                String parDirection;
+                // Check if the method will modify the target object (default yes)
+                if (isMethod) {
+                    Direction targetDirection = null;
+                    if (declaredMethod.isAnnotationPresent(es.bsc.compss.types.annotations.task.Method.class)) {
+                        es.bsc.compss.types.annotations.task.Method methodAnnot =
+                            declaredMethod.getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
+                        targetDirection = methodAnnot.targetDirection();
+                    } else if (declaredMethod.isAnnotationPresent(MultiNode.class)) {
+                        MultiNode multiNodeAnnot = declaredMethod.getAnnotation(MultiNode.class);
+                        targetDirection = multiNodeAnnot.targetDirection();
+                    }
+                    parDirection = targetDirection.name();
+                } else {
+                    // Service
+                    parDirection = "INOUT";
+                }
+
+                this.paramDescription = buildParameter(tgtVal, tgtType, parDirection, "");
+            }
+
+            public String getParamDesc() {
+                return this.paramDescription;
+            }
+        }
+
+        /**
+         * Represents the return object of a given task call.
+         */
+        private class ReturnInformation {
+
+            private final String dummyCreation;
+            private final String paramDesc;
+            private final String resultCollection;
+
+
+            public ReturnInformation(Class<?> retType) throws CannotCompileException {
+                StringBuilder dummyCreation = new StringBuilder();
+                String param = "";
+                StringBuilder resCollection = new StringBuilder();
+
+                String parValue;
+                String parType;
+                String contentType = "";
+                if (retType.isPrimitive()) {
+                    /*
+                     * ********************************* PRIMITIVE *********************************
+                     */
+                    String tempRetVar = "ret" + System.nanoTime();
+                    dummyCreation.append("Object ").append(tempRetVar).append(" = ");
+                    String cast;
+                    String converterMethod;
+                    if (retType.isAssignableFrom(boolean.class)) {
+                        dummyCreation.append("new Boolean(false);");
+                        cast = "(Boolean)";
+                        converterMethod = "booleanValue()";
+                    } else if (retType.isAssignableFrom(char.class)) {
+                        dummyCreation.append("new Character(Character.MIN_VALUE);");
+                        cast = "(Character)";
+                        converterMethod = "charValue()";
+                    } else if (retType.isAssignableFrom(byte.class)) {
+                        dummyCreation.append("new Byte(Byte.MIN_VALUE);");
+                        cast = "(Byte)";
+                        converterMethod = "byteValue()";
+                    } else if (retType.isAssignableFrom(short.class)) {
+                        dummyCreation.append("new Short(Short.MIN_VALUE);");
+                        cast = "(Short)";
+                        converterMethod = "shortValue()";
+                    } else if (retType.isAssignableFrom(int.class)) {
+                        dummyCreation.append("new Integer(Integer.MIN_VALUE);");
+                        cast = "(Integer)";
+                        converterMethod = "intValue()";
+                    } else if (retType.isAssignableFrom(long.class)) {
+                        dummyCreation.append("new Long(Long.MIN_VALUE);");
+                        cast = "(Long)";
+                        converterMethod = "longValue()";
+                    } else if (retType.isAssignableFrom(float.class)) {
+                        dummyCreation.append("new Float(Float.MIN_VALUE);");
+                        cast = "(Float)";
+                        converterMethod = "floatValue()";
+                    } else { // (retType.isAssignableFrom(double.class))
+                        dummyCreation.append("new Double(Double.MIN_VALUE);");
+                        cast = "(Double)";
+                        converterMethod = "doubleValue()";
+                    }
+
+                    parValue = tempRetVar;
+                    parType = DATA_TYPES + ".OBJECT_T";
+                    contentType = retType.toString();
+
+                    /*
+                     * After execute task, register an access to the wrapper object, get its (remotely) generated value
+                     * and assign it to the application's primitive type var
+                     */
+                    resCollection.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, tempRetVar))
+                        .append(";");
+                    resCollection.append("$_ = (").append(cast)
+                        .append(CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, tempRetVar)).append(").")
+                        .append(converterMethod).append(";");
+                } else if (retType.isArray()) {
+                    // ARRAY
+                    String typeName = retType.getName();
+                    Class<?> compType = retType.getComponentType();
+                    int numDim = typeName.lastIndexOf('[');
+                    String dims = "[0]";
+                    while (numDim-- > 0) {
+                        dims += "[]";
+                    }
+                    while (compType.getComponentType() != null) {
+                        compType = compType.getComponentType();
+                    }
+
+                    parValue = "$_";
+                    parType = DATA_TYPES + ".OBJECT_T";
+                    String compTypeName = compType.getName();
+                    dummyCreation.append("$_ = new ").append(compTypeName).append(dims).append(';');
+
+                } else {
+                    // OBJECT
+                    // Wrapper for a primitive type: return a default value
+                    if (retType.isAssignableFrom(Boolean.class)) {
+                        dummyCreation.append("$_ = new Boolean(false);");
+                    } else if (retType.isAssignableFrom(Character.class)) {
+                        dummyCreation.append("$_ = new Character(Character.MIN_VALUE);");
+                    } else if (retType.isAssignableFrom(Byte.class)) {
+                        dummyCreation.append("$_ = new Byte(Byte.MIN_VALUE);");
+                    } else if (retType.isAssignableFrom(Short.class)) {
+                        dummyCreation.append("$_ = new Short(Short.MIN_VALUE);");
+                    } else if (retType.isAssignableFrom(Integer.class)) {
+                        dummyCreation.append("$_ = new Integer(Integer.MIN_VALUE);");
+                    } else if (retType.isAssignableFrom(Long.class)) {
+                        dummyCreation.append("$_ = new Long(Long.MIN_VALUE);");
+                    } else if (retType.isAssignableFrom(Float.class)) {
+                        dummyCreation.append("$_ = new Float(Float.MIN_VALUE);");
+                    } else if (retType.isAssignableFrom(Double.class)) {
+                        dummyCreation.append("$_ = new Double(Double.MIN_VALUE);");
+                    } else {
+                        // Object (maybe String): use the no-args constructor
+                        // Check that object class has empty constructor
+                        String typeName = retType.getName();
+                        try {
+                            Class.forName(typeName).getConstructor();
+                        } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+                            throw new CannotCompileException(ERROR_NO_EMPTY_CONSTRUCTOR + typeName);
+                        }
+
+                        dummyCreation.append("$_ = new ").append(typeName).append("();");
+                    }
+
+                    parValue = "$_";
+                    parType = CHECK_SCO_TYPE + "$_)";
+                }
+                param = buildOutParameter(parValue, parType, contentType);
+
+                this.dummyCreation = dummyCreation.toString();
+                this.paramDesc = param;
+                this.resultCollection = resCollection.toString();
+            }
+
+            public String getParamDesc() {
+                return this.paramDesc;
+            }
+
+            public String getDummyCreation() {
+                return this.dummyCreation;
+            }
+
+            public String getResultCollection() {
+                return this.resultCollection;
+            }
+
+        }
     }
 }

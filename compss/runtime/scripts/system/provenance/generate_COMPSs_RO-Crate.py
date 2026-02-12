@@ -254,6 +254,11 @@ def main():
                 if (
                     "File" in param.dtype or "Dataset" in param.dtype
                 ) and param.is_array == False:
+                    # Right now only COLLECTION_T COMPSs type maps to Dataset. This may change in the future.
+                    if "Dataset" in param.dtype:
+                        # Ensure that the directory URL ends with '/'
+                        if not param.value.endswith("/"):
+                            param.value += "/"
                     added_value = add_dataset_file_to_crate(
                         compss_crate, param.value, persistence, list_common_paths
                     )

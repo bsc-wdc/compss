@@ -49,10 +49,19 @@ def add_dataset_file_to_crate(
     # method_time = time.time()
 
     try:
+        # dir:// URLs must come with a final '/'. Ensure that the directory URL ends with '/'
+        if not in_url.endswith("/"):
+            in_url += "/"
+        # urlsplit returns in url_parts.path everything when it is a File, not only the directory that contains it
         url_parts = urlsplit(in_url)
         # If in_url ends up with '/', os.path.basename will be empty, thus we need Pathlib
         url_path = Path(url_parts.path)
         final_item_name = url_path.name
+
+        # print(f"PROCESSING URL: {in_url}")
+        # print(f"URL_PARTS.PATH: {url_parts.path}")
+        # print(f"URL_PATH: {url_path}")
+        # print(f"FINAL_ITEM_NAME: {final_item_name}")
 
         if url_parts.scheme in ["dir", "file"]:
             # Dealing with a local file
@@ -79,36 +88,39 @@ def add_dataset_file_to_crate(
                         cwd_endslash = (
                             os.getcwd() + "/"
                         )  # os.getcwd does not add the final slash
-                        if cwd_endslash.startswith("/gpfs/home/"):
-                            # BSC hack, /gpfs/home/ and /home/ are equivalent
-                            cwd_final = cwd_endslash[5:]
-                        else:
-                            cwd_final = cwd_endslash
+                        # BSC hack, /gpfs/home/ and /home/ are equivalent. This is not working anymore in MN5
+                        # if cwd_endslash.startswith("/gpfs/home/"):
+                        #     cwd_final = cwd_endslash[5:]
+                        # else:
+                        #     cwd_final = cwd_endslash
+                        cwd_final = cwd_endslash
                         if cwd_final == item:
                             # Check if it is the working directory. When this script runs, user application has finished,
                             # so we can ensure cwd is the original folder where the application was started
                             # Workingdir dataset folder, add it to the root
-                            crate_path = "dataset/" + url_parts.path[len(item) :]
                             # Slice out the common part of the path
+                            crate_path = "dataset/" + url_parts.path[len(item) :]
                         else:  # Now includes len(common_paths) == 1
-                            cp_path = Path(
-                                item
-                            )  # Looking for the name of the previous folder
+                            # Looking for the name of the previous folder
+                            cp_path = Path(item)
                             crate_path = (
                                 "dataset/"
-                                # + "folder_"
-                                # + str(i)
-                                + cp_path.parts[
-                                    -1
-                                ]  # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
-                                + "/"  # Common part now always ends with '/'
+                                # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
+                                + cp_path.parts[-1]
+                                # Common part now always ends with '/'
+                                + "/"
+                                # Slice out the common part of the path
                                 + url_parts.path[len(item) :]
-                            )  # Slice out the common part of the path
+                            )
                         break
                 if __debug__:
-                    print(f"PROVENANCE DEBUG | Adding {url_parts.path} as {crate_path}")
+                    print(
+                        f"PROVENANCE DEBUG | Adding SINGLE FILE {url_parts.path} as {crate_path}"
+                    )
                 compss_crate.add_file(
-                    source=url_parts.path, dest_path=crate_path, properties=file_properties
+                    source=url_parts.path,
+                    dest_path=crate_path,
+                    properties=file_properties,
                 )
                 return crate_path
             # else:
@@ -123,7 +135,9 @@ def add_dataset_file_to_crate(
         print(f"PROVENANCE WARNING | Could not process URL: {in_url}.")
         return in_url
     except FileNotFoundError:
-        print(f"PROVENANCE WARNING | Could not add file {url_parts}. The file does not exist.")
+        print(
+            f"PROVENANCE WARNING | Could not add file {url_parts}. The file does not exist."
+        )
         return in_url
 
     try:
@@ -167,7 +181,12 @@ def add_dataset_file_to_crate(
                         filtered_url = listed_file[
                             len(url_parts.path) :
                         ]  # Does not include an initial '/'
-                        dir_f_url = "dataset/" + final_item_name + filtered_url
+                        dir_f_url = (
+                            "dataset/" + final_item_name + "/" + filtered_url
+                        )  # The 'name' property for Datasets does not include a final '/'
+                        # print(f"LISTED FILE: {listed_file}")
+                        # print(f"URL_PARTS.PATH: {url_parts.path}")
+                        # print(f"DIR_F_URL: {dir_f_url}")
                         if __debug__:
                             print(
                                 f"PROVENANCE DEBUG | Adding DATASET FILE {listed_file} as {dir_f_url}"
@@ -237,7 +256,9 @@ def add_dataset_file_to_crate(
                             )
                         else:
                             dir_properties["name"] = dir_name
-                            dir_f_url = "file://" + url_parts.netloc + full_dir_name + "/"
+                            dir_f_url = (
+                                "file://" + url_parts.netloc + full_dir_name + "/"
+                            )
                             # Directories must finish with slash
                             compss_crate.add_dataset(
                                 source=dir_f_url, properties=dir_properties
@@ -249,7 +270,7 @@ def add_dataset_file_to_crate(
                 # The root directory itself is empty
                 if __debug__:
                     print(
-                        f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})"
+                        f"PROVENANCE DEBUG | Adding an empty directory: {url_parts.path}"
                     )
                 if persist:
                     # Workaround to add empty directories in a git repository
@@ -286,7 +307,6 @@ def add_dataset_file_to_crate(
                     # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
                     dir_properties["name"] = final_item_name
                     dir_properties["hasPart"] = has_part_list
-                    # print(f"ADDING DATASET FOR THE EMPTY DIRECTORY {final_item_name} as {path_in_crate}, with hasPart {has_part_list}")
                     compss_crate.add_dataset(
                         source=url_parts.path,
                         dest_path=path_in_crate,
@@ -306,7 +326,7 @@ def add_dataset_file_to_crate(
                     path_in_crate = "dataset/" + final_item_name + "/"
                     if __debug__:
                         print(
-                            f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}"
+                            f"PROVENANCE DEBUG | Adding DATASET DIRECTORY {dataset_path} as {path_in_crate}"
                         )
                     compss_crate.add_dataset(
                         source=dataset_path,
@@ -316,7 +336,9 @@ def add_dataset_file_to_crate(
                     return path_in_crate
                 # else:
                 # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
-                compss_crate.add_dataset(fix_dir_url(in_url), properties=file_properties)
+                compss_crate.add_dataset(
+                    fix_dir_url(in_url), properties=file_properties
+                )
 
         if url_parts.scheme.startswith("http"):
             # Remote file, currently not supported in COMPSs. validate_url=True already adds contentSize and encodingFormat
@@ -460,11 +482,12 @@ def add_manual_datasets(
 
 
 def add_file_to_crate(
-        crate: ROCrate,
-        source: Path,
-        destination: str = None,
-        task: Task = None,
-        e_create_action: ContextEntity = None):
+    crate: ROCrate,
+    source: Path,
+    destination: str = None,
+    task: Task = None,
+    e_create_action: ContextEntity = None,
+):
     """
     Adds a file to the crate at the specified destination folder.
 
@@ -477,7 +500,9 @@ def add_file_to_crate(
     :return: The URL of the added file.
     """
     if not source.exists():
-        print(f"PROVENANCE WARNING | File {source} does not exist. Could not be added to crate.")
+        print(
+            f"PROVENANCE WARNING | File {source} does not exist. Could not be added to crate."
+        )
         return None
 
     file_properties = {
@@ -485,15 +510,21 @@ def add_file_to_crate(
         "sdDatePublished": iso_now(),
         "dateModified": dt.datetime.fromtimestamp(
             os.path.getmtime(source), timezone.utc
-        ).replace(microsecond=0).isoformat(),  # Schema.org
+        )
+        .replace(microsecond=0)
+        .isoformat(),  # Schema.org
         "contentSize": os.path.getsize(source),
-        "encodingFormat": "text/plain"
+        "encodingFormat": "text/plain",
     }
 
-    if task: file_properties["description"] = f"Log file of Task {task.tid}"
-    if e_create_action: file_properties["about"] = e_create_action
+    if task:
+        file_properties["description"] = f"Log file of Task {task.tid}"
+    if e_create_action:
+        file_properties["about"] = e_create_action
 
-    return crate.add_file(source=source,
-                          validate_url=True,
-                          dest_path=os.path.join(destination, source.name),
-                          properties=file_properties)
+    return crate.add_file(
+        source=source,
+        validate_url=True,
+        dest_path=os.path.join(destination, source.name),
+        properties=file_properties,
+    )

@@ -739,8 +739,8 @@ public class ITAppEditor extends ExprEditor {
     private class TaskCall {
 
         ArgumentInformation[] params;
-        TargetInformation targetObject;
-        ReturnInformation returnInfo;
+        TargetInformation target;
+        ReturnInformation result;
 
 
         public TaskCall(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes, boolean isVoid,
@@ -753,14 +753,14 @@ public class ITAppEditor extends ExprEditor {
                 this.params[i] = new ArgumentInformation(i, par, formalType);
             }
             if (isStatic) {
-                this.targetObject = null;
+                this.target = null;
             } else {
-                this.targetObject = new TargetInformation(declaredMethod, isMethod);
+                this.target = new TargetInformation(declaredMethod, isMethod);
             }
             if (isVoid) {
-                this.returnInfo = null;
+                this.result = null;
             } else {
-                this.returnInfo = new ReturnInformation(retType);
+                this.result = new ReturnInformation(retType);
             }
         }
 
@@ -769,8 +769,11 @@ public class ITAppEditor extends ExprEditor {
             for (ArgumentInformation pi : params) {
                 preCall.append(pi.getParamPreparation());
             }
-            if (returnInfo != null) {
-                preCall.append(returnInfo.getDummyCreation());
+            if (target != null) {
+                preCall.append(target.getParamPreparation());
+            }
+            if (result != null) {
+                preCall.append(result.getParamPreparation());
             }
             return preCall.toString();
         }
@@ -786,20 +789,20 @@ public class ITAppEditor extends ExprEditor {
                 }
                 onCall.append(p.getParamDesc());
             }
-            if (this.targetObject != null) {
+            if (this.target != null) {
                 if (addedParameter) {
                     onCall.append(",");
                 } else {
                     addedParameter = true;
                 }
-                onCall.append(this.targetObject.getParamDesc());
+                onCall.append(this.target.getParamDesc());
             }
-            if (returnInfo != null) {
+            if (result != null) {
                 // Assuming object, it is unlikely that a user selects a method invoked on an array
                 if (addedParameter) {
                     onCall.append(",");
                 }
-                onCall.append(returnInfo.getParamDesc());
+                onCall.append(result.getParamDesc());
             }
             onCall.append("}");
             return onCall.toString();
@@ -810,8 +813,8 @@ public class ITAppEditor extends ExprEditor {
             for (ArgumentInformation pi : params) {
                 postCall.append(pi.getParamCleanup());
             }
-            if (returnInfo != null) {
-                postCall.append(returnInfo.getResultCollection());
+            if (result != null) {
+                postCall.append(result.getResultCollection());
             }
             return postCall.toString();
         }
@@ -906,6 +909,8 @@ public class ITAppEditor extends ExprEditor {
                                 parType = "";
                             }
                         } else { // Object or Self-Contained Object or Persistent SCO
+                            paramPreparation =
+                                CallGenerator.oRegNewObjectParameter(itORVar, itAppIdVar, "$" + (paramIndex + 1)) + ";";
                             parType = CHECK_SCO_TYPE + "$" + (paramIndex + 1) + ")";
                             if (par.direction() == Direction.IN_DELETE) {
                                 paramCleanup =
@@ -938,7 +943,8 @@ public class ITAppEditor extends ExprEditor {
          */
         private class TargetInformation {
 
-            private final String paramDescription;
+            private final String paramPreparation;
+            private final String targetDescription;
 
 
             public TargetInformation(Method declaredMethod, boolean isMethod) {
@@ -965,12 +971,16 @@ public class ITAppEditor extends ExprEditor {
                     // Service
                     parDirection = "INOUT";
                 }
+                this.paramPreparation = CallGenerator.oRegNewObjectParameter(itORVar, itAppIdVar, tgtVal) + ";";
+                this.targetDescription = buildParameter(tgtVal, tgtType, parDirection, "");
+            }
 
-                this.paramDescription = buildParameter(tgtVal, tgtType, parDirection, "");
+            public String getParamPreparation() {
+                return this.paramPreparation;
             }
 
             public String getParamDesc() {
-                return this.paramDescription;
+                return this.targetDescription;
             }
         }
 
@@ -979,13 +989,13 @@ public class ITAppEditor extends ExprEditor {
          */
         private class ReturnInformation {
 
-            private final String dummyCreation;
+            private final String paramPreparation;
             private final String paramDesc;
             private final String resultCollection;
 
 
             public ReturnInformation(Class<?> retType) throws CannotCompileException {
-                StringBuilder dummyCreation = new StringBuilder();
+                StringBuilder resPreparation = new StringBuilder();
                 String param = "";
                 StringBuilder resCollection = new StringBuilder();
 
@@ -997,39 +1007,39 @@ public class ITAppEditor extends ExprEditor {
                      * ********************************* PRIMITIVE *********************************
                      */
                     String tempRetVar = "ret" + System.nanoTime();
-                    dummyCreation.append("Object ").append(tempRetVar).append(" = ");
+                    resPreparation.append("Object ").append(tempRetVar).append(" = ");
                     String cast;
                     String converterMethod;
                     if (retType.isAssignableFrom(boolean.class)) {
-                        dummyCreation.append("new Boolean(false);");
+                        resPreparation.append("new Boolean(false);");
                         cast = "(Boolean)";
                         converterMethod = "booleanValue()";
                     } else if (retType.isAssignableFrom(char.class)) {
-                        dummyCreation.append("new Character(Character.MIN_VALUE);");
+                        resPreparation.append("new Character(Character.MIN_VALUE);");
                         cast = "(Character)";
                         converterMethod = "charValue()";
                     } else if (retType.isAssignableFrom(byte.class)) {
-                        dummyCreation.append("new Byte(Byte.MIN_VALUE);");
+                        resPreparation.append("new Byte(Byte.MIN_VALUE);");
                         cast = "(Byte)";
                         converterMethod = "byteValue()";
                     } else if (retType.isAssignableFrom(short.class)) {
-                        dummyCreation.append("new Short(Short.MIN_VALUE);");
+                        resPreparation.append("new Short(Short.MIN_VALUE);");
                         cast = "(Short)";
                         converterMethod = "shortValue()";
                     } else if (retType.isAssignableFrom(int.class)) {
-                        dummyCreation.append("new Integer(Integer.MIN_VALUE);");
+                        resPreparation.append("new Integer(Integer.MIN_VALUE);");
                         cast = "(Integer)";
                         converterMethod = "intValue()";
                     } else if (retType.isAssignableFrom(long.class)) {
-                        dummyCreation.append("new Long(Long.MIN_VALUE);");
+                        resPreparation.append("new Long(Long.MIN_VALUE);");
                         cast = "(Long)";
                         converterMethod = "longValue()";
                     } else if (retType.isAssignableFrom(float.class)) {
-                        dummyCreation.append("new Float(Float.MIN_VALUE);");
+                        resPreparation.append("new Float(Float.MIN_VALUE);");
                         cast = "(Float)";
                         converterMethod = "floatValue()";
                     } else { // (retType.isAssignableFrom(double.class))
-                        dummyCreation.append("new Double(Double.MIN_VALUE);");
+                        resPreparation.append("new Double(Double.MIN_VALUE);");
                         cast = "(Double)";
                         converterMethod = "doubleValue()";
                     }
@@ -1063,27 +1073,28 @@ public class ITAppEditor extends ExprEditor {
                     parValue = "$_";
                     parType = DATA_TYPES + ".OBJECT_T";
                     String compTypeName = compType.getName();
-                    dummyCreation.append("$_ = new ").append(compTypeName).append(dims).append(';');
-
+                    resPreparation.append("$_ = new ").append(compTypeName).append(dims).append(';');
                 } else {
+                    parValue = "$_";
+                    parType = CHECK_SCO_TYPE + "$_)";
                     // OBJECT
                     // Wrapper for a primitive type: return a default value
                     if (retType.isAssignableFrom(Boolean.class)) {
-                        dummyCreation.append("$_ = new Boolean(false);");
+                        resPreparation.append("$_ = new Boolean(false);");
                     } else if (retType.isAssignableFrom(Character.class)) {
-                        dummyCreation.append("$_ = new Character(Character.MIN_VALUE);");
+                        resPreparation.append("$_ = new Character(Character.MIN_VALUE);");
                     } else if (retType.isAssignableFrom(Byte.class)) {
-                        dummyCreation.append("$_ = new Byte(Byte.MIN_VALUE);");
+                        resPreparation.append("$_ = new Byte(Byte.MIN_VALUE);");
                     } else if (retType.isAssignableFrom(Short.class)) {
-                        dummyCreation.append("$_ = new Short(Short.MIN_VALUE);");
+                        resPreparation.append("$_ = new Short(Short.MIN_VALUE);");
                     } else if (retType.isAssignableFrom(Integer.class)) {
-                        dummyCreation.append("$_ = new Integer(Integer.MIN_VALUE);");
+                        resPreparation.append("$_ = new Integer(Integer.MIN_VALUE);");
                     } else if (retType.isAssignableFrom(Long.class)) {
-                        dummyCreation.append("$_ = new Long(Long.MIN_VALUE);");
+                        resPreparation.append("$_ = new Long(Long.MIN_VALUE);");
                     } else if (retType.isAssignableFrom(Float.class)) {
-                        dummyCreation.append("$_ = new Float(Float.MIN_VALUE);");
+                        resPreparation.append("$_ = new Float(Float.MIN_VALUE);");
                     } else if (retType.isAssignableFrom(Double.class)) {
-                        dummyCreation.append("$_ = new Double(Double.MIN_VALUE);");
+                        resPreparation.append("$_ = new Double(Double.MIN_VALUE);");
                     } else {
                         // Object (maybe String): use the no-args constructor
                         // Check that object class has empty constructor
@@ -1094,15 +1105,14 @@ public class ITAppEditor extends ExprEditor {
                             throw new CannotCompileException(ERROR_NO_EMPTY_CONSTRUCTOR + typeName);
                         }
 
-                        dummyCreation.append("$_ = new ").append(typeName).append("();");
+                        resPreparation.append("$_ = new ").append(typeName).append("();");
                     }
-
-                    parValue = "$_";
-                    parType = CHECK_SCO_TYPE + "$_)";
                 }
+
+                resPreparation.append(CallGenerator.oRegNewObjectParameter(itORVar, itAppIdVar, parValue)).append(";");
                 param = buildOutParameter(parValue, parType, contentType);
 
-                this.dummyCreation = dummyCreation.toString();
+                this.paramPreparation = resPreparation.toString();
                 this.paramDesc = param;
                 this.resultCollection = resCollection.toString();
             }
@@ -1111,8 +1121,8 @@ public class ITAppEditor extends ExprEditor {
                 return this.paramDesc;
             }
 
-            public String getDummyCreation() {
-                return this.dummyCreation;
+            public String getParamPreparation() {
+                return this.paramPreparation;
             }
 
             public String getResultCollection() {

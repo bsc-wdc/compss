@@ -581,11 +581,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     break;
                 case OBJECT_T:
                 case PSCO_T:
-                    int hashcode = oReg.newObjectParameter(appId, stub);
+                    int hashcode = System.identityHashCode(stub);
                     dp = new ObjectData(hashcode);
                     break;
                 case STREAM_T:
-                    // int streamCode = oReg.newObjectParameter(stub);
+                    // int streamCode = System.identityHashCode(stub);
                     throw new UnsupportedOperationException("Not implemented yet.");
                 case EXTERNAL_STREAM_T:
                     try {
@@ -1313,7 +1313,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private int addParameter(Application app, ParameterMonitor monitor, Object content, DataType type,
         Direction direction, StdIOStream stream, String prefix, String name, String pyType, double weight,
         boolean keepRename, ArrayList<Parameter> pars, int offset, String[] vals) {
-        long appId = app.getId();
         String nameToPrint = name;
         if (name.contains(".")) {
             nameToPrint = name.substring(0, name.indexOf('.'));
@@ -1376,12 +1375,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             case OBJECT_T:
             case PSCO_T:
-                int code = oReg.newObjectParameter(appId, content);
+                int code = System.identityHashCode(content);
                 pars.add(ObjectParameter.newOP(app, direction, stream, prefix, name, pyType, weight, content, code,
                     monitor));
                 break;
             case STREAM_T:
-                int streamCode = oReg.newObjectParameter(appId, content);
+                int streamCode = System.identityHashCode(content);
                 pars.add(StreamParameter.newSP(app, direction, stream, prefix, name, content, streamCode, monitor));
                 break;
             case EXTERNAL_STREAM_T:

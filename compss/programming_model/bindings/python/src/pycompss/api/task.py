@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -52,7 +52,9 @@ from pycompss.util.tracing.helpers import TRACING
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
-
+from pycompss.util.typing_helper import Dict
+from pycompss.util.typing_helper import List
+from pycompss.util.typing_helper import Union
 
 if __debug__:
     import logging
@@ -130,10 +132,8 @@ class Task:  # pylint: disable=R0902, R0903
         self.decorated_function = FunctionDefinition()
         self.registered_signatures = (
             {}
-        )  # type: typing.Dict[str, typing.Dict[str, typing.List[str]]]
-        self.constraint_args = (
-            {}
-        )  # type: typing.Dict[str, ConstraintDescription]
+        )  # type: Dict[str, Dict[str, List[Union[str, int]]]]
+        self.constraint_args = {}  # type: Dict[str, ConstraintDescription]
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Perform the task processing.

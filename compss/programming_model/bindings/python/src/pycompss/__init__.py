@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -20,6 +20,5 @@
 """This package contains the COMPSs Python Binding, known as PyCOMPSs."""
 
 from pycompss.util.location import get_binding_location
-
 
 PYCOMPSS_HOME = get_binding_location()

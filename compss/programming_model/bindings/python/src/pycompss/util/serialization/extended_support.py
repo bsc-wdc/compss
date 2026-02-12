@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ PyCOMPSs Util - Serialization - Extended support.
 
 This file contains the serialization extensions.
 """
+
 import types
 
 from pycompss.util.typing_helper import typing

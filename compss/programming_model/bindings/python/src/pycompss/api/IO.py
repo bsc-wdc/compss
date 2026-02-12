@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ class IO:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def __configure_core_element__(
-        kwargs: typing.Dict[str, typing.Any]
+        kwargs: typing.Dict[str, typing.Any],
     ) -> None:
         """Include the registering info related to @IO.
 

@@ -22,7 +22,6 @@ import random
 
 from numba import jit
 from numba import njit
-from numba import generated_jit, types
 
 
 @constraint(computing_units=4)

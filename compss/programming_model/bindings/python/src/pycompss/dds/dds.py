@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ class DDS:  # pylint: disable=too-many-public-methods
         if not total:
             return self
 
-        chunk_sizes = [(total // num_of_parts)] * num_of_parts
+        chunk_sizes = [total // num_of_parts] * num_of_parts
         extras = total % num_of_parts
         for i in range(extras):
             chunk_sizes[i] += 1
@@ -176,7 +176,7 @@ class DDS:  # pylint: disable=too-many-public-methods
         files = sorted(os.listdir(dir_path))
         total = len(files)
         num_of_parts = total if num_of_parts < 0 else num_of_parts
-        partition_sizes = [(total // num_of_parts)] * num_of_parts
+        partition_sizes = [total // num_of_parts] * num_of_parts
         extras = total % num_of_parts
         for i in range(extras):
             partition_sizes[i] += 1

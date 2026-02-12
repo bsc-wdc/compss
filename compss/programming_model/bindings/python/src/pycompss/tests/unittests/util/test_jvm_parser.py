@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -149,8 +149,8 @@ def test_jvm_parser():
 other
 """.format(
                 temp_folder
-            )  # noqa
-        )
+            )
+        )  # noqa
     result = convert_to_dict(jvm_opt_file)
     assert len(result) == len(
         jvm_expected_result

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ rank = comm.rank
 
 
 def rank_distributor(
-    collection_layout: typing.Tuple[int, int, int]
+    collection_layout: typing.Tuple[int, int, int],
 ) -> typing.List[int]:
     """Distribute mpi ranks to data given a collection layout.
 

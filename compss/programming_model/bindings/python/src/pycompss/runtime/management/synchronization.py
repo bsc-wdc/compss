@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.typing_helper import typing
-
 
 LOGGER = logging.getLogger(__name__)
 

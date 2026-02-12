@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ PyCOMPSs Worker - Piper - Cache Tracker.
 This file contains the cache object tracker.
 IMPORTANT: Only used with python >= 3.8.
 """
+
 import base64
 import logging
 import os
@@ -271,7 +272,10 @@ class CacheTracker:
         )
         output = NP.empty(obj_shape, dtype=obj_d_type)
         NP.copyto(output, shm_np)
-        object_size = len(existing_shm.buf)
+        if existing_shm.buf:
+            object_size = len(existing_shm.buf)
+        else:
+            object_size = 0
         return existing_shm, output, object_size
 
     def __get_shared_cupy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
@@ -305,7 +309,9 @@ class CacheTracker:
         """
         existing_shm = ShareableList(name=obj_id)
         output = i_type(existing_shm)
-        object_size = len(existing_shm.shm.buf)
+        object_size = 0
+        if existing_shm.shm.buf:
+            object_size = len(existing_shm.shm.buf)
         return existing_shm, output, object_size
 
     def close_cupy_mem_handles(self):

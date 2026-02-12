@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -503,12 +503,12 @@ def __show_flower() -> None:
     print(line_separator)
     print(r"**************** PyCOMPSs Interactive ******************")
     print(line_separator)
-    print(r"*          .-~~-.--.           ______         ______   *")
-    print(r"*         :         )         |____  \       |____  \  *")
-    print(r"*   .~ ~ -.\       /.- ~~ .      __) |          __) |  *")
-    print(r"*   >       `.   .'       <     |__  |         |__  |  *")
-    print(r"*  (         .- -.         )   ____) |   _    ____) |  *")
-    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|  |______/  *")
+    print(r"*          .-~~-.--.           ______        _   _     *")
+    print(r"*         :         )         |____  \      | | | |    *")
+    print(r"*   .~ ~ -.\       /.- ~~ .      __) |      | |_| |_   *")
+    print(r"*   >       `.   .'       <     |__  |      |___   _|  *")
+    print(r"*  (         .- -.         )   ____) |   _      | |    *")
+    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|     |_|    *")
     print(r"*     (        :        )           _ _ .-:            *")
     print(r"*      ~--.    :    .--~        .-~  .-~  }            *")
     print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")
@@ -554,7 +554,11 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     :return: None
     """
     logger = logging.getLogger(__name__)
-    ipython = globals()["__builtins__"]["get_ipython"]()
+    global_builtins = globals()["__builtins__"]
+    try:
+        ipython = global_builtins["get_ipython"]()
+    except TypeError:
+        ipython = global_builtins.get_ipython()
 
     if not CONTEXT.in_pycompss():
         return __hard_stop(interactive_helpers.DEBUG, sync, logger, ipython)
@@ -600,7 +604,12 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
             "In",
             "Out",
         )
-        raw_code = ipython.__dict__["user_ns"]
+        try:
+            user_ns = "user_ns"
+            raw_code = ipython.__dict__["user_ns"]
+        except KeyError:
+            user_ns = "_user_ns"
+            raw_code = ipython.__dict__["_user_ns"]
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith("_"):  # not internal objects
@@ -614,7 +623,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                             "\t - Could not retrieve object: %s", str(k)
                         )
                     else:
-                        ipython.__dict__["user_ns"][k] = new_obj_k
+                        ipython.__dict__[user_ns][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):
@@ -622,7 +631,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                             logger.debug(
                                 "Found an object to synchronize: %s", str(k)
                             )
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(
+                            ipython.__dict__[user_ns][k] = compss_wait_on(
                                 obj_k
                             )
                     except TypeError:
@@ -632,7 +641,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                             logger.debug(
                                 "Found a list to synchronize: %s", str(k)
                             )
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(
+                            ipython.__dict__[user_ns][k] = compss_wait_on(
                                 obj_k
                             )
     else:

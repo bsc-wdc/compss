@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -211,7 +211,7 @@ class TaskMaster:
         decorator_arguments: TaskArguments,
         decorated_function: FunctionDefinition,
         registered_signatures: typing.Dict[
-            str, typing.Dict[str, typing.List[str]]
+            str, typing.Dict[str, typing.List[typing.Union[str, int]]]
         ] = {},
         constraint_args: typing.Dict[str, ConstraintDescription] = {},
     ) -> None:

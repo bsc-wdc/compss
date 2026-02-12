@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.worker.piper.commons.constants import TAGS
-
 
 # TODO: Comments about exit value and return following values was in another
 #       branch need to be reviewed if it works in trunk

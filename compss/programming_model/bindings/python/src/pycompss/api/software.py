@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ the multiple decorators to a JSON file.
 WARNING: CAN NOT BE COMPILED WITH MYPY SINCE THE SOFTWARE DECORATOR
          INHERITS FROM TASK DECORATOR.
 """
+
 import builtins
 import json
 import sys
@@ -53,7 +54,6 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 from pycompss.runtime.task.worker import TaskWorker
-
 
 if __debug__:
     import logging

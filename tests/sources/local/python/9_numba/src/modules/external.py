@@ -18,23 +18,24 @@ class example(object):
     def __init__(self, v):
         self.v = v
 
-    @task(numba=True)
-    def increment(self, value):
-        self.v = self.v + value
+    @staticmethod
+    @task(returns=1)
+    def increment(v, value):
+        return v + value
 
+    @staticmethod
     @constraint(computing_units="2")
-    @task(numba=True)
-    def subtract(self, value):
-        self.v = self.v - value
+    @task(returns=1)
+    def subtract(v, value):
+        return v - value
 
-    @task(numba=True)
-    def calcul(self, value):
-        self.v = self.v + external(value)
+    @staticmethod
+    @task(returns=1)
+    def calcul(v, value):
+        return v + external(value)
 
+    @staticmethod
     @constraint(computing_units="2")
-    @task(numba=True)
-    def calcul_c(self, value):
-        self.v = self.v + externalc(value)
-
-    def get_v(self):
-        return self.v
+    @task(returns=1)
+    def calcul_c(v, value):
+        return v + externalc(value)

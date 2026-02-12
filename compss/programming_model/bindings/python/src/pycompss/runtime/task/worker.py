@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ PyCOMPSs runtime - Task - Worker.
 
 This file contains the task core functions when acting as worker.
 """
+
 import gc
 import logging
 import os
@@ -1190,7 +1191,6 @@ class TaskWorker:
                 # Import all supported functionalities
                 from numba import jit
                 from numba import njit
-                from numba import generated_jit
                 from numba import vectorize
                 from numba import guvectorize
                 from numba import stencil
@@ -1211,10 +1211,6 @@ class TaskWorker:
                     # Alternative way of calling:
                     # user_returns = jit(cache=True)(self.user_function) \
                     #                   (*user_args, **user_kwargs)
-                elif numba_mode == "generated_jit":
-                    user_returns = generated_jit(
-                        self.user_function, **numba_flags
-                    )(*user_args, **user_kwargs)
                 elif numba_mode == "njit":
                     numba_flags["cache"] = True  # Always force cache
                     user_returns = njit(self.user_function, **numba_flags)(

@@ -31,8 +31,8 @@
 <p align="center"><b>
     <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •
     <a href="https://compss-doc.readthedocs.io/en/latest/">Documentation</a> •
-    <a href="https://github.com/bsc-wdc/compss/releasess">Releases</a> •
-    <a href="https://bit.ly/bsc-wdc-community">Slack</a> •
+    <a href="https://github.com/bsc-wdc/compss/releases">Releases</a> •
+    <a href="https://bsc-wdc.slack.com/archives/CFENCE3NF">Slack</a> •
     <a href="mailto:support-compss@bsc.es">&#9993</a>
 </b></p>
 

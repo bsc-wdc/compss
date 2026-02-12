@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ def create_dataset() -> (str, str):
         file_path = os.path.join(dataset_path, f"file_{i}.txt")
         with open(file_path, "w", encoding="utf-8") as file_path_fd:
             for j in range(10):
-                file_path_fd.write(f"{random.randint(0, 1000)},{i*j}\n")
+                file_path_fd.write(f"{random.randint(0, 1000)},{i * j}\n")
     # if not os.path.exists(dataset_dest_path):
     #     os.makedirs(dataset_dest_path)
     return dataset_path, dataset_dest_path

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.worker.commons.worker import execute_task
-
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True

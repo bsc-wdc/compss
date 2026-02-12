@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#  Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.level import check_log_level
 from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.typing_helper import typing
-
 
 LOG_CFG_PATH = os.path.join(PYCOMPSS_HOME, "util", "logger", "cfg")
 CONFIG_FUNC = config.dictConfig

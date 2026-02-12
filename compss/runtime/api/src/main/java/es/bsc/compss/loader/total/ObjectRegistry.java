@@ -19,8 +19,8 @@ package es.bsc.compss.loader.total;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,8 +36,8 @@ public class ObjectRegistry {
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private final String serialDir;
 
-    // Map: appID -> Map: hashcode -> object
-    private final Map<Long, Map<Integer, Object>> apps;
+    // Map: hashcode -> object
+    private final Map<Integer, Object> appObjects;
 
 
     /**
@@ -48,7 +48,7 @@ public class ObjectRegistry {
     public ObjectRegistry(LoaderAPI api) {
         this.itApi = api;
         this.serialDir = api.getTempDir();
-        this.apps = new TreeMap<>();
+        this.appObjects = new HashMap<>();
     }
 
     /**
@@ -72,10 +72,7 @@ public class ObjectRegistry {
         if (o == null) {
             return;
         }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
-            return;
-        }
+
         int hashCode = System.identityHashCode(o);
         if (!appObjects.containsKey(hashCode)) {
             return;
@@ -105,11 +102,6 @@ public class ObjectRegistry {
         if (o == null) {
             return Integer.MAX_VALUE;
         }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
-            appObjects = new TreeMap<>();
-            apps.put(appId, appObjects);
-        }
         int hashcode = System.identityHashCode(o);
         appObjects.put(hashcode, o);
 
@@ -128,10 +120,6 @@ public class ObjectRegistry {
      */
     public void serializeLocally(Long appId, Object o) {
         if (o == null) {
-            return;
-        }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
             return;
         }
         int hashCode = System.identityHashCode(o);
@@ -161,10 +149,7 @@ public class ObjectRegistry {
         if (o == null) {
             return false;
         }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
-            return false;
-        }
+
         int hashCode = System.identityHashCode(o);
         if (!appObjects.containsKey(hashCode)) {
             return false;
@@ -191,10 +176,7 @@ public class ObjectRegistry {
         if (o == null) {
             return o;
         }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
-            return o;
-        }
+
         int hashCode = System.identityHashCode(o);
         if (!appObjects.containsKey(hashCode)) {
             return o;
@@ -233,10 +215,7 @@ public class ObjectRegistry {
         if (o == null) {
             return null;
         }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
-            return null;
-        }
+
         int hashCode = System.identityHashCode(o);
         if (!appObjects.containsKey(hashCode)) {
             return null;
@@ -265,11 +244,7 @@ public class ObjectRegistry {
             LOGGER.warn("Trying to remove a null object from the object registry");
             return false;
         }
-        Map<Integer, Object> appObjects = apps.get(appId);
-        if (appObjects == null) {
-            LOGGER.warn("Trying to remove non task parameter object");
-            return false;
-        }
+
         int hashCode = System.identityHashCode(o);
         if (!appObjects.containsKey(hashCode)) {
             LOGGER.warn("Trying to remove non task parameter object");

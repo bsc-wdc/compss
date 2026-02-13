@@ -19,12 +19,11 @@ package es.bsc.compss.loader.total;
 
 public class CallGenerator {
 
-    // ObjectRegistry methods
-    private static final String GET_INTERNAL_OBJECT = ".getInternalObject(";
-    private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
-    private static final String NEW_OBJECT_PARAM = ".newObjectParameter(";
-
-    private static final String DELETE_OBJECT = ".delete(";
+    // JavaWorkflow methods
+    private static final String OBJECT_ACCESS = ".accessObject(";
+    private static final String OBJECT_PARAM = ".accessAsTaskParam(";
+    private static final String OBJECT_VALUE = ".getRegisteredObjectValue(";
+    private static final String OBJECT_DELETE = ".removeObject(";
 
     // File access methods
     private static final String NEW_FILTER_STREAM = ".newFilterStream(";
@@ -44,63 +43,57 @@ public class CallGenerator {
     /**
      * Constructs the instruction to get the internal object registered for a representative.
      *
-     * @param itOR name of the ObjectRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the JavaWorkflow variable
      * @param val name of the variable containing the accessed object
      * @return instruction calling the runtime to return the object internally stored in the OR
      */
-    public static String oRegGetInternalObject(String itOR, String itAppId, String val) {
-        return itOR + GET_INTERNAL_OBJECT + "(java.lang.Long)" + itAppId + "," + val + ")";
+    public static String getRegisteredObjectValue(String itWf, String val) {
+        return itWf + OBJECT_VALUE + val + ")";
     }
 
     /**
-     * Constructs the instruction to register a new object access.
+     * Constructs the instruction to register a new write access to an object.
      *
-     * @param itOR name of the ObjectRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the JavaWorkflow variable
      * @param val name of the variable containing the accessed object
      * @return instruction calling the runtime to register a new object access
      */
-    public static String oRegNewObjectAccess(String itOR, String itAppId, String val) {
-        return itOR + NEW_OBJECT_ACCESS + "(java.lang.Long)" + itAppId + "," + val + ")";
+    public static String wfAccessObject(String itWf, String val) {
+        return itWf + OBJECT_ACCESS + val + ")";
     }
 
     /**
      * Constructs the instruction to register a new object access.
      *
-     * @param itOR name of the ObjectRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the JavaWorkflow variable
      * @param val name of the variable containing the accessed object
      * @param isWriter does the access modify the object
      * @return instruction calling the runtime to register a new object access
      */
-    public static String oRegNewObjectAccess(String itOR, String itAppId, String val, boolean isWriter) {
-        return itOR + NEW_OBJECT_ACCESS + "(java.lang.Long)" + itAppId + "," + val + "," + " (boolean)" + isWriter
-            + ")";
+    public static String wfAccessObject(String itWf, String val, boolean isWriter) {
+        return itWf + OBJECT_ACCESS + val + "," + " (boolean)" + isWriter + ")";
     }
 
     /**
      * Constructs the instruction to register a new object access.
      *
-     * @param itOR name of the ObjectRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the JavaWorkflow variable
      * @param val name of the variable containing the accessed object
      * @return instruction calling the runtime to register a new object access
      */
-    public static String oRegNewObjectParameter(String itOR, String itAppId, String val) {
-        return itOR + NEW_OBJECT_PARAM + "(java.lang.Long)" + itAppId + "," + val + ")";
+    public static String wfObjectParameter(String itWf, String val) {
+        return itWf + OBJECT_PARAM + val + ")";
     }
 
     /**
-     * Constructs the instruction to remove an object value from the registry.
+     * Constructs the instruction to delete an object value.
      *
-     * @param itOR name of the ObjectRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the JavaWorkflow variable
      * @param val name of the variable containing the accessed object
      * @return instruction calling the OR to remove the object
      */
-    public static String oRegRemove(String itOR, String itAppId, String val) {
-        return itOR + DELETE_OBJECT + "(java.lang.Long)" + itAppId + "," + val + ")";
+    public static String wfDeleteObject(String itWf, String val) {
+        return itWf + OBJECT_DELETE + val + ")";
     }
 
     /**

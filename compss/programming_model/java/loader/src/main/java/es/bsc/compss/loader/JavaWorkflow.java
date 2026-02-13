@@ -56,6 +56,55 @@ public class JavaWorkflow implements Workflow {
     }
 
     /**
+     * Registers new access from the workflow to an object as a parameter.
+     *
+     * @param o Object parameter.
+     * @return Final hashcode of the object.
+     */
+    public int accessAsTaskParam(Object o) {
+        return this.oReg.newObjectParameter(workflow.getId(), o);
+    }
+
+    /**
+     * Registers new write access from the main code of the workflow to an object.
+     *
+     * @param o Object parameter.
+     */
+    public void accessObject(Object o) {
+        this.oReg.newObjectAccess(workflow.getId(), o, true);
+    }
+
+    /**
+     * Registers new {@code isWriter} access from the main code of the workflow to an object.
+     *
+     * @param o Object parameter.
+     * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
+     */
+    public void accessObject(Object o, boolean isWriter) {
+        this.oReg.newObjectAccess(workflow.getId(), o, isWriter);
+    }
+
+    /**
+     * Returns the currently registered value for the object represented by {@code o}.
+     *
+     * @param o Object.
+     * @return Internal object representing the given object {@code o}.
+     */
+    public Object getRegisteredObjectValue(Object o) {
+        return this.oReg.getInternalObject(workflow.getId(), o);
+    }
+
+    /**
+     * Deletes the given object {@code o}.
+     *
+     * @param o Object.
+     * @return {@code true} if the object has been removed, {@code false} otherwise.
+     */
+    public boolean removeObject(Object o) {
+        return this.oReg.delete(workflow.getId(), o);
+    }
+
+    /**
      * Retrieves the last updated value for an object.
      * 
      * @param o Object whose final values has to be retrieved.

@@ -161,8 +161,8 @@ public class ITAppEditor extends ExprEditor {
                                     + " is an object, adding access");
                             }
 
-                            String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
-                            modifiedExpr.insert(0, CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
+                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
+                            modifiedExpr.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
                             callPars.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
                         }
@@ -305,10 +305,10 @@ public class ITAppEditor extends ExprEditor {
 
         // First check the object containing the field
         StringBuilder toInclude = new StringBuilder();
-        toInclude.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, "$0", isWriter)).append(";");
+        toInclude.append(CallGenerator.wfAccessObject(itWfVar, "$0", isWriter)).append(";");
 
         // Execute the access on the internal object
-        String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$0");
+        String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$0");
         String objectClass = fa.getClassName();
         toInclude.append("if (").append(internalObject).append(" != null) {");
         if (isWriter) {
@@ -354,7 +354,7 @@ public class ITAppEditor extends ExprEditor {
             if (className.equals(File.class.getCanonicalName())) {
                 modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itAppIdVar, callPars) + ";";
             } else {
-                String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$1");
+                String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$1");
                 String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
                 modifiedExpr = PROCEED + callPars + "); ";
                 modifiedExpr += "if ($_ instanceof " + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
@@ -607,7 +607,7 @@ public class ITAppEditor extends ExprEditor {
         boolean isArrayWatch = method.getDeclaringClass().getName().equals(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
 
         // First check the target object
-        modifiedCall.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, "$0")).append(";");
+        modifiedCall.append(CallGenerator.wfAccessObject(itWfVar, "$0")).append(";");
 
         /*
          * Now add the call. If the target object of the call is a task object, invoke the method on the internal object
@@ -666,18 +666,16 @@ public class ITAppEditor extends ExprEditor {
                                 || calledClass.equals(StringBuilder.class.getName())) {
                                 // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
                                 // already has the name
-                                String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
-                                modifiedCall.insert(0,
-                                    CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
+                                String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
+                                modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
                                 aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                     .append("(" + parType.getName() + ")").append(internalObject);
                             } else {
-                                String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
+                                String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
                                 String taskFile = CallGenerator.isTaskFile(this.itSRVar, this.itAppIdVar, parId);
                                 String apiOpenFile = CallGenerator.openFile(this.itApiVar, this.itAppIdVar, parId,
                                     DATA_DIRECTION + ".INOUT");
-                                modifiedCall.insert(0,
-                                    CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
+                                modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
                                 // Adding check of task files
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ")
                                     .append(internalObject).append(" == null ? ").append(parId).append(" : ")
@@ -694,8 +692,8 @@ public class ITAppEditor extends ExprEditor {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
-                            String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
-                            modifiedCall.insert(0, CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
+                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
+                            modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
                             aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
                         }
@@ -708,7 +706,7 @@ public class ITAppEditor extends ExprEditor {
         } catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
-        String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, "$0");
+        String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$0");
         modifiedCall.append("if (").append(internalObject).append(" != null) {")
             .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT).append(internalObject).append(",$class,\"").append(methodName)
             .append("\",").append(redirectedCallPars).append(",$sig);")
@@ -893,12 +891,10 @@ public class ITAppEditor extends ExprEditor {
                                 parType = "";
                             }
                         } else { // Object or Self-Contained Object or Persistent SCO
-                            paramPreparation =
-                                CallGenerator.oRegNewObjectParameter(itORVar, itAppIdVar, "$" + (paramIndex + 1)) + ";";
+                            paramPreparation = CallGenerator.wfObjectParameter(itWfVar, "$" + (paramIndex + 1)) + ";";
                             parType = CHECK_SCO_TYPE + "$" + (paramIndex + 1) + ")";
                             if (par.direction() == Direction.IN_DELETE) {
-                                paramCleanup =
-                                    CallGenerator.oRegRemove(itORVar, itAppIdVar, "$" + (paramIndex + 1)) + ";";
+                                paramCleanup = CallGenerator.wfDeleteObject(itWfVar, "$" + (paramIndex + 1)) + ";";
                             }
                         }
                         break;
@@ -955,7 +951,7 @@ public class ITAppEditor extends ExprEditor {
                     // Service
                     parDirection = "INOUT";
                 }
-                this.paramPreparation = CallGenerator.oRegNewObjectParameter(itORVar, itAppIdVar, tgtVal) + ";";
+                this.paramPreparation = CallGenerator.wfObjectParameter(itWfVar, tgtVal) + ";";
                 this.targetDescription = buildParameter(tgtVal, tgtType, parDirection, "");
             }
 
@@ -1036,10 +1032,9 @@ public class ITAppEditor extends ExprEditor {
                      * After execute task, register an access to the wrapper object, get its (remotely) generated value
                      * and assign it to the application's primitive type var
                      */
-                    resCollection.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, tempRetVar))
-                        .append(";");
+                    resCollection.append(CallGenerator.wfAccessObject(itWfVar, tempRetVar)).append(";");
                     resCollection.append("$_ = (").append(cast)
-                        .append(CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, tempRetVar)).append(").")
+                        .append(CallGenerator.getRegisteredObjectValue(itWfVar, tempRetVar)).append(").")
                         .append(converterMethod).append(";");
                 } else if (retType.isArray()) {
                     // ARRAY
@@ -1093,7 +1088,7 @@ public class ITAppEditor extends ExprEditor {
                     }
                 }
 
-                resPreparation.append(CallGenerator.oRegNewObjectParameter(itORVar, itAppIdVar, parValue)).append(";");
+                resPreparation.append(CallGenerator.wfObjectParameter(itWfVar, parValue)).append(";");
                 param = buildOutParameter(parValue, parType, contentType);
 
                 this.paramPreparation = resPreparation.toString();

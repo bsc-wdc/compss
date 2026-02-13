@@ -51,17 +51,6 @@ public class ObjectRegistry {
     }
 
     /**
-     * Registers a new Object access.
-     *
-     * @param appId Application Id.
-     * @param o Object.
-     * @return synchronized value of the object. If it hadn't been registered, it returns the same object.
-     */
-    public Object newObjectAccess(Long appId, Object o) {
-        return newObjectAccess(appId, o, true);
-    }
-
-    /**
      * Registers a new access to the given object {@code o} in mode {@code isWriter}.
      *
      * @param appId Application Id.

@@ -20,6 +20,7 @@ import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.ObjectRegistry;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -46,6 +47,11 @@ public class JavaWorkflow implements Workflow {
     @Override
     public void deregister() {
         workflow.deregister();
+    }
+
+    @Override
+    public void registerData(DataType type, Object stub, String dataId) {
+        this.workflow.registerData(type, stub, dataId);
     }
 
     @Override

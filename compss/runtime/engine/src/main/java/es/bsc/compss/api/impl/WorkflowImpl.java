@@ -17,15 +17,18 @@
 package es.bsc.compss.api.impl;
 
 import es.bsc.compss.api.ApplicationRunner;
+import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.params.CollectionData;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.data.params.ObjectData;
@@ -34,6 +37,7 @@ import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
@@ -42,6 +46,8 @@ import org.apache.logging.log4j.Logger;
 
 public class WorkflowImpl extends Application implements Workflow {
 
+    private static final String ERROR_BINDING_OBJECT_PARAMS =
+        "ERROR: Incorrect number of parameters for external objects";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
@@ -146,6 +152,87 @@ public class WorkflowImpl extends Application implements Workflow {
         LOGGER.debug("Getting Result Files for app" + this.getId());
         AP.getResultFiles(this);
 
+    }
+
+    @Override
+    public void registerData(DataType type, Object stub, String data) {
+        APITracer.traced(APIEvent.REGISTER_DATA, (Runnable) () -> {
+            DataParams dp = null;
+            switch (type) {
+                case DIRECTORY_T:
+                case FILE_T:
+                    try {
+                        String fileName = (String) stub;
+                        // Parse arguments to internal structures
+                        DataLocation loc;
+                        try {
+                            loc = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+                        } catch (IOException ioe) {
+                            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+                            return;
+                        }
+                        dp = new FileData(loc);
+                    } catch (NullPointerException npe) {
+                        LOGGER.error(ERROR_FILE_NAME, npe);
+                        ErrorManager.fatal(ERROR_FILE_NAME, npe);
+                    }
+                    break;
+                case OBJECT_T:
+                case PSCO_T:
+                    int hashcode = System.identityHashCode(stub);
+                    dp = new ObjectData(hashcode);
+                    break;
+                case STREAM_T:
+                    // int streamCode = System.identityHashCode(stub);
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case EXTERNAL_STREAM_T:
+                    try {
+                        String fileName = (String) stub;
+                        new File(fileName).getName();
+                    } catch (NullPointerException npe) {
+                        LOGGER.error(ERROR_FILE_NAME, npe);
+                        ErrorManager.fatal(ERROR_FILE_NAME, npe);
+                    }
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case EXTERNAL_PSCO_T:
+                    // String id = (String) stub;
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case BINDING_OBJECT_T:
+                    String value = (String) stub;
+                    if (value.contains(":")) {
+                        String[] fields = value.split(":");
+                        // if (fields.length == 3) {
+                        // String extObjectId = fields[0];
+                        // int extObjectType = Integer.parseInt(fields[1]);
+                        // int extObjectElements = Integer.parseInt(fields[2]);
+                        // BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
+                        // new BindingObject(extObjectId, extObjectType, extObjectElements);
+                        // int externalCode = externalObjectHashcode(extObjectId);
+                        // externalObjectHashcode(extObjectId);
+                        // }
+                        if (fields.length != 3) {
+                            LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                            ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                        }
+                    } else {
+                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
+                    }
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                case COLLECTION_T:
+                    dp = new CollectionData((String) stub);
+                    break;
+                case DICT_COLLECTION_T:
+                    throw new UnsupportedOperationException("Not implemented yet.");
+                default:
+                    // Basic types (including String)
+                    // Already passed in as a value
+                    break;
+            }
+            if (dp != null) {
+                AP.registerRemoteData(this, dp, data);
+            }
+        });
     }
 
     @Override

@@ -157,7 +157,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             case OBJECT_T:
             case PSCO_T:
                 Object o = p.getValue();
-                this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), o, p.getSourceDataId());
+                wf.registerData(p.getType(), o, p.getSourceDataId());
                 break;
             default:
                 super.handleSimpleInputValue(wf, p);

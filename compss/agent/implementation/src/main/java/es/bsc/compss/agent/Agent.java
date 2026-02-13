@@ -224,13 +224,13 @@ public class Agent {
             LOGGER.debug("Handles parameters:");
             for (ApplicationParameter param : arguments) {
                 LOGGER.debug("\t Parameter:" + param.getParamName());
-                processParameter(appId, param, position, params);
+                processParameter(wf, param, position, params);
                 position += PARAM_LENGTH;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
-                processParameter(appId, target, position, params);
+                processParameter(wf, target, position, params);
                 position += PARAM_LENGTH;
             }
 
@@ -271,7 +271,7 @@ public class Agent {
         return appId;
     }
 
-    private static String processCollParamValue(ApplicationParameterCollection<ApplicationParameter> param, Long appId,
+    private static String processCollParamValue(ApplicationParameterCollection<ApplicationParameter> param, Workflow wf,
         String colName) throws Exception {
 
         int collSize = param.getCollectionParameters().size();
@@ -289,7 +289,7 @@ public class Agent {
                 @SuppressWarnings("unchecked")
                 ApplicationParameterCollection<ApplicationParameter> collSubParam =
                     (ApplicationParameterCollection<ApplicationParameter>) (subParam);
-                paramValue = processCollParamValue(collSubParam, appId, subParamName);
+                paramValue = processCollParamValue(collSubParam, wf, subParamName);
             } else {
                 paramValue = subParam.getValueContent().toString() + " " + subParam.getContentType();
             }
@@ -304,13 +304,13 @@ public class Agent {
                     stub = paramValue;
                 }
                 addRemoteData(remote);
-                RUNTIME.registerData(appId, subParam.getType(), stub, remote.getRenaming());
+                wf.registerData(subParam.getType(), stub, remote.getRenaming());
             }
         }
         return sb.toString();
     }
 
-    private static Object processParamValue(Long appId, int position, ApplicationParameter param) throws Exception {
+    private static Object processParamValue(Workflow wf, int position, ApplicationParameter param) throws Exception {
         RemoteDataInformation remote = param.getRemoteData();
         Object stub;
         if (remote == null && param.getType() != DataType.COLLECTION_T) {
@@ -320,27 +320,27 @@ public class Agent {
             if (param.getType() == DataType.FILE_T) {
                 stub = param.getValueContent();
             } else {
-                stub = "app_" + appId + "_param" + position;
+                stub = "app_" + wf.getId() + "_param" + position;
                 if (param.getType() == DataType.COLLECTION_T) {
                     @SuppressWarnings("unchecked")
                     ApplicationParameterCollection<ApplicationParameter> collSubParam =
                         (ApplicationParameterCollection<ApplicationParameter>) (param);
-                    stub = processCollParamValue(collSubParam, appId, (String) stub);
+                    stub = processCollParamValue(collSubParam, wf, (String) stub);
                 }
             }
 
             if (remote != null) {
                 addRemoteData(remote);
-                RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
+                wf.registerData(param.getType(), stub, remote.getRenaming());
             }
         }
         return stub;
     }
 
-    private static void processParameter(Long appId, ApplicationParameter param, int position, Object[] arguments)
+    private static void processParameter(Workflow wf, ApplicationParameter param, int position, Object[] arguments)
         throws AgentException, Exception {
 
-        Object value = processParamValue(appId, position, param);
+        Object value = processParamValue(wf, position, param);
         addTaskParameter(value, param, position, arguments);
     }
 

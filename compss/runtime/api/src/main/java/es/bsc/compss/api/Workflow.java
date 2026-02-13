@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -84,6 +85,15 @@ public interface Workflow {
      * @throws COMPSsException Custom COMPSs exception to handle groups.
      */
     void barrierGroup(String groupName) throws COMPSsException;
+
+    /**
+     * Registers a new Data value.
+     *
+     * @param type Data type
+     * @param stub Local object representing the data
+     * @param dataId already existing data with the content
+     */
+    void registerData(DataType type, Object stub, String dataId);
 
     /**
      * Bind the last known version of a file in the runtime system with another dataId.

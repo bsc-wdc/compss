@@ -462,7 +462,7 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
     protected void handleSimpleInputValue(W wf, InvocationParam p) {
         if (p.getType() == DataType.FILE_T) {
             String originalName = p.getOriginalName();
-            this.context.getRuntimeAPI().registerData(wf.getId(), p.getType(), originalName, p.getSourceDataId());
+            wf.registerData(p.getType(), originalName, p.getSourceDataId());
         }
     }
 

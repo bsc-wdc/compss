@@ -248,16 +248,6 @@ public interface COMPSsRuntime {
      * DATA ACCESS METHODS
      ******************************************************************************************************************/
     /**
-     * Registers a new Data value.
-     *
-     * @param appId Id of the application accessing the data.
-     * @param type Data type
-     * @param stub Local object representing the data
-     * @param dataId already existing data with the content
-     */
-    public void registerData(Long appId, DataType type, Object stub, String dataId);
-
-    /**
      * Checks if a file has been accessed by the runtime.
      *
      * @param appId Id of the application checking the file access

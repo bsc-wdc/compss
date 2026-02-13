@@ -1,11 +1,12 @@
+# ACKNOWLEDGEMENTS
+
 The development of this software has been supported by the following institutions:
 
-* Spanish Government under contracts SEV2015-0493, TIN2015-65316 and PID2019-107255G.
+* Spanish Government under contracts SEV2015-0493, TIN2015-65316 and PID2019-107255G, PID2023-147979NB-C21, CEX2021-001148-S, PCI2021-12195, PCI2022-134996-2, TED2021-130351B-C22.
 
-* Generalitat de Catalunya under contracts 2014-SGR-1051, 2017-SGR-01414 and the CECH project, co-funded with 50% by the European Regional Development Fund under the
-framework of the ERFD Operative Programme for Catalunya 2014-2020.
+* Generalitat de Catalunya under contracts 2014-SGR-1051, 2017-SGR-01414, 2021-SGR-00412 and the CECH project, co-funded with 50% by the European Regional Development Fund under the framework of the ERFD Operative Programme for Catalunya 2014-2020.
 
-* Spanish Ministry for the Digital Processing and Civil Servie and the European Union - NextGenerationEU (PRTR and MRR):
+* Spanish Ministry for the Digital Processing and Civil Service and the European Union - NextGenerationEU (PRTR and MRR):
   * UNICO I+D Cloud COLMENA project
 
 * European Commission's through the following R&D projects:
@@ -33,7 +34,12 @@ framework of the ERFD Operative Programme for Catalunya 2014-2020.
   * H2020 AI-Sprint project (Contract 101016577)
   * H2020 PerMedCoE Center of Excellence (Contract 951773)
   * Horizon Europe CAELESTIS project (Contract 101056886)
-  * Horizon Europe DT-Geo project (Contract 101058129)
+  * Horizon Europe DT-GEO project (Contract 101058129)
   * Horizon Europe ICOS project (Contract 101070177)
   * Horizon Europe ODISSEE project (Contract 101188332)
   * Horizon Europe CyclOps project (Contract 101135513)
+  * Horizon EuroHPC JU CEEC project (Contract 101093393)
+  * Horizon EuroHPC JU DARE project (Contract 101202459)
+  * Horizon EuroHPC JU SEANERGYS (Contract 101177590)
+
+* Computer, Electrical and Mathematical Sciences and Engineering (CEMSE) Division, King Abdullah University of Science and Technology (KAUST), Thuwal, Saudi Arabia.

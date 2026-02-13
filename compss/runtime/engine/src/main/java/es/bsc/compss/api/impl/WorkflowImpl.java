@@ -18,18 +18,31 @@ package es.bsc.compss.api.impl;
 
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.params.DataParams;
+import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.data.params.ObjectData;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
+import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
+
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
 public class WorkflowImpl extends Application implements Workflow {
+
+    private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
     private static AccessProcessor AP;
@@ -135,7 +148,49 @@ public class WorkflowImpl extends Application implements Workflow {
 
     }
 
+    @Override
+    public boolean bindExistingVersionToData(String fileName, String dataId) {
+        return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
+            // Parse the file name
+            DataLocation sourceLocation = null;
+            try {
+                sourceLocation = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            }
+            if (sourceLocation == null) {
+                ErrorManager.fatal(ERROR_FILE_NAME);
+            }
 
+            FileData fd = new FileData(sourceLocation);
+            return bindExistingVersionToData(fd, dataId);
+        });
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Object o, String dataId) {
+        return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
+            int hashCode = System.identityHashCode(o);
+            ObjectData od = new ObjectData(hashCode);
+            return bindExistingVersionToData(od, dataId);
+        });
+    }
+
+    private boolean bindExistingVersionToData(DataParams data, String dataId) {
+        LOGGER.debug("Binding " + data.getDescription() + "'s last version to data " + dataId);
+        LogicalData lastVersion = AP.getDataLastVersion(this, data);
+        if (lastVersion != null) {
+            LogicalData src = Comm.getData(dataId);
+            try {
+                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
+                LogicalData.link(src, lastVersion);
+                return true;
+            } catch (CommException e) {
+                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean removeObject(Object o) {

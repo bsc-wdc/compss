@@ -511,7 +511,7 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
         if (p.getType() == DataType.FILE_T) {
             String originalName = (String) p.getValue();
             String dataId = p.getDataMgmtId();
-            if (this.context.getRuntimeAPI().bindExistingVersionToData(wf.getId(), originalName, dataId)) {
+            if (wf.bindExistingVersionToData(originalName, dataId)) {
                 p.resultIsForwarded();
             }
         }

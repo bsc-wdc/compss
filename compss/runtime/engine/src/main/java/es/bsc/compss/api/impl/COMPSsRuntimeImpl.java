@@ -29,7 +29,6 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.socketserver.SocketServer;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
-import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
@@ -45,7 +44,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
@@ -623,52 +621,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 ap.registerRemoteData(app, dp, data);
             }
         });
-    }
-
-    @Override
-    public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
-            // Parse the file name
-            DataLocation sourceLocation = null;
-            try {
-                sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
-            } catch (IOException ioe) {
-                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-            }
-            if (sourceLocation == null) {
-                ErrorManager.fatal(ERROR_FILE_NAME);
-            }
-
-            Application app = Application.registerApplication(appId);
-            FileData fd = new FileData(sourceLocation);
-            return bindExistingVersionToData(app, fd, dataId);
-        });
-    }
-
-    @Override
-    public boolean bindExistingVersionToData(Long appId, Object o, String dataId) {
-        return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
-            Application app = Application.registerApplication(appId);
-            int hashCode = System.identityHashCode(o);
-            ObjectData od = new ObjectData(hashCode);
-            return bindExistingVersionToData(app, od, dataId);
-        });
-    }
-
-    private boolean bindExistingVersionToData(Application app, DataParams data, String dataId) {
-        LOGGER.debug("Binding " + data.getDescription() + "'s last version to data " + dataId);
-        LogicalData lastVersion = ap.getDataLastVersion(app, data);
-        if (lastVersion != null) {
-            LogicalData src = Comm.getData(dataId);
-            try {
-                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
-                LogicalData.link(src, lastVersion);
-                return true;
-            } catch (CommException e) {
-                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
-            }
-        }
-        return false;
     }
 
     @Override
@@ -1639,13 +1591,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return finalPath;
     }
 
-    private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {
+    /**
+     * Creates a location from an URI as a string.
+     *
+     * @param defaultSchema schema, if not indicated in the URI
+     * @param uri uri to create a Data Location
+     * @return DataLocation equivalent to the URI
+     * @throws IOException cannot convert to SimpleURI
+     */
+    public static DataLocation createLocation(ProtocolType defaultSchema, String uri) throws IOException {
         // Check if fileName contains schema
-        SimpleURI uri = new SimpleURI(fileName);
+        SimpleURI sURI = new SimpleURI(uri);
 
         // Check host
         Resource host;
-        String hostName = uri.getHost();
+        String hostName = sURI.getHost();
         host = Comm.getAppHost();
         if (hostName != null && !hostName.isEmpty()) {
             Resource uriHost = ResourcesPool.getResource(hostName);
@@ -1653,23 +1613,23 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 ErrorManager.error("Host " + hostName + " not found when creating data location.");
             } else {
                 host = uriHost;
-                fileName = uri.getPath();
+                uri = sURI.getPath();
             }
         }
 
-        if (uri.getSchema().isEmpty()) {
-            if (fileName.startsWith("/")) {
+        if (sURI.getSchema().isEmpty()) {
+            if (uri.startsWith("/")) {
                 // todo: make pretty and sure it works
-                uri = new SimpleURI(defaultSchema.getSchema() + fileName);
+                sURI = new SimpleURI(defaultSchema.getSchema() + uri);
             } else {
                 // Add default File scheme and wrap local paths
-                String canonicalPath = new File(fileName).getCanonicalPath();
-                uri = new SimpleURI(defaultSchema.getSchema() + canonicalPath);
+                String canonicalPath = new File(uri).getCanonicalPath();
+                sURI = new SimpleURI(defaultSchema.getSchema() + canonicalPath);
             }
         }
 
         // Create location
-        return DataLocation.createLocation(host, uri);
+        return DataLocation.createLocation(host, sURI);
     }
 
     private void createWallClockReaper() {

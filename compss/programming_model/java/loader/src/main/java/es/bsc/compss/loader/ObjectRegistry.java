@@ -110,13 +110,12 @@ public class ObjectRegistry {
 
     /**
      * Links a data with the last known version for an object.
-     * 
-     * @param appId Application Id.
+     *
      * @param o Object
      * @param dataId dataId to link
      * @return {@literal true} if the object was already registered; {@literal false} otherwise.
      */
-    public boolean bindToDataIfExisting(Long appId, Object o, String dataId) {
+    public boolean bindToDataIfExisting(Object o, String dataId) {
         if (o == null) {
             return false;
         }
@@ -133,7 +132,7 @@ public class ObjectRegistry {
             int hashCode = System.identityHashCode(o);
             LOGGER.debug("Linking data " + dataId + " with last value of object with hash code " + hashCode);
         }
-        return this.itApi.bindExistingVersionToData(appId, o, dataId);
+        return this.wf.bindExistingVersionToData(o, dataId);
     }
 
     /**

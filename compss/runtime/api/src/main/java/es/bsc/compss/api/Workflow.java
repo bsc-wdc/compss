@@ -86,6 +86,24 @@ public interface Workflow {
     void barrierGroup(String groupName) throws COMPSsException;
 
     /**
+     * Bind the last known version of a file in the runtime system with another dataId.
+     *
+     * @param fileName File name.
+     * @param dataId data to bind the object
+     * @return {@literal true} if the data was bound to a previous version; {@literal false} otherwise.
+     */
+    boolean bindExistingVersionToData(String fileName, String dataId);
+
+    /**
+     * Bind the last known version of an object in the runtime system with another dataId.
+     *
+     * @param o Object.
+     * @param dataId data to bind the object
+     * @return {@literal true} if the data was bound to a previous version; {@literal false} otherwise.
+     */
+    boolean bindExistingVersionToData(Object o, String dataId);
+
+    /**
      * Removes the given object {@code o}.
      *
      * @param o Object.

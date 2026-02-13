@@ -38,13 +38,6 @@ public class JavaWorkflow implements Workflow {
         this.oReg = new ObjectRegistry((LoaderAPI) runtime, this);
     }
 
-    /**
-     * Access to the additional state associated with this workflow.
-     */
-    public ObjectRegistry getObjectRegistry() {
-        return this.oReg;
-    }
-
     @Override
     public Long getId() {
         return workflow.getId();
@@ -53,6 +46,16 @@ public class JavaWorkflow implements Workflow {
     @Override
     public void deregister() {
         workflow.deregister();
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Object o, String dataId) {
+        return this.oReg.bindToDataIfExisting(o, dataId);
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(String fileName, String dataId) {
+        return this.workflow.bindExistingVersionToData(fileName, dataId);
     }
 
     /**

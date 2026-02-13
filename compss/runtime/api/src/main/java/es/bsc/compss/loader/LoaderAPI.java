@@ -68,16 +68,6 @@ public interface LoaderAPI {
     public void getFile(Long appId, String fileName);
 
     /**
-     * Bind the last known version of an object in the runtime system with another dataId.
-     * 
-     * @param appId Id of the application accessing the object
-     * @param o Object.
-     * @param dataId data to bind the object
-     * @return {@literal true} if the data was bound to a previous version; {@literal false} otherwise.
-     */
-    public boolean bindExistingVersionToData(Long appId, Object o, String dataId);
-
-    /**
      * Returns a copy of the last version of the given object {@code o}.
      * 
      * @param appId Id of the application accessing the object

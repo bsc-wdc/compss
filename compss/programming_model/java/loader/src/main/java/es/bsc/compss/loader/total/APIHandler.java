@@ -18,8 +18,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.api.Workflow;
-import es.bsc.compss.loader.ObjectRegistry;
+import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -30,9 +29,8 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      */
-    public static void barrier(COMPSsRuntime api, Workflow wf, ObjectRegistry or) {
+    public static void barrier(COMPSsRuntime api, JavaWorkflow wf) {
         wf.barrier();
     }
 
@@ -41,10 +39,9 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry *
      * @param noMoreTasks Whether there are more tasks to be created or not.
      */
-    public static void barrier(COMPSsRuntime api, Workflow wf, ObjectRegistry or, boolean noMoreTasks) {
+    public static void barrier(COMPSsRuntime api, JavaWorkflow wf, boolean noMoreTasks) {
         wf.barrier(noMoreTasks);
     }
 
@@ -53,11 +50,9 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry *
      * @param groupName Name of the group to perform the barrier.
      */
-    public static void barrierGroup(COMPSsRuntime api, Workflow wf, ObjectRegistry or, String groupName)
-        throws COMPSsException {
+    public static void barrierGroup(COMPSsRuntime api, JavaWorkflow wf, String groupName) throws COMPSsException {
         wf.barrierGroup(groupName);
     }
 
@@ -66,11 +61,9 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      * @param groupName Name of the group to cancel.
      */
-    public static void cancelGroup(COMPSsRuntime api, Workflow wf, ObjectRegistry or, String groupName)
-        throws COMPSsException {
+    public static void cancelGroup(COMPSsRuntime api, JavaWorkflow wf, String groupName) throws COMPSsException {
         wf.cancelTaskGroup(groupName);
     }
 
@@ -79,11 +72,10 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      * @param o Object to unregister.
      */
-    public static void deregisterObject(COMPSsRuntime api, Workflow wf, ObjectRegistry or, Object o) {
-        or.delete(wf.getId(), o);
+    public static void deregisterObject(COMPSsRuntime api, JavaWorkflow wf, Object o) {
+        wf.removeObject(o);
     }
 
     /**
@@ -91,10 +83,9 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      * @param fileName File path.
      */
-    public static void getFile(COMPSsRuntime api, Workflow wf, ObjectRegistry or, String fileName) {
+    public static void getFile(COMPSsRuntime api, JavaWorkflow wf, String fileName) {
         api.getFile(wf.getId(), fileName);
     }
 
@@ -103,10 +94,9 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      * @return The number of active resources.
      */
-    public static int getNumberOfResources(COMPSsRuntime api, Workflow wf, ObjectRegistry or) {
+    public static int getNumberOfResources(COMPSsRuntime api, JavaWorkflow wf) {
         return api.getNumberOfResources();
     }
 
@@ -115,12 +105,10 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      * @param numResources Number of resources to create.
      * @param groupName name of the group to cancel if the creation fails
      */
-    public static void requestResources(COMPSsRuntime api, Workflow wf, ObjectRegistry or, int numResources,
-        String groupName) {
+    public static void requestResources(COMPSsRuntime api, JavaWorkflow wf, int numResources, String groupName) {
         api.requestResources(wf.getId(), numResources, groupName);
     }
 
@@ -129,11 +117,9 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      * @param numResources Number of resources to destroy.
      */
-    public static void freeResources(COMPSsRuntime api, Workflow wf, ObjectRegistry or, int numResources,
-        String groupName) {
+    public static void freeResources(COMPSsRuntime api, JavaWorkflow wf, int numResources, String groupName) {
         api.freeResources(wf.getId(), numResources, groupName);
     }
 
@@ -142,9 +128,8 @@ public final class APIHandler {
      *
      * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
-     * @param or Object registry
      */
-    public static void snapshot(COMPSsRuntime api, Workflow wf, ObjectRegistry or) {
+    public static void snapshot(COMPSsRuntime api, JavaWorkflow wf) {
         wf.snapshot();
     }
 

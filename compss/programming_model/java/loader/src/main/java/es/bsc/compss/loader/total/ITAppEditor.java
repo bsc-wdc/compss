@@ -88,7 +88,6 @@ public class ITAppEditor extends ExprEditor {
     private CtMethod[] instrCandidates; // methods that will be instrumented if they are not remote
     private String itApiVar;
     private String itSRVar;
-    private String itORVar;
     private String itWfVar;
     private String itAppIdVar;
     private CtClass appClass;
@@ -101,20 +100,18 @@ public class ITAppEditor extends ExprEditor {
      * @param instrCandidates List of detected methods in the main code.
      * @param itApiVar COMPSs API pointer.
      * @param itSRVar Stream Registry.
-     * @param itORVar Object Registry pointer.
      * @param itWfVar Workflow variable.
      * @param itAppIdVar COMPSs Application Id variable.
      * @param appClass Application main class.
      */
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-        String itORVar, String itWfVar, String itAppIdVar, CtClass appClass) {
+        String itWfVar, String itAppIdVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
         this.instrCandidates = instrCandidates;
         this.itApiVar = itApiVar;
         this.itSRVar = itSRVar;
-        this.itORVar = itORVar;
         this.itWfVar = itWfVar;
         this.itAppIdVar = itAppIdVar;
         this.appClass = appClass;
@@ -578,7 +575,7 @@ public class ITAppEditor extends ExprEditor {
         }
 
         apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itApiVar).append(",")
-            .append(this.itWfVar).append(",").append(this.itORVar);
+            .append(this.itWfVar);
 
         if (hasArgs) {
             apiCall.append(", $$");

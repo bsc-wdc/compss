@@ -183,10 +183,9 @@ public final class ITAppModifier {
             setupWkSupplySrc = ""; // No workflow supply exists. Do nothing
         }
         instAppId = instWf + ".getId()";
-        String itORVar = instWf + ".getObjectRegistry()";
 
         // Instrument class
-        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instWf, instAppId, isMainClass);
+        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, instWf, instAppId, isMainClass);
 
         addGetters(appClass, getters);
         StringBuilder methodBody = new StringBuilder();
@@ -240,7 +239,7 @@ public final class ITAppModifier {
      * orchestration method, or a web service method.
      */
     private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
-        String itSRVar, String itORVar, String itWfVar, String itAppIdVar, boolean isMainClass)
+        String itSRVar, String itWfVar, String itAppIdVar, boolean isMainClass)
         throws NotFoundException, CannotCompileException {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
@@ -265,7 +264,7 @@ public final class ITAppModifier {
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
         ITAppEditor itAppEditor =
-            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itWfVar, itAppIdVar, appClass);
+            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itWfVar, itAppIdVar, appClass);
 
         for (CtMethod m : instrCandidates) {
             if (DEBUG) {

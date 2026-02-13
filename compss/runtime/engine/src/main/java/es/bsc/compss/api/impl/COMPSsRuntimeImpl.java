@@ -1244,11 +1244,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * ************************************************************************************************************
      */
     @Override
-    public void serializeObject(Object o, int hashCode, String destDir) {
-        // throw new NotImplementedException();
-    }
-
-    @Override
     public void emitEvent(int type, long id) {
         Tracer.emitEvent(type, id);
     }

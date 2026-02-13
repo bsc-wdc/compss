@@ -112,31 +112,6 @@ public class ObjectRegistry {
     }
 
     /**
-     * Locally serializes the given object {@code o}.
-     *
-     * @param appId Application Id.
-     * @param o Object.
-     */
-    public void serializeLocally(Long appId, Object o) {
-        if (o == null) {
-            return;
-        }
-        int hashCode = System.identityHashCode(o);
-        if (!appObjects.containsKey(hashCode)) {
-            return;
-        }
-        /*
-         * The object has been accessed by a task before. Delegate its serialization to the API. Serialize the internal
-         * object
-         */
-        if (DEBUG) {
-            LOGGER.debug("About to serialize locally object with hash code " + hashCode);
-        }
-        Object value = appObjects.get(hashCode);
-        this.itApi.serializeObject(value, hashCode, serialDir);
-    }
-
-    /**
      * Links a data with the last known version for an object.
      * 
      * @param appId Application Id.

@@ -144,7 +144,6 @@ public class ITAppEditor extends ExprEditor {
         if (!isInternal) {
             StringBuilder modifiedExpr = new StringBuilder();
             StringBuilder callPars = new StringBuilder();
-            StringBuilder toSerialize = new StringBuilder();
             try {
                 CtClass[] paramTypes = ne.getConstructor().getParameterTypes();
                 if (paramTypes.length > 0) {
@@ -166,8 +165,6 @@ public class ITAppEditor extends ExprEditor {
                             modifiedExpr.insert(0, CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                             callPars.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
-                            toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
-                                .append(";");
                         }
                     }
                 }
@@ -180,7 +177,6 @@ public class ITAppEditor extends ExprEditor {
                 modifiedExpr.append(inspectCreation(className, callPars));
             } else {
                 modifiedExpr.append(PROCEED).append(callPars).append(");");
-                modifiedExpr.append(toSerialize);
             }
 
             if (DEBUG) {
@@ -321,7 +317,6 @@ public class ITAppEditor extends ExprEditor {
                 .append(" = $1;");
             toInclude.append("} else { " + PROCEED + "$$); }");
             // Serialize the (internal) object locally after the access
-            toInclude.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, "$0")).append(";");
         } else {
             // read the field value
             toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").")
@@ -607,14 +602,12 @@ public class ITAppEditor extends ExprEditor {
         }
 
         StringBuilder modifiedCall = new StringBuilder();
-        StringBuilder toSerialize = new StringBuilder();
 
         // Check if the black-box we're going to is one of the array watch methods
         boolean isArrayWatch = method.getDeclaringClass().getName().equals(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
 
         // First check the target object
         modifiedCall.append(CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, "$0")).append(";");
-        toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, "$0")).append(";");
 
         /*
          * Now add the call. If the target object of the call is a task object, invoke the method on the internal object
@@ -678,8 +671,6 @@ public class ITAppEditor extends ExprEditor {
                                     CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                                 aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                     .append("(" + parType.getName() + ")").append(internalObject);
-                                toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
-                                    .append(";");
                             } else {
                                 String internalObject = CallGenerator.oRegGetInternalObject(itORVar, itAppIdVar, parId);
                                 String taskFile = CallGenerator.isTaskFile(this.itSRVar, this.itAppIdVar, parId);
@@ -691,8 +682,6 @@ public class ITAppEditor extends ExprEditor {
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ")
                                     .append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                     .append("(" + parType.getName() + ")").append(internalObject);
-                                toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
-                                    .append(";");
                             }
                         }
                     } else { // Object (also array)
@@ -709,8 +698,6 @@ public class ITAppEditor extends ExprEditor {
                             modifiedCall.insert(0, CallGenerator.oRegNewObjectAccess(itORVar, itAppIdVar, parId) + ";");
                             aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
-                            toSerialize.append(CallGenerator.oRegSerializeLocally(itORVar, itAppIdVar, parId))
-                                .append(";");
                         }
                     }
                     i++;
@@ -727,9 +714,6 @@ public class ITAppEditor extends ExprEditor {
             .append("\",").append(redirectedCallPars).append(",$sig);")
             .append("}else { $_ = ($r)" + RUN_METHOD_ON_OBJECT + "$0,$class,\"").append(methodName).append("\",")
             .append(redirectedCallPars).append(",$sig); }");
-
-        // Serialize the (internal) objects locally after the call
-        modifiedCall.append(toSerialize);
 
         // Return all the modified call
         return modifiedCall.toString();

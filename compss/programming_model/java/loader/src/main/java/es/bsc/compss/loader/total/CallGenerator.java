@@ -24,7 +24,6 @@ public class CallGenerator {
     private static final String NEW_OBJECT_ACCESS = ".newObjectAccess(";
     private static final String NEW_OBJECT_PARAM = ".newObjectParameter(";
 
-    private static final String SERIALIZE_LOCALLY = ".serializeLocally(";
     private static final String DELETE_OBJECT = ".delete(";
 
     // File access methods
@@ -102,18 +101,6 @@ public class CallGenerator {
      */
     public static String oRegRemove(String itOR, String itAppId, String val) {
         return itOR + DELETE_OBJECT + "(java.lang.Long)" + itAppId + "," + val + ")";
-    }
-
-    /**
-     * Constructs the instruction to get the serialize the registered object.
-     *
-     * @param itOR name of the ObjectRegistry variable
-     * @param itAppId name of the variable containing the AppId
-     * @param val name of the variable containing object to register
-     * @return instruction calling the runtime to serialize the object stored in the OR
-     */
-    public static String oRegSerializeLocally(String itOR, String itAppId, String val) {
-        return itOR + SERIALIZE_LOCALLY + "(java.lang.Long)" + itAppId + "," + val + ")";
     }
 
     /**

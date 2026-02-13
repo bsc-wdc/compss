@@ -90,15 +90,6 @@ public interface LoaderAPI {
     public Object getObject(Long appId, Object o, int hashCode, String destDir);
 
     /**
-     * Serializes the given object {@code o} to the given path {@code destDir}.
-     * 
-     * @param o Object.
-     * @param hashCode Object hashcode.
-     * @param destDir Destination directory.
-     */
-    public void serializeObject(Object o, int hashCode, String destDir);
-
-    /**
      * Returns the Stream Registry instance.
      * 
      * @return The Stream Registry instance.

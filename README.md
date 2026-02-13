@@ -149,9 +149,9 @@ export COMPSS_CONTAINER=compss_test
 
 * Code changes affecting the tests sources, config files (e.g. `local.cfg`, and scripts (like `./local`) __will be__ visible inside the newly created container.
 * Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in [step 2](#2-build-the-docker-image).
-* If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual.
+* If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual (tests results in `~/tests`).
 * You must remove the container before running again docker tests: `docker rm -fv compss_test`.
-* To delete the created image issue `docker rmi compss`
+* To delete the created image issue `docker rmi compss`.
 
 ### 4. Run the tests locally on macOS
 

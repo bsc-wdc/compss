@@ -75,7 +75,7 @@ public class ObjectRegistry {
             LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: " + isWriter);
         }
         // Get the updated version of the object
-        Object oUpdated = this.itApi.getObject(appId, o, System.identityHashCode(o), serialDir);
+        Object oUpdated = this.itApi.getObject(appId, o, serialDir);
         if (oUpdated != null) {
             appObjects.put(o, oUpdated);
 
@@ -91,10 +91,9 @@ public class ObjectRegistry {
     /**
      * Registers a new Object parameter.
      *
-     * @param appId Application Id.
      * @param o Object parameter.
      */
-    public void newObjectParameter(Long appId, Object o) {
+    public void newObjectParameter(Object o) {
         if (o == null) {
             return;
         }
@@ -131,17 +130,16 @@ public class ObjectRegistry {
             int hashCode = System.identityHashCode(o);
             LOGGER.debug("Linking data " + dataId + " with last value of object with hash code " + hashCode);
         }
-        return this.itApi.bindExistingVersionToData(appId, o, System.identityHashCode(o), dataId);
+        return this.itApi.bindExistingVersionToData(appId, o, dataId);
     }
 
     /**
      * Returns the internal object representing the given object {@code o}.
      *
-     * @param appId Application Id.
      * @param o Object.
      * @return Internal object representing the given object {@code o}.
      */
-    public Object getInternalObject(Long appId, Object o) {
+    public Object getInternalObject(Object o) {
         if (o == null) {
             return null;
         }
@@ -184,7 +182,7 @@ public class ObjectRegistry {
             int hashCode = System.identityHashCode(o);
             LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
         }
-        this.itApi.removeObject(appId, o, System.identityHashCode(o));
+        this.itApi.removeObject(appId, o);
 
         appObjects.remove(o);
 

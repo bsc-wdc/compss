@@ -72,22 +72,20 @@ public interface LoaderAPI {
      * 
      * @param appId Id of the application accessing the object
      * @param o Object.
-     * @param hashCode Object hashcode.
      * @param dataId data to bind the object
      * @return {@literal true} if the data was bound to a previous version; {@literal false} otherwise.
      */
-    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId);
+    public boolean bindExistingVersionToData(Long appId, Object o, String dataId);
 
     /**
      * Returns a copy of the last version of the given object {@code o}.
      * 
      * @param appId Id of the application accessing the object
      * @param o Object.
-     * @param hashCode Object hashcode.
      * @param destDir Destination directory for serialization.
      * @return In-memory copy of the last version of the given object.
      */
-    public Object getObject(Long appId, Object o, int hashCode, String destDir);
+    public Object getObject(Long appId, Object o, String destDir);
 
     /**
      * Returns the Stream Registry instance.
@@ -115,8 +113,7 @@ public interface LoaderAPI {
      * 
      * @param appId Application Id.
      * @param o Object.
-     * @param hashcode Object hashcode.
      */
-    public void removeObject(Long appId, Object o, int hashcode);
+    void removeObject(Long appId, Object o);
 
 }

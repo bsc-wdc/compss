@@ -61,7 +61,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object parameter.
      */
     public void accessAsTaskParam(Object o) {
-        this.oReg.newObjectParameter(workflow.getId(), o);
+        this.oReg.newObjectParameter(o);
     }
 
     /**
@@ -90,7 +90,7 @@ public class JavaWorkflow implements Workflow {
      * @return Internal object representing the given object {@code o}.
      */
     public Object getRegisteredObjectValue(Object o) {
-        return this.oReg.getInternalObject(workflow.getId(), o);
+        return this.oReg.getInternalObject(o);
     }
 
     /**

@@ -646,9 +646,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
+    public boolean bindExistingVersionToData(Long appId, Object o, String dataId) {
         return APITracer.traced(APIEvent.BIND_DATA_TO_VERSION, () -> {
             Application app = Application.registerApplication(appId);
+            int hashCode = System.identityHashCode(o);
             ObjectData od = new ObjectData(hashCode);
             return bindExistingVersionToData(app, od, dataId);
         });
@@ -883,12 +884,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
+    public Object getObject(Long appId, Object obj, String destDir) {
         /*
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
          */
         return APITracer.traced(APIEvent.GET_OBJECT, () -> {
+            int hashCode = System.identityHashCode(obj);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Getting object with hash code " + hashCode);
             }
@@ -965,9 +967,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void removeObject(Long appId, Object o, int hashcode) {
+    public void removeObject(Long appId, Object o) {
         APITracer.traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
             Application app = Application.registerApplication(appId);
+            int hashcode = System.identityHashCode(o);
             // This will remove the object from the Object Registry and the Data Info Provider
             // eventually allowing the garbage collector to free it (better use of memory)
             ap.deleteData(app, new ObjectData(hashcode), false, false);

@@ -32,10 +32,7 @@ public class ObjectRegistry {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Api object used to invoke calls on the Integrated Toolkit
-    private final LoaderAPI itApi;
     private final Workflow wf;
-    // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
-    private final String serialDir;
 
     // Map: representative -> actual value
     private final Map<Object, Object> appObjects;
@@ -44,12 +41,10 @@ public class ObjectRegistry {
     /**
      * Creates a new ObjectRegistry instance associated to a given LoaderAPI {@code api}.
      *
-     * @param api LoaderAPI.
+     * @param wf Workflow created with accessed objects.
      */
-    public ObjectRegistry(LoaderAPI api, Workflow wf) {
-        this.itApi = api;
+    public ObjectRegistry(Workflow wf) {
         this.wf = wf;
-        this.serialDir = api.getTempDir();
         this.appObjects = new HashMap<>();
     }
 
@@ -78,7 +73,7 @@ public class ObjectRegistry {
             LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: " + isWriter);
         }
         // Get the updated version of the object
-        Object oUpdated = this.itApi.getObject(appId, o, serialDir);
+        Object oUpdated = this.wf.getObject(o);
         if (oUpdated != null) {
             appObjects.put(o, oUpdated);
 

@@ -68,16 +68,6 @@ public interface LoaderAPI {
     public void getFile(Long appId, String fileName);
 
     /**
-     * Returns a copy of the last version of the given object {@code o}.
-     * 
-     * @param appId Id of the application accessing the object
-     * @param o Object.
-     * @param destDir Destination directory for serialization.
-     * @return In-memory copy of the last version of the given object.
-     */
-    public Object getObject(Long appId, Object o, String destDir);
-
-    /**
      * Returns the Stream Registry instance.
      * 
      * @return The Stream Registry instance.

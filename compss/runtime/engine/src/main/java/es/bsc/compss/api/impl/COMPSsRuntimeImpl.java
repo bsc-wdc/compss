@@ -754,34 +754,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public Object getObject(Long appId, Object obj, String destDir) {
-        /*
-         * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
-         * it and this method would not have been called.
-         */
-        return APITracer.traced(APIEvent.GET_OBJECT, () -> {
-            int hashCode = System.identityHashCode(obj);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Getting object with hash code " + hashCode);
-            }
-
-            Application app = Application.registerApplication(appId);
-            ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
-            Object oUpdated;
-            try {
-                oUpdated = ap.mainAccess(oap);
-            } catch (ValueUnawareRuntimeException e) {
-                oUpdated = null;
-            }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
-            }
-
-            return oUpdated;
-        });
-    }
-
-    @Override
     public String getBindingObject(Long appId, String fileName) {
         return APITracer.traced(APIEvent.GET_BINDING_OBJECT, () -> {
             // Parse the file name

@@ -25,13 +25,16 @@ import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.params.CollectionData;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.data.params.ObjectData;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.util.ErrorManager;
@@ -277,6 +280,33 @@ public class WorkflowImpl extends Application implements Workflow {
             }
         }
         return false;
+    }
+
+    @Override
+    public Object getObject(Object obj) {
+        /*
+         * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
+         * it and this method would not have been called.
+         */
+        return APITracer.traced(APIEvent.GET_OBJECT, () -> {
+            int hashCode = System.identityHashCode(obj);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Getting object with hash code " + hashCode);
+            }
+
+            ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(this, Direction.INOUT, obj, hashCode);
+            Object oUpdated;
+            try {
+                oUpdated = AP.mainAccess(oap);
+            } catch (ValueUnawareRuntimeException e) {
+                oUpdated = null;
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
+            }
+
+            return oUpdated;
+        });
     }
 
     @Override

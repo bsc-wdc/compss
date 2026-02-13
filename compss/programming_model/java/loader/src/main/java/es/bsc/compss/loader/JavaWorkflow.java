@@ -36,7 +36,7 @@ public class JavaWorkflow implements Workflow {
 
     public JavaWorkflow(COMPSsRuntime runtime, String parallelismSource, ApplicationRunner runner) {
         this.workflow = runtime.registerWorkflow(parallelismSource, runner);
-        this.oReg = new ObjectRegistry((LoaderAPI) runtime, this);
+        this.oReg = new ObjectRegistry(this.workflow);
     }
 
     @Override
@@ -78,8 +78,9 @@ public class JavaWorkflow implements Workflow {
      *
      * @param o Object parameter.
      */
-    public void accessObject(Object o) {
+    public Object getObject(Object o) {
         this.oReg.newObjectAccess(workflow.getId(), o, true);
+        return null;
     }
 
     /**
@@ -88,8 +89,9 @@ public class JavaWorkflow implements Workflow {
      * @param o Object parameter.
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      */
-    public void accessObject(Object o, boolean isWriter) {
+    public Object getObject(Object o, boolean isWriter) {
         this.oReg.newObjectAccess(workflow.getId(), o, isWriter);
+        return null;
     }
 
     /**

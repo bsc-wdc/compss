@@ -114,6 +114,14 @@ public interface Workflow {
     boolean bindExistingVersionToData(Object o, String dataId);
 
     /**
+     * Returns a copy of the last version of the given object {@code o}.
+     *
+     * @param o Object.
+     * @return In-memory copy of the last version of the given object.
+     */
+    Object getObject(Object o);
+
+    /**
      * Removes the given object {@code o}.
      *
      * @param o Object.

@@ -20,7 +20,7 @@ package es.bsc.compss.loader.total;
 public class CallGenerator {
 
     // JavaWorkflow methods
-    private static final String OBJECT_ACCESS = ".accessObject(";
+    private static final String OBJECT_ACCESS = ".getObject(";
     private static final String OBJECT_PARAM = ".accessAsTaskParam(";
     private static final String OBJECT_VALUE = ".getRegisteredObjectValue(";
     private static final String OBJECT_DELETE = ".removeObject(";

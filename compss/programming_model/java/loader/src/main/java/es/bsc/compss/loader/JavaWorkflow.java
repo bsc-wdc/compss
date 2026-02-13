@@ -19,7 +19,7 @@ package es.bsc.compss.loader;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
-import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.ObjectRegistry;
 import es.bsc.compss.worker.COMPSsException;
 
 

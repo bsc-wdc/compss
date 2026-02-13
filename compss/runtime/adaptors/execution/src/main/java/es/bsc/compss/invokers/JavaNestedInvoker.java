@@ -17,15 +17,13 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
+import es.bsc.compss.loader.ObjectRegistry;
 import es.bsc.compss.loader.total.ITAppModifier;
-import es.bsc.compss.loader.total.ObjectRegistry;
-import es.bsc.compss.loader.total.WorkflowSupplier;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;

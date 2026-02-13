@@ -22,7 +22,6 @@ import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.total.ArrayAccessWatcher;
 import es.bsc.compss.loader.total.COMPSsGroupLoader;
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.loader.total.WorkflowSupplier;
 import es.bsc.compss.types.annotations.Orchestration;

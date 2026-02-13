@@ -14,9 +14,8 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader;
 
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 
 import java.util.HashMap;

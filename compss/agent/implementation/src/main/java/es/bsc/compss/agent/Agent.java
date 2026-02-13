@@ -32,7 +32,7 @@ import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
-import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;

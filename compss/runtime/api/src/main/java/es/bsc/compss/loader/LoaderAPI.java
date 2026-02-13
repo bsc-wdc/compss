@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.loader;
 
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.types.annotations.parameter.Direction;
 

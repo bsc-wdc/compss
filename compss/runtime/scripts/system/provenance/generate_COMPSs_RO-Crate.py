@@ -184,6 +184,7 @@ def main():
         int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0
     )  # COMPSS_EXIT_CODE set in compss_setup.sh
 
+    # Process general ins and outs of the workflow
     part_time = time.time()
     fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
     for item in ins:
@@ -279,8 +280,6 @@ def main():
                     actual_to_formals.setdefault(
                         param.actual_instance["@id"], set()
                     ).add(param.formal_instance["@id"])
-
-            # Process general ins and outs of the workflow
 
             # -------------------- TASK-related ENTITIES -------------------- #
 

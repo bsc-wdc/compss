@@ -943,10 +943,16 @@ def render_parameters(
 
         additional_type = fp.get("additionalType") or fp.get("@type", "")
         type_str = (
-            "[" + ", ".join(additional_type) + "]"
+            ", ".join(additional_type)
             if isinstance(additional_type, list)
             else additional_type
         )
+        if multiv := fp.get("multipleValues"):
+            # In the RO-Crate, the multipleValues obtained is a string, thus we compare to a string here
+            if multiv == "True":
+                type_str = "Array, " + type_str
+        if isinstance(additional_type, list) or multiv == "True":
+            type_str = "[" + type_str + "]"
         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
 
         if is_compss_wf:

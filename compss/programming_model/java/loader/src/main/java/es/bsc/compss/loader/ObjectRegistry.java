@@ -35,8 +35,8 @@ public class ObjectRegistry {
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private final String serialDir;
 
-    // Map: hashcode -> object
-    private final Map<Integer, Object> appObjects;
+    // Map: representative -> actual value
+    private final Map<Object, Object> appObjects;
 
 
     /**
@@ -63,8 +63,7 @@ public class ObjectRegistry {
             return o;
         }
 
-        int hashCode = System.identityHashCode(o);
-        if (!appObjects.containsKey(hashCode)) {
+        if (!appObjects.containsKey(o)) {
             return o;
         }
         /*
@@ -72,14 +71,16 @@ public class ObjectRegistry {
          * blocking if necessary.
          */
         if (DEBUG) {
+            int hashCode = System.identityHashCode(o);
             LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: " + isWriter);
         }
         // Get the updated version of the object
-        Object oUpdated = this.itApi.getObject(appId, o, hashCode, serialDir);
+        Object oUpdated = this.itApi.getObject(appId, o, System.identityHashCode(o), serialDir);
         if (oUpdated != null) {
-            appObjects.put(hashCode, oUpdated);
+            appObjects.put(o, oUpdated);
 
             if (DEBUG) {
+                int hashCode = System.identityHashCode(o);
                 LOGGER.debug("Returning internal object " + oUpdated + " with hash code " + hashCode);
             }
             return oUpdated;
@@ -98,14 +99,14 @@ public class ObjectRegistry {
         if (o == null) {
             return Integer.MAX_VALUE;
         }
-        int hashcode = System.identityHashCode(o);
-        appObjects.put(hashcode, o);
+        appObjects.put(o, o);
 
         if (DEBUG) {
-            LOGGER.debug("Object " + o + " with hash code " + hashcode + " registered");
+            int hashCode = System.identityHashCode(o);
+            LOGGER.debug("Object " + o + " with hash code " + hashCode + " registered");
         }
 
-        return hashcode;
+        return System.identityHashCode(o);
     }
 
     /**
@@ -121,8 +122,7 @@ public class ObjectRegistry {
             return false;
         }
 
-        int hashCode = System.identityHashCode(o);
-        if (!appObjects.containsKey(hashCode)) {
+        if (!appObjects.containsKey(o)) {
             return false;
         }
 
@@ -131,9 +131,10 @@ public class ObjectRegistry {
          * blocking if necessary.
          */
         if (DEBUG) {
+            int hashCode = System.identityHashCode(o);
             LOGGER.debug("Linking data " + dataId + " with last value of object with hash code " + hashCode);
         }
-        return this.itApi.bindExistingVersionToData(appId, o, hashCode, dataId);
+        return this.itApi.bindExistingVersionToData(appId, o, System.identityHashCode(o), dataId);
     }
 
     /**
@@ -148,17 +149,17 @@ public class ObjectRegistry {
             return null;
         }
 
-        int hashCode = System.identityHashCode(o);
-        if (!appObjects.containsKey(hashCode)) {
+        if (!appObjects.containsKey(o)) {
             return null;
         }
 
-        Object internal = appObjects.get(hashCode);
+        Object internal = appObjects.get(o);
 
         /*
          * The object has been accessed by a task before. Return its internal (real) value
          */
         if (DEBUG) {
+            int hashCode = System.identityHashCode(o);
             LOGGER.debug("Returning internal object " + internal + " with hash code " + hashCode);
         }
         return internal;
@@ -177,18 +178,18 @@ public class ObjectRegistry {
             return false;
         }
 
-        int hashCode = System.identityHashCode(o);
-        if (!appObjects.containsKey(hashCode)) {
+        if (!appObjects.containsKey(o)) {
             LOGGER.warn("Trying to remove non task parameter object");
             return false;
         }
 
         if (DEBUG) {
+            int hashCode = System.identityHashCode(o);
             LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
         }
-        this.itApi.removeObject(appId, o, hashCode);
+        this.itApi.removeObject(appId, o, System.identityHashCode(o));
 
-        appObjects.remove(hashCode);
+        appObjects.remove(o);
 
         return true;
     }

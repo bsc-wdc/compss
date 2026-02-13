@@ -86,6 +86,13 @@ public interface Workflow {
     void barrierGroup(String groupName) throws COMPSsException;
 
     /**
+     * Removes the given object {@code o}.
+     *
+     * @param o Object.
+     */
+    boolean removeObject(Object o);
+
+    /**
      * Checkpoint of the tasks and data.
      */
     void snapshot();

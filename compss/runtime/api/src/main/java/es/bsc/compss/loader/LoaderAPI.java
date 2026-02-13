@@ -108,12 +108,4 @@ public interface LoaderAPI {
      */
     public String getTempDir();
 
-    /**
-     * Removes the given object {@code o}.
-     * 
-     * @param appId Application Id.
-     * @param o Object.
-     */
-    void removeObject(Long appId, Object o);
-
 }

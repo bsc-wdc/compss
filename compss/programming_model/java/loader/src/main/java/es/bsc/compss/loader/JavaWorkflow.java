@@ -35,7 +35,7 @@ public class JavaWorkflow implements Workflow {
 
     public JavaWorkflow(COMPSsRuntime runtime, String parallelismSource, ApplicationRunner runner) {
         this.workflow = runtime.registerWorkflow(parallelismSource, runner);
-        this.oReg = new ObjectRegistry((LoaderAPI) runtime);
+        this.oReg = new ObjectRegistry((LoaderAPI) runtime, this);
     }
 
     /**
@@ -99,6 +99,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object.
      * @return {@code true} if the object has been removed, {@code false} otherwise.
      */
+    @Override
     public boolean removeObject(Object o) {
         return this.oReg.delete(workflow.getId(), o);
     }

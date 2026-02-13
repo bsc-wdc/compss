@@ -967,17 +967,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void removeObject(Long appId, Object o) {
-        APITracer.traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            int hashcode = System.identityHashCode(o);
-            // This will remove the object from the Object Registry and the Data Info Provider
-            // eventually allowing the garbage collector to free it (better use of memory)
-            ap.deleteData(app, new ObjectData(hashcode), false, false);
-        });
-    }
-
-    @Override
     public boolean deleteBindingObject(Long appId, String fileName) {
         // Emit event
         return APITracer.traced(APIEvent.DELETE_BIND_OBJECT, () -> {

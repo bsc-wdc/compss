@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.loader;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.log.Loggers;
 
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class ObjectRegistry {
 
     // Api object used to invoke calls on the Integrated Toolkit
     private final LoaderAPI itApi;
+    private final Workflow wf;
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private final String serialDir;
 
@@ -44,8 +46,9 @@ public class ObjectRegistry {
      *
      * @param api LoaderAPI.
      */
-    public ObjectRegistry(LoaderAPI api) {
+    public ObjectRegistry(LoaderAPI api, Workflow wf) {
         this.itApi = api;
+        this.wf = wf;
         this.serialDir = api.getTempDir();
         this.appObjects = new HashMap<>();
     }
@@ -182,7 +185,7 @@ public class ObjectRegistry {
             int hashCode = System.identityHashCode(o);
             LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
         }
-        this.itApi.removeObject(appId, o);
+        this.wf.removeObject(o);
 
         appObjects.remove(o);
 

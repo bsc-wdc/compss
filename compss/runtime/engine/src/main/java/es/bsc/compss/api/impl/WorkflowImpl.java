@@ -21,6 +21,7 @@ import es.bsc.compss.api.Workflow;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.params.ObjectData;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -132,6 +133,19 @@ public class WorkflowImpl extends Application implements Workflow {
         LOGGER.debug("Getting Result Files for app" + this.getId());
         AP.getResultFiles(this);
 
+    }
+
+
+
+    @Override
+    public boolean removeObject(Object o) {
+        APITracer.traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
+            int hashcode = System.identityHashCode(o);
+            // This will remove the object from the Object Registry and the Data Info Provider
+            // eventually allowing the garbage collector to free it (better use of memory)
+            AP.deleteData(this, new ObjectData(hashcode), false, false);
+        });
+        return true;
     }
 
     @Override

@@ -49,11 +49,12 @@ def add_dataset_file_to_crate(
     # method_time = time.time()
 
     try:
-        # dir:// URLs must come with a final '/'. Ensure that the directory URL ends with '/'
-        if not in_url.endswith("/"):
-            in_url += "/"
         # urlsplit returns in url_parts.path everything when it is a File, not only the directory that contains it
         url_parts = urlsplit(in_url)
+        # dir:// URLs must come with a final '/'. Ensure that the directory URL ends with '/'
+        if url_parts.scheme == "dir" and not in_url.endswith("/"):
+            in_url += "/"
+            url_parts = urlsplit(in_url)
         # If in_url ends up with '/', os.path.basename will be empty, thus we need Pathlib
         url_path = Path(url_parts.path)
         final_item_name = url_path.name

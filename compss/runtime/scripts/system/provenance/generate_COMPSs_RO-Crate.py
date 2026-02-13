@@ -255,6 +255,10 @@ def main():
                 if (
                     "File" in param.dtype or "Dataset" in param.dtype
                 ) and param.is_array == False:
+                    # TODO: This bit needs to be rethought, since ALL intermediate files and Datasets for the whole workflow run are added
+                    # Right now it added EVERY parameter found, which adds multiple times Files and Datasets to the RO-Crate
+                    # The workflow's needed ins and outs have been already added before (Datasets and Files)
+
                     # Right now only COLLECTION_T COMPSs type maps to Dataset. This may change in the future.
                     if "Dataset" in param.dtype:
                         # Ensure that the directory URL ends with '/'

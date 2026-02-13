@@ -142,6 +142,9 @@ def add_dataset_file_to_crate(
 
     try:
         if url_parts.scheme == "dir":  # DIRECTORY parameter
+            # 'add_tree works' well for datasets when they are persistent, and adds recursively the files contained
+            # Minor issue: for every file just adds '@id' and 'name'. While we add '@type', 'contentSize', 'dateModified' and 'sdDatePublished'
+            # Anyway, when persistence is False, add_tree cannot be used, so the rest of this code is needed
             # if persist:
             #     # Add whole dataset, and return. Clean path name first
             #     crate_path = "dataset/" + final_item_name

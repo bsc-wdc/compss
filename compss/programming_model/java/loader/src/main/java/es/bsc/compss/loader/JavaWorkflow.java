@@ -55,6 +55,16 @@ public class JavaWorkflow implements Workflow {
         workflow.deregister();
     }
 
+    /**
+     * Retrieves the last updated value for an object.
+     * 
+     * @param o Object whose final values has to be retrieved.
+     * @return final value of the object
+     */
+    public Object collectObjectFinalValue(Object o) {
+        return this.oReg.newObjectAccess(workflow.getId(), o, false);
+    }
+
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier) {
         workflow.openTaskGroup(groupName, implicitBarrier);

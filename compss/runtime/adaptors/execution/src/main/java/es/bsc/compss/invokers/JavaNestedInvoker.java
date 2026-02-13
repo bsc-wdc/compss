@@ -174,7 +174,7 @@ public class JavaNestedInvoker extends JavaInvoker {
                 String dataId = p.getDataMgmtId();
                 ObjectRegistry or = wf.getObjectRegistry();
                 if (!or.bindToDataIfExisting(wf.getId(), o, dataId)) {
-                    Object internal = or.collectObjectLastValue(wf.getId(), p.getValue());
+                    Object internal = wf.collectObjectFinalValue(p.getValue());
                     p.setValue(internal);
                 } else {
                     p.resultIsForwarded();

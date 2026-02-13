@@ -55,9 +55,10 @@ public class ObjectRegistry {
      *
      * @param appId Application Id.
      * @param o Object.
+     * @return synchronized value of the object. If it hadn't been registered, it returns the same object.
      */
-    public void newObjectAccess(Long appId, Object o) {
-        newObjectAccess(appId, o, true);
+    public Object newObjectAccess(Long appId, Object o) {
+        return newObjectAccess(appId, o, true);
     }
 
     /**
@@ -66,15 +67,16 @@ public class ObjectRegistry {
      * @param appId Application Id.
      * @param o Object.
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
+     * @return synchronized value of the object. If it hadn't been registered, it returns the same object.
      */
-    public void newObjectAccess(Long appId, Object o, boolean isWriter) {
+    public Object newObjectAccess(Long appId, Object o, boolean isWriter) {
         if (o == null) {
-            return;
+            return o;
         }
 
         int hashCode = System.identityHashCode(o);
         if (!appObjects.containsKey(hashCode)) {
-            return;
+            return o;
         }
         /*
          * The object has been accessed by a task before. Check with the API that the application has the last version,
@@ -87,7 +89,13 @@ public class ObjectRegistry {
         Object oUpdated = this.itApi.getObject(appId, o, hashCode, serialDir);
         if (oUpdated != null) {
             appObjects.put(hashCode, oUpdated);
+
+            if (DEBUG) {
+                LOGGER.debug("Returning internal object " + oUpdated + " with hash code " + hashCode);
+            }
+            return oUpdated;
         }
+        return o;
     }
 
     /**
@@ -137,45 +145,6 @@ public class ObjectRegistry {
             LOGGER.debug("Linking data " + dataId + " with last value of object with hash code " + hashCode);
         }
         return this.itApi.bindExistingVersionToData(appId, o, hashCode, dataId);
-    }
-
-    /**
-     * Collects the last value associated to an object.
-     * 
-     * @param appId Application Id.
-     * @param o Object
-     * @return internal value of the object, if it hadn't been registered returns the same object.
-     */
-    public Object collectObjectLastValue(Long appId, Object o) {
-        if (o == null) {
-            return o;
-        }
-
-        int hashCode = System.identityHashCode(o);
-        if (!appObjects.containsKey(hashCode)) {
-            return o;
-        }
-        /*
-         * The object has been accessed by a task before. Check with the API that the application has the last version,
-         * blocking if necessary.
-         */
-        if (DEBUG) {
-            LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: false");
-        }
-
-        // Get the updated version of the object
-        Object oUpdated = this.itApi.getObject(appId, o, hashCode, serialDir);
-        if (oUpdated != null) {
-            appObjects.put(hashCode, oUpdated);
-            /*
-             * The object has been accessed by a task before. Return its internal (real) value
-             */
-            if (DEBUG) {
-                LOGGER.debug("Returning internal object " + oUpdated + " with hash code " + hashCode);
-            }
-            return oUpdated;
-        }
-        return o;
     }
 
     /**

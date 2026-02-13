@@ -79,7 +79,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object parameter.
      */
     public Object getObject(Object o) {
-        this.oReg.newObjectAccess(workflow.getId(), o, true);
+        this.oReg.newObjectAccess(o, true);
         return null;
     }
 
@@ -90,7 +90,7 @@ public class JavaWorkflow implements Workflow {
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      */
     public Object getObject(Object o, boolean isWriter) {
-        this.oReg.newObjectAccess(workflow.getId(), o, isWriter);
+        this.oReg.newObjectAccess(o, isWriter);
         return null;
     }
 
@@ -112,7 +112,7 @@ public class JavaWorkflow implements Workflow {
      */
     @Override
     public boolean removeObject(Object o) {
-        return this.oReg.delete(workflow.getId(), o);
+        return this.oReg.delete(o);
     }
 
     /**
@@ -122,7 +122,7 @@ public class JavaWorkflow implements Workflow {
      * @return final value of the object
      */
     public Object collectObjectFinalValue(Object o) {
-        return this.oReg.newObjectAccess(workflow.getId(), o, false);
+        return this.oReg.newObjectAccess(o, false);
     }
 
     @Override

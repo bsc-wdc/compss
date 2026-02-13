@@ -51,12 +51,11 @@ public class ObjectRegistry {
     /**
      * Registers a new access to the given object {@code o} in mode {@code isWriter}.
      *
-     * @param appId Application Id.
      * @param o Object.
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      * @return synchronized value of the object. If it hadn't been registered, it returns the same object.
      */
-    public Object newObjectAccess(Long appId, Object o, boolean isWriter) {
+    public Object newObjectAccess(Object o, boolean isWriter) {
         if (o == null) {
             return o;
         }
@@ -160,11 +159,10 @@ public class ObjectRegistry {
     /**
      * Deletes the given object {@code o}.
      *
-     * @param appId Application Id.
      * @param o Object.
      * @return {@code true} if the object has been removed, {@code false} otherwise.
      */
-    public boolean delete(Long appId, Object o) {
+    public boolean delete(Object o) {
         if (o == null) {
             LOGGER.warn("Trying to remove a null object from the object registry");
             return false;

@@ -59,10 +59,9 @@ public class JavaWorkflow implements Workflow {
      * Registers new access from the workflow to an object as a parameter.
      *
      * @param o Object parameter.
-     * @return Final hashcode of the object.
      */
-    public int accessAsTaskParam(Object o) {
-        return this.oReg.newObjectParameter(workflow.getId(), o);
+    public void accessAsTaskParam(Object o) {
+        this.oReg.newObjectParameter(workflow.getId(), o);
     }
 
     /**

@@ -93,11 +93,10 @@ public class ObjectRegistry {
      *
      * @param appId Application Id.
      * @param o Object parameter.
-     * @return Final hashcode of the object.
      */
-    public int newObjectParameter(Long appId, Object o) {
+    public void newObjectParameter(Long appId, Object o) {
         if (o == null) {
-            return Integer.MAX_VALUE;
+            return;
         }
         appObjects.put(o, o);
 
@@ -105,8 +104,6 @@ public class ObjectRegistry {
             int hashCode = System.identityHashCode(o);
             LOGGER.debug("Object " + o + " with hash code " + hashCode + " registered");
         }
-
-        return System.identityHashCode(o);
     }
 
     /**

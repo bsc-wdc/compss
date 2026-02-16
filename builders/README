@@ -9,17 +9,16 @@
 Next you will find information about the specific scripts for each building type
 
 - buildlocal <targetDir>
-    * Builds the current trunk and installs it on a target location.
-    * Needs JAVA_HOME variable to be exported on the environment.
-    * If the target dir is protected you need to execute this script with root mode (remember to export the JAVA_HOME on root)
+  - Builds the current trunk and installs it on a target location.
+  - Needs JAVA_HOME variable to be exported on the environment.
+  - If the target dir is protected you need to execute this script with root mode (remember to export the JAVA_HOME on root)
 
 - buildpackages
-    * Builds COMPSs RPM and DEB packages
+  - Builds COMPSs RPM and DEB packages
 
 - buildscs
-    * Builds the current runtime trunk locally, builds the bindings at the SCs accounts and installs both at a target location (at each SC).
+  - Builds the current runtime trunk locally, builds the bindings at the SCs accounts and installs both at a target location (at each SC).
 
 - cross-compile/armhf/buildlocal
-    * Builds the current trunk for the target architecture, if set, it builds the native architecture
-      and enables the cross-compilation for the target one, the file that sets the target architecture is environmentrc.
-    * To enable cross-compilation with a not supported architecture, you should modify environmentrc and set your toolchain properly.
+  - Builds the current trunk for the target architecture, if set, it builds the native architecture and enables the cross-compilation for the target one, the file that sets the target architecture is environmentrc.
+  - To enable cross-compilation with a not supported architecture, you should modify environmentrc and set your toolchain properly.

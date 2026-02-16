@@ -30,30 +30,60 @@ authors:
     email: daniele.lezzi@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0001-5081-7244'
-  - given-names: Fernando
-    family-names: V\xE1zquez Novoa
-    email: fernando.vazquez@bsc.es
-    affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0000-0001-5634-509X'
-  - given-names: Cristian C\u0103t\u0103lin
-    family-names: Tatu
-    email: cristian.tatu@bsc.es
-    affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0009-0003-8848-9436'
-  - given-names: Nicol\xF2
-    family-names: Giacomini
-    email: nicolo.giacomini@bsc.es
-    affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0009-0005-2797-8177'
   - given-names: Eduardo
     family-names: Iraola de Acevedo
     email: eduardo.iraola@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0002-0837-7086'
+  - given-names: Albert
+    family-names: Vico
+    email: albert.vico@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: https://orcid.org/0009-0000-5920-8234
+  - given-names: Fernando
+    family-names: V\xE1zquez Novoa
+    email: fernando.vazquez@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0001-5634-509X'
+  - given-names: Nicol\xF2
+    family-names: Giacomini
+    email: nicolo.giacomini@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0005-2797-8177'
   - given-names: Roc
     family-names: Cutal Gendrau
     email: roc.cutal@bsc.es
     affiliation: Barcelona Supercomputing Center
+  - given-names: Phil
+    family-names: Cummins
+    email: phil.cummins@bsc.es
+    affiliation: Barcelona Supercomputing Center
+  - given-names: Alvaro
+    family-names: Ricon
+    email: alvaro.ricon@bsc.es
+    affiliation: Barcelona Supercomputing Center
+  - given-names: Josep
+    family-names: Pocurull
+    email: josep.pocurull@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: https://orcid.org/0009-0004-6479-7247
+  - given-names: Tomas
+    family-names: Arano
+    email: tomas.arano@bsc.es
+    affiliation: Barcelona Supercomputing Center
+  - given-names: Mauro
+    family-names: Garcia
+    email: mauro.garcia@bsc.es
+    affiliation: Barcelona Supercomputing Center
+  - given-names: Panna
+    family-names: Lukacs
+    email: panna.lukacs@bsc.es
+    affiliation: Barcelona Supercomputing Center
+  - given-names: Cristian C\u0103t\u0103lin
+    family-names: Tatu
+    email: cristian.tatu@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0003-8848-9436'
   - given-names: Pere
     family-names: Verg\xE9s
     email: pere.verges@bsc.es
@@ -109,7 +139,7 @@ keywords:
   - workflows
   - distributed computing
 license: Apache-2.0
-version: '3.3'
+version: '3.4'
 preferred-citation:
   type: article
   authors:

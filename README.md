@@ -33,7 +33,7 @@
     <a href="https://compss-doc.readthedocs.io/en/latest/">Documentation</a> •
     <a href="https://github.com/bsc-wdc/compss/releases">Releases</a> •
     <a href="https://bsc-wdc.slack.com/archives/CFENCE3NF">Slack</a> •
-    <a href="mailto:support-compss@bsc.es">&#9993</a>
+    <a href="mailto:support-compss@bsc.es">&#9993 Support</a>
 </b></p>
 
 COMP Superscalar (COMPSs) is a programming model which aims to ease the development

@@ -1,6 +1,6 @@
-======================================
-	PyCOMPSs PYPI DISTRIBUTABLE
-======================================
+===========================
+PyCOMPSs PYPI DISTRIBUTABLE
+===========================
 
 This README contains information about the PIP distributable creation process.
 
@@ -18,33 +18,33 @@ It is encouraged to read all sections of this README before proceeding on any
 modification or action on this package.
 
 
-======================================
-	CREATING THE DISTRIBUTABLE
-======================================
+==========================
+CREATING THE DISTRIBUTABLE
+==========================
 
 The PyPI distributable can be created with the following command:
 	sudo -E ./buildpip $VERSION
 Where $VERSION contains the desired target version. For example, if
-you want to create a distributable for the 2.0.rc1337 version then
+you want to create a distributable for the 3.4 version then
 the following command should be executed:
-	sudo -E ./buildpip 2.0.rc1337
+	sudo -E ./buildpip 3.4
 
 This will create the following files and directories:
 	- A PyCOMPSs directory in /trunk/builders/packages/pip.
 	  This directory contains the scripts and files necessary to
 	  install PyCOMPSs and PyPyCOMPSs via distutils and/or PIP.
 
-	- A pycompss-rc1337.tar.gz file in /trunk/builders/packages/pip/PyCOMPSs/dist
+	- A pycompss-3.4.tar.gz file in /trunk/builders/packages/pip/PyCOMPSs/dist
 	  This .tar.gz contains the whole PyCOMPSs directory (except for the dist
 		folder). This file is useful for testing. For example, if you type
-		 sudo -E python -m pip install pycompss-rc1337.tar.gz -v
+		 sudo -E python -m pip install pycompss-3.4.tar.gz -v
 	  pip will try to install PyCOMPSs from this .tar.gz
 
 
 
-======================================
-	INSTALLING PyCOMPSs
-======================================
+===================
+INSTALLING PyCOMPSs
+===================
 
 In order to install PyCOMPSs from a distributable you must:
 	- Have all COMPSs dependencies satisfied.
@@ -84,9 +84,9 @@ WARNING:
 	to some files.
 
 
-======================================
-	UNINSTALLING PyCOMPSs
-======================================
+=====================
+UNINSTALLING PyCOMPSs
+=====================
 
 PyCOMPSs can be uninstalled (if it was previously installed with distutils
 and/or PIP) with the following command:
@@ -94,9 +94,9 @@ and/or PIP) with the following command:
 	sudo bash /etc/profile.d/compss.sh
 
 
-======================================
-	UPLOADING A DISTRIBUTABLE
-======================================
+=========================
+UPLOADING A DISTRIBUTABLE
+=========================
 
 *** PLEASE, READ THIS SECTION CAREFULLY ***
 
@@ -129,9 +129,9 @@ pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 **Upload only well-tested installables!**
 
 
-======================================
-	CONTAINED FILES
-======================================
+===============
+CONTAINED FILES
+===============
 
 This folder contains the following folder hierarchy and files:
 
@@ -156,7 +156,7 @@ buildpip:
 	- Main script. sudo -E ./buildpip VERSION will create a PIP distributable
 	  named PyCOMPSs-${PyCOMPSs_VERSION}.tar.gz in
 		framework/builders/packages/pip/PyCOMPSs/dist/
-	  Example: sudo -E ./buildpip 2.6 will create a PyCOMPSs-2.6.tar.gz
+	  Example: sudo -E ./buildpip 3.4 will create a PyCOMPSs-3.4.tar.gz
 
 PyCOMPSsResources/backend.py:
 	- Auxiliary script which downloads and installs PyCOMPSs in the site-packages
@@ -198,10 +198,9 @@ distributable builds since it will be automatically replaced by a new one.
 
 
 
-======================================
-	           GENERATED
-	        PyCOMPSs FOLDER
-======================================
+=========================
+GENERATED PyCOMPSs FOLDER
+=========================
 
 A succesfull buildpip execution will leave in framework/builders/packages/pip
 the folder hierarchy and files listed below.

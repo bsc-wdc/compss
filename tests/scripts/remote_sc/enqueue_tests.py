@@ -34,7 +34,7 @@ def main():
     start = int(sys.argv[9])
     end = int(sys.argv[10])
     execution_envs = sys.argv[11:]  # python3
-    # module = sys.argv[6] #COMPSs/2.6
+    # module = sys.argv[6] #COMPSs/3.4
     # master_working_dir = sys.argv[9]
     # worker_working_dir = sys.argv[10]
 

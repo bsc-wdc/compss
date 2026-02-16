@@ -659,7 +659,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                     )
 
             if exec_info_str.startswith("#COMPSs"):
-                # We can extract more details. Hostname included from COMPSs 3.2 version
+                # We can extract more details. Hostname included from COMPSs 3.4 version
                 # Old Create action id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117
                 # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
                 exec_info = exec_info_str.split("_")

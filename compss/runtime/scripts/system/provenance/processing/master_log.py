@@ -65,7 +65,9 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
     outputs = set()
     tasks = {"master": Task(tid="master", status="FINISHED")}
 
-    task_params: dict[str, dict] = {}
+    task_params: dict[str, dict] = (
+        {}
+    )  # Ad-hoc. Does not follow Parameter class defined in Parameter.py
 
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         for line in dp_file:
@@ -86,6 +88,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                         "type": param_type,
                         "direction": direction,
                         "value": param_value,
+                        "array": False,
                     }
 
             if line_record[0] == "file":
@@ -107,6 +110,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                         "type": param_type,
                         "direction": direction,
                         "value": param_value,
+                        "array": False,
                     }
                 else:
                     existing = task_params[param_name]["value"]
@@ -114,9 +118,8 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                         existing.append(param_value)
                     else:
                         task_params[param_name]["value"] = [existing, param_value]
-                    task_params[param_name][
-                        "is_array"
-                    ] = True  # Force to add "multipleValues" property to COMPSs 'COLLECTION_T' type
+                    # Force to add "multipleValues" property to COMPSs 'COLLECTION_T' type
+                    task_params[param_name]["array"] = True
 
                 # Handle inputs/outputs classification
                 if param_type in ["FILE_T", "DIRECTORY_T"] and not is_future_object(
@@ -181,6 +184,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                             "type": ptype,
                             "direction": direction,
                             "value": "",
+                            "array": False,
                         }
 
                 for pname, p_dict in task_params.items():
@@ -188,7 +192,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                     ptype = map_datatype(ptype)
                     direction = p_dict["direction"]
                     pvalue = p_dict["value"]
-                    parray = p_dict["is_array"]
+                    parray = p_dict["array"]
 
                     if direction in {
                         "IN",

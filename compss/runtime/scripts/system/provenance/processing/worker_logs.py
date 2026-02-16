@@ -49,7 +49,7 @@ def update_tasks_from_worker_logs(log_files: list[str], tasks: dict[int, Task]) 
     """
     for log_file in log_files:
         if __debug__:
-            print(f"PROVENANCE | DEBUG: Reading log file: {log_file}")
+            print(f"PROVENANCE DEBUG | Reading log file: {log_file}")
         with open(log_file, "r", encoding="UTF-8") as dp_file:
             for line in dp_file:
                 try:

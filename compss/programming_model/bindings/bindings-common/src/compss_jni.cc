@@ -942,8 +942,6 @@ CompssWorkflow* JNI_RegisterWorkflow() {
 
     wf->base.getId = JNI_WF_getId;
     wf->base.deregister = JNI_WF_deregister;
-    wf->base.getId = JNI_WF_getId;
-    wf->base.deregister = JNI_WF_deregister;
     wf->base.openTaskGroup = JNI_WF_openTaskGroup;
     wf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
     wf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;

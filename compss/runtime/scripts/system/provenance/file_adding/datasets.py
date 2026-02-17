@@ -55,14 +55,13 @@ def add_dataset_file_to_crate(
         if url_parts.scheme == "dir" and not in_url.endswith("/"):
             in_url += "/"
             url_parts = urlsplit(in_url)
-        # If in_url ends up with '/', os.path.basename will be empty, thus we need Pathlib
+        # If in_url ends up with '/', os.path.basename will be empty, thus we need Pathlib to get final_item_name
         url_path = Path(url_parts.path)
         final_item_name = url_path.name
 
         # print(f"PROCESSING URL: {in_url}")
         # print(f"URL_PARTS.PATH: {url_parts.path}")
-        # print(f"URL_PATH: {url_path}")
-        # print(f"FINAL_ITEM_NAME: {final_item_name}")
+        # print(f"COMMON_PATHS: {common_paths}")
 
         if url_parts.scheme in ["dir", "file"]:
             # Dealing with a local file
@@ -84,18 +83,18 @@ def add_dataset_file_to_crate(
             crate_path = ""
             # add_file_time = time.time()
             if persist:  # Remove scheme so it is added as a regular file
-                for i, item in enumerate(common_paths):  # All files must have a match
+                for item in common_paths:  # All files must have a match
                     if url_parts.path.startswith(item):
                         cwd_endslash = (
                             os.getcwd() + "/"
                         )  # os.getcwd does not add the final slash
-                        # BSC hack, /gpfs/home/ and /home/ are equivalent. This is not working anymore in MN5
-                        # if cwd_endslash.startswith("/gpfs/home/"):
-                        #     cwd_final = cwd_endslash[5:]
-                        # else:
-                        #     cwd_final = cwd_endslash
-                        cwd_final = cwd_endslash
-                        if cwd_final == item:
+                        # BSC hack, inconsistent behaviour in MN5. /gpfs/home/ and /home/ are equivalent. Randomly, sometimes we get /home/ and others /gpfs/home at the dataprovenance.log and getting paths
+                        if not item.startswith("/gpfs"):
+                            # Remove /gpfs only if common paths did not include them
+                            cwd_endslash = cwd_endslash.removeprefix("/gpfs")
+                        # print(f"CWD_ENDSLASH: {cwd_endslash}")
+                        # print(f"ITEM: {item}")
+                        if cwd_endslash == item:
                             # Check if it is the working directory. When this script runs, user application has finished,
                             # so we can ensure cwd is the original folder where the application was started
                             # Workingdir dataset folder, add it to the root
@@ -402,15 +401,9 @@ def add_manual_datasets(
                 f"({item})"
             )
             continue
-        first_resolved_data_entity = str(path_data_entity.resolve())
-
-        # BSC hack: /gpfs/home/ and /home/ are the same path
-        if first_resolved_data_entity.startswith("/gpfs/home/"):
-            # BSC hack, /gpfs/home/ and /home/ are equivalent
-            resolved_data_entity = first_resolved_data_entity[5:]
-        else:
-            resolved_data_entity = first_resolved_data_entity
-
+        resolved_data_entity = str(path_data_entity.resolve())
+        # MN5 Hack: sometimes we get /gpfs/home, sometimes /home. Normalise to /home
+        resolved_data_entity = resolved_data_entity.removeprefix("/gpfs")
         if os.path.isfile(resolved_data_entity):
             new_data_entity = "file://" + socket.gethostname() + resolved_data_entity
         elif os.path.isdir(resolved_data_entity):
@@ -470,14 +463,6 @@ def add_manual_datasets(
                     f"PROVENANCE | WARNING: Item {url_parts.path} removed as {yaml_term}, since it already belongs to a dataset"
                 )
                 data_list.remove(item)
-
-            # if any((url_parts.path != dir_path and url_parts.path.startswith(dir_path)) for dir_path in directories_list):
-            #     # if the url dir:// does not finish with a slash, can add errors (e.g. /inputs vs /inputs.zip)
-            #     print(
-            #         f"PROVENANCE | WARNING: Item {item} removed as {yaml_term}, since it already belongs to a dataset"
-            #     )
-            #     data_list.remove(item)
-
     print(
         f"PROVENANCE | Manually added data assets as '{yaml_term}' ({len(data_entities_list)})"
     )

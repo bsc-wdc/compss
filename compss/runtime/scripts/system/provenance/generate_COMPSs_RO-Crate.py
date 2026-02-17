@@ -213,6 +213,7 @@ def main():
 
     # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
     if PROVENANCE_RUN_ENABLED:
+        # TASK AND PARAMETER PROCESSING IS THE MAIN SOURCE OF GENERATION TIME OVERHEAD RIGHT NOW FOR THE PROVENANCE RUN PART
         pr_part_time1 = time.time()
 
         update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
@@ -352,18 +353,25 @@ def main():
                     formal_entity.append_to("workExample", {"@id": actual_id})
 
         pr_part_time1 = time.time() - pr_part_time1
+        if __debug__:
+            print(
+                f"PROVENANCE DEBUG | Task and Parameter processing TIME: {pr_part_time1} s"
+            )
 
     # Check for the presence of job log files in any case:
     # - Their presence indicates either: failure or debug mode enabled
     # - If debug mode was not enabled and log files were generated, we can assume a failure
     # - Double check that some log files have not been previously added together with their task (if the info was available)
 
+    part_time = time.time()
     if job_logs_available:
         logs = (PATH_LOG / "jobs").glob("*")
         for file in logs:
             if file.name not in added_logs:
                 add_file_to_crate(crate=compss_crate, source=file, destination="logs")
                 added_logs.add(file.name)
+    if __debug__:
+        print(f"PROVENANCE DEBUG | Adding logs TIME: {time.time() - part_time} s")
 
     # -------------------- MAIN ENTITY -------------------- #
 
@@ -410,6 +418,10 @@ def main():
             agent=agent,
         )
         pr_part_time2 = time.time() - pr_part_time2
+        if __debug__:
+            print(
+                f"PROVENANCE DEBUG | Adding Provenance Run details to the RO-Crate TIME: {pr_part_time2} s"
+            )
         print(
             f"PROVENANCE | RO-Crate Provenance Run Crate profile total TIME: "
             f"{pr_part_time1 + pr_part_time2} s"

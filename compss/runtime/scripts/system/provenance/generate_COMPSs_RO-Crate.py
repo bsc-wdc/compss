@@ -180,18 +180,44 @@ def main():
 
     added_logs = set()
     job_logs_available = has_files(os.path.join(sys.argv[2], "jobs"))
-    successful_execution = int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0  #COMPSS_EXIT_CODE set in compss_setup.sh
+    successful_execution = (
+        int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0
+    )  # COMPSS_EXIT_CODE set in compss_setup.sh
+
+    # Process general ins and outs of the workflow
+    part_time = time.time()
+    fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
+    for item in ins:
+        in_url = add_dataset_file_to_crate(
+            compss_crate, item, persistence, list_common_paths
+        )
+        if in_url:
+            fixed_ins.append(in_url)
+    print(
+        f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
+        f"{time.time() - part_time} s"
+    )
+
+    part_time = time.time()
+    fixed_outs = []
+    for item in outs:
+        out_url = add_dataset_file_to_crate(
+            compss_crate, item, persistence, list_common_paths
+        )
+        if out_url:
+            fixed_outs.append(out_url)
+    print(
+        f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
+        f"{time.time() - part_time} s"
+    )
 
     # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
     if PROVENANCE_RUN_ENABLED:
+        # TASK AND PARAMETER PROCESSING IS THE MAIN SOURCE OF GENERATION TIME OVERHEAD RIGHT NOW FOR THE PROVENANCE RUN PART
         pr_part_time1 = time.time()
 
         update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
 
-        fixed_ins = (
-            set()
-        )  # ins are file://host/path/file, fixed_ins are crate_path/file
-        fixed_outs = set()
         steps = []
         step_control_actions = []
         added_formal_params = {}
@@ -200,7 +226,10 @@ def main():
 
         # Process each task
         for task in tasks_dict.values():
-            successful_execution &= task.status == "FINISHED"
+            successful_execution &= task.status in {
+                "FINISHED",
+                "RECOVERED",
+            }  # If tasks have been recovered from a checkpoint, the execution worked
             if task.tid == "master":
                 continue
 
@@ -223,23 +252,54 @@ def main():
                     continue
 
                 # Add the actual parameter value (File/PropertyValue)
+                # TODO: Don't try to add the parameter physically to the crate every time we find it. Keep a separated hash param_in_crate['param_log_id'] and check it first
+
                 # for files:
                 if (
                     "File" in param.dtype or "Dataset" in param.dtype
-                ) and param.is_array == False:
-                    added_value = add_dataset_file_to_crate(
-                        compss_crate, param.value, persistence, list_common_paths
-                    )
+                ):  # and param.is_array == False:
+                    # TODO: This bit needs to be rethought, since ALL intermediate files and Datasets for the whole workflow run are added
+                    # Right now it added EVERY parameter found, which adds multiple times Files and Datasets to the RO-Crate
+                    # The workflow's needed ins and outs have been already added before (Datasets and Files)
+
+                    # Right now only COLLECTION_T COMPSs type maps to Dataset. This may change in the future.
+                    # COLLECTION_FILE_XXX maps to [Array, File], not Dataset
+                    if "Dataset" in param.dtype:
+                        # Ensure that the directory URL ends with '/'
+                        if not param.value.endswith("/"):
+                            param.value += "/"
+                        added_value = add_dataset_file_to_crate(
+                            compss_crate, param.value, persistence, list_common_paths
+                        )
+                    elif "File" in param.dtype and not param.is_array:
+                        added_value = add_dataset_file_to_crate(
+                            compss_crate, param.value, persistence, list_common_paths
+                        )
+                    elif "File" in param.dtype and param.is_array:
+                        # added_value will be a list for each added file
+                        added_value = []
+                        for collection_file in param.value:
+                            added_value.append(
+                                add_dataset_file_to_crate(
+                                    compss_crate,
+                                    collection_file,
+                                    persistence,
+                                    list_common_paths,
+                                )
+                            )
+                    else:
+                        added_value = None
+
                     if not added_value:
                         continue
-
-                    if param.value in ins or f"{param.value}/" in ins:
-                        fixed_ins.add(added_value)
-                    if param.value in outs or f"{param.value}/" in outs:
-                        fixed_outs.add(added_value)
-
                     param.value = added_value
-                    param.actual_instance = {"@id": param.value}
+                    if param.is_array:
+                        # Construct the @id of the entity with the new values obtained, for arrays of files
+                        param.actual_instance = add_parameter_value(
+                            compss_crate, param, PARAM_SIZE_LIMIT
+                        )
+                    else:
+                        param.actual_instance = {"@id": param.value}
 
                 # for regular parameters:
                 else:
@@ -249,7 +309,9 @@ def main():
 
                 # Collect the FormalParameter - ActualValue relationships
                 if param.formal_instance and param.actual_instance:
-                    actual_to_formals.setdefault(param.actual_instance["@id"], set()).add(param.formal_instance["@id"])
+                    actual_to_formals.setdefault(
+                        param.actual_instance["@id"], set()
+                    ).add(param.formal_instance["@id"])
 
             # -------------------- TASK-related ENTITIES -------------------- #
 
@@ -285,49 +347,31 @@ def main():
             for formal_id in formal_ids:
                 formal_entity = compss_crate.get(formal_id)
 
-                if actual_entity: actual_entity.append_to("exampleOfWork", {"@id": formal_id})
-                if formal_entity: formal_entity.append_to("workExample", {"@id": actual_id})
+                if actual_entity:
+                    actual_entity.append_to("exampleOfWork", {"@id": formal_id})
+                if formal_entity:
+                    formal_entity.append_to("workExample", {"@id": actual_id})
 
         pr_part_time1 = time.time() - pr_part_time1
-
-    else:
-        part_time = time.time()
-        fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
-        for item in ins:
-            in_url = add_dataset_file_to_crate(
-                compss_crate, item, persistence, list_common_paths
+        if __debug__:
+            print(
+                f"PROVENANCE DEBUG | Task and Parameter processing TIME: {pr_part_time1} s"
             )
-            if in_url:
-                fixed_ins.append(in_url)
-        print(
-            f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
-            f"{time.time() - part_time} s"
-        )
-
-        part_time = time.time()
-        fixed_outs = []
-        for item in outs:
-            out_url = add_dataset_file_to_crate(
-                compss_crate, item, persistence, list_common_paths
-            )
-            if out_url:
-                fixed_outs.append(out_url)
-        print(
-            f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
-            f"{time.time() - part_time} s"
-        )
 
     # Check for the presence of job log files in any case:
     # - Their presence indicates either: failure or debug mode enabled
     # - If debug mode was not enabled and log files were generated, we can assume a failure
     # - Double check that some log files have not been previously added together with their task (if the info was available)
 
+    part_time = time.time()
     if job_logs_available:
         logs = (PATH_LOG / "jobs").glob("*")
         for file in logs:
             if file.name not in added_logs:
                 add_file_to_crate(crate=compss_crate, source=file, destination="logs")
                 added_logs.add(file.name)
+    if __debug__:
+        print(f"PROVENANCE DEBUG | Adding logs TIME: {time.time() - part_time} s")
 
     # -------------------- MAIN ENTITY -------------------- #
 
@@ -374,6 +418,10 @@ def main():
             agent=agent,
         )
         pr_part_time2 = time.time() - pr_part_time2
+        if __debug__:
+            print(
+                f"PROVENANCE DEBUG | Adding Provenance Run details to the RO-Crate TIME: {pr_part_time2} s"
+            )
         print(
             f"PROVENANCE | RO-Crate Provenance Run Crate profile total TIME: "
             f"{pr_part_time1 + pr_part_time2} s"

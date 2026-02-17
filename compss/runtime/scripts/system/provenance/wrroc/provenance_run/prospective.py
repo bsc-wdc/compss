@@ -136,8 +136,8 @@ def add_parameter_definition(
         "name": param.name,
     }
 
-    if param.is_array == "True":
-        formal_parameter_properties["multipleValues"] = True
+    if param.is_array == True:
+        formal_parameter_properties["multipleValues"] = "True"
 
     return compss_crate.add(ContextEntity(
         compss_crate,

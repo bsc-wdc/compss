@@ -18,6 +18,9 @@
 #ifndef COMPSS_INTERFACE_H
 #define COMPSS_INTERFACE_H
 
+typedef struct CompssWorkflow CompssWorkflow;
+typedef struct CompssInterface 
+
 typedef struct CompssWorkflow {
     long (*getId) (
         struct CompssWorkflow* self
@@ -82,7 +85,7 @@ typedef struct CompssWorkflow {
         char* objectId,
         int** buf
     );
-} CompssWorkflow;
+};
 
 typedef struct CompssInterface {
 
@@ -291,6 +294,6 @@ typedef struct CompssInterface {
         int stopRT
     );
 
-} CompssInterface;
+};
 
 #endif // COMPSS_INTERFACE_H

@@ -22,35 +22,6 @@
 #include "common_jni.h"
 #include "compss_interface.h"
 
-CompssWorkflow* JNI_RegisterWorkflow();
-
-long JNI_WF_getId(CompssWorkflow* wf);
-
-void JNI_WF_deregister(CompssWorkflow* wf) ;
-
-void JNI_WF_openTaskGroup(CompssWorkflow* wf, const char* groupName, bool implicitBarrier);
-
-void JNI_WF_closeTaskGroup(CompssWorkflow* wf, const char* groupName);
-
-void JNI_WF_cancelTaskGroup(CompssWorkflow* wf, const char* groupName, char** exceptionMessage);
-
-void JNI_WF_cancelApplicationTasks(CompssWorkflow* wf);
-
-void JNI_WF_noMoreTasks(CompssWorkflow* wf);
-
-void JNI_WF_barrier(CompssWorkflow* wf);
-
-void JNI_WF_barrierWithFlag(CompssWorkflow* wf, bool noMoreTasksFlag);
-
-void JNI_WF_barrierGroup(CompssWorkflow* wf, const char* groupName, char** exceptionMessage);
-
-void JNI_WF_snapshot(CompssWorkflow* wf);
-
-void JNI_WF_getObject(CompssWorkflow* wf, char* fileName, char** buf);
-
-void JNI_WF_deleteObject(CompssWorkflow* wf, char* fileName, int** buf);
-
-
 CompssInterface setup_JNI_runtime(void);
 
 #endif /* JNI_COMPSS_H */

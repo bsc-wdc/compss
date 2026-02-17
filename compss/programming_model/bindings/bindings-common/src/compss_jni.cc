@@ -768,6 +768,289 @@ static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
     }
 }
 
+// ******************************
+// Workflow functions
+// ******************************
+long JNI_WF_getId(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_GetId\n");
+    
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+    jobject jLong = env->CallObjectMethod(wf->jWorkflow, mid_wf_getID);
+
+    long id = (long) env->CallLongMethod(jLong, midLongVal);
+    env->DeleteLocalRef(jLong);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_GetId - Obtained id %ld\n", id);
+    return id;
+}
+
+
+void JNI_WF_deregister(CompssWorkflow* self) {
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_Deregister\n");
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_deregister);
+    check_exception(status, "Workflow.deregister failed");
+    env->DeleteGlobalRef(wf->jWorkflow);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+}
+
+
+void JNI_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool implicitBarrier) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_openTaskGroup, jGroup, implicitBarrier);
+    check_exception(status, "Workflow.openTaskGroup failed");
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup - Done\n");
+}
+
+void JNI_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_closeTaskGroup, jGroup);
+    check_exception(status, "Workflow.closeTaskGroup failed");
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup - Done\n");
+}
+
+void JNI_WF_cancelTaskGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelTaskGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelTaskGroup, jGroup);
+    check_and_get_compss_exception(status, exceptionMessage);
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelTaskGroup - Done\n");
+}
+
+void JNI_WF_cancelApplicationTasks(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelApplicationTasks\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelApplicationTasks);
+    check_exception(status, "Workflow.cancelApplicationTasks failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelApplicationTasks - Done\n");
+}
+
+void JNI_WF_noMoreTasks(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_noMoreTasks\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_noMoreTasks);
+    check_exception(status, "Workflow.noMoreTasks failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_noMoreTasks - Done\n");
+}
+
+void JNI_WF_barrier(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrier\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrier);
+    check_exception(status, "Workflow.barrier failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrier - Done\n");
+}
+
+void JNI_WF_barrierWithFlag(CompssWorkflow* self, bool noMoreTasksFlag) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierWithFlag\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrier_withFlag, noMoreTasksFlag);
+    check_exception(status, "Workflow.barrier(boolean) failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierWithFlag - Done\n");
+}
+
+void JNI_WF_barrierGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierGroup\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jGroup = env->NewStringUTF(groupName);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrierGroup, jGroup);
+    check_and_get_compss_exception(status, exceptionMessage);
+    env->DeleteLocalRef(jGroup);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierGroup - Done\n");
+}
+
+void JNI_WF_snapshot(CompssWorkflow* self) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_snapshot);
+    check_exception(status, "Workflow.snapshot failed");
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot - Done\n");
+}
+
+void JNI_WF_getObject(CompssWorkflow* self, char* fileName, char** buf) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getObject\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+    jstring jFileName = env->NewStringUTF(fileName);
+    jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow, mid_wf_getBindingObject, jFileName);
+    check_exception(status, "Workflow.getObject failed");
+
+    // Parse output
+    jboolean isCopy;
+    const char* cstr = env->GetStringUTFChars(jstr, &isCopy);
+    *buf = strdup(cstr);
+    env->ReleaseStringUTFChars(jstr, cstr);
+    env->DeleteLocalRef(jstr);
+    env->DeleteLocalRef(jFileName);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getObject - Done\n");
+}
+
+void JNI_WF_deleteObject(CompssWorkflow* self, char* fileName, int** buf) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteObject\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jFileName = env->NewStringUTF(fileName);
+    jboolean res = env->CallBooleanMethod(wf->jWorkflow, mid_wf_deleteBindingObject, jFileName);
+    check_exception(status, "Workflow.deleteObject failed");
+    *buf = (int*) &res;
+    env->DeleteLocalRef(jFileName);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteObject - Done\n");
+}
+
+
+
+CompssWorkflow* JNI_RegisterWorkflow() {
+    debug_printf("[BINDING-COMMONS] - @JNI_RegisterWorkflow\n");
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+    // Register Worfklow
+    jobject jWorkflowObj = env->CallObjectMethod(globalRuntime, midRegWf, NULL, NULL);
+
+    if (clsWorkflow == NULL) {
+        clsWorkflow = env->GetObjectClass(jWorkflowObj);
+
+        mid_wf_getID = env->GetMethodID(clsWorkflow, "getId", "()Ljava/lang/Long;");
+        check_exception(status, "Cannot find the Workflow.getId method");
+        mid_wf_openTaskGroup = env->GetMethodID(clsWorkflow, "openTaskGroup", "(Ljava/lang/String;Z)V");
+        check_exception(status, "Cannot find the Workflow.openTaskGroup method");
+        mid_wf_closeTaskGroup = env->GetMethodID(clsWorkflow, "closeTaskGroup", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find the Workflow.closeTaskGroup method");
+        mid_wf_cancelTaskGroup = env->GetMethodID(clsWorkflow, "cancelTaskGroup", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find the Workflow.cancelTaskGroup method");
+        mid_wf_cancelApplicationTasks = env->GetMethodID(clsWorkflow, "cancelApplicationTasks", "()V");
+        check_exception(status, "Cannot find the Workflow.cancelApplicationTasks method");
+        mid_wf_noMoreTasks = env->GetMethodID(clsWorkflow, "noMoreTasks", "()V");
+        check_exception(status, "Cannot find the Workflow.noMoreTasks method");
+        mid_wf_barrier = env->GetMethodID(clsWorkflow, "barrier", "()V");
+        check_exception(status, "Cannot find the Workflow.barrier method");
+        mid_wf_barrier_withFlag = env->GetMethodID(clsWorkflow, "barrier", "(Z)V");
+        check_exception(status, "Cannot find the Workflow.barrier method");
+        mid_wf_barrierGroup = env->GetMethodID(clsWorkflow, "barrierGroup", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find the Workflow.barrierGroup method");
+        mid_wf_snapshot = env->GetMethodID(clsWorkflow, "snapshot", "()V");
+        check_exception(status, "Cannot find the Workflow.snapshot method");
+        mid_wf_deregister = env->GetMethodID(clsWorkflow, "deregister", "()V");
+        check_exception(status, "Cannot find the Workflow.deregister  method");
+
+        // Data operations
+        mid_wf_getBindingObject = env->GetMethodID(clsWorkflow, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
+        check_exception(status, "Cannot find getBindingObject");
+        mid_wf_deleteBindingObject = env->GetMethodID(clsWorkflow, "deleteBindingObject", "(Ljava/lang/String;)Z");
+        check_exception(status, "Cannot find deleteBindingObject");
+    }
+
+    // Wrap Java Workflow object into a C struct implementing the interface
+    JNIWorkflow* wf = (JNIWorkflow*) malloc(sizeof(JNIWorkflow));
+    wf->jWorkflow = env->NewGlobalRef(jWorkflowObj);
+
+    wf->base.getId = JNI_WF_getId;
+    wf->base.deregister = JNI_WF_deregister;
+    wf->base.openTaskGroup = JNI_WF_openTaskGroup;
+    wf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
+    wf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;
+    wf->base.cancelApplicationTasks = JNI_WF_cancelApplicationTasks;
+    wf->base.noMoreTasks = JNI_WF_noMoreTasks;
+    wf->base.barrier = JNI_WF_barrier;
+    wf->base.barrierWithFlag = JNI_WF_barrierWithFlag;
+    wf->base.barrierGroup = JNI_WF_barrierGroup;
+    wf->base.snapshot = JNI_WF_snapshot;
+    wf->base.get_object = JNI_WF_getObject;
+    wf->base.delete_object = JNI_WF_deleteObject;
+
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_RegisterWorkflow - Workflow registered\n");
+    return (CompssWorkflow*)wf;
+}
 
 // ******************************
 // API functions
@@ -892,73 +1175,6 @@ void JNI_Off(int code) {
 
 void JNI_read_command(char** command){
     // Do nothing
-}
-
-
-CompssWorkflow* JNI_RegisterWorkflow() {
-    debug_printf("[BINDING-COMMONS] - @JNI_RegisterWorkflow\n");
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-    // Register Worfklow
-    jobject jWorkflowObj = env->CallObjectMethod(globalRuntime, midRegWf, NULL, NULL);
-
-    if (clsWorkflow == NULL) {
-        clsWorkflow = env->GetObjectClass(jWorkflowObj);
-
-        mid_wf_getID = env->GetMethodID(clsWorkflow, "getId", "()Ljava/lang/Long;");
-        check_exception(status, "Cannot find the Workflow.getId method");
-        mid_wf_openTaskGroup = env->GetMethodID(clsWorkflow, "openTaskGroup", "(Ljava/lang/String;Z)V");
-        check_exception(status, "Cannot find the Workflow.openTaskGroup method");
-        mid_wf_closeTaskGroup = env->GetMethodID(clsWorkflow, "closeTaskGroup", "(Ljava/lang/String;)V");
-        check_exception(status, "Cannot find the Workflow.closeTaskGroup method");
-        mid_wf_cancelTaskGroup = env->GetMethodID(clsWorkflow, "cancelTaskGroup", "(Ljava/lang/String;)V");
-        check_exception(status, "Cannot find the Workflow.cancelTaskGroup method");
-        mid_wf_cancelApplicationTasks = env->GetMethodID(clsWorkflow, "cancelApplicationTasks", "()V");
-        check_exception(status, "Cannot find the Workflow.cancelApplicationTasks method");
-        mid_wf_noMoreTasks = env->GetMethodID(clsWorkflow, "noMoreTasks", "()V");
-        check_exception(status, "Cannot find the Workflow.noMoreTasks method");
-        mid_wf_barrier = env->GetMethodID(clsWorkflow, "barrier", "()V");
-        check_exception(status, "Cannot find the Workflow.barrier method");
-        mid_wf_barrier_withFlag = env->GetMethodID(clsWorkflow, "barrier", "(Z)V");
-        check_exception(status, "Cannot find the Workflow.barrier method");
-        mid_wf_barrierGroup = env->GetMethodID(clsWorkflow, "barrierGroup", "(Ljava/lang/String;)V");
-        check_exception(status, "Cannot find the Workflow.barrierGroup method");
-        mid_wf_snapshot = env->GetMethodID(clsWorkflow, "snapshot", "()V");
-        check_exception(status, "Cannot find the Workflow.snapshot method");
-        mid_wf_deregister = env->GetMethodID(clsWorkflow, "deregister", "()V");
-        check_exception(status, "Cannot find the Workflow.deregister  method");
-
-        // Data operations
-        mid_wf_getBindingObject = env->GetMethodID(clsWorkflow, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
-        check_exception(status, "Cannot find getBindingObject");
-        mid_wf_deleteBindingObject = env->GetMethodID(clsWorkflow, "deleteBindingObject", "(Ljava/lang/String;)Z");
-        check_exception(status, "Cannot find deleteBindingObject");
-    }
-
-    // Wrap Java Workflow object into a C struct implementing the interface
-    JNIWorkflow* wf = (JNIWorkflow*) malloc(sizeof(JNIWorkflow));
-    wf->jWorkflow = env->NewGlobalRef(jWorkflowObj);
-
-    wf->base.getId = JNI_WF_getId;
-    wf->base.deregister = JNI_WF_deregister;
-    wf->base.openTaskGroup = JNI_WF_openTaskGroup;
-    wf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
-    wf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;
-    wf->base.cancelApplicationTasks = JNI_WF_cancelApplicationTasks;
-    wf->base.noMoreTasks = JNI_WF_noMoreTasks;
-    wf->base.barrier = JNI_WF_barrier;
-    wf->base.barrierWithFlag = JNI_WF_barrierWithFlag;
-    wf->base.barrierGroup = JNI_WF_barrierGroup;
-    wf->base.snapshot = JNI_WF_snapshot;
-    wf->base.get_object = JNI_WF_getObject;
-    wf->base.delete_object = JNI_WF_deleteObject;
-
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf ("[BINDING-COMMONS] - @JNI_RegisterWorkflow - Workflow registered\n");
-    return (CompssWorkflow*)wf;
 }
 
 void JNI_Cancel_Application_Tasks(long appId) {
@@ -1664,223 +1880,6 @@ void JNI_set_wall_clock(long appId, long wcl, int stopRT){
 
 	// Revoke thread access to JVM
 	access_revoke(status);
-}
-
-
-
-
-
-long JNI_WF_getId(CompssWorkflow* self) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_GetId\n");
-    
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-    jobject jLong = env->CallObjectMethod(wf->jWorkflow, mid_wf_getID);
-
-    long id = (long) env->CallLongMethod(jLong, midLongVal);
-    env->DeleteLocalRef(jLong);
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf ("[BINDING-COMMONS] - @JNI_WF_GetId - Obtained id %ld\n", id);
-    return id;
-}
-
-
-void JNI_WF_deregister(CompssWorkflow* self) {
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_Deregister\n");
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-    
-    JNIEnv* env = status->localJniEnv;
-
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_deregister);
-    check_exception(status, "Workflow.deregister failed");
-    env->DeleteGlobalRef(wf->jWorkflow);
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-}
-
-
-void JNI_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool implicitBarrier) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    jstring jGroup = env->NewStringUTF(groupName);
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_openTaskGroup, jGroup, implicitBarrier);
-    check_exception(status, "Workflow.openTaskGroup failed");
-    env->DeleteLocalRef(jGroup);
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup - Done\n");
-}
-
-void JNI_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    jstring jGroup = env->NewStringUTF(groupName);
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_closeTaskGroup, jGroup);
-    check_exception(status, "Workflow.closeTaskGroup failed");
-    env->DeleteLocalRef(jGroup);
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup - Done\n");
-}
-
-void JNI_WF_cancelTaskGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelTaskGroup\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    jstring jGroup = env->NewStringUTF(groupName);
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelTaskGroup, jGroup);
-    check_and_get_compss_exception(status, exceptionMessage);
-    env->DeleteLocalRef(jGroup);
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelTaskGroup - Done\n");
-}
-
-void JNI_WF_cancelApplicationTasks(CompssWorkflow* self) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelApplicationTasks\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelApplicationTasks);
-    check_exception(status, "Workflow.cancelApplicationTasks failed");
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_cancelApplicationTasks - Done\n");
-}
-
-void JNI_WF_noMoreTasks(CompssWorkflow* self) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_noMoreTasks\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_noMoreTasks);
-    check_exception(status, "Workflow.noMoreTasks failed");
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_noMoreTasks - Done\n");
-}
-
-void JNI_WF_barrier(CompssWorkflow* self) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrier\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrier);
-    check_exception(status, "Workflow.barrier failed");
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrier - Done\n");
-}
-
-void JNI_WF_barrierWithFlag(CompssWorkflow* self, bool noMoreTasksFlag) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierWithFlag\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrier_withFlag, noMoreTasksFlag);
-    check_exception(status, "Workflow.barrier(boolean) failed");
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierWithFlag - Done\n");
-}
-
-void JNI_WF_barrierGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierGroup\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    jstring jGroup = env->NewStringUTF(groupName);
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_barrierGroup, jGroup);
-    check_and_get_compss_exception(status, exceptionMessage);
-    env->DeleteLocalRef(jGroup);
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_barrierGroup - Done\n");
-}
-
-void JNI_WF_snapshot(CompssWorkflow* self) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_snapshot);
-    check_exception(status, "Workflow.snapshot failed");
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot - Done\n");
-}
-
-void JNI_WF_getObject(CompssWorkflow* self, char* fileName, char** buf) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_getObject\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-    jstring jFileName = env->NewStringUTF(fileName);
-    jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow, mid_wf_getBindingObject, jFileName);
-    check_exception(status, "Workflow.getObject failed");
-
-    // Parse output
-    jboolean isCopy;
-    const char* cstr = env->GetStringUTFChars(jstr, &isCopy);
-    *buf = strdup(cstr);
-    env->ReleaseStringUTFChars(jstr, cstr);
-    env->DeleteLocalRef(jstr);
-    env->DeleteLocalRef(jFileName);
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_getObject - Done\n");
-}
-
-void JNI_WF_deleteObject(CompssWorkflow* self, char* fileName, int** buf) {
-    JNIWorkflow* wf = (JNIWorkflow*) self;
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteObject\n");
-
-    ThreadStatus* status = access_request();
-    JNIEnv* env = status->localJniEnv;
-
-    jstring jFileName = env->NewStringUTF(fileName);
-    jboolean res = env->CallBooleanMethod(wf->jWorkflow, mid_wf_deleteBindingObject, jFileName);
-    check_exception(status, "Workflow.deleteObject failed");
-    *buf = (int*) &res;
-    env->DeleteLocalRef(jFileName);
-
-    access_revoke(status);
-    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteObject - Done\n");
 }
 
 CompssInterface setup_JNI_runtime(){

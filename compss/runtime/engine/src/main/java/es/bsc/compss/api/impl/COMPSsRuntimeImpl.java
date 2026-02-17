@@ -750,32 +750,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public String getBindingObject(Long appId, String fileName) {
-        return APITracer.traced(APIEvent.GET_BINDING_OBJECT, () -> {
-            // Parse the file name
-            LOGGER.debug(" Calling get binding object : " + fileName);
-            BindingObject bo = BindingObject.generate(fileName);
-            BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
-            String boId = boLoc.getId();
-            int hashCode = externalObjectHashcode(boId);
-            Application app = Application.registerApplication(appId);
-            BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
-
-            // Otherwise we request it from a task
-            String finalPath;
-            try {
-                BindingObject newBO = ap.mainAccess(boap);
-                String bindingObjectID = newBO.getName();
-                finalPath = bindingObjectID;
-            } catch (ValueUnawareRuntimeException e) {
-                finalPath = bo.toString();
-            }
-            LOGGER.debug("Returning binding object as id: " + finalPath);
-            return finalPath;
-        });
-    }
-
-    @Override
     public boolean deleteFile(Long appId, String fileName) {
         return deleteFile(appId, fileName, true, true);
     }
@@ -799,27 +773,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             }
             LOGGER.info("File " + fileName + " Deleted.");
-            // Return deletion was successful
-            return true;
-        });
-    }
-
-    @Override
-    public boolean deleteBindingObject(Long appId, String fileName) {
-        // Emit event
-        return APITracer.traced(APIEvent.DELETE_BIND_OBJECT, () -> {
-            if (fileName == null || fileName.isEmpty()) {
-                return false;
-            }
-
-            LOGGER.info("Deleting BindingObject " + fileName);
-
-            Application app = Application.registerApplication(appId);
-            // Parse the binding object name and translate the access mode
-            BindingObject bo = BindingObject.generate(fileName);
-            int hashCode = externalObjectHashcode(bo.getId());
-            ap.deleteData(app, new BindingObjectData(hashCode), false, false);
-
             // Return deletion was successful
             return true;
         });
@@ -1439,7 +1392,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
     }
 
-    private int externalObjectHashcode(String id) {
+    /**
+     * Computes the HashCode identifier for an external Binding object.
+     * 
+     * @param id identifier for an external BO
+     * @return hashcode of the identifier
+     */
+    public static int externalObjectHashcode(String id) {
         int hashCode = 7;
         for (int i = 0; i < id.length(); ++i) {
             hashCode = hashCode * 31 + id.charAt(i);

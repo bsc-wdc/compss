@@ -411,7 +411,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleGetObject(GetObjectPipeCommand cmd) throws IOException {
-            runtime.getBindingObject(this.appId, cmd.getObjectId());
+            wf.getBindingObject(cmd.getObjectId());
             sendCommand(new SynchPipeCommand());
         }
 

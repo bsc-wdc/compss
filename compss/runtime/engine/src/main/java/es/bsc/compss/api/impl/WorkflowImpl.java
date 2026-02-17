@@ -24,12 +24,16 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.params.BindingObjectData;
 import es.bsc.compss.types.data.params.CollectionData;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.data.params.FileData;
@@ -310,6 +314,31 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
+    public String getBindingObject(String fileName) {
+        return APITracer.traced(APIEvent.GET_BINDING_OBJECT, () -> {
+            // Parse the file name
+            LOGGER.debug(" Calling get binding object : " + fileName);
+            BindingObject bo = BindingObject.generate(fileName);
+            BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
+            String boId = boLoc.getId();
+            int hashCode = COMPSsRuntimeImpl.externalObjectHashcode(boId);
+            BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(this, Direction.INOUT, bo, hashCode);
+
+            // Otherwise we request it from a task
+            String finalPath;
+            try {
+                BindingObject newBO = AP.mainAccess(boap);
+                String bindingObjectID = newBO.getName();
+                finalPath = bindingObjectID;
+            } catch (ValueUnawareRuntimeException e) {
+                finalPath = bo.toString();
+            }
+            LOGGER.debug("Returning binding object as id: " + finalPath);
+            return finalPath;
+        });
+    }
+
+    @Override
     public boolean removeObject(Object o) {
         APITracer.traced(APIEvent.DELETE_OBJECT, (Runnable) () -> {
             int hashcode = System.identityHashCode(o);
@@ -318,6 +347,26 @@ public class WorkflowImpl extends Application implements Workflow {
             AP.deleteData(this, new ObjectData(hashcode), false, false);
         });
         return true;
+    }
+
+    @Override
+    public boolean deleteBindingObject(String fileName) {
+        // Emit event
+        return APITracer.traced(APIEvent.DELETE_BIND_OBJECT, () -> {
+            if (fileName == null || fileName.isEmpty()) {
+                return false;
+            }
+
+            LOGGER.info("Deleting BindingObject " + fileName);
+
+            // Parse the binding object name and translate the access mode
+            BindingObject bo = BindingObject.generate(fileName);
+            int hashCode = COMPSsRuntimeImpl.externalObjectHashcode(bo.getId());
+            AP.deleteData(this, new BindingObjectData(hashCode), false, false);
+
+            // Return deletion was successful
+            return true;
+        });
     }
 
     @Override

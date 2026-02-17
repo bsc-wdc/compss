@@ -94,6 +94,11 @@ public class JavaWorkflow implements Workflow {
         return null;
     }
 
+    @Override
+    public String getBindingObject(String bindingObjectName) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Returns the currently registered value for the object represented by {@code o}.
      *
@@ -113,6 +118,11 @@ public class JavaWorkflow implements Workflow {
     @Override
     public boolean removeObject(Object o) {
         return this.oReg.delete(o);
+    }
+
+    @Override
+    public boolean deleteBindingObject(String bindingObjectName) {
+        throw new UnsupportedOperationException();
     }
 
     /**

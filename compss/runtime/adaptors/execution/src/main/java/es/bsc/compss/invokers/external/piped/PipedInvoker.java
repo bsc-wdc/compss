@@ -212,7 +212,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
                                 String id = gfpc.getObjectId();
                                 if (this.appId != null) {
-                                    this.context.getRuntimeAPI().getBindingObject(this.appId, id);
+                                    this.wf.getBindingObject(id);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }

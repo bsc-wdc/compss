@@ -69,6 +69,8 @@ jmethodID mid_wf_barrier_withFlag;
 jmethodID mid_wf_barrierGroup;
 jmethodID mid_wf_snapshot;
 jmethodID mid_wf_deregister;
+jmethodID mid_wf_getBindingObject;		
+jmethodID mid_wf_deleteBindingObject; 	
 
 jmethodID midExecute;                   /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecuteNew;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -84,8 +86,7 @@ jmethodID midGetFile;                   /* ID of the getFile method in the es.bs
 
 jmethodID midGetDirectory;              /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midGetBindingObject;		    /* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
-jmethodID midDeleteBindingObject; 	    /* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
+
 
 jmethodID midGetNumberOfResources;      /* ID of the getNumberOfResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRequestResources;          /* ID of the requestResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -450,14 +451,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // getDirectory method
     midGetDirectory = status->localJniEnv->GetMethodID(clsITimpl, "getDirectory", "(Ljava/lang/Long;Ljava/lang/String;)V");
     check_exception(status, "Cannot find getDirectory");
-
-    // deleteFile method
-    midDeleteBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "deleteBindingObject", "(Ljava/lang/Long;Ljava/lang/String;)Z");
-    check_exception(status, "Cannot find deleteBindingObject");
-
-    // openFile method
-    midGetBindingObject = status->localJniEnv->GetMethodID(clsITimpl, "getBindingObject", "(Ljava/lang/Long;Ljava/lang/String;)Ljava/lang/String;");
-    check_exception(status, "Cannot find getBindingObject");
 
     // getNumberOfResources method
     midGetNumberOfResources = status->localJniEnv->GetMethodID(clsITimpl, "getNumberOfResources", "()I");
@@ -934,6 +927,12 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find the Workflow.snapshot method");
         mid_wf_deregister = env->GetMethodID(clsWorkflow, "deregister", "()V");
         check_exception(status, "Cannot find the Workflow.deregister  method");
+
+        // Data operations
+        mid_wf_getBindingObject = env->GetMethodID(clsWorkflow, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
+        check_exception(status, "Cannot find getBindingObject");
+        mid_wf_deleteBindingObject = env->GetMethodID(clsWorkflow, "deleteBindingObject", "(Ljava/lang/String;)Z");
+        check_exception(status, "Cannot find deleteBindingObject");
     }
 
     // Wrap Java Workflow object into a C struct implementing the interface
@@ -951,6 +950,8 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     wf->base.barrierWithFlag = JNI_WF_barrierWithFlag;
     wf->base.barrierGroup = JNI_WF_barrierGroup;
     wf->base.snapshot = JNI_WF_snapshot;
+    wf->base.get_object = JNI_WF_getObject;
+    wf->base.delete_object = JNI_WF_deleteObject;
 
 
     // Revoke thread access to JVM
@@ -1497,53 +1498,22 @@ void JNI_Get_Directory(long appId, char* dirName) {
 
 void JNI_Get_Object(long appId, char* fileName, char** buf) {
     debug_printf("[BINDING-COMMONS] - @JNI_Get_Object - Calling runtime getObject method...\n");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
-                                                        midGetBindingObject,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                        status->localJniEnv->NewStringUTF(fileName));
-    check_exception(status, "Exception received when calling getObject");
-
-    // Parse output
-    jboolean isCopy;
-    const char* cstr = status->localJniEnv->GetStringUTFChars(jstr, &isCopy);
-    *buf = strdup(cstr);
-    status->localJniEnv->ReleaseStringUTFChars(jstr, cstr);
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->get_object(JNI_wf, fileName, buf);
     debug_printf("[BINDING-COMMONS] - @JNI_Get_Object - COMPSs data id: %s\n", *buf);
 }
 
 
 void JNI_Delete_Object(long appId, char* fileName, int** buf) {
     debug_printf("[BINDING-COMMONS] - @JNI_Delete_Object - Calling runtime deleteObject method...\n");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime,
-                                                midDeleteBindingObject,
-                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                status->localJniEnv->NewStringUTF(fileName));
-    check_exception(status, "Exception received when calling deleteObject");
-    *buf = (int*) &res;
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->delete_object(JNI_wf, fileName, buf);
     debug_printf("[BINDING-COMMONS] - @JNI_Delete_Binding_Object - COMPSs obj: %s\n", fileName);
 }
 
 
 void JNI_Barrier(long appId) {
+    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - Waiting tasks for APP id: %lu\n", appId);
 	JNI_wf->barrier(JNI_wf);
+    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - APP id: %lu\n", appId);
 }
 
 
@@ -1874,6 +1844,44 @@ void JNI_WF_snapshot(CompssWorkflow* self) {
     debug_printf("[BINDING-COMMONS] - @JNI_WF_snapshot - Done\n");
 }
 
+void JNI_WF_getObject(CompssWorkflow* self, char* fileName, char** buf) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getObject\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+    jstring jFileName = env->NewStringUTF(fileName);
+    jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow, mid_wf_getBindingObject, jFileName);
+    check_exception(status, "Workflow.getObject failed");
+
+    // Parse output
+    jboolean isCopy;
+    const char* cstr = env->GetStringUTFChars(jstr, &isCopy);
+    *buf = strdup(cstr);
+    env->ReleaseStringUTFChars(jstr, cstr);
+    env->DeleteLocalRef(jstr);
+    env->DeleteLocalRef(jFileName);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getObject - Done\n");
+}
+
+void JNI_WF_deleteObject(CompssWorkflow* self, char* fileName, int** buf) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteObject\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jFileName = env->NewStringUTF(fileName);
+    jboolean res = env->CallBooleanMethod(wf->jWorkflow, mid_wf_deleteBindingObject, jFileName);
+    check_exception(status, "Workflow.deleteObject failed");
+    *buf = (int*) &res;
+    env->DeleteLocalRef(jFileName);
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteObject - Done\n");
+}
 
 CompssInterface setup_JNI_runtime(){
     CompssInterface iface{};

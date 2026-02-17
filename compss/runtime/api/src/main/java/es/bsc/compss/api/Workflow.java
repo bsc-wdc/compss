@@ -129,6 +129,22 @@ public interface Workflow {
     boolean removeObject(Object o);
 
     /**
+     * Returns the renaming of the binding object version opened.
+     *
+     * @param bindingObjectName Name of the binding object.
+     * @return id in the cache.
+     */
+    String getBindingObject(String bindingObjectName);
+
+    /**
+     * Removes the binding object from runtime.
+     *
+     * @param bindingObjectName Name of the binding object.
+     * @return true if the {@code bindingObjectName} has been deleted, false otherwise.
+     */
+    boolean deleteBindingObject(String bindingObjectName);
+
+    /**
      * Checkpoint of the tasks and data.
      */
     void snapshot();

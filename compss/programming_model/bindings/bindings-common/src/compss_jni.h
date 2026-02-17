@@ -46,6 +46,10 @@ void JNI_WF_barrierGroup(CompssWorkflow* wf, const char* groupName, char** excep
 
 void JNI_WF_snapshot(CompssWorkflow* wf);
 
+void JNI_WF_getObject(CompssWorkflow* wf, char* fileName, char** buf);
+
+void JNI_WF_deleteObject(CompssWorkflow* wf, char* fileName, int** buf);
+
 
 CompssInterface setup_JNI_runtime(void);
 

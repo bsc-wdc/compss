@@ -70,6 +70,18 @@ typedef struct CompssWorkflow {
     void (*snapshot)(
         struct CompssWorkflow* self
     );
+
+    void (*get_object)(
+        struct CompssWorkflow* self,
+        char* objectId,
+        char** buf
+    );
+
+    void (*delete_object)(
+        struct CompssWorkflow* self,
+        char* objectId,
+        int** buf
+    );
 } CompssWorkflow;
 
 typedef struct CompssInterface {

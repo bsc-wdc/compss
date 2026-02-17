@@ -251,27 +251,54 @@ def main():
                     continue
 
                 # Add the actual parameter value (File/PropertyValue)
+                # TODO: Don't try to add the parameter phisically to the crate every time we find it. Keep a separated hash param_in_crate['param_log_id'] and check it first
+
                 # for files:
                 if (
                     "File" in param.dtype or "Dataset" in param.dtype
-                ) and param.is_array == False:
+                ):  # and param.is_array == False:
                     # TODO: This bit needs to be rethought, since ALL intermediate files and Datasets for the whole workflow run are added
                     # Right now it added EVERY parameter found, which adds multiple times Files and Datasets to the RO-Crate
                     # The workflow's needed ins and outs have been already added before (Datasets and Files)
 
                     # Right now only COLLECTION_T COMPSs type maps to Dataset. This may change in the future.
+                    # COLLECTION_FILE_XXX maps to [Array, File], not Dataset
                     if "Dataset" in param.dtype:
                         # Ensure that the directory URL ends with '/'
                         if not param.value.endswith("/"):
                             param.value += "/"
-                    added_value = add_dataset_file_to_crate(
-                        compss_crate, param.value, persistence, list_common_paths
-                    )
+                        added_value = add_dataset_file_to_crate(
+                            compss_crate, param.value, persistence, list_common_paths
+                        )
+                    elif "File" in param.dtype and not param.is_array:
+                        added_value = add_dataset_file_to_crate(
+                            compss_crate, param.value, persistence, list_common_paths
+                        )
+                    elif "File" in param.dtype and param.is_array:
+                        # added_value will be a list for each added file
+                        added_value = []
+                        for collection_file in param.value:
+                            added_value.append(
+                                add_dataset_file_to_crate(
+                                    compss_crate,
+                                    collection_file,
+                                    persistence,
+                                    list_common_paths,
+                                )
+                            )
+                    else:
+                        added_value = None
+
                     if not added_value:
                         continue
-
                     param.value = added_value
-                    param.actual_instance = {"@id": param.value}
+                    if param.is_array:
+                        # Construct the @id of the entity with the new values obtained, for arrays of files
+                        param.actual_instance = add_parameter_value(
+                            compss_crate, param, PARAM_SIZE_LIMIT
+                        )
+                    else:
+                        param.actual_instance = {"@id": param.value}
 
                 # for regular parameters:
                 else:

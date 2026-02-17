@@ -251,7 +251,7 @@ def main():
                     continue
 
                 # Add the actual parameter value (File/PropertyValue)
-                # TODO: Don't try to add the parameter phisically to the crate every time we find it. Keep a separated hash param_in_crate['param_log_id'] and check it first
+                # TODO: Don't try to add the parameter physically to the crate every time we find it. Keep a separated hash param_in_crate['param_log_id'] and check it first
 
                 # for files:
                 if (

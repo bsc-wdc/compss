@@ -118,6 +118,32 @@ authors:
     family-names: Dabral
     affiliation: Indian Institute of Technology BHU
     orcid: 'https://orcid.org/0009-0009-6701-3547'
+  - given-names: Adrià
+    family-names: Aguila Perez
+  - given-names: Aldo
+    family-names: Fuster Turpin
+  - given-names: Albert
+    family-names: Serven
+  - given-names: Carlos
+    family-names: Alvarado
+  - given-names: Carlos
+    family-names: Díaz
+  - given-names: Guillermo
+    family-names: López
+  - given-names: Joel
+    family-names: Miarons
+  - given-names: Marc
+    family-names: Domínguez de la Rocha
+  - given-names: Marc
+    family-names: Rodríguez
+  - given-names: Salvi
+    family-names: Solà Martinell
+  - given-names: Sandra
+    family-names: Corella
+  - given-names: Victor
+    family-names: Antón
+  - given-names: Pau
+    family-names: Recort
 identifiers:
   - type: url
     value: 'https://doi.org/10.5281/zenodo.15229826'

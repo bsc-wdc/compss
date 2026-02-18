@@ -32,7 +32,7 @@
     <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •
     <a href="https://compss-doc.readthedocs.io/en/latest/">Documentation</a> •
     <a href="https://github.com/bsc-wdc/compss/releases">Releases</a> •
-    <a href="https://bsc-wdc.slack.com/archives/CFENCE3NF">Slack</a> •
+    <a href="mailto:support-compss@bsc.es?subject=Request%20to%20join%20Workflows%20and%20Distributed%20Computing%20Slack&body=Hello%2C%0D%0A%0D%0AI%20would%20like%20to%20request%20access%20to%20the%20Workflows%20and%20Distributed%20Computing%20Slack%20workspace.%20Could%20you%20please%20add%20me%20so%20I%20can%20ask%20for%20support%20and%20stay%20informed%20about%20important%20announcements%3F%0D%0A%0D%0AThank%20you%20very%20much.">Slack</a> •
     <a href="mailto:support-compss@bsc.es">&#9993 Support</a>
 </b></p>
 

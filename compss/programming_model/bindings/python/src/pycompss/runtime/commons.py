@@ -178,16 +178,22 @@ class Globals:
         """
         return self.temp_dir
 
-    def set_temporary_directory(self, folder: str) -> None:
+    def set_temporary_directory(
+        self, folder: str, create_temp: bool = True
+    ) -> None:
         """Set the temporary directory.
 
         Creates the temporary directory from the folder parameter and
         sets the temporary directory variable.
 
         :param folder: Temporary directory path.
+        :param create_temp: Create new temporary directory within the folder.
         :return: None.
         """
-        temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
+        if create_temp:
+            temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
+        else:
+            temp_dir = folder
         self.temp_dir = temp_dir
 
     def get_analysis_directory(self) -> str:

@@ -19,9 +19,9 @@
 #define COMPSS_INTERFACE_H
 
 typedef struct CompssWorkflow CompssWorkflow;
-typedef struct CompssInterface 
+typedef struct CompssInterface CompssInterface;
 
-typedef struct CompssWorkflow {
+struct CompssWorkflow {
     long (*getId) (
         struct CompssWorkflow* self
     );
@@ -87,7 +87,7 @@ typedef struct CompssWorkflow {
     );
 };
 
-typedef struct CompssInterface {
+struct CompssInterface {
 
     // COMPSs Runtime state
     void (*On)(

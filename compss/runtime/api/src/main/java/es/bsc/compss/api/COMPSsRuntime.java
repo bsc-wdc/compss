@@ -197,32 +197,6 @@ public interface COMPSsRuntime {
         boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
     /**
-     * New service task.
-     *
-     * @param appId The application id.
-     * @param namespace The service namespace.
-     * @param service The service endpoint.
-     * @param port The service port.
-     * @param operation The service operation.
-     * @param isPrioritary Whether the task is set as prioritary or not.
-     * @param numNodes The number of nodes required to execute the task.
-     * @param isReduce Whether the task is of type reduce.
-     * @param reduceChunkSize The chunk size set for executing a reduce operation.
-     * @param isReplicated Whether the task must be replicated or not.
-     * @param isDistributed Whether the task must be distributed or not.
-     * @param hasTarget Whether the task has a target parameter or not.
-     * @param parameterCount The number of parameters of the method.
-     * @param onFailure On task failure behavior.
-     * @param timeOut Amount of time for a task timeOut.
-     * @param parameters An object array containing the method parameters.
-     * @return
-     */
-    public int executeTask(Long appId, String namespace, String service, String port, String operation,
-        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
-        boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
-        Object... parameters);
-
-    /**
      * New HTTP task.
      *
      * @param appId The application id.

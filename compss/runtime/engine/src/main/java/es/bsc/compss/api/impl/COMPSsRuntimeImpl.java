@@ -819,15 +819,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             parameters);
     }
 
-    // Services
-    @Override
-    public int executeTask(Long appId, String namespace, String service, String port, String operation,
-        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
-        boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut,
-        Object... parameters) {
-        throw new UnsupportedOperationException();
-    }
-
     // HTTP
     // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
     @Override

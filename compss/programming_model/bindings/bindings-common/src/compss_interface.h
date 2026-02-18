@@ -41,6 +41,58 @@ struct CompssWorkflow {
         const char* groupName
     );
 
+    void (*executeTask)(
+        struct CompssWorkflow* self,
+        char* className,
+        char* onFailure,
+        int timeout,
+        char* methodName,
+        int priority,
+        int hasTarget,
+        int numNodes,
+        int reduce,
+        int reduceChunkSize,
+        int replicated,
+        int distributed,
+        int numReturns,
+        int numParams,
+        void** params
+    );
+
+    void (*executeTaskNew)(
+        struct CompssWorkflow* self,
+        char* signature,
+        char* onFailure,
+        int timeout,
+        int priority,
+        int numNodes,
+        int reduce,
+        int reduceChunkSize,
+        int replicated,
+        int distributed,
+        int hasTarget,
+        int numReturns,
+        int numParams,
+        void** params
+    );
+
+    void (*executeHttpTask)(
+        struct CompssWorkflow* self,
+        char* signature,
+        char* onFailure,
+        int timeout,
+        int priority,
+        int numNodes,
+        int reduce,
+        int reduceChunkSize,
+        int replicated,
+        int distributed,
+        int hasTarget,
+        int numReturns,
+        int numParams,
+        void** params
+    );
+
     void (*cancelTaskGroup)(
         struct CompssWorkflow* self,
         const char* groupName,

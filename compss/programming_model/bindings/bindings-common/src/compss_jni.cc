@@ -61,6 +61,9 @@ jclass clsWorkflow;                     /* Class implementing the Workflow inter
 jmethodID mid_wf_getID;                 /* ID of the getID method in the Class implementing the Workflow interface*/
 jmethodID mid_wf_openTaskGroup;
 jmethodID mid_wf_closeTaskGroup;
+jmethodID mid_wf_execute;
+jmethodID mid_wf_executeNew;
+jmethodID mid_wf_executeHttp;
 jmethodID mid_wf_cancelTaskGroup;
 jmethodID mid_wf_cancelApplicationTasks;
 jmethodID mid_wf_noMoreTasks;
@@ -72,9 +75,6 @@ jmethodID mid_wf_deregister;
 jmethodID mid_wf_getBindingObject;		
 jmethodID mid_wf_deleteBindingObject; 	
 
-jmethodID midExecute;                   /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midExecuteNew;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midExecuteHttp;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
@@ -408,18 +408,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midTempDir = status->localJniEnv->GetMethodID(clsITimpl, "getTempDir", "()Ljava/lang/String;");
     check_exception(status, "Cannot find getMasterWorkingDirectory method");
 
-    // executeTask method - C binding
-    midExecute = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
-    check_exception(status, "Cannot find executeTask C");
-
-    // executeTask method - Python binding
-    midExecuteNew = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
-    check_exception(status, "Cannot find executeTask Python");
-
-    // executeTask method - Http tasks
-    midExecuteHttp = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;ZIZIZZZILes/bsc/compss/types/annotations/parameter/OnFailure;I[Ljava/lang/Object;)I");
-    check_exception(status, "Cannot find executeTask HTTP");
-
     // EmitEvent method
     midEmitEvent = status->localJniEnv->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
     check_exception(status, "Cannot find emitEvent");
@@ -729,8 +717,6 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
 	jobject jobjParKeepRename = status->localJniEnv->NewObject(clsBoolean, midBoolCon, _KeepRename);
 	check_exception(status, "Exception creating a new boolean for keep rename property");
 	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pkr, jobjParKeepRename);
-
-
 }
 
 
@@ -810,7 +796,6 @@ void JNI_WF_deregister(CompssWorkflow* self) {
 
 }
 
-
 void JNI_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool implicitBarrier) {
     JNIWorkflow* wf = (JNIWorkflow*) self;
     debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup\n");
@@ -842,6 +827,223 @@ void JNI_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
     access_revoke(status);
     debug_printf("[BINDING-COMMONS] - @JNI_WF_closeTaskGroup - Done\n");
 }
+
+
+void JNI_WF_executeTask(CompssWorkflow* self, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
+		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeTask - Processing task execution in bindings-common.\n");
+
+    // Values to be passed to the JVM
+    bool _priority = false;
+    if (priority != 0) _priority = true;
+
+    bool _reduce = false;
+    if (reduce != 0) _reduce = true;
+
+    bool _replicated = false;
+    if (replicated != 0) _replicated = true;
+
+    bool _distributed = false;
+    if (distributed != 0) _distributed = true;
+
+    bool _hasTarget = false;
+    if (hasTarget != 0) _hasTarget = true;
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jstring jClassName = env->NewStringUTF(className);
+    jstring jOnFailure = env->NewStringUTF(onFailure);
+    jstring jMethodName = env->NewStringUTF(methodName);
+
+    // Convert numReturns from int to integer
+    jobject numReturnsInteger = env->NewObject(clsInteger, midIntCon, numReturns);
+    check_exception(status, "Exception converting numReturns to integer");
+
+    // Create array of parameters    
+    jobjectArray jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, env->NewObject(clsObject, midObjCon));
+    for (int i = 0; i < numParams; i++) {
+        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing parameter %d\n", i);
+        process_param(status, params, i, jobjOBJArr);
+    }
+
+
+    // Call to JNI execute task method
+    env->CallVoidMethod(wf->jWorkflow,
+                              mid_wf_execute,
+                              jClassName,
+                              jOnFailure,
+                              timeout,
+                              jMethodName,
+                              _priority,
+							  numNodes,
+							  _reduce,
+							  reduceChunkSize,
+							  _replicated,
+							  _distributed,
+                              _hasTarget,
+                              numReturnsInteger,
+                              numParams,
+                              jobjOBJArr);
+    check_exception(status, "Exception received when calling executeTask");
+
+    env->DeleteLocalRef(jobjOBJArr);
+    env->DeleteLocalRef(numReturnsInteger);
+    env->DeleteLocalRef(jMethodName);
+    env->DeleteLocalRef(jOnFailure);
+    env->DeleteLocalRef(jClassName);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeTask - Task processed.\n");
+}
+
+
+void JNI_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+                        int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing task execution in bindings-common. \n");
+
+    // Values to be passed to the JVM
+    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
+
+    bool _priority = false;
+    if (priority != 0) _priority = true;
+
+    bool _replicated = false;
+    if (replicated != 0) _replicated = true;
+
+    bool _reduce = false;
+    if (reduce != 0) _reduce = true;
+
+    bool _distributed = false;
+    if (distributed != 0) _distributed = true;
+
+    bool _hasTarget = false;
+    if (hasTarget != 0) _hasTarget = true;
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+
+    jstring jSignature = env->NewStringUTF(signature);
+    jstring jOnFailure = env->NewStringUTF(onFailure);
+
+    // Convert numReturns from int to integer
+    jobject numReturnsInteger = env->NewObject(clsInteger, midIntCon, numReturns);
+    check_exception(status, "Exception converting numReturns to integer");
+
+    // Create array of parameters
+    jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, env->NewObject(clsObject, midObjCon));
+    for (int i = 0; i < numParams; i++) {
+        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing parameter %d\n", i);
+        process_param(status, params, i, jobjOBJArr);
+    }
+
+    // Call to JNI execute task method
+    env->CallVoidMethod(wf->jWorkflow,
+                              mid_wf_executeNew,
+                              jSignature,
+                              jOnFailure,
+                              timeout,
+                              _priority,
+                              numNodes,
+                              _reduce,
+                              reduceChunkSize,
+                              _replicated,
+                              _distributed,
+                              _hasTarget,
+                              numReturnsInteger,
+                              numParams,
+                              jobjOBJArr);
+    check_exception(status, "Exception received when calling executeTaskNew");
+
+    env->DeleteLocalRef(jobjOBJArr);
+    env->DeleteLocalRef(numReturnsInteger);
+    env->DeleteLocalRef(jOnFailure);
+    env->DeleteLocalRef(jSignature);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeTaskNew - Task processed.\n");
+}
+
+
+void JNI_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
+                         int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeHttpTask - HTTP task execution in bindings-common. \n");
+
+    // Values to be passed to the JVM
+    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
+
+    bool _priority = false;
+    if (priority != 0) _priority = true;
+
+    bool _replicated = false;
+    if (replicated != 0) _replicated = true;
+
+    bool _reduce = false;
+    if (reduce != 0) _reduce = true;
+
+    bool _distributed = false;
+    if (distributed != 0) _distributed = true;
+
+    bool _hasTarget = false;
+    if (hasTarget != 0) _hasTarget = true;
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+
+    jstring jSignature = env->NewStringUTF(signature);
+
+    jobject jOnFailure = NULL;
+    if(onFailure == NULL){
+        debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common on failure is null. \n");
+        jOnFailure = env->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, env->NewStringUTF("RETRY"));
+    }
+    else{
+         jOnFailure = env->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, env->NewStringUTF(onFailure));
+         check_exception(status, "Exception Creating OnFailure object..");
+    }
+
+    // Create array of parameters
+    jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, env->NewObject(clsObject, midObjCon));
+    for (int i = 0; i < numParams; i++) {
+        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteHttpTask- Processing parameter %d\n", i);
+        process_param(status, params, i, jobjOBJArr);
+    }
+
+    // Call to JNI execute task method
+    env->CallVoidMethod(wf->jWorkflow,
+                              mid_wf_executeHttp,
+                              jSignature, // declaring method
+                              _priority,
+                              numNodes,
+                              _reduce,
+                              reduceChunkSize,
+                              _replicated,
+                              _distributed,
+                              _hasTarget,
+                              numParams,
+                              jOnFailure,
+                              timeout,
+                              jobjOBJArr);
+    check_exception(status, "Exception received when calling executeHttpTask");
+
+    env->DeleteLocalRef(jobjOBJArr);
+    env->DeleteLocalRef(jOnFailure);
+    env->DeleteLocalRef(jSignature);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+    debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeHttpTask - HTTP Task processed.\n");
+}
+
 
 void JNI_WF_cancelTaskGroup(CompssWorkflow* self, const char* groupName, char** exceptionMessage) {
     JNIWorkflow* wf = (JNIWorkflow*) self;
@@ -1002,6 +1204,13 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find the Workflow.openTaskGroup method");
         mid_wf_closeTaskGroup = env->GetMethodID(clsWorkflow, "closeTaskGroup", "(Ljava/lang/String;)V");
         check_exception(status, "Cannot find the Workflow.closeTaskGroup method");
+        mid_wf_execute = env->GetMethodID(clsWorkflow, "executeTask", "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+        check_exception(status, "Cannot find executeTask C");
+        mid_wf_executeNew = env->GetMethodID(clsWorkflow, "executeTask", "(Ljava/lang/String;Ljava/lang/String;IZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+        check_exception(status, "Cannot find executeTask Python");
+        mid_wf_executeHttp = env->GetMethodID(clsWorkflow, "executeTask", "(Ljava/lang/String;ZIZIZZZILes/bsc/compss/types/annotations/parameter/OnFailure;I[Ljava/lang/Object;)I");
+        check_exception(status, "Cannot find executeTask HTTP");
+
         mid_wf_cancelTaskGroup = env->GetMethodID(clsWorkflow, "cancelTaskGroup", "(Ljava/lang/String;)V");
         check_exception(status, "Cannot find the Workflow.cancelTaskGroup method");
         mid_wf_cancelApplicationTasks = env->GetMethodID(clsWorkflow, "cancelApplicationTasks", "()V");
@@ -1034,6 +1243,9 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     wf->base.deregister = JNI_WF_deregister;
     wf->base.openTaskGroup = JNI_WF_openTaskGroup;
     wf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
+    wf->base.executeTask = JNI_WF_executeTask;
+    wf->base.executeTaskNew = JNI_WF_executeTaskNew;
+    wf->base.executeHttpTask = JNI_WF_executeHttpTask;
     wf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;
     wf->base.cancelApplicationTasks = JNI_WF_cancelApplicationTasks;
     wf->base.noMoreTasks = JNI_WF_noMoreTasks;
@@ -1232,62 +1444,7 @@ void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, 
 		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing task execution in bindings-common.\n");
-
-    // Values to be passed to the JVM
-    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
-
-    bool _priority = false;
-    if (priority != 0) _priority = true;
-
-    bool _reduce = false;
-    if (reduce != 0) _reduce = true;
-
-    bool _replicated = false;
-    if (replicated != 0) _replicated = true;
-
-    bool _distributed = false;
-    if (distributed != 0) _distributed = true;
-
-    bool _hasTarget = false;
-    if (hasTarget != 0) _hasTarget = true;
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Convert numReturns from int to integer
-    jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
-    check_exception(status, "Exception converting numReturns to integer");
-
-    // Create array of parameters
-    jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
-    for (int i = 0; i < numParams; i++) {
-        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing parameter %d\n", i);
-        process_param(status, params, i, jobjOBJArr);
-    }
-
-    // Call to JNI execute task method
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midExecute,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                              status->localJniEnv->NewStringUTF(className),
-                              status->localJniEnv->NewStringUTF(onFailure),
-                              timeout,
-                              status->localJniEnv->NewStringUTF(methodName),
-                              _priority,
-							  numNodes,
-							  _reduce,
-							  reduceChunkSize,
-							  _replicated,
-							  _distributed,
-                              _hasTarget,
-                              numReturnsInteger,
-                              numParams,
-                              jobjOBJArr);
-    check_exception(status, "Exception received when calling executeTask");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+	JNI_wf->executeTask(JNI_wf, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTask - Task processed.\n");
 }
 
@@ -1296,61 +1453,7 @@ void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeou
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing task execution in bindings-common. \n");
-
-    // Values to be passed to the JVM
-    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
-
-    bool _priority = false;
-    if (priority != 0) _priority = true;
-
-    bool _replicated = false;
-    if (replicated != 0) _replicated = true;
-
-    bool _reduce = false;
-    if (reduce != 0) _reduce = true;
-
-    bool _distributed = false;
-    if (distributed != 0) _distributed = true;
-
-    bool _hasTarget = false;
-    if (hasTarget != 0) _hasTarget = true;
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Convert numReturns from int to integer
-    jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
-    check_exception(status, "Exception converting numReturns to integer");
-
-    // Create array of parameters
-    jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
-    for (int i = 0; i < numParams; i++) {
-        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing parameter %d\n", i);
-        process_param(status, params, i, jobjOBJArr);
-    }
-
-    // Call to JNI execute task method
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midExecuteNew,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                              status->localJniEnv->NewStringUTF(signature),
-                              status->localJniEnv->NewStringUTF(onFailure),
-                              timeout,
-                              _priority,
-                              numNodes,
-                              _reduce,
-                              reduceChunkSize,
-                              _replicated,
-                              _distributed,
-                              _hasTarget,
-                              numReturnsInteger,
-                              numParams,
-                              jobjOBJArr);
-    check_exception(status, "Exception received when calling executeTaskNew");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->executeTaskNew(JNI_wf, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Task processed.\n");
 }
 
@@ -1359,71 +1462,7 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
                          int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
-
-    // Values to be passed to the JVM
-    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
-
-    bool _priority = false;
-    if (priority != 0) _priority = true;
-
-    bool _replicated = false;
-    if (replicated != 0) _replicated = true;
-
-    bool _reduce = false;
-    if (reduce != 0) _reduce = true;
-
-    bool _distributed = false;
-    if (distributed != 0) _distributed = true;
-
-    bool _hasTarget = false;
-    if (hasTarget != 0) _hasTarget = true;
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-    jobject jobjOnFailure = NULL;
-
-    if(onFailure == NULL){
-        debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common on failure is null. \n");
-        jobjOnFailure = status->localJniEnv->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, status->localJniEnv->NewStringUTF("RETRY"));
-    }
-    else{
-         jobjOnFailure = status->localJniEnv->CallStaticObjectMethod(clsOnFailure, midOnFailureCon, status->localJniEnv->NewStringUTF(onFailure));
-         check_exception(status, "Exception Creating OnFailure object..");
-    }
-
-    // Convert numReturns from int to integer
-    jobject numReturnsInteger = status->localJniEnv->NewObject(clsInteger, midIntCon, numReturns);
-    check_exception(status, "Exception converting numReturns to integer");
-
-    // Create array of parameters
-    jobjOBJArr = (jobjectArray)status->localJniEnv->NewObjectArray(numParams * NUM_FIELDS, clsObject, status->localJniEnv->NewObject(clsObject, midObjCon));
-    for (int i = 0; i < numParams; i++) {
-        debug_printf("[BINDING-COMMONS] - @JNI_ExecuteHttpTask- Processing parameter %d\n", i);
-        process_param(status, params, i, jobjOBJArr);
-    }
-
-    // Call to JNI execute task method
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midExecuteHttp,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                              status->localJniEnv->NewStringUTF(signature), // declaring method
-                              _priority,
-                              numNodes,
-                              _reduce,
-                              reduceChunkSize,
-                              _replicated,
-                              _distributed,
-                              _hasTarget,
-                              numParams,
-                              jobjOnFailure,
-                              timeout,
-                              jobjOBJArr);
-
-    check_exception(status, "Exception received when calling executeHttpTask");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->executeHttpTask(JNI_wf, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP Task processed.\n");
 }
 

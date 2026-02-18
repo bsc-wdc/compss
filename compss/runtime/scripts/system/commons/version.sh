@@ -29,10 +29,9 @@ show_full_version() {
 ###############################################
 show_flower() {
   cat << EOF
-Orchids are plants that belong to the family Orchidaceae, a diverse and widespread group of flowering plants with blooms that are often colourful and fragrant. Orchids are cosmopolitan plants that are found in almost every habitat on Earth except glaciers. The world's richest diversity of orchid genera and species is found in the tropics.
+The poinsettia (Euphorbia pulcherrima) is a commercially important flowering plant species of the diverse spurge family Euphorbiaceae. Indigenous to Mexico and Central America and first described in 1834. It is particularly well known for its red and green foliage and is widely used in Christmas floral displays. Poinsettias are shrubs or small trees, with heights of 0.6 to 4 m (2.0 to 13.1 ft).
 
-Check more information:
-   https://en.wikipedia.org/wiki/Orchid
+https://en.wikipedia.org/wiki/Poinsettia
 
 EOF
 }
@@ -43,26 +42,38 @@ EOF
 show_recipe() {
   cat << EOF
 
-Black Orchid - Cocktail
+Poinsettia - Cocktail
 
-  Source: https://www.greygoose.com/en-gl/cocktails/l-orange/black-orchid.html
+  Source: https://www.cocktailwave.com/recipes/poinsettia
 
-  The black orchid martini drink is a distinctive and elegant mixture of
-  GREY GOOSE® L'Orange Flavoured Vodka, fresh lemon, crème de violette,
-  simple syrup, and peach bitters.
+  The Poinsettia cocktail is a classic holiday drink that has been
+  enjoyed for decades. It is believed to have been created in the
+  1950s, and its name is inspired by the vibrant red and green
+  colors of the poinsettia plant, which is a popular decoration
+  during the holiday season. This festive cocktail is perfect for
+  holiday parties and gatherings, and is often enjoyed by those
+  who appreciate a light, fruity, and bubbly drink.
 
-  50 ml   GREY GOOSE® L'Orange Flavoured Vodka
-  30 ml   Fresh Lemon Juice
-  20 ml   Crème De Violette®
-  20 ml   Simple Syrup
-  +       Dash of Peach Bitters
-  +       Edible Orchid
+  Ingredients:
+
+    Champagne: 4 oz(120ml)
+    Cranberry juice: 2 oz(60ml)
+    Orange liqueur: 1 oz(30ml)
+    Fresh cranberries: 3
+    Garnish: 1 sprig of mint
 
   How to make:
 
-  1 - Add all ingredients to a cocktail shaker filled with ice and shake.
-  2 - Strain into a chilled martini glass.
-  3 - Garnish with an edible orchid.
+  1 - Chill a champagne flute in the freezer for a few minutes to
+      ensure the cocktail stays cold.
+  2 - In a cocktail shaker filled with ice, combine the cranberry
+      juice and orange liqueur. Shake well to mix.
+  3 - Strain the mixture into the chilled champagne flute.
+  4 - Top with the champagne, pouring slowly to avoid overflowing.
+  5 - Gently drop a few fresh cranberries into the glass for added
+      color and flavor.
+  6 - Garnish with a sprig of mint, placing it on the rim of the
+      glass or floating it on top of the cocktail.
 
 EOF
 }

@@ -2,7 +2,7 @@
 
 COMP Superscalar (COMPSs) is a programming model that aims to ease the development of applications for distributed infrastructures, such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime system that exploits the inherent parallelism of applications at execution time.
 
-## Release number: 3.4 (TBD)
+## Release number: 3.4 (Poinsettia)
 
 Release date: Feb-2026
 

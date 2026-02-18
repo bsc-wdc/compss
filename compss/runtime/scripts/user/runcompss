@@ -808,7 +808,7 @@ runcompss_standard_main() {
   runcompss_load_env_scripts
 
   # Start the profiling process
-  start_profiling "$( [ "${log_level}" == "${DEFAULT_LOG_LEVEL_ARGUMENT}" ] && echo "true" || echo "false" )"
+  start_profiling
 
   # Real runtime execution
   start_compss_app

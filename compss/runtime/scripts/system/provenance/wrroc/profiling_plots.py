@@ -23,14 +23,14 @@ try:
     from matplotlib.lines import Line2D
 except:
     print(
-        "PROVENANCE | ERROR: matplotlib is not installed. Please install it using 'pip install matplotlib'."
+        "PROVENANCE |  PROFILING | ERROR: matplotlib is not installed. Please install it using 'pip install matplotlib'."
     )
     exit(1)
 try:
     import pandas as pd
 except:
     print(
-        "PROVENANCE | ERROR: pandas is not installed. Please install it using 'pip install pandas'."
+        "PROVENANCE | PROFILING | ERROR: pandas is not installed. Please install it using 'pip install pandas'."
     )
     exit(1)
 
@@ -273,7 +273,7 @@ def plot_results(folder_pathname) -> str:
     """
     folder_pathname = str(folder_pathname)
     if not os.path.exists(folder_pathname):
-        print("PROVENANCE | ERROR: stats folder does not exist")
+        print("PROVENANCE | PROFILING | ERROR: stats folder does not exist")
         exit(1)
 
     plots_pathname = folder_pathname + "/plots/"
@@ -393,8 +393,8 @@ def generate_plots(stats_path) -> str:
     try:
         plots_folder = plot_results(stats_path)
         elapsed_time = time.time() - start_time
-        print(f"PROVENANCE | Profiling plots generation TIME: {elapsed_time:.2f} s.")
+        print(f"PROVENANCE | PROFILING | Profiling plots generation TIME: {elapsed_time:.2f} s.")
     except:
-        print("PROVENANCE | ERROR Could not generate the profiling plots.")
+        print("PROVENANCE | PROFILING | ERROR Could not generate the profiling plots.")
 
     return plots_folder

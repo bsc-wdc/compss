@@ -20,9 +20,6 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.api.ParameterCollectionMonitor;
-import es.bsc.compss.api.ParameterMonitor;
-import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
@@ -35,39 +32,22 @@ import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ErrorHandler;
 import es.bsc.compss.types.WallClockTimerTask;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
-import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.params.BindingObjectData;
 import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
-import es.bsc.compss.types.parameter.impl.BasicTypeParameter;
-import es.bsc.compss.types.parameter.impl.BindingObjectParameter;
-import es.bsc.compss.types.parameter.impl.CollectiveParameter;
-import es.bsc.compss.types.parameter.impl.DirectoryParameter;
-import es.bsc.compss.types.parameter.impl.ExternalPSCOParameter;
-import es.bsc.compss.types.parameter.impl.ExternalStreamParameter;
-import es.bsc.compss.types.parameter.impl.FileParameter;
-import es.bsc.compss.types.parameter.impl.ObjectParameter;
-import es.bsc.compss.types.parameter.impl.Parameter;
-import es.bsc.compss.types.parameter.impl.StreamParameter;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -78,20 +58,16 @@ import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
-import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -107,10 +83,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         "WARNING: COMPSs Runtime VERSION-BUILD" + " properties file could not be read";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
     private static final String ERROR_DIR_NAME = "ERROR: Not a valid directory";
-    private static final String ERROR_BINDING_OBJECT_PARAMS =
-        "ERROR: Incorrect number of parameters" + " for external objects";
-    private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
-    private static final String WARN_NULL_PARAM = "WARNING: Optional parameter: ";
 
     // COMPSS Version and buildnumber attributes
     private static final String COMPSs_VERSION;
@@ -119,12 +91,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // Boolean for initialization
     private static boolean initialized = false;
     private boolean stopped = false;
-
-    // Number of fields per parameter
-    public static final int NUM_FIELDS_PER_PARAM = 9;
-
-    // Language
-    protected static final Lang DEFAULT_LANG;
 
     // Registries
     private static StreamRegistry sReg;
@@ -165,15 +131,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         COMPSs_BUILDNUMBER = buildNum;
 
         RuntimeConfigManager.setProperties();
-
-        String defaultLang = System.getProperty(COMPSsConstants.LANG);
-        Lang lang;
-        if (defaultLang == null) {
-            lang = Lang.JAVA;
-        } else {
-            lang = Lang.valueOf(defaultLang.toUpperCase());
-        }
-        DEFAULT_LANG = lang;
 
         // Start tracing system
         boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
@@ -783,165 +740,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * **************************************** TASK MANAGEMENT ***************************************************
      * ************************************************************************************************************
      */
-    // C
-    @Override
-    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
-        boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated,
-        boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-
-        return executeTask(appId, Lang.C, false, methodClass, methodName, null, OnFailure.valueOf(onFailure), timeOut,
-            isPrioritary, Constants.SINGLE_NODE, false, 0, isReplicated, isDistributed, hasTarget, numReturns,
-            parameterCount, parameters);
-    }
-
-    // Python
-    @Override
-    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary,
-        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-        Lang lang = Lang.PYTHON;
-        if (DEFAULT_LANG == Lang.R) {
-            lang = Lang.R;
-        }
-        return executeTask(appId, lang, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
-            isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns,
-            parameterCount, parameters);
-    }
-
-    // Java - Loader
-    @Override
-    public int executeTask(Long appId, Lang lang, String methodClass, String methodName, boolean isPrioritary,
-        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
-
-        return executeTask(appId, lang, false, methodClass, methodName, null, onFailure, timeOut, isPrioritary,
-            numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget, null, parameterCount,
-            parameters);
-    }
-
-    // HTTP
-    // This function is called dynamically by Javassist (you will not find direct calls in the Java project)
-    @Override
-    public int executeTask(Long appId, String methodFQN, boolean isPrioritary, int numNodes, boolean isReduce,
-        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
-        OnFailure onFailure, int timeOut, Object... parameters) {
-
-        return APITracer.traced(APIEvent.TASK, () -> {
-            if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
-                ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
-            }
-
-            LOGGER.info("Creating HTTP task for application " + appId + " and declaring class:" + methodFQN);
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
-                    + (parameterCount > 1 ? "s" : ""));
-            }
-
-            Application app = Application.registerApplication(appId);
-            TaskMonitor monitor = app.getTaskMonitor();
-            // Process the parameters
-            List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
-            boolean hasReturn = hasReturn(pars);
-            int numReturns = hasReturn ? 1 : 0;
-
-            // Register the task
-            int task = ap.newTask(app, monitor, methodFQN, isPrioritary, isReduce, reduceChunkSize, hasTarget,
-                numReturns, pars, onFailure, timeOut);
-
-            for (Parameter p : pars) {
-                if (p.getDirection().equals(Direction.IN_DELETE)) {
-                    deleteParameter(app, p);
-                }
-            }
-            return task;
-        });
-    }
-
-    /**
-     * Internal execute task to make API options only as a wrapper.
-     *
-     * @param appId Application Id.
-     * @param lang Task language
-     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
-     *            and methodClass parameters.
-     * @param methodClass Method class.
-     * @param methodName Method name.
-     * @param signature Method signature.
-     * @param onFailure On failure behavior.
-     * @param timeOut Amount of time for an application time out.
-     * @param isPrioritary Whether the task has priority or not.
-     * @param numNodes Number of associated nodes.
-     * @param isReduce Whether it is a reduce task.
-     * @param reduceChunkSize The size of the chunks to be reduced.
-     * @param isReplicated Whether it is a replicated task or not.
-     * @param isDistributed Whether the task must be round-robin distributed or not.
-     * @param hasTarget Whether the task has a return value or not.
-     * @param numReturns Number of return values of the task.
-     * @param parameterCount Number of parameters of the task.
-     * @param parameters Parameter values.
-     * @return The task id.
-     */
-    public int executeTask(Long appId, Lang lang, boolean hasSignature, String methodClass, String methodName,
-        String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes, boolean isReduce,
-        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
-        int parameterCount, Object... parameters) {
-        // Tracing flag for task creation
-        return APITracer.traced(APIEvent.TASK, () -> {
-            // Log the details
-            if (hasSignature) {
-                LOGGER.info("Creating task from method " + signature + " for application " + appId);
-            } else {
-                LOGGER.info(
-                    "Creating task from method " + methodName + " in " + methodClass + " for application " + appId);
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter"
-                    + (parameterCount > 1 ? "s" : ""));
-            }
-
-            Application app = Application.registerApplication(appId);
-            TaskMonitor monitor = app.getTaskMonitor();
-
-            // Process the parameters
-            List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
-            Integer nReturns = numReturns;
-            if (nReturns == null) {
-                nReturns = hasReturn(pars) ? 1 : 0;
-            }
-            String fSign = signature;
-            // Create the signature if it is not created
-            if (!hasSignature) {
-                fSign = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, nReturns, pars);
-            }
-            Lang fLang = lang;
-            if (lang == null) {
-                fLang = DEFAULT_LANG;
-            }
-
-            int task = ap.newTask(app, monitor, fLang, fSign, isPrioritary, numNodes, isReduce, reduceChunkSize,
-                isReplicated, isDistributed, hasTarget, nReturns, pars, onFailure, timeOut);
-
-            if (DP_ENABLED) {
-                StringBuilder taskInfoBuilder = new StringBuilder("task " + task + " " + signature + " ");
-                for (Parameter p : pars) {
-                    taskInfoBuilder.append(p.getName()).append(".").append(p.getType().name()).append(".")
-                        .append(p.getDirection().toString()).append("::");
-                }
-                String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
-                DP_LOGGER.info(taskInfo);
-            }
-
-            for (Parameter p : pars) {
-                if (p.getDirection().equals(Direction.IN_DELETE)) {
-                    deleteParameter(app, p);
-                }
-            }
-            // Return the taskId
-            return task;
-        });
-    }
 
     /**
      * Notifies the runtime that an application will not produce more tasks.
@@ -1055,333 +853,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * PRIVATE HELPER METHODS
      * ************************************************************************************************************
      */
-    private boolean hasReturn(List<Parameter> parameters) {
-        boolean hasReturn = false;
-        if (parameters.size() != 0) {
-            Parameter lastParam = parameters.get(parameters.size() - 1);
-            DataType type = lastParam.getType();
-            hasReturn = (lastParam.getDirection() == Direction.OUT && (type == DataType.OBJECT_T
-                || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
-        }
-
-        return hasReturn;
-    }
-
-    private int addParameter(Application app, ParameterMonitor monitor, Object content, DataType type,
-        Direction direction, StdIOStream stream, String prefix, String name, String pyType, double weight,
-        boolean keepRename, ArrayList<Parameter> pars, int offset, String[] vals) {
-        String nameToPrint = name;
-        if (name.contains(".")) {
-            nameToPrint = name.substring(0, name.indexOf('.'));
-        }
-        switch (type) {
-            case DIRECTORY_T:
-                try {
-                    String dirName = content.toString();
-                    File dirFile = new File(dirName);
-                    String originalName = dirFile.getName();
-                    DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
-                    pars.add(DirectoryParameter.newDP(app, direction, stream, prefix, name, pyType, weight, keepRename,
-                        location, originalName, monitor));
-                    if (DP_ENABLED) {
-                        // Log access to directory in the dataprovenance.log
-                        String finalPath = location.toString();
-                        String pathToPrint = finalPath;
-                        if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
-                            Resource host = Comm.getAppHost();
-                            String absolute = dirFile.getAbsolutePath();
-                            String fixedFinalPath = "dir://" + host.getName() + absolute;
-                            pathToPrint = fixedFinalPath;
-                        }
-                        DP_LOGGER
-                            .info("file " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
-                    }
-                } catch (Exception e) {
-                    LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
-                    ErrorManager.fatal(ERROR_DIR_NAME, e);
-                }
-                break;
-            case FILE_T:
-                try {
-                    String fileName = content.toString();
-                    File f = new File(fileName);
-                    String originalName = f.getName();
-                    DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
-                    pars.add(FileParameter.newFP(app, direction, stream, prefix, name, pyType, weight, keepRename,
-                        location, originalName, monitor));
-                    if (DP_ENABLED) {
-                        // Log access to file in the dataprovenance.log.
-                        // Corner case: PyCOMPSs objects are passed as files to the runtime
-                        String finalPath = location.toString();
-                        String pathToPrint = finalPath;
-                        if (!finalPath.contains("tmpFiles/pycompss")) {
-                            if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
-                                Resource host = Comm.getAppHost();
-                                String absolute = f.getAbsolutePath();
-                                String fixedFinalPath = "file://" + host.getName() + absolute;
-                                pathToPrint = fixedFinalPath;
-                            }
-                            DP_LOGGER.info(
-                                "file " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.error(ERROR_FILE_NAME, e);
-                    ErrorManager.fatal(ERROR_FILE_NAME, e);
-                }
-                break;
-            case OBJECT_T:
-            case PSCO_T:
-                int code = System.identityHashCode(content);
-                pars.add(ObjectParameter.newOP(app, direction, stream, prefix, name, pyType, weight, content, code,
-                    monitor));
-                break;
-            case STREAM_T:
-                int streamCode = System.identityHashCode(content);
-                pars.add(StreamParameter.newSP(app, direction, stream, prefix, name, content, streamCode, monitor));
-                break;
-            case EXTERNAL_STREAM_T:
-                try {
-                    String fileName = content.toString();
-                    DataLocation location = createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
-                    String originalName = new File(fileName).getName();
-                    pars.add(ExternalStreamParameter.newESP(app, direction, stream, prefix, name, location,
-                        originalName, monitor));
-                } catch (Exception e) {
-                    LOGGER.error(ERROR_FILE_NAME, e);
-                    ErrorManager.fatal(ERROR_FILE_NAME, e);
-                }
-                break;
-            case EXTERNAL_PSCO_T:
-                String id = content.toString();
-                pars.add(ExternalPSCOParameter.newEPOP(app, direction, stream, prefix, name, weight, id,
-                    externalObjectHashcode(id), monitor));
-                break;
-            case BINDING_OBJECT_T:
-                String value = content.toString();
-                if (value.contains(":")) {
-                    String[] fields = value.split(":");
-                    if (fields.length == 3) {
-                        String extObjectId = fields[0];
-                        int extObjectType = Integer.parseInt(fields[1]);
-                        int extObjectElements = Integer.parseInt(fields[2]);
-                        pars.add(BindingObjectParameter.newBOP(app, direction, stream, prefix, name, pyType, weight,
-                            new BindingObject(extObjectId, extObjectType, extObjectElements),
-                            externalObjectHashcode(extObjectId), monitor));
-                    } else {
-                        LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                        ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                    }
-                } else {
-                    LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                    ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
-                }
-                break;
-            case COLLECTION_T:
-                // A collection value contains the file of the collection object and the collection
-                // elements, separated by spaces
-                String[] values = vals == null ? ((String) content).split(" ") : vals;
-                final String collectionId = values[offset];
-                int numOfElements = Integer.parseInt(values[offset + 1]);
-                String colPyType = values[offset + 2];
-                // The elements of the collection are all the elements of the list except for the first one
-                // Each element is defined by TYPE VALUE PYTHON_CONTENT_TYPE
-                // Also note the +3 offset!
-                List<DataType> contentTypes = new ArrayList<>();
-                List<String> contentIds = new ArrayList<>();
-                ArrayList<Parameter> collectionParameters = new ArrayList<>();
-                // Ret = number of read elements by this recursive step (atm 3: id + numOfElements + pyContentType)
-                int ret = 3;
-                for (int j = 0; j < numOfElements; ++j) {
-                    // First element is the type, translate it to the corresponding DataType field by direct indexing
-                    int idx = Integer.parseInt(values[offset + ret]);
-                    final DataType dataType = DataType.values()[idx];
-                    contentTypes.add(dataType);
-                    // Second element is the content
-                    contentIds.add(values[offset + ret + 1]);
-                    final DataType elemType = contentTypes.get(j);
-                    final Direction elemDir = direction;
-                    // Third element is the Python type of the object
-                    final String elemPyType = values[offset + ret + 2];
-                    // Prepare stuff for recursive call
-                    final Object elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
-                    // N/A to non-direct parameters
-                    final StdIOStream elemStream = StdIOStream.UNSPECIFIED;
-                    final String elemPrefix = Constants.PREFIX_EMPTY;
-                    String elemName = name + "." + j;
-                    // Add @ only for the first time
-                    // This names elements as @collection.0, @collection.1, etc
-                    // Easily extended in the case of nested collections
-                    // @collection.1.0.1.2
-                    // Means that this is the third element of the second element of the first element
-                    // of the named collection "collection1"
-                    ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j);
-                    ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
-                        elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
-                }
-                CollectiveParameter cp = CollectiveParameter.newCP(app, type, collectionId, direction, stream, prefix,
-                    name, colPyType, weight, keepRename, monitor, collectionParameters);
-                pars.add(cp);
-                return ret;
-            case DICT_COLLECTION_T:
-                // TODO: Simplify this case.
-                // A dictionary collection value contains the file of the dictionary collection object
-                // and the dictionary collection elements, separated by spaces
-                String[] values1 = vals == null ? (content.toString()).split(" ") : vals;
-                String dictCollectionId = values1[offset];
-                int numOfEntries = Integer.parseInt(values1[offset + 1]);
-                String dictColPyType = values1[offset + 2];
-                // Each element is defined by TYPE VALUE PYTHON_CONTENT_TYPE. Also note the +3 offset!
-                ArrayList<Parameter> dictCollectionParams = new ArrayList<>();
-                // dret = number of read elements by this recursive step (atm 3: id + numOfEntries + pyContentType)
-                int pointer = 3;
-                for (int j = 0; j < numOfEntries; ++j) {
-                    // First element is the type, translate it to the corresponding DataType field by direct indexing
-                    int idKey = Integer.parseInt(values1[offset + pointer]);
-                    DataType dataTypeKey = DataType.values()[idKey];
-                    // Second element is the content
-                    String contentKey = values1[offset + pointer + 1];
-                    // Third element is the Python type of the object
-                    final String elemPyTypeKey = values1[offset + pointer + 2];
-
-                    // N/A to non-direct parameters
-                    final StdIOStream elemStreamKey = StdIOStream.UNSPECIFIED;
-                    final String elemPrefixKey = Constants.PREFIX_EMPTY;
-
-                    String elemNameKey = name + "." + j;
-                    // Add @key only for the first time - as in collections
-                    if (!elemNameKey.startsWith("@key")) {
-                        elemNameKey = "@key" + elemNameKey;
-                    }
-                    Direction elemDirKey = direction;
-
-                    // Key element recursive call
-                    Object elemContentKey = contentKey;
-                    int extraKey = 2;
-                    if (dataTypeKey == DataType.DICT_COLLECTION_T || dataTypeKey == DataType.COLLECTION_T) {
-                        elemContentKey = values1;
-                        pointer += 1;
-                        extraKey = 0;
-                    }
-                    ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j * 2);
-                    int kDret = addParameter(app, submonitor, elemContentKey, dataTypeKey, elemDirKey, elemStreamKey,
-                        elemPrefixKey, elemNameKey, elemPyTypeKey, weight, keepRename, dictCollectionParams,
-                        offset + pointer, values1) + extraKey;
-                    pointer += kDret;
-
-                    // Next three elements correspond to the VALUE
-                    // First element is the type, translate it to the corresponding DataType field by direct indexing
-                    int idValue = Integer.parseInt(values1[offset + pointer]);
-                    DataType dataTypeValue = DataType.values()[idValue];
-                    // Second element is the content
-                    String contentValue = values1[offset + pointer + 1];
-                    // Third element is the Python type of the object
-                    final String elemPyTypeValue = values1[offset + pointer + 2];
-
-                    // N/A to non-direct parameters
-                    final StdIOStream elemStreamValue = StdIOStream.UNSPECIFIED;
-                    final String elemPrefixValue = Constants.PREFIX_EMPTY;
-
-                    String elemNameValue = name + "." + j;
-                    // Add @key only for the first time - as in collections
-                    if (!elemNameValue.startsWith("@value")) {
-                        elemNameValue = "@value" + elemNameKey;
-                    }
-                    Direction elemDirValue = direction;
-
-                    // Value element recursive call
-                    Object elemContentValue = contentValue;
-                    int extraValue = 2;
-                    if (dataTypeValue == DataType.DICT_COLLECTION_T || dataTypeValue == DataType.COLLECTION_T) {
-                        elemContentValue = values1;
-                        pointer += 1;
-                        extraValue = 0;
-                    }
-                    submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j * 2 + 1);
-                    int vDret = addParameter(app, submonitor, elemContentValue, dataTypeValue, elemDirValue,
-                        elemStreamValue, elemPrefixValue, elemNameValue, elemPyTypeValue, weight, keepRename,
-                        dictCollectionParams, offset + pointer, values1) + extraValue;
-                    pointer += vDret;
-                }
-                CollectiveParameter dcp = CollectiveParameter.newCP(app, type, dictCollectionId, direction, stream,
-                    prefix, name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2
-                        + " entries");
-                    LOGGER.debug(dcp.toString());
-                }
-                pars.add(dcp);
-                return pointer;
-            case NULL_T:
-                LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
-                pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, "null",
-                    monitor));
-                break;
-            default:
-                // Basic types (including String)
-                // The only possible direction is IN, warn otherwise
-                if (direction != Direction.IN && direction != Direction.IN_DELETE) {
-                    LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
-                        + " is a basic type, therefore it must have IN direction");
-                }
-                pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, pyType,
-                    monitor));
-                break;
-        }
-        return 1;
-    }
-
-    private List<Parameter> processParameters(Application app, int parameterCount, Object[] parameters,
-        ParameterCollectionMonitor monitors) {
-        ArrayList<Parameter> pars = new ArrayList<>();
-        // Parameter parsing needed, object is not serializable
-        for (int paramIdx = 0; paramIdx < parameterCount; ++paramIdx) {
-            int paramOffset = NUM_FIELDS_PER_PARAM * paramIdx;
-            Object content = parameters[paramOffset];
-            DataType type = (DataType) parameters[paramOffset + 1];
-            if (type == null) {
-                type = DataType.NULL_T;
-            }
-            Direction direction = (Direction) parameters[paramOffset + 2];
-            StdIOStream stream = (StdIOStream) parameters[paramOffset + 3];
-            String prefix = (String) parameters[paramOffset + 4];
-            String name = (String) parameters[paramOffset + 5];
-            String contentType = (String) parameters[paramOffset + 6];
-            String wStr = EnvironmentLoader.loadFromEnvironment((String) parameters[paramOffset + 7]);
-            double weight = Double.parseDouble(wStr);
-            boolean keepRename = (Boolean) parameters[paramOffset + 8];
-            // Add parameter to list
-            // This function call is isolated for better readability and to easily
-            // allow recursion in the case of collections
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(" Parameter " + paramIdx + " has type " + type.name());
-            }
-            ParameterMonitor monitor = monitors.getParameterMonitor(paramIdx);
-            addParameter(app, monitor, content, type, direction, stream, prefix, name, contentType, weight, keepRename,
-                pars, 0, null);
-        }
-
-        // Return parameters
-        return pars;
-    }
-
-    private void deleteParameter(Application app, Parameter p) {
-        if (p.isCollective()) {
-            for (Parameter sp : ((CollectiveParameter) p).getElements()) {
-                deleteParameter(app, sp);
-            }
-        } else {
-            switch (p.getType()) {
-                case DIRECTORY_T:
-                case FILE_T:
-                case BINDING_OBJECT_T:
-                    ap.deleteData(app, p.getAccess().getData(), false, false);
-                    break;
-                default:
-                    // Do nothing
-            }
-        }
-    }
 
     /**
      * Computes the HashCode identifier for an external Binding object.

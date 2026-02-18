@@ -16,7 +16,9 @@
  */
 package es.bsc.compss.api;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -48,6 +50,122 @@ public interface Workflow {
      * @param groupName Group name.
      */
     void closeTaskGroup(String groupName);
+
+    /**
+     * New Method task for C Binding.
+     *
+     * @param methodClass The method class.
+     * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for an application time out.
+     * @param methodName The method name.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param numReturns The number of return values of the method.
+     * @param parameterCount The number of parameters of the method.
+     * @param parameters An object array containing the method parameters.
+     * @return id of the task
+     */
+    int executeTask(String methodClass, String onFailure, int timeOut, String methodName, boolean isPrioritary,
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+
+    /**
+     * New Method task for Python Binding.
+     *
+     * @param signature The method signature.
+     * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for an application time out.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param numReturns The number of return values of the method.
+     * @param parameterCount The number of parameters of the method.
+     * @param parameters An object array containing the method parameters.
+     * @return id of the task
+     */
+    int executeTask(String signature, String onFailure, int timeOut, boolean isPrioritary, int numNodes,
+        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        Integer numReturns, int parameterCount, Object... parameters);
+
+    /**
+     * New Method Task for Loader.
+     *
+     * @param lang The application language.
+     * @param methodClass The method class.
+     * @param methodName The method name.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param parameterCount The number of parameters of the method.
+     * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for an application time out.
+     * @param parameters An object array containing the method parameters.
+     * @return id of the task
+     */
+    int executeTask(COMPSsConstants.Lang lang, String methodClass, String methodName, boolean isPrioritary,
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
+
+    /**
+     * New HTTP task.
+     *
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReduce Whether the task is of type reduce.
+     * @param reduceChunkSize The chunk size set for executing a reduce operation.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param parameterCount The number of parameters of the method.
+     * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for a task timeOut.
+     * @param parameters An object array containing the method parameters.
+     * @return id of the task
+     */
+    int executeTask(String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
+        OnFailure onFailure, int timeOut, Object... parameters);
+
+    /**
+     * Internal execute task to make API options only as a wrapper.
+     *
+     * @param lang Task language
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     *            and methodClass parameters.
+     * @param methodClass Method class.
+     * @param methodName Method name.
+     * @param signature Method signature.
+     * @param onFailure On failure behavior.
+     * @param timeOut Amount of time for an application time out.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param numNodes Number of associated nodes.
+     * @param isReduce Whether it is a reduce task.
+     * @param reduceChunkSize The size of the chunks to be reduced.
+     * @param isReplicated Whether it is a replicated task or not.
+     * @param isDistributed Whether the task must be round-robin distributed or not.
+     * @param hasTarget Whether the task has a return value or not.
+     * @param numReturns Number of return values of the task.
+     * @param parameterCount Number of parameters of the task.
+     * @param parameters Parameter values.
+     * @return The task id.
+     */
+    int executeTask(COMPSsConstants.Lang lang, boolean hasSignature, String methodClass, String methodName,
+        String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes, boolean isReduce,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
+        int parameterCount, Object... parameters);
 
     /**
      * Cancels all tasks belonging to a group of the workflow.

@@ -323,19 +323,19 @@ public class SocketServer extends Server {
         private void handleExecuteNestedTask(ExecuteNestedTaskPipeCommand cmd) throws COMPSsException {
             switch (cmd.getEntryPoint()) {
                 case SIGNATURE:
-                    runtime.executeTask(this.appId, cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(),
+                    wf.executeTask(cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getPrioritary(),
+                        cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(),
+                        cmd.isDistributed(), cmd.hasTarget(), cmd.getNumReturns(), cmd.getParameterCount(),
+                        cmd.getParameters());
+                    break;
+                case CLASS_METHOD:
+                    wf.executeTask(cmd.getMethodClass(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getMethodName(),
                         cmd.getPrioritary(), cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(),
                         cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(), cmd.getNumReturns(),
                         cmd.getParameterCount(), cmd.getParameters());
                     break;
-                case CLASS_METHOD:
-                    runtime.executeTask(this.appId, cmd.getMethodClass(), cmd.getOnFailure(), cmd.getTimeOut(),
-                        cmd.getMethodName(), cmd.getPrioritary(), cmd.getNumNodes(), cmd.isReduce(),
-                        cmd.getReduceChunkSize(), cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(),
-                        cmd.getNumReturns(), cmd.getParameterCount(), cmd.getParameters());
-                    break;
                 default:
-                    LOGGER.warn("Unsupported nested task entry point {}", cmd.getEntryPoint());
+                    LOGGER.warn("Unsupported task entry point {}", cmd.getEntryPoint());
             }
         }
 

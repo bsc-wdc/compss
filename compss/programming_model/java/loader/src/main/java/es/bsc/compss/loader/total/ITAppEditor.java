@@ -398,8 +398,7 @@ public class ITAppEditor extends ExprEditor {
 
         // Build the executeTask call string
         StringBuilder executeTask = new StringBuilder();
-        executeTask.append(this.itApiVar).append(EXECUTE_TASK);
-        executeTask.append(this.itAppIdVar).append(',');
+        executeTask.append(this.itWfVar).append(EXECUTE_TASK);
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         OnFailure onFailure = OnFailure.RETRY;

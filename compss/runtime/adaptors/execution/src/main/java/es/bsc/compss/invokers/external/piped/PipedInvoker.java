@@ -137,16 +137,16 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
                                     String signature = entpc.getSignature();
 
-                                    this.context.getRuntimeAPI().executeTask(this.appId, signature, onFailure, timeOut,
-                                        isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed,
-                                        hasTarget, numReturns, parameterCount, parameters);
+                                    this.wf.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce,
+                                        reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns,
+                                        parameterCount, parameters);
 
                                 } else {
                                     String methodClass = entpc.getMethodClass();
                                     String methodName = entpc.getMethodName();
-                                    this.context.getRuntimeAPI().executeTask(this.appId, methodClass, onFailure,
-                                        timeOut, methodName, isPrioritary, numNodes, isReduce, reduceChunkSize,
-                                        isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
+                                    this.wf.executeTask(methodClass, onFailure, timeOut, methodName, isPrioritary,
+                                        numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget,
+                                        numReturns, parameterCount, parameters);
                                 }
 
                             }

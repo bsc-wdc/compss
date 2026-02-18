@@ -29,6 +29,7 @@ import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
+import es.bsc.compss.api.impl.WorkflowImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
@@ -86,7 +87,7 @@ public class Agent {
 
     private static final List<AgentInterface<?>> INTERFACES;
 
-    private static final int PARAM_LENGTH = COMPSsRuntimeImpl.NUM_FIELDS_PER_PARAM;
+    private static final int PARAM_LENGTH = WorkflowImpl.NUM_FIELDS_PER_PARAM;
 
     static {
         AGENT_NAME = COMPSsNode.getMasterName();
@@ -248,8 +249,7 @@ public class Agent {
             onFailure = OnFailure.FAIL;
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
-            RUNTIME.executeTask(appId, // APP ID
-                lang, true, null, null, ced.getCeSignature(), // Method to call
+            wf.executeTask(lang, true, null, null, ced.getCeSignature(), // Method to call
                 onFailure, // On failure behavior
                 0, // Time out of the task
                 false, // isPriority

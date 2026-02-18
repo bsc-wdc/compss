@@ -16,11 +16,13 @@
  */
 package es.bsc.compss.loader;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.ObjectRegistry;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -143,6 +145,48 @@ public class JavaWorkflow implements Workflow {
     @Override
     public void closeTaskGroup(String groupName) {
         workflow.closeTaskGroup(groupName);
+    }
+
+    @Override
+    public int executeTask(String methodClass, String onFailure, int timeOut, String methodName, boolean isPrioritary,
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
+        return workflow.executeTask(methodClass, onFailure, timeOut, methodName, isPrioritary, numNodes, isReduce,
+            reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
+    }
+
+    @Override
+    public int executeTask(String signature, String onFailure, int timeOut, boolean isPrioritary, int numNodes,
+        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        Integer numReturns, int parameterCount, Object... parameters) {
+        return workflow.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce, reduceChunkSize,
+            isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
+    }
+
+    @Override
+    public int executeTask(COMPSsConstants.Lang lang, String methodClass, String methodName, boolean isPrioritary,
+        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
+        return workflow.executeTask(lang, methodClass, methodName, isPrioritary, numNodes, isReduce, reduceChunkSize,
+            isReplicated, isDistributed, hasTarget, parameterCount, onFailure, timeOut, parameters);
+    }
+
+    @Override
+    public int executeTask(String declareMethodFullyQualifiedName, boolean isPrioritary, int numNodes, boolean isReduce,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
+        OnFailure onFailure, int timeOut, Object... parameters) {
+        return workflow.executeTask(declareMethodFullyQualifiedName, isPrioritary, numNodes, isReduce, reduceChunkSize,
+            isReplicated, isDistributed, hasTarget, parameterCount, onFailure, timeOut, parameters);
+    }
+
+    @Override
+    public int executeTask(COMPSsConstants.Lang lang, boolean hasSignature, String methodClass, String methodName,
+        String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes, boolean isReduce,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
+        int parameterCount, Object... parameters) {
+        return workflow.executeTask(lang, hasSignature, methodClass, methodName, signature, onFailure, timeOut,
+            isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns,
+            parameterCount, parameters);
     }
 
     @Override

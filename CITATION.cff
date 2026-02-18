@@ -50,6 +50,10 @@ authors:
     email: nicolo.giacomini@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0009-0005-2797-8177'
+  - given-names: \xC1lvaro
+    family-names: Ric\xF3n R.
+    email: alvaro.ricon@bsc.es
+    affiliation: Barcelona Supercomputing Center
   - given-names: Roc
     family-names: Cutal Gendrau
     email: roc.cutal@bsc.es
@@ -58,37 +62,15 @@ authors:
     family-names: Cummins
     email: phil.cummins@bsc.es
     affiliation: Barcelona Supercomputing Center
-  - given-names: Alvaro
-    family-names: Ricon
-    email: alvaro.ricon@bsc.es
-    affiliation: Barcelona Supercomputing Center
   - given-names: Josep
     family-names: Pocurull
     email: josep.pocurull@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: https://orcid.org/0009-0004-6479-7247
-  - given-names: Tomas
-    family-names: Arano
-    email: tomas.arano@bsc.es
-    affiliation: Barcelona Supercomputing Center
   - given-names: Mauro
-    family-names: Garcia
+    family-names: Garc\xEDa
     email: mauro.garcia@bsc.es
     affiliation: Barcelona Supercomputing Center
-  - given-names: Panna
-    family-names: Lukacs
-    email: panna.lukacs@bsc.es
-    affiliation: Barcelona Supercomputing Center
-  - given-names: Cristian C\u0103t\u0103lin
-    family-names: Tatu
-    email: cristian.tatu@bsc.es
-    affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0009-0003-8848-9436'
-  - given-names: Pere
-    family-names: Verg\xE9s
-    email: pere.verges@bsc.es
-    affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0000-0002-4109-1071'
   - given-names: Jorge
     family-names: Ejarque
     orcid: 'https://orcid.org/0000-0003-4725-5097'
@@ -97,32 +79,45 @@ authors:
   - given-names: Cristian
     family-names: Ramon-Cortes Vilarrodona
     orcid: 'https://orcid.org/0000-0003-4170-818X'
+  - given-names: Nihad
+    family-names: Mammadli
+    orcid: 'https://orcid.org/0000-0003-1638-7572'
   - given-names: Pol
     family-names: \xC1lvarez Vecino
     orcid: 'https://orcid.org/0000-0002-9147-9621'
-  - given-names: Sergio
-    family-names: Rodriguez Guasch
-  - given-names: Sergio
-    family-names: Mart\xEDnez
   - given-names: Marta
     family-names: Bertran
     orcid: 'https://orcid.org/0000-0002-6226-1172'
+  - given-names: Sergio
+    family-names: Rodriguez Guasch
+  - given-names: Pere
+    family-names: Verg\xE9s
+    orcid: 'https://orcid.org/0000-0002-4109-1071'
+  - given-names: Cristian C\u0103t\u0103lin
+    family-names: Tatu
+    orcid: 'https://orcid.org/0009-0003-8848-9436'
+  - given-names: Gabriel
+    family-names: Puigdemunt-Schmolling
+    orcid: 'https://orcid.org/0000-0002-5576-9912'
+  - given-names: Hatem
+    family-names: Elshazly
   - given-names: Ramon
     family-names: Amela Milian
     orcid: 'https://orcid.org/0000-0001-5943-5824'
+  - given-names: Sergio
+    family-names: Mart\xEDnez
   - given-names: Cl\xE9ment
     family-names: Foyer
     orcid: 'https://orcid.org/0000-0003-0471-1275'
+  - given-names: Panna
+    family-names: Lukacs
+  - family-names: "Alvarez"
+    given-names: "Javier"
+    orcid: "https://orcid.org/0000-0001-7153-4649"
   - given-names: Archit
     family-names: Dabral
     affiliation: Indian Institute of Technology BHU
     orcid: 'https://orcid.org/0009-0009-6701-3547'
-  - given-names: Gabriel
-    family-names: Puigdemunt-Schmolling
-    orcid: 'https://orcid.org/0000-0002-5576-9912'
-  - given-names: Nihad
-    family-names: Mammadli
-    orcid: 'https://orcid.org/0000-0003-1638-7572'
 identifiers:
   - type: doi
     value: 10.5281/zenodo.6362594

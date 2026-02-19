@@ -81,8 +81,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object parameter.
      */
     public <T> T getObject(T o) {
-        this.oReg.newObjectAccess(o, true);
-        return null;
+        return this.oReg.newObjectAccess(o, true);
     }
 
     /**
@@ -91,9 +90,8 @@ public class JavaWorkflow implements Workflow {
      * @param o Object parameter.
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      */
-    public Object getObject(Object o, boolean isWriter) {
-        this.oReg.newObjectAccess(o, isWriter);
-        return null;
+    public <T> T getObject(T o, boolean isWriter) {
+        return this.oReg.newObjectAccess(o, isWriter);
     }
 
     @Override
@@ -107,7 +105,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object.
      * @return Internal object representing the given object {@code o}.
      */
-    public <T extends Object> T getRegisteredObjectValue(T o) {
+    public <T> T getRegisteredObjectValue(T o) {
         return this.oReg.getInternalObject(o);
     }
 
@@ -133,7 +131,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object whose final values has to be retrieved.
      * @return final value of the object
      */
-    public Object collectObjectFinalValue(Object o) {
+    public <T> T collectObjectFinalValue(T o) {
         return this.oReg.newObjectAccess(o, false);
     }
 

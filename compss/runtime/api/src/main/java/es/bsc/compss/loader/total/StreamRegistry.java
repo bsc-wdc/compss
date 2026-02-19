@@ -869,7 +869,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public void deleteTaskFile( String fileName) {
+    public void deleteTaskFile(String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }

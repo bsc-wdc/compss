@@ -308,18 +308,18 @@ public class ITAppEditor extends ExprEditor {
         String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$0");
         String objectClass = fa.getClassName();
         toInclude.append("if (").append(internalObject).append(" != null) {");
+        String fieldAccess = "((" + objectClass + ")" + internalObject + ")." + fieldName;
         if (isWriter) {
             // store a new value in the field
-            toInclude.append("((").append(objectClass).append(')').append(internalObject).append(").").append(fieldName)
-                .append(" = $1;");
-            toInclude.append("} else { " + PROCEED + "$$); }");
-            // Serialize the (internal) object locally after the access
+            toInclude.append(fieldAccess).append(" = $1;");
         } else {
             // read the field value
-            toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").")
-                .append(fieldName).append(';'); // read
-            toInclude.append("} else { " + PROCEED + "$$); }");
+            toInclude.append("$_ = ").append(fieldAccess).append(';'); // read
         }
+
+        toInclude.append("} else { ");
+        toInclude.append(PROCEED).append("$$);");
+        toInclude.append("}");
 
         fa.replace(toInclude.toString());
 
@@ -352,7 +352,7 @@ public class ITAppEditor extends ExprEditor {
                 modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itAppIdVar, callPars) + ";";
             } else {
                 String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$1");
-                String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
+                String par1 = internalObject + " == null ? $1 : " + internalObject;
                 modifiedExpr = PROCEED + callPars + "); ";
                 modifiedExpr += "if ($_ instanceof " + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
                     + FilterOutputStream.class.getCanonicalName() + ") {";
@@ -360,7 +360,7 @@ public class ITAppEditor extends ExprEditor {
             }
         }
         if (DEBUG) {
-            LOGGER.debug("Modifiying creation of an object of class " + className + " with \"" + modifiedExpr + "\"");
+            LOGGER.debug("Modifying creation of an object of class " + className + " with \"" + modifiedExpr + "\"");
         }
         return modifiedExpr;
     }
@@ -602,9 +602,6 @@ public class ITAppEditor extends ExprEditor {
         // Check if the black-box we're going to is one of the array watch methods
         boolean isArrayWatch = method.getDeclaringClass().getName().equals(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
 
-        // First check the target object
-        modifiedCall.append(CallGenerator.wfAccessObject(itWfVar, "$0")).append(";");
-
         /*
          * Now add the call. If the target object of the call is a task object, invoke the method on the internal object
          * stored by the runtime. Also check the parameters. We need to control the parameters of non-remote and
@@ -657,26 +654,20 @@ public class ITAppEditor extends ExprEditor {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
-                            String calledClass = className;
-                            if (calledClass.equals(PrintStream.class.getName())
-                                || calledClass.equals(StringBuilder.class.getName())) {
-                                // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
-                                // already has the name
-                                String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
-                                modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
-                                aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
-                                    .append("(" + parType.getName() + ")").append(internalObject);
-                            } else {
-                                String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
+                            if (!className.equals(PrintStream.class.getName())
+                                && !className.equals(StringBuilder.class.getName())) {
                                 String taskFile = CallGenerator.isTaskFile(this.itSRVar, parId);
                                 String apiOpenFile = CallGenerator.openFile(this.itApiVar, this.itAppIdVar, parId,
                                     DATA_DIRECTION + ".INOUT");
-                                modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
-                                // Adding check of task files
-                                aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ")
-                                    .append(internalObject).append(" == null ? ").append(parId).append(" : ")
-                                    .append("(" + parType.getName() + ")").append(internalObject);
+                                aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ");
                             }
+                            // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
+                            // already has the name
+                            modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
+                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
+                            aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
+                                .append("(" + parType.getName() + ")").append(internalObject);
+
                         }
                     } else { // Object (also array)
                         if (DEBUG) {
@@ -688,8 +679,8 @@ public class ITAppEditor extends ExprEditor {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
-                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
                             modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
+                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
                             aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                 .append("(" + parType.getName() + ")").append(internalObject);
                         }
@@ -702,11 +693,13 @@ public class ITAppEditor extends ExprEditor {
         } catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
+
+        modifiedCall.append(CallGenerator.wfAccessObject(itWfVar, "$0")).append(";");
         String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$0");
         modifiedCall.append("if (").append(internalObject).append(" != null) {")
             .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT).append(internalObject).append(",$class,\"").append(methodName)
-            .append("\",").append(redirectedCallPars).append(",$sig);")
-            .append("}else { $_ = ($r)" + RUN_METHOD_ON_OBJECT + "$0,$class,\"").append(methodName).append("\",")
+            .append("\",").append(redirectedCallPars).append(",$sig);").append("} else {")
+            .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT + "$0,$class,\"").append(methodName).append("\",")
             .append(redirectedCallPars).append(",$sig); }");
 
         // Return all the modified call

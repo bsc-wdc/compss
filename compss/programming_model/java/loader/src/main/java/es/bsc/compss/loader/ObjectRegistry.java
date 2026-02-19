@@ -55,7 +55,7 @@ public class ObjectRegistry {
      * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      * @return synchronized value of the object. If it hadn't been registered, it returns the same object.
      */
-    public Object newObjectAccess(Object o, boolean isWriter) {
+    public <T> T newObjectAccess(T o, boolean isWriter) {
         if (o == null) {
             return o;
         }
@@ -72,7 +72,7 @@ public class ObjectRegistry {
             LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: " + isWriter);
         }
         // Get the updated version of the object
-        Object oUpdated = this.wf.getObject(o);
+        T oUpdated = this.wf.getObject(o);
         if (oUpdated != null) {
             appObjects.put(o, oUpdated);
 
@@ -135,7 +135,7 @@ public class ObjectRegistry {
      * @param o Object.
      * @return Internal object representing the given object {@code o}.
      */
-    public Object getInternalObject(Object o) {
+    public <T> T getInternalObject(T o) {
         if (o == null) {
             return null;
         }
@@ -144,7 +144,7 @@ public class ObjectRegistry {
             return null;
         }
 
-        Object internal = appObjects.get(o);
+        T internal = (T) appObjects.get(o);
 
         /*
          * The object has been accessed by a task before. Return its internal (real) value

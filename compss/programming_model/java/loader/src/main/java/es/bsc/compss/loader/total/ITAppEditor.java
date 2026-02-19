@@ -668,7 +668,7 @@ public class ITAppEditor extends ExprEditor {
                                     .append("(" + parType.getName() + ")").append(internalObject);
                             } else {
                                 String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
-                                String taskFile = CallGenerator.isTaskFile(this.itSRVar, this.itAppIdVar, parId);
+                                String taskFile = CallGenerator.isTaskFile(this.itSRVar, parId);
                                 String apiOpenFile = CallGenerator.openFile(this.itApiVar, this.itAppIdVar, parId,
                                     DATA_DIRECTION + ".INOUT");
                                 modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
@@ -841,9 +841,9 @@ public class ITAppEditor extends ExprEditor {
                         // The File type needs to be specified explicitly, since its formal type is String
                         parType = DATA_TYPES + ".FILE_T";
                         parContent = "FILE";
-                        paramPreparation = CallGenerator.addTaskFile(itSRVar, itAppIdVar, parVal) + ";";
+                        paramPreparation = CallGenerator.addTaskFile(itSRVar, parVal) + ";";
                         if (par.direction() == Direction.IN_DELETE) {
-                            paramCleanup = CallGenerator.removeTaskFile(itSRVar, itAppIdVar, parVal) + ";";
+                            paramCleanup = CallGenerator.removeTaskFile(itSRVar, parVal) + ";";
                         }
                         break;
                     case STRING:

@@ -33,7 +33,7 @@ public class CallGenerator {
     private static final String IS_TASK_FILE = ".isTaskFile(";
     private static final String OPEN_FILE = ".openFile(";
 
-    private static final String COMPSS_FILE_SYNCH = "COMPSsFile.synchFile(";
+    private static final String COMPSS_FILE_SYNCH = "synchFile()";
     private static final String STREAM_CLOSED = ".streamClosed(";
     private static final String DELETE_FILE = ".deleteFile(";
 
@@ -122,11 +122,11 @@ public class CallGenerator {
     /**
      * Constructs the instruction to synchronize a file given as a parameter.
      * 
-     * @param parId file being synchronized
+     * @param file file being synchronized
      * @return instruction to synchronize a file given as a parameter
      */
-    public static String synchFile(String parId) {
-        return COMPSS_FILE_SYNCH + parId + ')';
+    public static String synchFile(String file) {
+        return file + COMPSS_FILE_SYNCH;
     }
 
     /**
@@ -155,18 +155,6 @@ public class CallGenerator {
     }
 
     /**
-     * Constructs an instruction to register a file as a task parameter.
-     *
-     * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
-     * @param file file
-     * @return instruction to register a file as a task parameter
-     */
-    public static String addTaskFile(String itSR, String itAppId, String file) {
-        return itSR + ADD_TASK_FILE + "(java.lang.Long)" + itAppId + "," + file + ")";
-    }
-
-    /**
      * Constructs an instruction to close a stream.
      * 
      * @param itSR name of the StreamRegistry variable
@@ -178,15 +166,36 @@ public class CallGenerator {
     }
 
     /**
+     * Constructs an instruction to register a file as a task parameter.
+     *
+     * @param itSR name of the StreamRegistry variable
+     * @param file file
+     * @return instruction to register a file as a task parameter
+     */
+    public static String addTaskFile(String itSR, String file) {
+        return itSR + ADD_TASK_FILE + file + ")";
+    }
+
+    /**
      * Constructs an instruction to check whether a file was passed as a task parameter or not.
      * 
      * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
      * @param parId file to be checked
      * @return instruction to check whether a file was passed as a task parameter or not
      */
-    public static String isTaskFile(String itSR, String itAppId, String parId) {
-        return itSR + IS_TASK_FILE + "(java.lang.Long)" + itAppId + "," + parId + ")";
+    public static String isTaskFile(String itSR, String parId) {
+        return itSR + IS_TASK_FILE + parId + ")";
+    }
+
+    /**
+     * Constructs an instruction to call the deleteTaskFile method of the StreamRegistry.
+     *
+     * @param itSR name of the StreamRegistry variable
+     * @param file file to be checked
+     * @return instruction removing the file from the SR
+     */
+    public static String removeTaskFile(String itSR, String file) {
+        return itSR + DELETE_TASK_FILE + file + ")";
     }
 
     /**
@@ -202,15 +211,4 @@ public class CallGenerator {
         return itApi + OPEN_FILE + "(java.lang.Long)" + itAppId + "," + file + ", " + direction + ")";
     }
 
-    /**
-     * Constructs an instruction to call the deleteTaskFile method of the StreamRegistry.
-     *
-     * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
-     * @param file file to be checked
-     * @return instruction removing the file from the SR
-     */
-    public static String removeTaskFile(String itSR, String itAppId, String file) {
-        return itSR + DELETE_TASK_FILE + "(java.lang.Long)" + itAppId + "," + file + ")";
-    }
 }

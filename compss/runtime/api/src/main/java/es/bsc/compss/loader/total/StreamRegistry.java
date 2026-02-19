@@ -842,7 +842,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public boolean isTaskFile(Long appId, String fileName) {
+    public boolean isTaskFile(String fileName) {
         if (fileName != null) {
             File f = new File(fileName);
             if (taskFiles.contains(f.getAbsolutePath())) {
@@ -858,7 +858,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public void addTaskFile(Long appId, String fileName) {
+    public void addTaskFile(String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }
@@ -869,7 +869,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public void deleteTaskFile(Long appId, String fileName) {
+    public void deleteTaskFile( String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }

@@ -87,7 +87,7 @@ public class COMPSsFile extends File {
     public boolean delete() {
         boolean deleted = this.api.deleteFile(appId, this.pathname);
         if (deleted) {
-            this.sReg.deleteTaskFile(appId, this.pathname);
+            this.sReg.deleteTaskFile(this.pathname);
         }
         return deleted;
     }
@@ -100,16 +100,6 @@ public class COMPSsFile extends File {
     public File synchFile() {
         this.api.getFile(appId, this.pathname);
         return new File(this.pathname);
-    }
-
-    /**
-     * Synchronizes the given COMPSsFile {@code f}.
-     *
-     * @param f COMPSsFile.
-     * @return File object after synchronizing its content.
-     */
-    public static File synchFile(COMPSsFile f) {
-        return f.synchFile();
     }
 
 }

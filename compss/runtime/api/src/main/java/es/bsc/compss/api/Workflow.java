@@ -237,7 +237,7 @@ public interface Workflow {
      * @param o Object.
      * @return In-memory copy of the last version of the given object.
      */
-    Object getObject(Object o);
+    <T> T getObject(T o);
 
     /**
      * Removes the given object {@code o}.

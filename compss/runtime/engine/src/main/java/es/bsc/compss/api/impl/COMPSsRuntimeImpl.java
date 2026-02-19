@@ -519,7 +519,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ap.deleteData(app, new FileData(sourceLocation), true, false);
                     // In the case of Java file can be stored in the Stream Registry
                     if (sReg != null) {
-                        sReg.deleteTaskFile(appId, fileName);
+                        sReg.deleteTaskFile(fileName);
                     }
                     FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
                 } catch (IOException ioe) {
@@ -563,7 +563,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 ap.deleteData(app, new FileData(sourceLocation), true, false);
                 // In the case of Java file can be stored in the Stream Registry
                 if (sReg != null) {
-                    sReg.deleteTaskFile(appId, dirName);
+                    sReg.deleteTaskFile(dirName);
                 }
 
                 FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));

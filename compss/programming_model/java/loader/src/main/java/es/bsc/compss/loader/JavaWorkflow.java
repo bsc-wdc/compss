@@ -80,7 +80,7 @@ public class JavaWorkflow implements Workflow {
      *
      * @param o Object parameter.
      */
-    public Object getObject(Object o) {
+    public <T> T getObject(T o) {
         this.oReg.newObjectAccess(o, true);
         return null;
     }
@@ -107,7 +107,7 @@ public class JavaWorkflow implements Workflow {
      * @param o Object.
      * @return Internal object representing the given object {@code o}.
      */
-    public Object getRegisteredObjectValue(Object o) {
+    public <T extends Object> T getRegisteredObjectValue(T o) {
         return this.oReg.getInternalObject(o);
     }
 

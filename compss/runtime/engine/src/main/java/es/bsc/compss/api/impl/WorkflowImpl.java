@@ -796,7 +796,7 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public Object getObject(Object obj) {
+    public <T> T getObject(T obj) {
         /*
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
@@ -807,8 +807,8 @@ public class WorkflowImpl extends Application implements Workflow {
                 LOGGER.debug("Getting object with hash code " + hashCode);
             }
 
-            ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(this, Direction.INOUT, obj, hashCode);
-            Object oUpdated;
+            ObjectMainAccess<T, ?, ?> oap = ObjectMainAccess.constructOMA(this, Direction.INOUT, obj, hashCode);
+            T oUpdated;
             try {
                 oUpdated = AP.mainAccess(oap);
             } catch (ValueUnawareRuntimeException e) {

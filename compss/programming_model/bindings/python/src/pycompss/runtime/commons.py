@@ -263,5 +263,28 @@ class Globals:
         """
         self.data_provenance = data_provenance
 
+    def to_string(self) -> str:
+        """Return a string representation of all attributes."""
+        attrs = []
+        for slot in self.__slots__:
+            value = getattr(self, slot)
+            attrs.append(f"{slot}: {value}")
+        return "\n".join(attrs)
+
+    def __str__(self) -> str:
+        """Make str(obj) return the same as to_string()."""
+        return self.to_string()
+
+    def __repr__(self) -> str:
+        """Optional: more detailed representation for debugging."""
+        return f"<Context:\n{self.to_string()}\n>"
+
+    def update_from(self, other: "Globals") -> None:
+        """Update all attributes from another Globals instance."""
+        if not isinstance(other, Globals):
+            raise TypeError("Can only update from another Globals instance")
+        for slot in self.__slots__:
+            setattr(self, slot, getattr(other, slot))
+
 
 GLOBALS = Globals()

@@ -53,13 +53,12 @@ def load_loggers(
     # With agents or worker in master it does not, so keep it in previous
     # two folders:
     log_dir = GLOBALS.get_log_directory()
+    if debug:
+        print(f"[EXECUTOR] Load loggers with target directory: {log_dir}")
     if not log_dir:
-        if __debug__:
-            print(
-                "WARNING: Log dir not set, "
-                + "using temporary directory as log dir."
+        raise PyCOMPSsException(
+                "ERROR: Log dir not set: Check GLOBALS: " + str(GLOBALS)
             )
-        log_dir = GLOBALS.get_temporary_directory()
 
     # Load log level configuration file
     if debug:

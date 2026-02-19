@@ -290,7 +290,10 @@ def compss_persistent_executor(
     executor_id = config.exec_ids[RANK - 1]
     executor_name = "".join(("Rank-", str(RANK)))
     conf = ExecutorConf(
+        GLOBALS,
+        CONTEXT,
         config.debug,
+        GLOBALS.get_log_directory(),
         GLOBALS.get_temporary_directory(),
         tracing,
         config.storage_conf,

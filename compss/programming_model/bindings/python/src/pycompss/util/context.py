@@ -222,7 +222,7 @@ class Context:
         return self.to_string()
 
     def __repr__(self) -> str:
-        """Optional: more detailed representation for debugging."""
+        """Make more detailed representation for debugging."""
         return f"<Globals:\n{self.to_string()}\n>"
 
     def update_from(self, other: "Context") -> None:

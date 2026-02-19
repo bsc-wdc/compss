@@ -57,8 +57,8 @@ def load_loggers(
         print(f"[EXECUTOR] Load loggers with target directory: {log_dir}")
     if not log_dir:
         raise PyCOMPSsException(
-                "ERROR: Log dir not set: Check GLOBALS: " + str(GLOBALS)
-            )
+            "ERROR: Log dir not set: Check GLOBALS: " + str(GLOBALS)
+        )
 
     # Load log level configuration file
     if debug:

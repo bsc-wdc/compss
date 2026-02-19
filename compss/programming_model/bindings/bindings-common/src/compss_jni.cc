@@ -508,6 +508,15 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
  */
 void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobjOBJArr) {
     debug_printf("[BINDING-COMMONS] - @process_param\n");
+
+    JNIEnv* env = status->localJniEnv;
+
+    // Allocate a local frame for this parameter (auto-cleans locals)
+    if (env->PushLocalFrame(32) < 0) {
+        // Out of memory
+        return;
+    }
+
     // params     is of the form: value type direction stream prefix name
     // jobjOBJArr is of the form: value type direction stream prefix name
     // This means that the ith parameters occupies the fields in the interval [NF * k, NK * k + 8]
@@ -540,104 +549,104 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
         case char_dt:
         case wchar_dt:
             jobjParType = par_type.CHAR_T;
-            jobjParVal = status->localJniEnv->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
+            jobjParVal = env->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
             check_exception(status, "Cannot instantiate new char object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Char: %c\n", *(char*)parVal);
             break;
         case boolean_dt:
             jobjParType = par_type.BOOLEAN_T;
-            jobjParVal = status->localJniEnv->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
+            jobjParVal = env->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
             check_exception(status, "Cannot instantiate new boolean object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Bool: %d\n", *(int*)parVal);
             break;
         case short_dt:
             jobjParType = par_type.SHORT_T;
-            jobjParVal = status->localJniEnv->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
+            jobjParVal = env->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
             check_exception(status, "Cannot instantiate new short object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Short: %hu\n", *(short*)parVal);
             break;
         case int_dt:
             jobjParType = par_type.INT_T;
-            jobjParVal = status->localJniEnv->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
+            jobjParVal = env->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
             check_exception(status, "Cannot instantiate new int object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Int: %d\n", *(int*)parVal);
             break;
         case long_dt:
             jobjParType = par_type.LONG_T;
-            jobjParVal = status->localJniEnv->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
+            jobjParVal = env->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
             check_exception(status, "Cannot instantiate new long object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Long: %ld\n", *(long*)parVal);
             break;
         case longlong_dt:
         case float_dt:
             jobjParType = par_type.FLOAT_T;
-            jobjParVal = status->localJniEnv->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
+            jobjParVal = env->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
             check_exception(status, "Cannot instantiate new float object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Float: %f\n", *(float*)parVal);
             break;
         case double_dt:
             jobjParType = par_type.DOUBLE_T;
-            jobjParVal = status->localJniEnv->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
+            jobjParVal = env->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
             check_exception(status, "Cannot instantiate new double object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Double: %f\n", *(double*)parVal);
             break;
         case file_dt:
             jobjParType = par_type.FILE_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for file)");
             debug_printf ("[BINDING-COMMONS] - @process_param - File: %s\n", *(char **)parVal);
             break;
         case directory_dt:
             jobjParType = par_type.DIRECTORY_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for directory)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Directory: %s\n", *(char **)parVal);
             break;
         case external_stream_dt:
             jobjParType = par_type.EXTERNAL_STREAM_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for stream)");
             debug_printf ("[BINDING-COMMONS] - @process_param - External Stream: %s\n", *(char **)parVal);
             break;
         case external_psco_dt:
             jobjParType = par_type.EXTERNAL_PSCO_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for psco)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Persistent: %s\n", *(char **)parVal);
             break;
         case string_dt:
             jobjParType = par_type.STRING_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object");
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
             break;
         case string_64_dt:
             jobjParType = par_type.STRING_64_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object");
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
             break;
         case binding_object_dt:
             jobjParType = par_type.BINDING_OBJECT_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for binding object)");
             debug_printf ("[BINDING-COMMONS] - @process_param - BindingObject: %s\n", *(char **)parVal);
             break;
         case collection_dt:
             jobjParType = par_type.COLLECTION_T;
-            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for collection)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Collection: %s\n", *(char **)parVal);
             break;
         case dict_collection_dt:
             jobjParType = par_type.DICT_COLLECTION_T;
-            jobjParVal = globalJniEnv -> NewStringUTF(*(char **)parVal);
+            jobjParVal = env-> NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for dictionary collection)");
             debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Dictionary Collection: %s\n", *(char **)parVal);
             break;
         case null_dt:
             jobjParType = par_type.NULL_T;
-            jobjParVal = globalJniEnv -> NewStringUTF("NULL");
+            jobjParVal = env-> NewStringUTF("NULL");
             check_exception(status, "Cannot instantiate new null object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Null: NULL\n");
             break;
@@ -649,29 +658,29 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     }
 
     // Sets the parameter value and type
-    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
-    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
+    env->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
+    env->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
 
     // Add param direction
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DIRECTION: %d\n", (enum direction) parDirect);
     switch ((enum direction) parDirect) {
         case in_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN);
+            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN);
             break;
         case out_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.OUT);
+            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.OUT);
             break;
         case inout_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.INOUT);
+            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.INOUT);
             break;
         case concurrent_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.CONCURRENT);
+            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.CONCURRENT);
             break;
         case commutative_dir:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.COMMUTATIVE);
+            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.COMMUTATIVE);
             break;
         case in_delete_dir:
-        	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN_DELETE);
+        	env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN_DELETE);
         	break;
         default:
             break;
@@ -681,42 +690,44 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM STD IO STREAM: %d\n", (enum io_stream) parIOStream);
     switch ((enum io_stream) parIOStream) {
         case STD_IN:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDIN);
+            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDIN);
             break;
         case STD_OUT:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDOUT);
+            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDOUT);
             break;
         case STD_ERR:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDERR);
+            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDERR);
             break;
         default:
-            status->localJniEnv->SetObjectArrayElement(jobjOBJArr, ps, std_stream.UNSPECIFIED);
+            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.UNSPECIFIED);
             break;
     }
 
     // Add param prefix
     debug_printf ("[BINDING-COMMONS] - @process_param - PREFIX: %s\n", *(char**)parPrefix);
-    jstring jobjParPrefix = status->localJniEnv->NewStringUTF(*(char**)parPrefix);
-    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
+    jstring jobjParPrefix = env->NewStringUTF(*(char**)parPrefix);
+    env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefix);
 
     debug_printf ("[BINDING-COMMONS] - @process_param - NAME: %s\n", *(char**)parName);
-    jstring jobjParName = status->localJniEnv->NewStringUTF(*(char**)parName);
-    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pn, jobjParName);
+    jstring jobjParName = env->NewStringUTF(*(char**)parName);
+    env->SetObjectArrayElement(jobjOBJArr, pn, jobjParName);
 
     debug_printf ("[BINDING-COMMONS] - @process_param - CONTENT TYPE: %s\n", *(char**)parConType);
-    jstring jobConType = status->localJniEnv->NewStringUTF(*(char**)parConType);
-    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pc, jobConType);
+    jstring jobConType = env->NewStringUTF(*(char**)parConType);
+    env->SetObjectArrayElement(jobjOBJArr, pc, jobConType);
 
     debug_printf ("[BINDING-COMMONS] - @process_param - WEIGHT : %s\n", *(char**)parWeight);
-    jstring jobjParWeight = status->localJniEnv->NewStringUTF(*(char**)parWeight);
-    status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pw, jobjParWeight);
+    jstring jobjParWeight = env->NewStringUTF(*(char**)parWeight);
+    env->SetObjectArrayElement(jobjOBJArr, pw, jobjParWeight);
 
     debug_printf ("[BINDING-COMMONS] - @process_param - KEEP RENAME : %d\n", parKeepRename);
     bool _KeepRename = false;
     if (parKeepRename != 0) _KeepRename = true;
-	jobject jobjParKeepRename = status->localJniEnv->NewObject(clsBoolean, midBoolCon, _KeepRename);
+	jobject jobjParKeepRename = env->NewObject(clsBoolean, midBoolCon, _KeepRename);
 	check_exception(status, "Exception creating a new boolean for keep rename property");
-	status->localJniEnv->SetObjectArrayElement(jobjOBJArr, pkr, jobjParKeepRename);
+	env->SetObjectArrayElement(jobjOBJArr, pkr, jobjParKeepRename);
+
+    env->PopLocalFrame(NULL);
 }
 
 
@@ -835,20 +846,11 @@ void JNI_WF_executeTask(CompssWorkflow* self, char* className, char* onFailure, 
     debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeTask - Processing task execution in bindings-common.\n");
 
     // Values to be passed to the JVM
-    bool _priority = false;
-    if (priority != 0) _priority = true;
-
-    bool _reduce = false;
-    if (reduce != 0) _reduce = true;
-
-    bool _replicated = false;
-    if (replicated != 0) _replicated = true;
-
-    bool _distributed = false;
-    if (distributed != 0) _distributed = true;
-
-    bool _hasTarget = false;
-    if (hasTarget != 0) _hasTarget = true;
+    jboolean _priority     = priority     ? JNI_TRUE : JNI_FALSE;
+    jboolean _reduce       = reduce       ? JNI_TRUE : JNI_FALSE;
+    jboolean _replicated   = replicated   ? JNI_TRUE : JNI_FALSE;
+    jboolean _distributed  = distributed  ? JNI_TRUE : JNI_FALSE;
+    jboolean _hasTarget    = hasTarget    ? JNI_TRUE : JNI_FALSE;
 
     ThreadStatus* status = access_request();
     JNIEnv* env = status->localJniEnv;
@@ -862,7 +864,7 @@ void JNI_WF_executeTask(CompssWorkflow* self, char* className, char* onFailure, 
     check_exception(status, "Exception converting numReturns to integer");
 
     // Create array of parameters    
-    jobjectArray jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, env->NewObject(clsObject, midObjCon));
+    jobjectArray jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, NULL);
     for (int i = 0; i < numParams; i++) {
         debug_printf("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing parameter %d\n", i);
         process_param(status, params, i, jobjOBJArr);
@@ -899,34 +901,21 @@ void JNI_WF_executeTask(CompssWorkflow* self, char* className, char* onFailure, 
     debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeTask - Task processed.\n");
 }
 
-
 void JNI_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
     JNIWorkflow* wf = (JNIWorkflow*) self;
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing task execution in bindings-common. \n");
 
     // Values to be passed to the JVM
-    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
-
-    bool _priority = false;
-    if (priority != 0) _priority = true;
-
-    bool _replicated = false;
-    if (replicated != 0) _replicated = true;
-
-    bool _reduce = false;
-    if (reduce != 0) _reduce = true;
-
-    bool _distributed = false;
-    if (distributed != 0) _distributed = true;
-
-    bool _hasTarget = false;
-    if (hasTarget != 0) _hasTarget = true;
+    jboolean _priority     = priority     ? JNI_TRUE : JNI_FALSE;
+    jboolean _reduce       = reduce       ? JNI_TRUE : JNI_FALSE;
+    jboolean _replicated   = replicated   ? JNI_TRUE : JNI_FALSE;
+    jboolean _distributed  = distributed  ? JNI_TRUE : JNI_FALSE;
+    jboolean _hasTarget    = hasTarget    ? JNI_TRUE : JNI_FALSE;
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
     JNIEnv* env = status->localJniEnv;
-
 
     jstring jSignature = env->NewStringUTF(signature);
     jstring jOnFailure = env->NewStringUTF(onFailure);
@@ -936,7 +925,8 @@ void JNI_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFailur
     check_exception(status, "Exception converting numReturns to integer");
 
     // Create array of parameters
-    jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, env->NewObject(clsObject, midObjCon));
+    jobjectArray jobjOBJArr;
+    jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, NULL);
     for (int i = 0; i < numParams; i++) {
         debug_printf("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing parameter %d\n", i);
         process_param(status, params, i, jobjOBJArr);
@@ -977,22 +967,11 @@ void JNI_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailu
     debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeHttpTask - HTTP task execution in bindings-common. \n");
 
     // Values to be passed to the JVM
-    jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
-
-    bool _priority = false;
-    if (priority != 0) _priority = true;
-
-    bool _replicated = false;
-    if (replicated != 0) _replicated = true;
-
-    bool _reduce = false;
-    if (reduce != 0) _reduce = true;
-
-    bool _distributed = false;
-    if (distributed != 0) _distributed = true;
-
-    bool _hasTarget = false;
-    if (hasTarget != 0) _hasTarget = true;
+    jboolean _priority     = priority     ? JNI_TRUE : JNI_FALSE;
+    jboolean _reduce       = reduce       ? JNI_TRUE : JNI_FALSE;
+    jboolean _replicated   = replicated   ? JNI_TRUE : JNI_FALSE;
+    jboolean _distributed  = distributed  ? JNI_TRUE : JNI_FALSE;
+    jboolean _hasTarget    = hasTarget    ? JNI_TRUE : JNI_FALSE;
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
@@ -1012,7 +991,8 @@ void JNI_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailu
     }
 
     // Create array of parameters
-    jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, env->NewObject(clsObject, midObjCon));
+    jobjectArray jobjOBJArr;
+    jobjOBJArr = (jobjectArray)env->NewObjectArray(numParams * NUM_FIELDS, clsObject, NULL);
     for (int i = 0; i < numParams; i++) {
         debug_printf("[BINDING-COMMONS] - @JNI_ExecuteHttpTask- Processing parameter %d\n", i);
         process_param(status, params, i, jobjOBJArr);

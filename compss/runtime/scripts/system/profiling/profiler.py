@@ -28,7 +28,7 @@ try:
     psutil_imported = True
 except ImportError:
     print(
-        "PROVENANCE | ERROR: psutil is not installed. Install it, if you want to monitor all the resources status during the execution."
+        "PROVENANCE | PROFILING | ERROR: psutil is not installed. Install it, if you want to monitor all the resources status during the execution."
     )
     psutil_imported = False
 
@@ -65,7 +65,7 @@ def end_profiling(sig, frame):
         return  # Prevent multiple invocations
 
     profiling_active = False
-    print("PROVENANCE | Finishing profiling (signal received)...")
+    print("PROVENANCE | PROFILING | Finishing profiling (signal received)...")
     # All file I/O and cleanup is now handled in the main() function's
     # finally block and post-loop logic.
 
@@ -162,13 +162,13 @@ def get_config(machine, config_file_path):
         with Path(config_file_path).open("r") as f:
             config_data = json.load(f)
     except FileNotFoundError:
-        print(f"PROVENANCE | ERROR: Config file not found at {config_file_path}")
+        print(f"PROVENANCE | PROFILING | ERROR: Config file not found at {config_file_path}")
         return None
     except json.JSONDecodeError:
-        print(f"PROVENANCE | ERROR: Config file is not valid JSON: {config_file_path}")
+        print(f"PROVENANCE | PROFILING | ERROR: Config file is not valid JSON: {config_file_path}")
         return None
     except Exception as e:
-        print(f"PROVENANCE | ERROR: Could not read config file: {e}")
+        print(f"PROVENANCE | PROFILING | ERROR: Could not read config file: {e}")
         return None
 
     profiler_tool = None
@@ -198,7 +198,7 @@ def main():
         config_file_path = sys.argv[1]
         log_dir = sys.argv[2]
     except IndexError:
-        print("PROVENANCE | ERROR: Missing arguments.")
+        print("PROVENANCE | PROFILING | ERROR: Missing arguments.")
         print("Usage: python profiler.py [config_file_path] [log_dir]")
         sys.exit(1)
 
@@ -206,7 +206,7 @@ def main():
     try:
         profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL", "5")) # Default to 5s
     except ValueError:
-        print("PROVENANCE | Warning: Invalid COMPSS_PROFILING_INTERVAL. Defaulting to 5s.")
+        print("PROVENANCE | PROFILING | Warning: Invalid COMPSS_PROFILING_INTERVAL. Defaulting to 5s.")
         profiling_interval = 5
 
     machine = os.getenv("BSC_MACHINE", subprocess.check_output("uname -s", shell=True, text=True).strip()).lower()
@@ -214,10 +214,10 @@ def main():
     # print(f"DEBUG: VALUE OF CURRENT CONFIG {current_config}")
 
     if current_config is None:
-        print(f"PROVENANCE | ERROR: No valid profiler config found for machine '{machine}'.")
+        print(f"PROVENANCE | PROFILING | ERROR: No valid profiler config found for machine '{machine}'.")
         if not psutil_imported:
-            print("PROVENANCE | INFO: 'psutil' is not installed, which limits options.")
-        print("PROVENANCE | ERROR: it is not possible to monitor the resources on this system")
+            print("PROVENANCE | PROFILING | INFO: 'psutil' is not installed, which limits options.")
+        print("PROVENANCE | PROFILING | ERROR: it is not possible to monitor the resources on this system")
         exit(1)
 
     is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
@@ -307,12 +307,12 @@ def main():
             # Check for the NEW 'blkio' path.
             # You must update find_root_cgroup_paths in utils.py to return this!
             if not all(k in cgroup_paths for k in ['cpu', 'memory', 'blkio']):
-                print("PROVENANCE | ERROR: Failed to find cgroup paths (cpu, memory, or blkio).")
-                print("PROVENANCE | INFO: Make sure 'find_root_cgroup_paths' in utils.py finds the 'blkio' controller path.")
+                print("PROVENANCE | PROFILING | ERROR: Failed to find cgroup paths (cpu, memory, or blkio).")
+                print("PROVENANCE | PROFILING | INFO: Make sure 'find_root_cgroup_paths' in utils.py finds the 'blkio' controller path.")
                 sys.exit(1)
 
             if not total_mem_kb or not total_node_cpus:
-                print("PROVENANCE | ERROR: Failed to get required system info. Exiting.")
+                print("PROVENANCE | PROFILING | ERROR: Failed to get required system info. Exiting.")
                 sys.exit(1)
 
             # These files represent the *total* usage for the *entire node*
@@ -327,7 +327,7 @@ def main():
                 # Get initial CPU stats
                 last_cpu_ns_str = read_cgroup_file(cpu_usage_file)
                 if last_cpu_ns_str is None:
-                    print(f"PROVENANCE | ERROR: Could not read initial CPU usage from {cpu_usage_file}.")
+                    print(f"PROVENANCE | PROFILING | ERROR: Could not read initial CPU usage from {cpu_usage_file}.")
                     sys.exit(1) # Exit before loop
 
                 last_cpu_ns = int(last_cpu_ns_str)
@@ -343,7 +343,7 @@ def main():
                 profiling_data.append(first_entry.strip())
 
             except Exception as e:
-                print(f"PROVENANCE | ERROR: Could not open output file .csv: {e}")
+                print(f"PROVENANCE | PROFILING | ERROR: Could not open output file .csv: {e}")
                 sys.exit(1)
 
             while profiling_active:
@@ -358,7 +358,7 @@ def main():
                 # --- Memory ---
                 mem_bytes_str = read_cgroup_file(mem_usage_file)
                 if mem_bytes_str is None:
-                    print("PROVENANCE | Lost cgroup memory file. Stopping.")
+                    print("PROVENANCE | PROFILING | Lost cgroup memory file. Stopping.")
                     break
                 mem_used_kb = int(mem_bytes_str) / 1024.0
                 mem_percent = (mem_used_kb / total_mem_kb) * 100
@@ -367,7 +367,7 @@ def main():
                 current_cpu_ns_str = read_cgroup_file(cpu_usage_file)
                 current_read_time = time.monotonic()
                 if current_cpu_ns_str is None:
-                    print("PROVENANCE | Lost cgroup CPU file. Stopping.")
+                    print("PROVENANCE | PROFILING | Lost cgroup CPU file. Stopping.")
                     break
                 current_cpu_ns = int(current_cpu_ns_str)
                 time_delta_ns = (current_read_time - last_read_time) * 1e9
@@ -410,26 +410,26 @@ def main():
                 counter += 1
 
     except KeyboardInterrupt:
-        print("PROVENANCE | Profiling interrupted by user.")
+        print("PROVENANCE | PROFILING | Profiling interrupted by user.")
         # Loop will exit, finally will run
     except Exception as e:
         if profiling_active:
             # Only print if we weren't already shutting down
-            print(f"PROVENANCE | ERROR during profiling loop: {e}")
+            print(f"PROVENANCE | PROFILING | ERROR during profiling loop: {e}")
     finally:
         # This is the safe cleanup block
         if output_file and not output_file.closed:
             try:
                 output_file.close()
                 if __debug__:
-                    print("PROVENANCE DEBUG | CSV file closed in finally block.")
+                    print("PROVENANCE DEBUG | PROFILING | CSV file closed in finally block.")
             except Exception as e:
-                print(f"PROVENANCE | Warning: Error in final cleanup: {e}")
+                print(f"PROVENANCE | PROFILING | Warning: Error in final cleanup: {e}")
 
     # --- Summary Writing ---
     # This logic is executed when the file is closed and loop is stopped.
     if counter > 1:
-        print("PROVENANCE | Profiling completed.")
+        print("PROVENANCE | PROFILING | Profiling completed.")
     if log_dir and hostname:
         try:
             with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
@@ -437,9 +437,9 @@ def main():
                 summary.write(f"Total measurements collected: {len(profiling_data)}\n")
                 summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
             if __debug__:
-                print("PROVENANCE DEBUG | Summary file created successfully.")
+                print("PROVENANCE DEBUG | PROFILING | Summary file created successfully.")
         except Exception as e:
-            print(f"PROVENANCE | Warning: Could not write summary file: {e}")
+            print(f"PROVENANCE | PROFILING | Warning: Could not write summary file: {e}")
 
 
 if __name__ == "__main__":

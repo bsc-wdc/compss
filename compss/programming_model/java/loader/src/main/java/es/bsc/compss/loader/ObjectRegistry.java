@@ -57,7 +57,7 @@ public class ObjectRegistry {
      */
     public <T> T newObjectAccess(T o, boolean isWriter) {
         if (o == null) {
-            return o;
+            return null;
         }
 
         if (!appObjects.containsKey(o)) {
@@ -82,7 +82,7 @@ public class ObjectRegistry {
             }
             return oUpdated;
         }
-        return o;
+        return (T) appObjects.get(o);
     }
 
     /**

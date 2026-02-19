@@ -157,11 +157,8 @@ public class ITAppEditor extends ExprEditor {
                                 LOGGER.debug("Parameter " + (i - 1) + " of constructor " + ne.getConstructor()
                                     + " is an object, adding access");
                             }
-
-                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
-                            modifiedExpr.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
-                            callPars.append(internalObject).append(" == null ? ").append(parId).append(" : ")
-                                .append("(" + parType.getName() + ")").append(internalObject);
+                            String typeCast = "(" + parType.getName() + ")";
+                            callPars.append(typeCast + CallGenerator.wfAccessObject(itWfVar, parId));
                         }
                     }
                 }
@@ -302,24 +299,17 @@ public class ITAppEditor extends ExprEditor {
 
         // First check the object containing the field
         StringBuilder toInclude = new StringBuilder();
-        toInclude.append(CallGenerator.wfAccessObject(itWfVar, "$0", isWriter)).append(";");
-
-        // Execute the access on the internal object
-        String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$0");
-        String objectClass = fa.getClassName();
-        toInclude.append("if (").append(internalObject).append(" != null) {");
-        String fieldAccess = "((" + objectClass + ")" + internalObject + ")." + fieldName;
+        toInclude.append("(").append("(").append(fa.getClassName()).append(")") // cast
+            .append(CallGenerator.wfAccessObject(itWfVar, "$0", isWriter)) // object
+            .append(").").append(fieldName);
         if (isWriter) {
             // store a new value in the field
-            toInclude.append(fieldAccess).append(" = $1;");
+            toInclude.append(" = $1;");
         } else {
             // read the field value
-            toInclude.append("$_ = ").append(fieldAccess).append(';'); // read
+            toInclude.insert(0, "$_ = ");
+            toInclude.append(";");
         }
-
-        toInclude.append("} else { ");
-        toInclude.append(PROCEED).append("$$);");
-        toInclude.append("}");
 
         fa.replace(toInclude.toString());
 
@@ -663,11 +653,8 @@ public class ITAppEditor extends ExprEditor {
                             }
                             // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
                             // already has the name
-                            modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
-                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
-                            aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
-                                .append("(" + parType.getName() + ")").append(internalObject);
-
+                            aux1.append("(").append(parType.getName()).append(")") // cast
+                                .append(CallGenerator.wfAccessObject(itWfVar, parId)); // object
                         }
                     } else { // Object (also array)
                         if (DEBUG) {
@@ -679,10 +666,8 @@ public class ITAppEditor extends ExprEditor {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
-                            modifiedCall.insert(0, CallGenerator.wfAccessObject(itWfVar, parId) + ";");
-                            String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, parId);
-                            aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
-                                .append("(" + parType.getName() + ")").append(internalObject);
+                            aux1.append("(").append(parType.getName()).append(")") // cast
+                                .append(CallGenerator.wfAccessObject(itWfVar, parId)); // object
                         }
                     }
                     i++;
@@ -694,13 +679,10 @@ public class ITAppEditor extends ExprEditor {
             throw new CannotCompileException(e);
         }
 
-        modifiedCall.append(CallGenerator.wfAccessObject(itWfVar, "$0")).append(";");
-        String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$0");
-        modifiedCall.append("if (").append(internalObject).append(" != null) {")
-            .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT).append(internalObject).append(",$class,\"").append(methodName)
-            .append("\",").append(redirectedCallPars).append(",$sig);").append("} else {")
-            .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT + "$0,$class,\"").append(methodName).append("\",")
-            .append(redirectedCallPars).append(",$sig); }");
+        modifiedCall.append("$_ = ($r)") // result and casting
+            .append(RUN_METHOD_ON_OBJECT) // invoke method
+            .append(CallGenerator.wfAccessObject(itWfVar, "$0")) // target object
+            .append(",$class,\"").append(methodName).append("\",").append(redirectedCallPars).append(",$sig);");
 
         // Return all the modified call
         return modifiedCall.toString();
@@ -1021,10 +1003,9 @@ public class ITAppEditor extends ExprEditor {
                      * After execute task, register an access to the wrapper object, get its (remotely) generated value
                      * and assign it to the application's primitive type var
                      */
-                    resCollection.append(CallGenerator.wfAccessObject(itWfVar, tempRetVar)).append(";");
                     resCollection.append("$_ = (").append(cast)
-                        .append(CallGenerator.getRegisteredObjectValue(itWfVar, tempRetVar)).append(").")
-                        .append(converterMethod).append(";");
+                        .append(CallGenerator.wfAccessObject(itWfVar, tempRetVar)).append(").").append(converterMethod)
+                        .append(";");
                 } else if (retType.isArray()) {
                     // ARRAY
                     String typeName = retType.getName();

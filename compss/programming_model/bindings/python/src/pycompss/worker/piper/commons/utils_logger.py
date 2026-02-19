@@ -30,6 +30,7 @@ from pycompss.util.logger.helpers import init_logging_worker_piper
 from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.typing_helper import typing
+from pycompss.util.exceptions import PyCOMPSsException
 
 
 def load_loggers(

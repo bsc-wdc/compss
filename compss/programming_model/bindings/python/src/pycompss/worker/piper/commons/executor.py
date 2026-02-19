@@ -57,8 +57,8 @@ except ImportError:
     THREAD_AFFINITY = False
 
 from pycompss.runtime.management.COMPSs import COMPSs
-from pycompss.util.context import CONTEXT
-from pycompss.runtime.commons import GLOBALS
+from pycompss.util.context import CONTEXT, Context
+from pycompss.runtime.commons import GLOBALS, Globals
 from pycompss.worker.piper.commons.constants import TAGS
 from pycompss.worker.piper.commons.utils_logger import load_loggers
 from pycompss.worker.commons.executor import build_return_params_message
@@ -200,7 +200,10 @@ class ExecutorConf:
     """Executor configuration class."""
 
     __slots__ = [
+        "worker_globals",
+        "worker_context",
         "debug",
+        "log_dir",
         "tmp_dir",
         "tracing",
         "storage_conf",
@@ -219,7 +222,10 @@ class ExecutorConf:
 
     def __init__(
         self,
+        worker_globals: Globals,
+        worker_context: Context,
         debug: bool,
+        log_dir: str,
         tmp_dir: str,
         tracing: bool,
         storage_conf: str,
@@ -237,6 +243,8 @@ class ExecutorConf:
     ) -> None:
         """Construct a new executor configuration.
 
+        :param worker_globals: Global variable to be re-instantiated
+        :param worker_context: Context variable to be re-instantiated
         :param debug: If debug is enabled.
         :param tmp_dir: Temporary directory for logging purposes.
         :param tracing: Enable tracing for the executor.
@@ -254,7 +262,10 @@ class ExecutorConf:
         :param out_cache_queue: Cache queue where to the cache returns info.
         :param ear: Ear energy metering.
         """
+        self.worker_globals = worker_globals
+        self.worker_context = worker_context
         self.debug = debug
+        self.log_dir = log_dir
         self.tmp_dir = tmp_dir
         self.tracing = tracing
         self.storage_conf = storage_conf
@@ -325,8 +336,10 @@ def executor(
 
         if len(conf.logger.handlers) == 0:
             # Logger has not been inherited correctly. Happens in MacOS.
-            tmp_dir = os.path.join(conf.tmp_dir, "..")
-            GLOBALS.set_temporary_directory(tmp_dir)
+            GLOBALS.update_from(conf.worker_globals)
+            CONTEXT.update_from(conf.worker_context)
+            GLOBALS.set_log_directory(conf.log_dir)
+
             # Reload logger
             (
                 conf.logger,

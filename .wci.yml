@@ -12,6 +12,7 @@ language:  # will attempt to fetch GitHub repository main language if not provid
     - Python
     - Java
     - C/C++
+    - R
 
 # Take automatically the latest release
 # release: # will attempt to fetch latest release from GitHub repository if not provided

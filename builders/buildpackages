@@ -1,11 +1,11 @@
 #!/bin/bash -e
- 
+
   COMPSs_version=3.3.3.post2602
- 
+
   echo " "
   echo "# Building COMPSs packages..."
   echo " "
-  cd specs 
+  cd specs
 
   cd sc
   echo " "

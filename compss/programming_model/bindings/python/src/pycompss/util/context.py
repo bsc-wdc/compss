@@ -209,6 +209,29 @@ class Context:
         """
         return self.to_register
 
+    def to_string(self) -> str:
+        """Return a string representation of all attributes."""
+        attrs = []
+        for slot in self.__slots__:
+            value = getattr(self, slot)
+            attrs.append(f"{slot}: {value}")
+        return "\n".join(attrs)
+
+    def __str__(self) -> str:
+        """Make str(obj) return the same as to_string()."""
+        return self.to_string()
+
+    def __repr__(self) -> str:
+        """Make more detailed representation for debugging."""
+        return f"<Globals:\n{self.to_string()}\n>"
+
+    def update_from(self, other: "Context") -> None:
+        """Update all attributes from another Context instance."""
+        if not isinstance(other, Context):
+            raise TypeError("Can only update from another Context instance")
+        for slot in self.__slots__:
+            setattr(self, slot, getattr(other, slot))
+
 
 CONTEXT = Context()
 

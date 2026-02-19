@@ -218,7 +218,10 @@ def compss_persistent_worker(
 
     # Create new executor processes
     conf = ExecutorConf(
+        GLOBALS,
+        CONTEXT,
         config.debug,
+        GLOBALS.get_log_directory(),
         GLOBALS.get_temporary_directory(),
         tracing,
         config.storage_conf,

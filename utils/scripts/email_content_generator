@@ -1,5 +1,5 @@
 #!/bin/bash
-  
+
   # Get distribution parameter
   if [ $# -ne 1 ]; then
     echo "[ERROR] No distribution specified, skipping"

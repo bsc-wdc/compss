@@ -40,7 +40,7 @@ default_image_file = "image"
 default_image = default_workdir + default_image_file
 
 
-IMAGE_NAME = "compss/compss:3.3.3"  # Update when releasing new version
+IMAGE_NAME = "compss/compss:3.4"  # Update when releasing new version
 DOCKER_AVAILABALE = True
 
 try:

@@ -32,8 +32,8 @@
     <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •
     <a href="https://compss-doc.readthedocs.io/en/latest/">Documentation</a> •
     <a href="https://github.com/bsc-wdc/compss/releases">Releases</a> •
-    <a href="https://bsc-wdc.slack.com/archives/CFENCE3NF">Slack</a> •
-    <a href="mailto:support-compss@bsc.es">&#9993</a>
+    <a href="mailto:support-compss@bsc.es?subject=Request%20to%20join%20Workflows%20and%20Distributed%20Computing%20Slack&body=Hello%2C%0D%0A%0D%0AI%20would%20like%20to%20request%20access%20to%20the%20Workflows%20and%20Distributed%20Computing%20Slack%20workspace.%20Could%20you%20please%20add%20me%20so%20I%20can%20ask%20for%20support%20and%20stay%20informed%20about%20important%20announcements%3F%0D%0A%0D%0AThank%20you%20very%20much.">Slack</a> •
+    <a href="mailto:support-compss@bsc.es">&#9993 Support</a>
 </b></p>
 
 COMP Superscalar (COMPSs) is a programming model which aims to ease the development
@@ -149,9 +149,9 @@ export COMPSS_CONTAINER=compss_test
 
 * Code changes affecting the tests sources, config files (e.g. `local.cfg`, and scripts (like `./local`) __will be__ visible inside the newly created container.
 * Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in [step 2](#2-build-the-docker-image).
-* If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual.
+* If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual (tests results in `~/tests`).
 * You must remove the container before running again docker tests: `docker rm -fv compss_test`.
-* To delete the created image issue `docker rmi compss`
+* To delete the created image issue `docker rmi compss`.
 
 ### 4. Run the tests locally on macOS
 

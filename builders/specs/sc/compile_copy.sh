@@ -1,4 +1,4 @@
-./buildsc 2.3.2
+./buildsc 3.4
 cd ../../packages/sc/
-scp COMPSs_2.3.2.tar.gz ns54:.
+scp COMPSs_3.4.tar.gz ns54:.
 ssh ns54 ./build_compss.sh 

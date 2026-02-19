@@ -1,6 +1,6 @@
-========================================
-	pycompss-cli PYPI DISTRIBUTABLE
-========================================
+===============================
+pycompss-cli PYPI DISTRIBUTABLE
+===============================
 
 This README contains information about the PIP distributable creation process.
 
@@ -13,33 +13,33 @@ It is encouraged to read all sections of this README before proceeding on any
 modification or action on this package.
 
 
-==============================
-	CREATING THE DISTRIBUTABLE
-==============================
+==========================
+CREATING THE DISTRIBUTABLE
+==========================
 
 The PyPI distributable can be created with the following command:
 	sudo -E ./buildpipcli $VERSION
 Where $VERSION contains the desired target version. For example, if
-you want to create a distributable for the 2.10 version then
+you want to create a distributable for the 3.4 version then
 the following command should be executed:
-	sudo -E ./buildpipcli 2.10
+	sudo -E ./buildpipcli 3.4
 
 This will create the following files and directories:
 	- A PyCOMPSsCLI directory in /trunk/builders/packages/pip-cli.
 	  This directory contains the scripts and files necessary to
 	  install PyCOMPSsCLI via distutils and/or PIP.
 
-	- A pycompss-cli-2.10.tar.gz file in /trunk/builders/packages/pip-cli/PyCOMPSsCLI/dist
+	- A pycompss-cli-3.4.tar.gz file in /trunk/builders/packages/pip-cli/PyCOMPSsCLI/dist
 	  This .tar.gz contains the whole PyCOMPSsCLI directory (except for the dist
 		folder). This file is useful for testing. For example, if you type
-		 sudo -E python -m pip install pycompss-cli-2.10.tar.gz -v
+		 sudo -E python -m pip install pycompss-cli-3.4.tar.gz -v
 	  pip will try to install PyCOMPSsCLI from this .tar.gz
 
 
 
-================================
-	INSTALLING pycompss-cli
-================================
+=======================
+INSTALLING pycompss-cli
+=======================
 
 In order to install pycompss-cli from a distributable you must:
 	- Have docker >= 17.12.0-ce
@@ -66,9 +66,9 @@ A PyCOMPSsCLI distributable can be installed in any of the following ways:
 		  python setup.py install
 
 
-==================================
-	UNINSTALLING pycompss-cli
-==================================
+=========================
+UNINSTALLING pycompss-cli
+=========================
 
 pycompss-cli can be uninstalled (if it was previously installed with distutils
 and/or PIP) with the following command:
@@ -77,9 +77,9 @@ and/or PIP) with the following command:
 	python -m pip uninstall pycompss-cli --user
 
 
-=============================
-	UPLOADING A DISTRIBUTABLE
-=============================
+=========================
+UPLOADING A DISTRIBUTABLE
+=========================
 
 *** PLEASE, READ THIS SECTION CAREFULLY ***
 
@@ -112,9 +112,9 @@ pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 **Upload only well-tested installables!**
 
 
-======================================
-	CONTAINED FILES
-======================================
+===============
+CONTAINED FILES
+===============
 
 This folder contains the following folder hierarchy and files:
 
@@ -143,7 +143,7 @@ buildpipcli:
 	- Main script. sudo -E ./buildpipcli VERSION will create a PIP distributable
 	  named pycompss-cli-${PyCOMPSs_VERSION}.tar.gz in
 		framework/builders/packages/pip-cli/PyCOMPSsCLI/dist/
-	  Example: sudo -E ./buildpipcli 2.10 will create a pycompss-cli-2.10.tar.gz
+	  Example: sudo -E ./buildpipcli 3.4 will create a pycompss-cli-3.4.tar.gz
 
 PyCOMPSsResources/pycompss-cli/compss:
 	- pycompss alias.
@@ -183,10 +183,9 @@ distributable builds since it will be automatically replaced by a new one.
 
 
 
-======================================
-	           GENERATED
-      PyCOMPSsCLI FOLDER
-======================================
+============================
+GENERATED PyCOMPSsCLI FOLDER
+============================
 
 A succesfull buildpipcli execution will leave in framework/builders/packages/pip-cli
 the folder hierarchy and files listed below.

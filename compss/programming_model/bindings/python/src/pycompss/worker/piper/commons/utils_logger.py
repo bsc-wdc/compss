@@ -30,6 +30,7 @@ from pycompss.util.logger.helpers import init_logging_worker_piper
 from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.typing_helper import typing
+from pycompss.util.exceptions import PyCOMPSsException
 
 
 def load_loggers(
@@ -53,13 +54,12 @@ def load_loggers(
     # With agents or worker in master it does not, so keep it in previous
     # two folders:
     log_dir = GLOBALS.get_log_directory()
+    if debug:
+        print(f"[EXECUTOR] Load loggers with target directory: {log_dir}")
     if not log_dir:
-        if __debug__:
-            print(
-                "WARNING: Log dir not set, "
-                + "using temporary directory as log dir."
-            )
-        log_dir = GLOBALS.get_temporary_directory()
+        raise PyCOMPSsException(
+            "ERROR: Log dir not set: Check GLOBALS: " + str(GLOBALS)
+        )
 
     # Load log level configuration file
     if debug:

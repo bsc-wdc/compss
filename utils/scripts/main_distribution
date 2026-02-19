@@ -69,13 +69,13 @@
     compile
 
     # Create packages
-    create_packages 
+    create_packages
 
     # Update to unstable repo
     update_repo "unstable"
 
     # Install
-    install 
+    install
 
     # Run tests
     run_tests
@@ -85,7 +85,7 @@
 
     # END
     echo " "
-    echo " CONGRATULATIONS! The ${distr} process for repor ${maven_repo} succeeded"
+    echo " CONGRATULATIONS! The ${distr} process for report ${maven_repo} succeeded"
     echo " "
   }
 
@@ -185,7 +185,7 @@
     echo -e "\e[0m"
 
     local installer_script="${script_dir}/installation/install_compss_${distr}"
-   
+
     sudo "${installer_script}" || display_error_and_exit "Cannot install unstable COMPSs version"
   }
 
@@ -247,12 +247,12 @@ EOT
     while [ "${result}" != "DONE" ] && [ ${retries} -lt ${MAX_RETRIES} ]; do
       result=$(curl -X POST "http://compss.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
       retries=$((retries + 1))
-    
+
       if [ "${result}" != "DONE" ]; then
         sleep ${SLEEP_BETWEEN_RETRIES}
       fi
     done
-   
+
     # Check final exit status
     if [ "${result}" != "DONE" ]; then
       display_error "Cannot export packages"
@@ -295,14 +295,14 @@ EOT
      usage
      exit 1
   fi
- 
+
   # Log start of execution
   echo -e "\e[0m"
   echo "********************************"
   echo "*** Start process on ${distr}  ***"
   echo "********************************"
   echo -e "\e[0m"
- 
+
   # Set environment
   set_env || display_error_and_exit "Cannot set script environment"
 

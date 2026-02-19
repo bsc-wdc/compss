@@ -178,16 +178,22 @@ class Globals:
         """
         return self.temp_dir
 
-    def set_temporary_directory(self, folder: str) -> None:
+    def set_temporary_directory(
+        self, folder: str, create_temp: bool = True
+    ) -> None:
         """Set the temporary directory.
 
         Creates the temporary directory from the folder parameter and
         sets the temporary directory variable.
 
         :param folder: Temporary directory path.
+        :param create_temp: Create new temporary directory within the folder.
         :return: None.
         """
-        temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
+        if create_temp:
+            temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
+        else:
+            temp_dir = folder
         self.temp_dir = temp_dir
 
     def get_analysis_directory(self) -> str:
@@ -256,6 +262,29 @@ class Globals:
         :return: None.
         """
         self.data_provenance = data_provenance
+
+    def to_string(self) -> str:
+        """Return a string representation of all attributes."""
+        attrs = []
+        for slot in self.__slots__:
+            value = getattr(self, slot)
+            attrs.append(f"{slot}: {value}")
+        return "\n".join(attrs)
+
+    def __str__(self) -> str:
+        """Make str(obj) return the same as to_string()."""
+        return self.to_string()
+
+    def __repr__(self) -> str:
+        """Make more detailed representation for debugging."""
+        return f"<Context:\n{self.to_string()}\n>"
+
+    def update_from(self, other: "Globals") -> None:
+        """Update all attributes from another Globals instance."""
+        if not isinstance(other, Globals):
+            raise TypeError("Can only update from another Globals instance")
+        for slot in self.__slots__:
+            setattr(self, slot, getattr(other, slot))
 
 
 GLOBALS = Globals()

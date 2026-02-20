@@ -386,7 +386,7 @@ class TaskWorker:
                     content = re.sub(r"\s+", " ", content)
                     description = ""
                     if is_array or "dict" in pythontype:
-                        description = get_array_shape_string(argument.content)
+                        description = get_array_shape_string(ret_param.content)
                     DP_LOGGER.info(
                         f"TASK={self.task_id} "
                         f"HOST={socket.gethostname()} "
@@ -2107,8 +2107,8 @@ def get_array_shape_string(arr):
         value_types_str = ", ".join(sorted(value_types))
         return (
             f"Dict with {size} entries; "
-            f"key types: {key_types_str}; "
-            f"value types: {value_types_str}"
+            f"Key types: {key_types_str}; "
+            f"Value types: {value_types_str}"
         )
 
     # Traverse nested containers (lists, tuples, sets)

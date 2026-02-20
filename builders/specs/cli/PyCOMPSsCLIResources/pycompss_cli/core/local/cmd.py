@@ -955,6 +955,10 @@ def render_parameters(
             type_str = "[" + type_str + "]"
         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
 
+        if desc_str := pv.get("description"):
+            # Rich information for Arrays and Dicts, worth to be printed
+            param_section.add(f"Description: [grey50]{desc_str}[/grey50]")
+
         if is_compss_wf:
             value = (
                 pv.get("@id")
@@ -1048,7 +1052,11 @@ def local_inspect_tasks(
                 status = ""
 
             method = e.get("instrument", {})
-            method_name = method.get("name", "")
+            if is_compss_wf:
+                # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
+                method_name = method.get("@id", "").removeprefix("#")
+            else:
+                method_name = method.get("name", "")
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 

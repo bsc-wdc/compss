@@ -80,6 +80,11 @@ public class JavaWorkflow implements Workflow {
         return this.workflow.isFileAccessed(fileName);
     }
 
+    @Override
+    public boolean deleteFile(String fileName, boolean waitForData, boolean applicationDelete) {
+        return this.workflow.deleteFile(fileName, waitForData, applicationDelete);
+    }
+
     /**
      * Registers new write access from the main code of the workflow to an object.
      *

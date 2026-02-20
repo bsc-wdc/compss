@@ -186,7 +186,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case DELETE_FILE: {
                                 DeleteFilePipeCommand ofpc = (DeleteFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
-                                boolean val = this.context.getRuntimeAPI().deleteFile(this.appId, file);
+                                boolean val = wf.deleteFile(file, true, true);
                                 this.pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
                             }
                                 break;
@@ -220,7 +220,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case DELETE_OBJECT: {
                                 DeleteObjectPipeCommand ofpc = (DeleteObjectPipeCommand) rcvdCommand;
                                 String id = ofpc.getObjectId();
-                                boolean val = this.context.getRuntimeAPI().deleteFile(this.appId, id);
+                                boolean val = wf.deleteFile(id, true, true);
                                 this.pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
                             }
                                 break;

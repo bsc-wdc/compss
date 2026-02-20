@@ -339,7 +339,7 @@ public class ITAppEditor extends ExprEditor {
         }
         if (!found) { // Not a stream
             if (className.equals(File.class.getCanonicalName())) {
-                modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itAppIdVar, callPars) + ";";
+                modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itWfVar, callPars) + ";";
             } else {
                 String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$1");
                 String par1 = internalObject + " == null ? $1 : " + internalObject;

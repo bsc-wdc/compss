@@ -378,7 +378,7 @@ public class SocketServer extends Server {
          * @throws IOException if the response cannot be sent.
          */
         private void handleDeleteFile(DeleteFilePipeCommand cmd) throws IOException {
-            boolean deleted = runtime.deleteFile(this.appId, cmd.getFile());
+            boolean deleted = wf.deleteFile(cmd.getFile(), true, true);
             sendCommand(new SynchPipeCommand(deleted ? "1" : "0"));
         }
 
@@ -445,7 +445,7 @@ public class SocketServer extends Server {
          */
         private void handleDeleteObject(DeleteObjectPipeCommand cmd) throws IOException {
             boolean deleted = false;
-            deleted = runtime.deleteFile(this.appId, cmd.getObjectId());
+            deleted = wf.deleteFile(cmd.getObjectId(), true, true);
             sendCommand(new SynchPipeCommand(deleted ? "1" : "0"));
         }
 

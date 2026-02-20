@@ -685,35 +685,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
     }
 
-    @Override
-    public boolean deleteFile(Long appId, String fileName) {
-        return deleteFile(appId, fileName, true, true);
-    }
-
-    @Override
-    public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete) {
-        return APITracer.traced(APIEvent.DELETE_FILE, () -> {
-            // Check parameters
-            if (fileName == null || fileName.isEmpty()) {
-                return false;
-            }
-
-            LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
-
-            // Parse the file name and translate the access mode
-            try {
-                DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
-                Application app = Application.registerApplication(appId);
-                ap.deleteData(app, new FileData(loc), waitForData, applicationDelete);
-            } catch (IOException ioe) {
-                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-            }
-            LOGGER.info("File " + fileName + " Deleted.");
-            // Return deletion was successful
-            return true;
-        });
-    }
-
     /*
      * ************************************************************************************************************
      * **************************************** TASK MANAGEMENT ***************************************************

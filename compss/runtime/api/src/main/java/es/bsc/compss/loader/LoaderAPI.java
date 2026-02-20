@@ -42,15 +42,6 @@ public interface LoaderAPI {
     public void closeFile(Long appId, String fileName, Direction mode);
 
     /**
-     * Deletes the specified version of a file.
-     * 
-     * @param appId Application id.
-     * @param fileName File version name.
-     * @return {@code true} if the file has been erased, {@code false} otherwise.
-     */
-    public boolean deleteFile(Long appId, String fileName);
-
-    /**
      * Retrieves the last version of file with its original name.
      * 
      * @param appId Application id.

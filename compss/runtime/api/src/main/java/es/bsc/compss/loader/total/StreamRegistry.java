@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -633,29 +634,29 @@ public class StreamRegistry {
         return pw;
     }
 
-    public File newCOMPSsFile(Long appId, String filename) {
+    public File newCOMPSsFile(Workflow wf, String filename) {
         File f = new File(filename);
-        return checkAndGetNewFile(appId, f);
+        return checkAndGetNewFile(wf, f);
     }
 
-    public File newCOMPSsFile(Long appId, String parent, String child) {
+    public File newCOMPSsFile(Workflow wf, String parent, String child) {
         File f = new File(parent, child);
-        return checkAndGetNewFile(appId, f);
+        return checkAndGetNewFile(wf, f);
     }
 
-    public File newCOMPSsFile(Long appId, File parent, String child) {
+    public File newCOMPSsFile(Workflow wf, File parent, String child) {
         File f = new File(parent, child);
-        return checkAndGetNewFile(appId, f);
+        return checkAndGetNewFile(wf, f);
     }
 
-    public File newCOMPSsFile(Long appId, URI uri) {
+    public File newCOMPSsFile(Workflow wf, URI uri) {
         File f = new File(uri);
-        return checkAndGetNewFile(appId, f);
+        return checkAndGetNewFile(wf, f);
     }
 
-    private File checkAndGetNewFile(Long appId, File f) {
+    private File checkAndGetNewFile(Workflow wf, File f) {
         if (taskFiles.contains(f.getAbsolutePath())) {
-            return new COMPSsFile(itApi, appId, this, f);
+            return new COMPSsFile(itApi, wf, this, f);
         } else {
             return f;
         }

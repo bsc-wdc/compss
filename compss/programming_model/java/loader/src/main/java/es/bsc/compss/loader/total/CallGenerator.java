@@ -100,12 +100,12 @@ public class CallGenerator {
      * Constructs the instruction to generate a new COMPSsFile object.
      * 
      * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the variable containing the workflow
      * @param callPars parameters to create
      * @return instruction creating a new COMPSsFile instance for the given File
      */
-    public static String newCOMPSsFile(String itSR, String itAppId, StringBuilder callPars) {
-        return itSR + NEW_COMPSS_FILE + "(java.lang.Long)" + itAppId + "," + callPars + ")";
+    public static String newCOMPSsFile(String itSR, String itWf, StringBuilder callPars) {
+        return itSR + NEW_COMPSS_FILE + itWf + "," + callPars + ")";
     }
 
     /**
@@ -116,7 +116,8 @@ public class CallGenerator {
      * @return instruction to request to the runtime the deletion of a file
      */
     public static String deleteFile(String itApiVar, String itAppId) {
-        return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH + "))";
+        return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH
+            + "), true, true)";
     }
 
     /**

@@ -73,8 +73,11 @@ jmethodID mid_wf_barrier_withFlag;
 jmethodID mid_wf_barrierGroup;
 jmethodID mid_wf_snapshot;
 jmethodID mid_wf_isFileAccessed;
+jmethodID mid_wf_deleteFile;
 jmethodID mid_wf_getBindingObject;		
 jmethodID mid_wf_deleteBindingObject; 	
+
+
 
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -82,12 +85,8 @@ jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.
 
 jmethodID midOpenFile;                  /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseFile;                 /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midDeleteFile;                /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midGetFile;                   /* ID of the getFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
 jmethodID midGetDirectory;              /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
-
 
 jmethodID midGetNumberOfResources;      /* ID of the getNumberOfResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRequestResources;          /* ID of the requestResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -424,10 +423,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // closeFile method
     midCloseFile = status->localJniEnv->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/Long;Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
     check_exception(status, "Cannot find closeFile");
-
-    // deleteFile method
-    midDeleteFile = status->localJniEnv->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/Long;Ljava/lang/String;ZZ)Z");
-    check_exception(status, "Cannot find deleteFile");
 
     // getFile method
     midGetFile = status->localJniEnv->GetMethodID(clsITimpl, "getFile", "(Ljava/lang/Long;Ljava/lang/String;)V");
@@ -1194,6 +1189,44 @@ int JNI_WF_isFileAccessed(CompssWorkflow* self, char* fileName){
 }
 
 
+bool JNI_WF_deleteFile(CompssWorkflow* self, char* fileName, int wait, int applicationDelete) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteFile - Calling runtime deleteFile method...\n");
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteFile - COMPSs filename: %s\n", fileName);
+
+    // Local variables for JVM call
+    jboolean _wait = wait? JNI_TRUE : JNI_FALSE;
+    jboolean _applicationDelete = applicationDelete ? JNI_TRUE : JNI_FALSE;
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    // Format filename
+	jstring jFilename = env->NewStringUTF(fileName);
+	check_exception(status, "Error getting String UTF");
+
+    // Perform operation
+    jboolean res = env->CallBooleanMethod(wf->jWorkflow,
+                                            mid_wf_deleteFile,
+                                            jFilename,
+                                            _wait,
+                                            _applicationDelete);
+
+    check_exception(status, "Exception received when calling deleteFile");
+    env->DeleteLocalRef(jFilename);
+    
+    bool ret = 0;
+    if ((bool) res) {
+    	ret = 1;
+    }
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteFile - File erased with status: %i\n", (bool) res);
+    return ret;
+}
+
 CompssWorkflow* JNI_RegisterWorkflow() {
     debug_printf("[BINDING-COMMONS] - @JNI_RegisterWorkflow\n");
     ThreadStatus* status = access_request();
@@ -1236,11 +1269,13 @@ CompssWorkflow* JNI_RegisterWorkflow() {
 
         // Data operations
         mid_wf_getBindingObject = env->GetMethodID(clsWorkflow, "getBindingObject", "(Ljava/lang/String;)Ljava/lang/String;");
-        check_exception(status, "Cannot find getBindingObject");
+        check_exception(status, "Cannot find Workflow.getBindingObject");
         mid_wf_deleteBindingObject = env->GetMethodID(clsWorkflow, "deleteBindingObject", "(Ljava/lang/String;)Z");
-        check_exception(status, "Cannot find deleteBindingObject");
+        check_exception(status, "Cannot find Workflow.deleteBindingObject");
         mid_wf_isFileAccessed = env->GetMethodID(clsWorkflow,  "isFileAccessed", "(Ljava/lang/String;)Z");
-        check_exception(status, "Cannot find isFileAccessed");
+        check_exception(status, "Cannot find Workflow.isFileAccessed");
+        mid_wf_deleteFile = env->GetMethodID(clsWorkflow, "deleteFile", "(Ljava/lang/String;ZZ)Z");
+        check_exception(status, "Cannot find Workflow.deleteFile");
     }
 
     // Wrap Java Workflow object into a C struct implementing the interface
@@ -1264,6 +1299,7 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     wf->base.get_object = JNI_WF_getObject;
     wf->base.delete_object = JNI_WF_deleteObject;
     wf->base.is_file_accessed = JNI_WF_isFileAccessed;
+    wf->base.delete_file = JNI_WF_deleteFile;
 
 
     // Revoke thread access to JVM
@@ -1671,31 +1707,7 @@ void JNI_Close_File(long appId, char* fileName, int mode) {
 
 void JNI_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
     debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - Calling runtime deleteFile method...\n");
-
-    // Local variables for JVM call
-    bool _wait = false;
-    if (wait != 0) _wait = true;
-
-    bool _applicationDelete = false;
-    if (applicationDelete != 0) _applicationDelete = true;
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    jboolean res = status->localJniEnv->CallBooleanMethod(globalRuntime,
-                                            midDeleteFile,
-                                            status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                            status->localJniEnv->NewStringUTF(fileName),
-                                            _wait,
-                                            _applicationDelete);
-    check_exception(status, "Exception received when calling deleteFile");
-    //*buf = (int*)&res;
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - COMPSs filename: %s\n", fileName);
+    bool res = JNI_wf->delete_file(JNI_wf, fileName, wait, applicationDelete);
     debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - File erased with status: %i\n", (bool) res);
 }
 

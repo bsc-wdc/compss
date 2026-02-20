@@ -142,6 +142,13 @@ struct CompssWorkflow {
         struct CompssWorkflow* self,
         char* fileName
     );
+
+    bool (*delete_file)(
+        struct CompssWorkflow* self,
+        char* fileName,
+        int waitForData,
+        int applicationDelete
+    );
 };
 
 struct CompssInterface {

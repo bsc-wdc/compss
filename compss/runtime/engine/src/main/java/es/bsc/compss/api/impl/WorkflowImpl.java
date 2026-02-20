@@ -794,6 +794,7 @@ public class WorkflowImpl extends Application implements Workflow {
         }
         return false;
     }
+
     @Override
     public boolean isFileAccessed(String fileName) {
         return APITracer.traced(APIEvent.CHECK_FILE, () -> {
@@ -810,6 +811,29 @@ public class WorkflowImpl extends Application implements Workflow {
             } else {
                 return false;
             }
+        });
+    }
+
+    @Override
+    public boolean deleteFile(String fileName, boolean waitForData, boolean applicationDelete) {
+        return APITracer.traced(APIEvent.DELETE_FILE, () -> {
+            // Check parameters
+            if (fileName == null || fileName.isEmpty()) {
+                return false;
+            }
+
+            LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
+
+            // Parse the file name and translate the access mode
+            try {
+                DataLocation loc = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+                AP.deleteData(this, new FileData(loc), waitForData, applicationDelete);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            }
+            LOGGER.info("File " + fileName + " Deleted.");
+            // Return deletion was successful
+            return true;
         });
     }
 

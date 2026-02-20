@@ -240,6 +240,16 @@ public interface Workflow {
     boolean isFileAccessed(String fileName);
 
     /**
+     * Deletes the specified version of a file.
+     *
+     * @param fileName File name.
+     * @param waitForData Flag to indicate if we want to wait for the data ready before removing
+     * @param applicationDelete {@literal true}, if the file is deleted by the user code; {@literal false}, otherwise
+     * @return true if the {@literal fileName} has been deleted, false otherwise.
+     */
+    boolean deleteFile(String fileName, boolean waitForData, boolean applicationDelete);
+
+    /**
      * Returns a copy of the last version of the given object {@code o}.
      *
      * @param o Object.

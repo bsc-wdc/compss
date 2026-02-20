@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.LoaderAPI;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public class COMPSsFile extends File {
 
     private final StreamRegistry sReg;
     private final LoaderAPI api;
-    private final Long appId;
+    private final Workflow wf;
     private final String pathname;
 
 
@@ -36,15 +37,15 @@ public class COMPSsFile extends File {
      * {@code api}.
      *
      * @param api Associated LoaderAPI.
-     * @param appId Id of the application accessing the file
+     * @param wf workflow accessing the file
      * @param sReg StreamRegistry handling the COMPSs file
      * @param f Associated file.
      */
-    public COMPSsFile(LoaderAPI api, Long appId, StreamRegistry sReg, File f) {
+    public COMPSsFile(LoaderAPI api, Workflow wf, StreamRegistry sReg, File f) {
         super(f.getAbsolutePath());
         this.sReg = sReg;
         this.api = api;
-        this.appId = appId;
+        this.wf = wf;
         this.pathname = f.getAbsolutePath();
     }
 
@@ -85,7 +86,7 @@ public class COMPSsFile extends File {
 
     @Override
     public boolean delete() {
-        boolean deleted = this.api.deleteFile(appId, this.pathname);
+        boolean deleted = this.wf.deleteFile(this.pathname, true, true);
         if (deleted) {
             this.sReg.deleteTaskFile(this.pathname);
         }
@@ -98,7 +99,7 @@ public class COMPSsFile extends File {
      * @return File File object after synchronizing its content.
      */
     public File synchFile() {
-        this.api.getFile(appId, this.pathname);
+        this.api.getFile(wf.getId(), this.pathname);
         return new File(this.pathname);
     }
 

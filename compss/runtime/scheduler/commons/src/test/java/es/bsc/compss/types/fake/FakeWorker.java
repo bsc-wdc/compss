@@ -45,6 +45,11 @@ public class FakeWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
+    public boolean canFeaturesChange() {
+        return true;
+    }
+
+    @Override
     public boolean canRun(Implementation implementation) {
         return true;
     }

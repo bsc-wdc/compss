@@ -1144,6 +1144,15 @@ public class TaskScheduler {
         @SuppressWarnings("unchecked")
         ResourceScheduler<WorkerResourceDescription> workerRS = (ResourceScheduler<WorkerResourceDescription>) resource;
         Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
+
+        // Persist worker state to JSON before removing it
+        JSONObject oldResource = this.jsm.getJSONForResource(workerRS.getResource());
+        if (oldResource == null) {
+            this.jsm.addResourceJSON(workerRS);
+        } else {
+            updateResourceJSON(workerRS);
+        }
+
         this.workers.remove(workerResource);
         for (CoreElement ce : CoreManager.getAllCores()) {
             int coreId = ce.getCoreId();

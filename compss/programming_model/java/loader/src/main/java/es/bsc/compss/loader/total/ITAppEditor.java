@@ -537,8 +537,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceDeleteFile() {
-        String deleteFile = "$_ = " + CallGenerator.deleteFile(itApiVar, itAppIdVar) + ";";
-        return deleteFile;
+        return "$_ = " + CallGenerator.deleteFile(itWfVar, "$0") + ";";
     }
 
     /**

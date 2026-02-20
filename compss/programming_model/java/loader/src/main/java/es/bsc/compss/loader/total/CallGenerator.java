@@ -110,14 +110,13 @@ public class CallGenerator {
 
     /**
      * Constructs the instruction to request the runtime the deletion of a file.
-     * 
-     * @param itApiVar name of the variable containing the runtime
-     * @param itAppId name of the variable containing the AppId
+     *
+     * @param itWf name of the variable containing the workflow
+     * @param file file to delete
      * @return instruction to request to the runtime the deletion of a file
      */
-    public static String deleteFile(String itApiVar, String itAppId) {
-        return itApiVar + DELETE_FILE + "(java.lang.Long)" + itAppId + "," + "$0" + GET_CANONICAL_PATH
-            + "), true, true)";
+    public static String deleteFile(String itWf, String file) {
+        return itWf + DELETE_FILE + file + GET_CANONICAL_PATH + "), true, true)";
     }
 
     /**

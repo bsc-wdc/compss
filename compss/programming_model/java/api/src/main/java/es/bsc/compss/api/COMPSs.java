@@ -86,6 +86,16 @@ public class COMPSs {
     }
 
     /**
+     * Returns the directory specified by the given abstract pathname.
+     *
+     * @param path Directory path.
+     */
+    public static void getDirectory(String path) {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
+
+    /**
      * Returns the number of active resources.
      * 
      * @return The number of active resources.

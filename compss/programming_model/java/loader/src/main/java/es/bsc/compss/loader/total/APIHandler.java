@@ -90,6 +90,17 @@ public final class APIHandler {
     }
 
     /**
+     * Returns the file specified by the given abstract pathname.
+     *
+     * @param api COMPSsRuntimeAPI
+     * @param wf Workflow invoking the API
+     * @param path Directory path.
+     */
+    public static void getDirectory(COMPSsRuntime api, JavaWorkflow wf, String path) {
+        api.getDirectory(wf.getId(), path);
+    }
+
+    /**
      * Returns the number of active resources.
      *
      * @param api COMPSsRuntimeAPI

@@ -235,9 +235,7 @@ class TaskWorker:
                         content = str(argument.content).replace("\n", "")
                         description = ""
                         if is_array or "dict" in pythontype:
-                            description = get_array_shape_string(
-                                argument.content
-                            )
+                            description = get_array_shape_string(argument.content)
                         DP_LOGGER.info(
                             f"TASK={self.task_id} "
                             f"HOST={socket.gethostname()} "
@@ -251,9 +249,7 @@ class TaskWorker:
                             f"DIRECTION=IN"
                         )
 
-                user_args, user_kwargs, ret_params = self.segregate_objects(
-                    args
-                )
+                user_args, user_kwargs, ret_params = self.segregate_objects(args)
                 num_returns = len(ret_params)
 
                 if __debug__:
@@ -322,9 +318,7 @@ class TaskWorker:
                         content = str(arg.content).replace("\n", "")
                         description = ""
                         if is_array or "dict" in pythontype:
-                            description = get_array_shape_string(
-                                argument.content
-                            )
+                            description = get_array_shape_string(argument.content)
                         DP_LOGGER.info(
                             f"TASK={self.task_id} "
                             f"HOST={socket.gethostname()} "
@@ -474,11 +468,7 @@ class TaskWorker:
             if __debug__:
                 LOGGER.debug("The storage supports pipelining.")
             # Perform the pipelined getByID operation
-            pscos = [
-                x
-                for x in args
-                if x.content_type == parameter.TYPE.EXTERNAL_PSCO
-            ]
+            pscos = [x for x in args if x.content_type == parameter.TYPE.EXTERNAL_PSCO]
             identifiers = [x.content for x in pscos]
             from storage.api import getByID  # noqa
 
@@ -496,8 +486,7 @@ class TaskWorker:
                 max_workers = 1
             if __debug__:
                 LOGGER.debug(
-                    "Parallelized retrieve_content (max_workers=%s)"
-                    % str(max_workers)
+                    "Parallelized retrieve_content (max_workers=%s)" % str(max_workers)
                 )
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = []
@@ -518,9 +507,7 @@ class TaskWorker:
                 wait(futures)
         else:
             for arg in [
-                x
-                for x in args
-                if isinstance(x, Parameter) and not is_return(x.name)
+                x for x in args if isinstance(x, Parameter) and not is_return(x.name)
             ]:
                 self.retrieve_content(arg, "", python_mpi, collections_layouts)
 
@@ -566,9 +553,7 @@ class TaskWorker:
         """
         if __debug__:
             LOGGER.debug("\t - Revealing: " + str(argument.name))
-            LOGGER.debug(
-                "\t - checking: " + str(get_name_from_kwarg(argument.name))
-            )
+            LOGGER.debug("\t - checking: " + str(get_name_from_kwarg(argument.name)))
         # This case is special, as a FILE can actually mean a FILE or an
         # object that is serialized in a file
         if is_vararg(argument.name):
@@ -592,9 +577,7 @@ class TaskWorker:
             ):
                 # Get the direction from the decorator (could be taken from
                 # the runtime in compss_types if sorted)
-                _dec_arg = self.decorator_arguments.get_parameter_or_none(
-                    argument.name
-                )
+                _dec_arg = self.decorator_arguments.get_parameter_or_none(argument.name)
                 if _dec_arg:
                     argument.direction = _dec_arg.direction
                 if argument.direction == parameter.DIRECTION.OUT:
@@ -602,8 +585,7 @@ class TaskWorker:
                     # So, instantiate from info
                     if __debug__:
                         LOGGER.debug(
-                            "\t\t - It is an OUT Object. "
-                            "Instantiating type: %s",
+                            "\t\t - It is an OUT Object. " "Instantiating type: %s",
                             str(argument.extra_content_type),
                         )
                     argument.content = create_object_by_con_type(
@@ -615,8 +597,7 @@ class TaskWorker:
                     # The object is stored in some file, load and deserialize
                     if __debug__:
                         LOGGER.debug(
-                            "\t\t - It is an OBJECT. "
-                            "Deserializing from file: %s",
+                            "\t\t - It is an OBJECT. " "Deserializing from file: %s",
                             str(argument.file_name.original_path),
                         )
                     argument.content = self.recover_object(argument)
@@ -627,9 +608,7 @@ class TaskWorker:
                 # as a string parameter
                 argument.content = argument.file_name.original_path
                 if __debug__:
-                    LOGGER.debug(
-                        "\t\t - It is FILE: %s", str(argument.content)
-                    )
+                    LOGGER.debug("\t\t - It is FILE: %s", str(argument.content))
         elif content_type == type_directory:
             if __debug__:
                 LOGGER.debug("\t\t - It is a DIRECTORY")
@@ -664,9 +643,7 @@ class TaskWorker:
             col_f_name = str(argument.file_name.original_path)
 
             # maybe it is an inner-collection..
-            _dec_arg = self.decorator_arguments.get_parameter_or_none(
-                argument.name
-            )
+            _dec_arg = self.decorator_arguments.get_parameter_or_none(argument.name)
             _col_dir = _dec_arg.direction if _dec_arg else None
             _col_dep = _dec_arg.depth if _dec_arg else depth
             if __debug__:
@@ -690,14 +667,10 @@ class TaskWorker:
                 # Call rank_distributor if the current param is the target of
                 # the layout for each rank, return its offset(s) in the
                 # collection.
-                rank_distribution = rank_distributor(
-                    collections_layouts[argument.name]
-                )
+                rank_distribution = rank_distributor(collections_layouts[argument.name])
                 rank_distr_len = len(rank_distribution)
                 if __debug__:
-                    LOGGER.debug(
-                        "Rank distribution is: %s", str(rank_distribution)
-                    )
+                    LOGGER.debug("Rank distribution is: %s", str(rank_distribution))
 
             with open(col_f_name, "r") as col_f_name_fd:
                 for i, line in enumerate(col_f_name_fd):
@@ -716,16 +689,12 @@ class TaskWorker:
                         sub_name = f"@{sub_name}"
 
                     if __debug__:
-                        LOGGER.debug(
-                            "\t\t\t - Revealing element: %s", str(sub_name)
-                        )
+                        LOGGER.debug("\t\t\t - Revealing element: %s", str(sub_name))
 
                     is_file_collection = self.is_parameter_file_collection(
                         argument.name
                     )
-                    is_really_file = (
-                        is_file_collection or content_type_elem == "FILE"
-                    )
+                    is_really_file = is_file_collection or content_type_elem == "FILE"
                     sub_arg, _ = build_task_parameter(
                         int(data_type),
                         parameter.IOSTREAM.UNSPECIFIED,
@@ -747,18 +716,13 @@ class TaskWorker:
                     ):
                         # if we are at the last level of COL_OUT param,
                         # create "empty" instances of elements
-                        if (
-                            _col_dep == 1
-                            or content_type_elem != "collection:list"
-                        ):
+                        if _col_dep == 1 or content_type_elem != "collection:list":
                             # Not a nested collection anymore
                             if is_really_file:
                                 sub_arg.content = content_file
                                 sub_arg.content_type = parameter.TYPE.FILE
                             else:
-                                temp = create_object_by_con_type(
-                                    content_type_elem
-                                )
+                                temp = create_object_by_con_type(content_type_elem)
                                 sub_arg.content = temp
                             # In case that only one element is used in this
                             # mpi rank, the collection list is removed
@@ -818,9 +782,7 @@ class TaskWorker:
             #     print(f.read())
 
             # Maybe it is an inner-dict-collection
-            _dec_arg = self.decorator_arguments.get_parameter_or_none(
-                argument.name
-            )
+            _dec_arg = self.decorator_arguments.get_parameter_or_none(argument.name)
             _dict_col_dir = _dec_arg.direction if _dec_arg else None
             _dict_col_dep = _dec_arg.depth if _dec_arg else depth
 
@@ -881,28 +843,17 @@ class TaskWorker:
                 ):
                     # if we are at the last level of DICT_COL_OUT param,
                     # create "empty" instances of elements
-                    if (
-                        _dict_col_dep == 1
-                        or content_type_elem != "collection:dict"
-                    ):
+                    if _dict_col_dep == 1 or content_type_elem != "collection:dict":
                         if content_type_elem == "FILE":
                             temp_k = content_file_key
                             temp_v = content_file_value
                         else:
-                            temp_k = create_object_by_con_type(
-                                content_type_key
-                            )
-                            temp_v = create_object_by_con_type(
-                                content_type_value
-                            )
+                            temp_k = create_object_by_con_type(content_type_key)
+                            temp_v = create_object_by_con_type(content_type_value)
                         sub_arg_key.content = temp_k
                         sub_arg_value.content = temp_v
-                        argument.content[sub_arg_key.content] = (
-                            sub_arg_value.content
-                        )
-                        argument.dict_collection_content[sub_arg_key] = (
-                            sub_arg_value
-                        )
+                        argument.content[sub_arg_key.content] = sub_arg_value.content
+                        argument.dict_collection_content[sub_arg_key] = sub_arg_value
                     else:
                         self.retrieve_content(
                             sub_arg_key,
@@ -918,12 +869,8 @@ class TaskWorker:
                             collections_layouts,
                             depth=_dict_col_dep - 1,
                         )
-                        argument.content[sub_arg_key.content] = (
-                            sub_arg_value.content
-                        )
-                        argument.dict_collection_content[sub_arg_key] = (
-                            sub_arg_value
-                        )
+                        argument.content[sub_arg_key.content] = sub_arg_value.content
+                        argument.dict_collection_content[sub_arg_key] = sub_arg_value
                 else:
                     # Recursively call the retrieve method, fill the
                     # content field in our new taskParameter object
@@ -978,16 +925,11 @@ class TaskWorker:
                 param_name = match.group(1)
             else:
                 if __debug__:
-                    LOGGER.debug(
-                        "\t\t - Couldn't extract param name '%s'", str(name)
-                    )
+                    LOGGER.debug("\t\t - Couldn't extract param name '%s'", str(name))
                 param_name = name
 
         # Check if cache is available
-        cache = (
-            self.cache.in_queue is not None
-            and self.cache.out_queue is not None
-        )
+        cache = self.cache.in_queue is not None and self.cache.out_queue is not None
         use_cache = False  # default store object in cache
 
         if cache:
@@ -997,9 +939,7 @@ class TaskWorker:
                 not self.cache.profiler
                 and param_name in self.decorator_arguments.parameters
             ):
-                use_cache = self.decorator_arguments.parameters[
-                    param_name
-                ].cache
+                use_cache = self.decorator_arguments.parameters[param_name].cache
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
@@ -1018,9 +958,7 @@ class TaskWorker:
                     use_cache = False
             argument.cache = use_cache
             if __debug__ and cache:
-                LOGGER.debug(
-                    "\t\t - Has to be saved in cache: %s", str(use_cache)
-                )
+                LOGGER.debug("\t\t - Has to be saved in cache: %s", str(use_cache))
 
         if NP and cache and use_cache:
             # Check if the object is already in cache
@@ -1029,8 +967,7 @@ class TaskWorker:
                 with EventInsideWorker(TRACING_WORKER.cache_hit_event):
                     if __debug__:
                         LOGGER.debug(
-                            "\t\t - Found in cache (Cache hit) "
-                            "- retrieving: %s",
+                            "\t\t - Found in cache (Cache hit) " "- retrieving: %s",
                             str(original_path),
                         )
                 (
@@ -1071,8 +1008,7 @@ class TaskWorker:
             with EventInsideWorker(TRACING_WORKER.cache_miss_event):
                 if __debug__:
                     LOGGER.debug(
-                        "\t\t - Not found in cache (Cache miss) "
-                        "- deserializing: %s",
+                        "\t\t - Not found in cache (Cache miss) " "- deserializing: %s",
                         str(original_path),
                     )
             obj = deserialize_from_file(original_path, LOGGER)
@@ -1163,14 +1099,9 @@ class TaskWorker:
             if tracing:
                 global_tracing_hook = False
                 if CONSTANTS.tracing_hook_env_var in os.environ:
-                    hook_enabled = (
-                        os.environ[CONSTANTS.tracing_hook_env_var] == "true"
-                    )
+                    hook_enabled = os.environ[CONSTANTS.tracing_hook_env_var] == "true"
                     global_tracing_hook = hook_enabled
-                if (
-                    self.decorator_arguments.tracing_hook
-                    or global_tracing_hook
-                ):
+                if self.decorator_arguments.tracing_hook or global_tracing_hook:
                     # The user wants to keep the tracing hook
                     pass
                 else:
@@ -1233,17 +1164,15 @@ class TaskWorker:
                     )
                 elif numba_mode == "cfunc":
                     numba_signature = self.decorator_arguments.numba_signature
-                    user_returns = cfunc(numba_signature)(
-                        self.user_function
-                    ).ctypes(*user_args, **user_kwargs)
+                    user_returns = cfunc(numba_signature)(self.user_function).ctypes(
+                        *user_args, **user_kwargs
+                    )
                 else:
                     raise PyCOMPSsException("Unsupported numba mode.")
             else:
                 try:
                     # Normal task execution
-                    user_returns = self.user_function(
-                        *user_args, **user_kwargs
-                    )
+                    user_returns = self.user_function(*user_args, **user_kwargs)
                 except COMPSsException as compss_exc:
                     # Perform any required action on failure
                     user_returns, default_values = self.manage_exception()
@@ -1330,9 +1259,7 @@ class TaskWorker:
             # Handle only task parameters that are objects
 
             # Skip files and non-task-parameters
-            if not isinstance(
-                arg, Parameter
-            ) or not self.is_parameter_an_object(
+            if not isinstance(arg, Parameter) or not self.is_parameter_an_object(
                 arg.name,
             ):
                 continue
@@ -1353,9 +1280,8 @@ class TaskWorker:
 
             # Skip psco: since param.content_type has the old type, we can
             # not use:  param.content_type != parameter.TYPE.EXTERNAL_PSCO
-            _is_psco_true = (
-                arg.content_type == parameter.TYPE.EXTERNAL_PSCO
-                or is_psco(arg.content)
+            _is_psco_true = arg.content_type == parameter.TYPE.EXTERNAL_PSCO or is_psco(
+                arg.content
             )
             if _is_psco_true:
                 continue
@@ -1408,9 +1334,7 @@ class TaskWorker:
                                     str(f_name),
                                 )
                             if python_mpi:
-                                serialize_to_file_mpienv(
-                                    content, f_name, False, LOGGER
-                                )
+                                serialize_to_file_mpienv(content, f_name, False, LOGGER)
                             else:
                                 serialize_to_file(content, f_name, LOGGER)
                                 self.update_object_in_cache(content, arg)
@@ -1419,13 +1343,9 @@ class TaskWorker:
                         pass
             elif arg.content_type == parameter.TYPE.DICT_COLLECTION:
                 if __debug__:
-                    LOGGER.debug(
-                        "Serializing dictionary collection: " + str(arg.name)
-                    )
+                    LOGGER.debug("Serializing dictionary collection: " + str(arg.name))
                 # handle dictionary collections recursively
-                for content, elem in get_dict_collection_objects(
-                    arg.content, arg
-                ):
+                for content, elem in get_dict_collection_objects(arg.content, arg):
                     if elem.file_name:
                         _is_delegated = False
                         if CONTEXT.is_nesting_enabled():
@@ -1442,9 +1362,7 @@ class TaskWorker:
                                     str(f_name),
                                 )
                             if python_mpi:
-                                serialize_to_file_mpienv(
-                                    content, f_name, False, LOGGER
-                                )
+                                serialize_to_file_mpienv(content, f_name, False, LOGGER)
                             else:
                                 serialize_to_file(content, f_name, LOGGER)
                                 self.update_object_in_cache(content, arg)
@@ -1470,9 +1388,7 @@ class TaskWorker:
                     )
 
                 if python_mpi:
-                    serialize_to_file_mpienv(
-                        arg.content, f_name, False, LOGGER
-                    )
+                    serialize_to_file_mpienv(arg.content, f_name, False, LOGGER)
                 else:
                     serialize_to_file(arg.content, f_name, LOGGER)
                     self.update_object_in_cache(arg.content, arg)
@@ -1508,9 +1424,7 @@ class TaskWorker:
             return True
         return False
 
-    def update_object_in_cache(
-        self, content: typing.Any, argument: Parameter
-    ) -> None:
+    def update_object_in_cache(self, content: typing.Any, argument: Parameter) -> None:
         """Update the object into cache if possible.
 
         :param content: Object to be updated.
@@ -1520,14 +1434,8 @@ class TaskWorker:
         name = argument.name
         original_path = argument.file_name.original_path
 
-        cache = (
-            self.cache.in_queue is not None
-            and self.cache.out_queue is not None
-        )
-        if (
-            not self.cache.profiler
-            and name in self.decorator_arguments.parameters
-        ):
+        cache = self.cache.in_queue is not None and self.cache.out_queue is not None
+        if not self.cache.profiler and name in self.decorator_arguments.parameters:
             use_cache = self.decorator_arguments.parameters[name].cache
         elif self.cache.profiler:
             use_cache = True
@@ -1595,10 +1503,7 @@ class TaskWorker:
                 f_name = param.file_name.original_path
 
                 # If the object is a PSCO, do not serialize to file
-                if (
-                    param.content_type == parameter.TYPE.EXTERNAL_PSCO
-                    or is_psco(obj)
-                ):
+                if param.content_type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
                     continue
 
                 if CONTEXT.is_nesting_enabled():
@@ -1635,21 +1540,14 @@ class TaskWorker:
                     else:
                         rank_zero_reduce = True
 
-                    serialize_to_file_mpienv(
-                        obj, f_name, rank_zero_reduce, LOGGER
-                    )
+                    serialize_to_file_mpienv(obj, f_name, rank_zero_reduce, LOGGER)
                 else:
                     serialize_to_file(obj, f_name, LOGGER)
                 if (
                     self.cache.in_queue is not None
                     and self.cache.out_queue is not None
-                    and (
-                        self.cache.profiler
-                        or self.decorator_arguments.cache_returns
-                    )
-                    and not CACHE_TRACKER.in_cache(
-                        LOGGER, f_name, self.cache.ids
-                    )
+                    and (self.cache.profiler or self.decorator_arguments.cache_returns)
+                    and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache.ids)
                 ):
                     with EventInsideWorker(TRACING_WORKER.cache_miss_event):
                         if __debug__:
@@ -1707,9 +1605,7 @@ class TaskWorker:
             return param.is_file_collection
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments.parameters:
-            return self.decorator_arguments.parameters[
-                original_name
-            ].is_file_collection
+            return self.decorator_arguments.parameters[original_name].is_file_collection
         # The parameter is not annotated in the decorator, so (by default)
         # return False
         return False
@@ -1761,9 +1657,7 @@ class TaskWorker:
                 else:
                     if _elem.content_type == parameter.TYPE.COLLECTION:
                         coll.append(
-                            build_collection_types_values(
-                                _cont, _elem, direction
-                            )
+                            build_collection_types_values(_cont, _elem, direction)
                         )
                     elif (
                         _elem.content_type == parameter.TYPE.EXTERNAL_PSCO
@@ -1776,9 +1670,7 @@ class TaskWorker:
                         and is_psco(_cont)
                         and direction != parameter.DIRECTION.IN
                     ):
-                        coll.append(
-                            [parameter.TYPE.EXTERNAL_PSCO, _cont.getID()]
-                        )
+                        coll.append([parameter.TYPE.EXTERNAL_PSCO, _cont.getID()])
                     else:
                         if CONTEXT.is_nesting_enabled():
                             if _elem.is_future:
@@ -1850,10 +1742,7 @@ class TaskWorker:
 
         # Add self type and value if exist
         if has_self:
-            if (
-                self.decorator_arguments.target_direction
-                == parameter.INOUT.key
-            ):
+            if self.decorator_arguments.target_direction == parameter.INOUT.key:
                 # Check if self is a PSCO that has been persisted inside the
                 # task and target_direction.
                 # Update self type and value
@@ -1961,9 +1850,7 @@ def get_collection_objects(
     :return: The collection representation.
     """
     if argument.content_type == parameter.TYPE.COLLECTION:
-        for new_con, _elem in zip(
-            argument.content, argument.collection_content
-        ):
+        for new_con, _elem in zip(argument.content, argument.collection_content):
             # Update the sub-parameter content with the existing content
             # to keep track of the synchronized.
             _elem.content = new_con
@@ -2021,9 +1908,7 @@ def get_dict_collection_objects(
         # Loop recursively
         for new_con, _elem in zip(elements, elements_parameters):
             _elem.content = new_con
-            for sub_el, sub_param in get_dict_collection_objects(
-                new_con, _elem
-            ):
+            for sub_el, sub_param in get_dict_collection_objects(new_con, _elem):
                 # Update the sub-parameter content with the existing content
                 # to keep track of the synchronized.
                 sub_param.content = sub_el
@@ -2107,8 +1992,8 @@ def get_array_shape_string(arr):
         value_types_str = ", ".join(sorted(value_types))
         return (
             f"Dict with {size} entries; "
-            f"key types: {key_types_str}; "
-            f"value types: {value_types_str}"
+            f"Key types: {key_types_str}; "
+            f"Value types: {value_types_str}"
         )
 
     # Traverse nested containers (lists, tuples, sets)

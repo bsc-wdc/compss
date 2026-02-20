@@ -955,6 +955,10 @@ def render_parameters(
             type_str = "[" + type_str + "]"
         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
 
+        if desc_str := pv.get("description"):
+            # Rich information for Arrays and Dicts, worth to be printed
+            param_section.add(f"Description: [grey50]{desc_str}[/grey50]")
+
         if is_compss_wf:
             value = (
                 pv.get("@id")

@@ -1052,7 +1052,11 @@ def local_inspect_tasks(
                 status = ""
 
             method = e.get("instrument", {})
-            method_name = method.get("name", "")
+            if is_compss_wf:
+                # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
+                method_name = method.get("@id", "").removeprefix("#")
+            else:
+                method_name = method.get("name", "")
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 

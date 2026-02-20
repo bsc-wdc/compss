@@ -380,7 +380,7 @@ class TaskWorker:
                     content = re.sub(r"\s+", " ", content)
                     description = ""
                     if is_array or "dict" in pythontype:
-                        description = get_array_shape_string(argument.content)
+                        description = get_array_shape_string(ret_param.content)
                     DP_LOGGER.info(
                         f"TASK={self.task_id} "
                         f"HOST={socket.gethostname()} "

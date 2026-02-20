@@ -346,7 +346,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleAccessedFile(AccessedFilePipeCommand cmd) throws IOException {
-            boolean accessed = runtime.isFileAccessed(this.appId, cmd.getFile());
+            boolean accessed = wf.isFileAccessed(cmd.getFile());
             sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
         }
 

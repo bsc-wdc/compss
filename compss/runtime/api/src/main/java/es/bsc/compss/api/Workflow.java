@@ -232,6 +232,14 @@ public interface Workflow {
     boolean bindExistingVersionToData(Object o, String dataId);
 
     /**
+     * Checks if a file has been accessed by the runtime.
+     *
+     * @param fileName File.
+     * @return True if accessed.
+     */
+    boolean isFileAccessed(String fileName);
+
+    /**
      * Returns a copy of the last version of the given object {@code o}.
      *
      * @param o Object.

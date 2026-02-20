@@ -125,7 +125,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 int numReturns = entpc.getNumReturns();
                                 int parameterCount = entpc.getParameterCount();
                                 Object[] parameters = entpc.getParameters();
-                                if (this.appId == null) {
+                                if (this.wf == null) {
                                     this.wf = becomesNestedApplication(null);
                                     this.appId = wf.getId();
                                 }
@@ -154,10 +154,10 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case ACCESSED_FILE: {
                                 AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
                                 String file = afpc.getFile();
-                                if (this.appId == null) {
+                                if (this.wf == null) {
                                     this.pipes.sendCommand(new SynchPipeCommand("0"));
                                 } else {
-                                    boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
+                                    boolean accessed = this.wf.isFileAccessed(file);
                                     this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
                                 }
                             }
@@ -211,7 +211,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case GET_OBJECT: {
                                 GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
                                 String id = gfpc.getObjectId();
-                                if (this.appId != null) {
+                                if (this.wf != null) {
                                     this.wf.getBindingObject(id);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
@@ -335,7 +335,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
         } catch (COMPSsException | JobExecutionException | RuntimeException e) {
             throw e;
         } finally {
-            if (this.appId != null) {
+            if (this.wf != null) {
                 completeNestedApplication(this.wf);
             }
         }

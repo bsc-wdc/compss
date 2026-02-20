@@ -636,26 +636,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public boolean isFileAccessed(Long appId, String fileName) {
-        return APITracer.traced(APIEvent.CHECK_FILE, () -> {
-            DataLocation loc;
-            try {
-                loc = createLocation(ProtocolType.FILE_URI, fileName);
-            } catch (IOException ioe) {
-                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-                loc = null;
-            }
-            if (loc != null) {
-                Application app = Application.registerApplication(appId);
-                FileData fd = new FileData(loc);
-                return ap.alreadyAccessed(app, fd);
-            } else {
-                return false;
-            }
-        });
-    }
-
-    @Override
     public void closeFile(Long appId, String fileName, Direction mode) {
         APITracer.traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
             Application app = Application.registerApplication(appId);

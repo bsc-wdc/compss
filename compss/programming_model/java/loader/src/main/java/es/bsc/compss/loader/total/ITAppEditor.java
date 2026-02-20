@@ -568,8 +568,6 @@ public class ITAppEditor extends ExprEditor {
 
         if (hasArgs) {
             apiCall.append(", $$");
-        } else {
-            // Nothing to add
         }
 
         apiCall.append(");");

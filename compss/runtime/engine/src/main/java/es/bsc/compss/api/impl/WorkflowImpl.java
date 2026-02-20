@@ -794,6 +794,24 @@ public class WorkflowImpl extends Application implements Workflow {
         }
         return false;
     }
+    @Override
+    public boolean isFileAccessed(String fileName) {
+        return APITracer.traced(APIEvent.CHECK_FILE, () -> {
+            DataLocation loc;
+            try {
+                loc = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+                loc = null;
+            }
+            if (loc != null) {
+                FileData fd = new FileData(loc);
+                return AP.alreadyAccessed(this, fd);
+            } else {
+                return false;
+            }
+        });
+    }
 
     @Override
     public <T> T getObject(T obj) {

@@ -75,6 +75,11 @@ public class JavaWorkflow implements Workflow {
         this.oReg.newObjectParameter(o);
     }
 
+    @Override
+    public boolean isFileAccessed(String fileName) {
+        return this.workflow.isFileAccessed(fileName);
+    }
+
     /**
      * Registers new write access from the main code of the workflow to an object.
      *
@@ -123,16 +128,6 @@ public class JavaWorkflow implements Workflow {
     @Override
     public boolean deleteBindingObject(String bindingObjectName) {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Retrieves the last updated value for an object.
-     * 
-     * @param o Object whose final values has to be retrieved.
-     * @return final value of the object
-     */
-    public <T> T collectObjectFinalValue(T o) {
-        return this.oReg.newObjectAccess(o, false);
     }
 
     @Override

@@ -137,6 +137,11 @@ struct CompssWorkflow {
         char* objectId,
         int** buf
     );
+    
+    int (*is_file_accessed)(
+        struct CompssWorkflow* self,
+        char* fileName
+    );
 };
 
 struct CompssInterface {

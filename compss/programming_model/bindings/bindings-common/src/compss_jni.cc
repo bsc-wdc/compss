@@ -58,7 +58,8 @@ jmethodID midTempDir;                   /* ID of the getTempDirectory method in 
 jmethodID midRegWf;                     /* ID of the registerWorkflow method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jclass clsWorkflow;                     /* Class implementing the Workflow interface at runtime */
-jmethodID mid_wf_getID;                 /* ID of the getID method in the Class implementing the Workflow interface*/
+jmethodID mid_wf_getID;  
+jmethodID mid_wf_deregister;               /* ID of the getID method in the Class implementing the Workflow interface*/
 jmethodID mid_wf_openTaskGroup;
 jmethodID mid_wf_closeTaskGroup;
 jmethodID mid_wf_execute;
@@ -71,14 +72,14 @@ jmethodID mid_wf_barrier;
 jmethodID mid_wf_barrier_withFlag;
 jmethodID mid_wf_barrierGroup;
 jmethodID mid_wf_snapshot;
-jmethodID mid_wf_deregister;
+jmethodID mid_wf_isFileAccessed;
 jmethodID mid_wf_getBindingObject;		
 jmethodID mid_wf_deleteBindingObject; 	
 
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-jmethodID midIsFileAccessed;            /* ID of the isFileAccessed method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
 jmethodID midOpenFile;                  /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseFile;                 /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midDeleteFile;                /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -415,10 +416,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // RegisterCE method
     midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
-
-    // isFileAccessed method
-    midIsFileAccessed = status->localJniEnv->GetMethodID(clsITimpl, "isFileAccessed", "(Ljava/lang/Long;Ljava/lang/String;)Z");
-    check_exception(status, "Cannot find isFileAccessed");
 
     // openFile method
     midOpenFile = status->localJniEnv->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/Long;Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
@@ -1167,6 +1164,35 @@ void JNI_WF_deleteObject(CompssWorkflow* self, char* fileName, int** buf) {
 }
 
 
+int JNI_WF_isFileAccessed(CompssWorkflow* self, char* fileName){
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Calling runtime isFileAccessed method  for %s  ...\n", fileName);
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    // Format filename
+	jstring jFilename = env->NewStringUTF(fileName);
+	check_exception(status, "Error getting String UTF");
+
+    // Perform operation
+	jboolean is_accessed = (jboolean)env->CallBooleanMethod(wf->jWorkflow,
+                                                                mid_wf_isFileAccessed,
+                                                                jFilename);
+    check_exception(status, "Error calling runtime isFileAccessed");
+    env->DeleteLocalRef(jFilename);
+
+    // Parse result
+    int ret = 0;
+    if ((bool) is_accessed) {
+    	ret = 1;
+    }
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Access to file %s marked as %d\n", fileName, ret);
+    return ret;
+}
+
 
 CompssWorkflow* JNI_RegisterWorkflow() {
     debug_printf("[BINDING-COMMONS] - @JNI_RegisterWorkflow\n");
@@ -1213,6 +1239,8 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find getBindingObject");
         mid_wf_deleteBindingObject = env->GetMethodID(clsWorkflow, "deleteBindingObject", "(Ljava/lang/String;)Z");
         check_exception(status, "Cannot find deleteBindingObject");
+        mid_wf_isFileAccessed = env->GetMethodID(clsWorkflow,  "isFileAccessed", "(Ljava/lang/String;)Z");
+        check_exception(status, "Cannot find isFileAccessed");
     }
 
     // Wrap Java Workflow object into a C struct implementing the interface
@@ -1235,6 +1263,7 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     wf->base.snapshot = JNI_WF_snapshot;
     wf->base.get_object = JNI_WF_getObject;
     wf->base.delete_object = JNI_WF_deleteObject;
+    wf->base.is_file_accessed = JNI_WF_isFileAccessed;
 
 
     // Revoke thread access to JVM
@@ -1370,7 +1399,9 @@ void JNI_read_command(char** command){
 }
 
 void JNI_Cancel_Application_Tasks(long appId) {
+    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - Cancelling all tasks for application.\n");
     JNI_wf->cancelApplicationTasks(JNI_wf);
+    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - All tasks for application cancelled.\n");
 }
 
 
@@ -1508,31 +1539,7 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
 
 int JNI_Accessed_File(long appId, char* fileName){
     debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Calling runtime isFileAccessed method  for %s  ...\n", fileName);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Format filename
-	jstring filename_str = status->localJniEnv->NewStringUTF(fileName);
-	check_exception(status, "Error getting String UTF");
-
-    // Perform operation
-	jboolean is_accessed = (jboolean)status->localJniEnv->CallBooleanMethod(globalRuntime,
-                                                                midIsFileAccessed,
-                                                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                                filename_str);
-    check_exception(status, "Error calling runtime isFileAccessed");
-    status->localJniEnv->DeleteLocalRef(filename_str);
-
-    // Parse result
-    int ret = 0;
-    if ((bool) is_accessed) {
-    	ret = 1;
-    }
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    int ret = JNI_wf->is_file_accessed(JNI_wf, fileName);
     debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Access to file %s marked as %d\n", fileName, ret);
     return ret;
 }
@@ -1924,7 +1931,6 @@ CompssInterface setup_JNI_runtime(){
     iface.ExecuteTaskNew = JNI_ExecuteTaskNew;
     iface.ExecuteHttpTask = JNI_ExecuteHttpTask;
     iface.Cancel_Application_Tasks = JNI_Cancel_Application_Tasks;
-    iface.Accessed_File = JNI_Accessed_File;
     iface.Open_File = JNI_Open_File;
     iface.Close_File = JNI_Close_File;
     iface.Delete_File = JNI_Delete_File;
@@ -1940,5 +1946,6 @@ CompssInterface setup_JNI_runtime(){
 
     iface.Get_Object = JNI_Get_Object;
     iface.Delete_Object = JNI_Delete_Object;
+    iface.Accessed_File = JNI_Accessed_File;
     return iface;
 }

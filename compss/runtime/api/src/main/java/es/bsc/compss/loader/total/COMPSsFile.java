@@ -97,6 +97,7 @@ public class COMPSsFile extends File {
      */
     public File synchFile() {
         wf.getFile(this.pathname);
+        this.sReg.deleteTaskFile(this.pathname);
         return new File(this.pathname);
     }
 

@@ -560,7 +560,7 @@ public class ITAppEditor extends ExprEditor {
         }
 
         apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itApiVar).append(",")
-            .append(this.itWfVar);
+            .append(this.itSRVar).append(",").append(this.itWfVar);
 
         if (hasArgs) {
             apiCall.append(", $$");

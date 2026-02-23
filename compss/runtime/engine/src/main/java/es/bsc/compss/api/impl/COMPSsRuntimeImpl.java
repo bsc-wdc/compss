@@ -500,7 +500,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * @param fileName path of the file
      */
     public static void getFile(Application app, String fileName) {
-        APITracer.traced(APIEvent.GET_FILE, (Runnable) () -> {
             // Parse the file name
             DataLocation sourceLocation = null;
             try {
@@ -521,16 +520,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
                     closeFile(app, fileName, Direction.INOUT);
                     ap.deleteData(app, new FileData(sourceLocation), true, false);
-                    // In the case of Java file can be stored in the Stream Registry
-                    if (sReg != null) {
-                        sReg.deleteTaskFile(fileName);
-                    }
                     FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
                 } catch (IOException ioe) {
                     LOGGER.error("Move not possible ", ioe);
                 }
             }
-        });
     }
 
     /**
@@ -540,7 +534,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * @param dirName path of the directory
      */
     public static void getDirectory(Application app, String dirName) {
-        APITracer.traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
             // Parse the dir name
             DataLocation sourceLocation = null;
             try {
@@ -561,16 +554,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 closeFile(app, dirName, Direction.IN);
 
                 ap.deleteData(app, new FileData(sourceLocation), true, false);
-                // In the case of Java file can be stored in the Stream Registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(dirName);
-                }
-
                 FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
             } catch (IOException ioe) {
                 LOGGER.error("Move not possible ", ioe);
             }
-        });
     }
 
     /**

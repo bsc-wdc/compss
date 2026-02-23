@@ -25,6 +25,7 @@
 #include <vector>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 
 bool DEBUG_MODE = false;
 char* HEADER = "[PY-C EXTENSION]  -  ";

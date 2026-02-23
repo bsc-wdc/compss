@@ -627,9 +627,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetUri.toString(), e);
             }
 
-            LOGGER.debug("- Retrieving file from worker: " + sourceDataLocation.toString());
-            masterNode.obtainData(new LogicalData(fileName), sourceDataLocation, targetDataLocation,
-                new LogicalData(fileName), new WorkersDebugInfoCopyTransferable(), wdil);
+            LOGGER.debug("- Retrieving file from worker: " + sourceDataLocation);
+            masterNode.obtainData(new LogicalData(targetPath), sourceDataLocation, targetDataLocation,
+                new LogicalData(targetPath), new WorkersDebugInfoCopyTransferable(), wdil);
 
             wdil.enable();
 

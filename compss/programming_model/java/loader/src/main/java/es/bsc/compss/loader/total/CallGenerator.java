@@ -133,36 +133,36 @@ public class CallGenerator {
      * Constructs the instruction to create a new Stream.
      * 
      * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the variable containing the workflow
      * @param streamClass stream type
      * @param callPars parameters to call the stream constructor
      * @return instruction to create a new stream
      */
-    public static String newStreamClass(String itSR, String itAppId, String streamClass, StringBuilder callPars) {
-        return itSR + ".new" + streamClass + "(" + "(java.lang.Long)" + itAppId + "," + callPars + ")";
+    public static String newStreamClass(String itSR, String itWf, String streamClass, StringBuilder callPars) {
+        return itSR + ".new" + streamClass + "(" + itWf + "," + callPars + ")";
     }
 
     /**
      * Constructs the instruction to create a new FilterStream.
      * 
      * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the variable containing the workflow
      * @param par name of the paremeter to pass in to the newFilterStream constructor
      * @return instruction to create a newFilterStream
      */
-    public static String newFilterStream(String itSR, String itAppId, String par) {
-        return itSR + NEW_FILTER_STREAM + "(java.lang.Long)" + itAppId + "," + par + ", (Object)$_); }";
+    public static String newFilterStream(String itSR, String itWf, String par) {
+        return itSR + NEW_FILTER_STREAM + itWf + "," + par + ", (Object)$_); }";
     }
 
     /**
      * Constructs an instruction to close a stream.
      * 
      * @param itSR name of the StreamRegistry variable
-     * @param itAppId name of the variable containing the AppId
+     * @param itWf name of the variable containing the workflow
      * @return instruction to register the stream closing
      */
-    public static String closeStream(String itSR, String itAppId) {
-        return itSR + STREAM_CLOSED + "(java.lang.Long)" + itAppId + ", $0)";
+    public static String closeStream(String itSR, String itWf) {
+        return itSR + STREAM_CLOSED + itWf + ", $0)";
     }
 
     /**
@@ -200,15 +200,14 @@ public class CallGenerator {
 
     /**
      * Constructs an instruction to call the openFile method of the Runtime API.
-     * 
-     * @param itApi name of the runtime API
-     * @param itAppId name of the variable containing the AppId
+     *
+     * @param itWf name of the variable containing the workflow
      * @param file variable containing the file
      * @param direction operation performed on the file (IN, OUT, INOUT)
      * @return
      */
-    public static String openFile(String itApi, String itAppId, String file, String direction) {
-        return itApi + OPEN_FILE + "(java.lang.Long)" + itAppId + "," + file + ", " + direction + ")";
+    public static String openFile(String itWf, String file, String direction) {
+        return itWf + OPEN_FILE + file + ", " + direction + ")";
     }
 
 }

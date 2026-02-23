@@ -59,7 +59,7 @@ jmethodID midRegWf;                     /* ID of the registerWorkflow method in 
 
 jclass clsWorkflow;                     /* Class implementing the Workflow interface at runtime */
 jmethodID mid_wf_getID;  
-jmethodID mid_wf_deregister;               /* ID of the getID method in the Class implementing the Workflow interface*/
+jmethodID mid_wf_deregister;
 jmethodID mid_wf_openTaskGroup;
 jmethodID mid_wf_closeTaskGroup;
 jmethodID mid_wf_execute;
@@ -73,20 +73,19 @@ jmethodID mid_wf_barrier_withFlag;
 jmethodID mid_wf_barrierGroup;
 jmethodID mid_wf_snapshot;
 jmethodID mid_wf_isFileAccessed;
+jmethodID mid_wf_openFile;
+jmethodID mid_wf_getFile;
+jmethodID mid_wf_closeFile;
 jmethodID mid_wf_deleteFile;
-jmethodID mid_wf_getBindingObject;		
-jmethodID mid_wf_deleteBindingObject; 	
+jmethodID mid_wf_getDirectory;
+jmethodID mid_wf_getBindingObject;
+jmethodID mid_wf_deleteBindingObject;
 
 
 
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
-
-jmethodID midOpenFile;                  /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midCloseFile;                 /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midGetFile;                   /* ID of the getFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midGetDirectory;              /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midGetNumberOfResources;      /* ID of the getNumberOfResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRequestResources;          /* ID of the requestResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -415,22 +414,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // RegisterCE method
     midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
-
-    // openFile method
-    midOpenFile = status->localJniEnv->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/Long;Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
-    check_exception(status, "Cannot find openFile");
-
-    // closeFile method
-    midCloseFile = status->localJniEnv->GetMethodID(clsITimpl, "closeFile", "(Ljava/lang/Long;Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
-    check_exception(status, "Cannot find closeFile");
-
-    // getFile method
-    midGetFile = status->localJniEnv->GetMethodID(clsITimpl, "getFile", "(Ljava/lang/Long;Ljava/lang/String;)V");
-    check_exception(status, "Cannot find getFile");
-
-    // getDirectory method
-    midGetDirectory = status->localJniEnv->GetMethodID(clsITimpl, "getDirectory", "(Ljava/lang/Long;Ljava/lang/String;)V");
-    check_exception(status, "Cannot find getDirectory");
 
     // getNumberOfResources method
     midGetNumberOfResources = status->localJniEnv->GetMethodID(clsITimpl, "getNumberOfResources", "()I");
@@ -1189,6 +1172,136 @@ int JNI_WF_isFileAccessed(CompssWorkflow* self, char* fileName){
 }
 
 
+void JNI_WF_openFile(CompssWorkflow* self, char* fileName, int mode, char** buf) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_openFile - Calling runtime OpenFile method  for %s and mode %d ...\n", fileName, mode);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jobject direction = NULL;
+    switch ((enum direction) mode) {
+        case in_dir:
+            direction = par_dir.IN;
+            break;
+        case out_dir:
+            direction = par_dir.OUT;
+            break;
+        case inout_dir:
+            direction = par_dir.INOUT;
+            break;
+        case concurrent_dir:
+            direction = par_dir.CONCURRENT;
+            break;
+        case commutative_dir:
+            direction = par_dir.COMMUTATIVE;
+            break;
+        default:
+            break;
+    }
+    if (direction != NULL){
+        // Parse fileName
+        jstring filename_str = env->NewStringUTF(fileName);
+        check_exception(status, "Error getting String UTF");
+        jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow,
+                                                        mid_wf_openFile,
+                                                        filename_str,
+                                                        direction);
+        check_exception(status, "Exception calling runtime openFile");
+        env->DeleteLocalRef(filename_str);
+
+        // Parse output
+        jboolean isCopy;
+        const char* cstr = env->GetStringUTFChars(jstr, &isCopy);
+        check_exception(status, "Exception getting String UTF");
+
+        *buf = strdup(cstr);
+        env->ReleaseStringUTFChars(jstr, cstr);
+        env->DeleteLocalRef(jstr);
+    }
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_openFile - COMPSs filename: %s\n", *buf);
+}
+
+
+void JNI_WF_getFile(CompssWorkflow* self, char* fileName) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getFile - Calling runtime getFile method...\n");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    // Format filename
+	jstring jFilename = env->NewStringUTF(fileName);
+	check_exception(status, "Error getting String UTF");
+
+    // Perform operation
+    env->CallVoidMethod(wf->jWorkflow,
+                                mid_wf_getFile,
+                                jFilename);
+    check_exception(status, "Exception received when calling getFile");
+
+    env->DeleteLocalRef(jFilename);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getFile - COMPSs filename: %s\n", fileName);
+}
+
+
+void JNI_WF_closeFile(CompssWorkflow* self, char* fileName, int mode) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeFile - Calling runtime closeFile method...\n");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jobject direction = NULL;
+    switch ((enum direction) mode) {
+        case in_dir:
+            direction = par_dir.IN;
+            break;
+        case out_dir:
+            direction = par_dir.OUT;
+            break;
+        case inout_dir:
+            direction = par_dir.INOUT;
+            break;
+        case concurrent_dir:
+            direction = par_dir.CONCURRENT;
+            break;
+        case commutative_dir:
+            direction = par_dir.COMMUTATIVE;
+            break;
+        default:
+            break;
+    }
+    if (direction != NULL){
+        // Parse fileName
+        jstring filename_str = env->NewStringUTF(fileName);
+        check_exception(status, "Error getting String UTF");
+        jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow,
+                                                        mid_wf_closeFile,
+                                                        filename_str,
+                                                        direction);
+        check_exception(status, "Exception calling runtime closeFile");
+        env->DeleteLocalRef(filename_str);
+    }
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_closeFile - COMPSs filename: %s\n", fileName);
+}
+
+
 bool JNI_WF_deleteFile(CompssWorkflow* self, char* fileName, int wait, int applicationDelete) {
     JNIWorkflow* wf = (JNIWorkflow*) self;
     debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteFile - Calling runtime deleteFile method...\n");
@@ -1225,6 +1338,33 @@ bool JNI_WF_deleteFile(CompssWorkflow* self, char* fileName, int wait, int appli
     access_revoke(status);
     debug_printf("[BINDING-COMMONS] - @JNI_WF_deleteFile - File erased with status: %i\n", (bool) res);
     return ret;
+}
+
+
+void JNI_WF_getDirectory(CompssWorkflow* self, char* dirName) {
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getDirectory - Calling runtime getDirectory method...\n");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    // Format filename
+	jstring jFilename = env->NewStringUTF(dirName);
+	check_exception(status, "Error getting String UTF");
+
+    // Perform operation
+    env->CallVoidMethod(wf->jWorkflow,
+                                mid_wf_getDirectory,
+                                jFilename);
+    check_exception(status, "Exception received when calling getDirectory");
+
+    env->DeleteLocalRef(jFilename);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getDirectory - COMPSs filename: %s\n", dirName);
 }
 
 CompssWorkflow* JNI_RegisterWorkflow() {
@@ -1274,8 +1414,16 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find Workflow.deleteBindingObject");
         mid_wf_isFileAccessed = env->GetMethodID(clsWorkflow,  "isFileAccessed", "(Ljava/lang/String;)Z");
         check_exception(status, "Cannot find Workflow.isFileAccessed");
+        mid_wf_openFile = env->GetMethodID(clsWorkflow, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
+        check_exception(status, "Cannot find Workflow.openFile");
+        mid_wf_getFile = env->GetMethodID(clsWorkflow, "getFile", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find Workflow.getFile");
+        mid_wf_closeFile = env->GetMethodID(clsWorkflow, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
+        check_exception(status, "Cannot find Workflow.closeFile");
         mid_wf_deleteFile = env->GetMethodID(clsWorkflow, "deleteFile", "(Ljava/lang/String;ZZ)Z");
         check_exception(status, "Cannot find Workflow.deleteFile");
+        mid_wf_getDirectory = env->GetMethodID(clsWorkflow, "getDirectory", "(Ljava/lang/String;)V");
+        check_exception(status, "Cannot find Workflow.getDirectory");
     }
 
     // Wrap Java Workflow object into a C struct implementing the interface
@@ -1299,7 +1447,11 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     wf->base.get_object = JNI_WF_getObject;
     wf->base.delete_object = JNI_WF_deleteObject;
     wf->base.is_file_accessed = JNI_WF_isFileAccessed;
+    wf->base.open_file = JNI_WF_openFile;
+    wf->base.get_file = JNI_WF_getFile;
+    wf->base.close_file = JNI_WF_closeFile;
     wf->base.delete_file = JNI_WF_deleteFile;
+    wf->base.get_directory = JNI_WF_getDirectory;
 
 
     // Revoke thread access to JVM
@@ -1434,10 +1586,65 @@ void JNI_read_command(char** command){
     // Do nothing
 }
 
-void JNI_Cancel_Application_Tasks(long appId) {
-    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - Cancelling all tasks for application.\n");
-    JNI_wf->cancelApplicationTasks(JNI_wf);
-    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - All tasks for application cancelled.\n");
+
+
+void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numParams, char** implTypeArgs) {
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implSignature:   %s\n", implSignature);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implConstraints: %s\n", implConstraints);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implType:        %s\n", implType);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implLocal:        %s\n", implLocal);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implIO:        %s\n", implIO);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - numParams:      %d\n", numParams);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Array of Objects to pass to the register
+    jobjectArray prologArr;
+    jobjectArray epilogArr;
+    jobjectArray containerArr;
+    prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    containerArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    for (int i = 0; i < 3; i++) {
+        //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
+        jstring tmpro = status->localJniEnv->NewStringUTF(prolog[i]);
+        jstring tmpepi = status->localJniEnv->NewStringUTF(epilog[i]);
+        jstring tmpcont = status->localJniEnv->NewStringUTF(container[i]);
+        status->localJniEnv->SetObjectArrayElement(prologArr, i, tmpro);
+        status->localJniEnv->SetObjectArrayElement(epilogArr, i, tmpepi);
+        status->localJniEnv->SetObjectArrayElement(containerArr, i, tmpcont);
+    }
+
+    // Array of Objects to pass to the register
+    jobjectArray implArgs;
+    implArgs = (jobjectArray)status->localJniEnv->NewObjectArray(numParams, clsString, status->localJniEnv->NewStringUTF(""));
+    for (int i = 0; i < numParams; i++) {
+        //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
+        jstring tmp = status->localJniEnv->NewStringUTF(implTypeArgs[i]);
+        status->localJniEnv->SetObjectArrayElement(implArgs, i, tmp);
+    }
+
+    //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Calling Runtime Function Register Core Element \n");
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midRegisterCE,
+                              status->localJniEnv->NewStringUTF(ceSignature),
+                              status->localJniEnv->NewStringUTF(implSignature),
+                              status->localJniEnv->NewStringUTF(implConstraints),
+                              status->localJniEnv->NewStringUTF(implType),
+                              status->localJniEnv->NewStringUTF(implLocal),
+                              status->localJniEnv->NewStringUTF(implIO),
+                              prologArr,
+                              epilogArr,
+                              containerArr,
+                              implArgs);
+    check_exception(status, "Exception received when calling registerCE");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE - Task registered: %s\n", ceSignature);
 }
 
 
@@ -1514,65 +1721,6 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
 }
 
 
-void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numParams, char** implTypeArgs) {
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implSignature:   %s\n", implSignature);
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implConstraints: %s\n", implConstraints);
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implType:        %s\n", implType);
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implLocal:        %s\n", implLocal);
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implIO:        %s\n", implIO);
-    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - numParams:      %d\n", numParams);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Array of Objects to pass to the register
-    jobjectArray prologArr;
-    jobjectArray epilogArr;
-    jobjectArray containerArr;
-    prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
-    epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
-    containerArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
-    for (int i = 0; i < 3; i++) {
-        //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
-        jstring tmpro = status->localJniEnv->NewStringUTF(prolog[i]);
-        jstring tmpepi = status->localJniEnv->NewStringUTF(epilog[i]);
-        jstring tmpcont = status->localJniEnv->NewStringUTF(container[i]);
-        status->localJniEnv->SetObjectArrayElement(prologArr, i, tmpro);
-        status->localJniEnv->SetObjectArrayElement(epilogArr, i, tmpepi);
-        status->localJniEnv->SetObjectArrayElement(containerArr, i, tmpcont);
-    }
-
-    // Array of Objects to pass to the register
-    jobjectArray implArgs;
-    implArgs = (jobjectArray)status->localJniEnv->NewObjectArray(numParams, clsString, status->localJniEnv->NewStringUTF(""));
-    for (int i = 0; i < numParams; i++) {
-        //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
-        jstring tmp = status->localJniEnv->NewStringUTF(implTypeArgs[i]);
-        status->localJniEnv->SetObjectArrayElement(implArgs, i, tmp);
-    }
-
-    //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Calling Runtime Function Register Core Element \n");
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midRegisterCE,
-                              status->localJniEnv->NewStringUTF(ceSignature),
-                              status->localJniEnv->NewStringUTF(implSignature),
-                              status->localJniEnv->NewStringUTF(implConstraints),
-                              status->localJniEnv->NewStringUTF(implType),
-                              status->localJniEnv->NewStringUTF(implLocal),
-                              status->localJniEnv->NewStringUTF(implIO),
-                              prologArr,
-                              epilogArr,
-                              containerArr,
-                              implArgs);
-    check_exception(status, "Exception received when calling registerCE");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE - Task registered: %s\n", ceSignature);
-}
-
 int JNI_Accessed_File(long appId, char* fileName){
     debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Calling runtime isFileAccessed method  for %s  ...\n", fileName);
     int ret = JNI_wf->is_file_accessed(JNI_wf, fileName);
@@ -1582,125 +1730,20 @@ int JNI_Accessed_File(long appId, char* fileName){
 
 void JNI_Open_File(long appId, char* fileName, int mode, char** buf) {
     debug_printf("[BINDING-COMMONS] - @JNI_Open_File - Calling runtime OpenFile method  for %s and mode %d ...\n", fileName, mode);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Parse fileName
-    jstring filename_str = status->localJniEnv->NewStringUTF(fileName);
-    check_exception(status, "Error getting String UTF");
-
-    // Call operation
-    jstring jstr = NULL;
-    switch ((enum direction) mode) {
-        case in_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
-                                                        midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                        filename_str,
-                                                        par_dir.IN);
-            break;
-        case out_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
-                                                        midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                        filename_str,
-                                                        par_dir.OUT);
-            break;
-        case inout_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
-                                                        midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                        filename_str,
-                                                        par_dir.INOUT);
-            break;
-        case concurrent_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
-                                                        midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                        filename_str,
-                                                        par_dir.CONCURRENT);
-            break;
-        case commutative_dir:
-            jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime,
-                                                        midOpenFile,
-                                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                                        filename_str,
-                                                        par_dir.COMMUTATIVE);
-            break;
-        default:
-            break;
-    }
-    check_exception(status, "Exception calling runtime openFile");
-    status->localJniEnv->DeleteLocalRef(filename_str);
-
-    // Parse output
-    jboolean isCopy;
-    const char* cstr = status->localJniEnv->GetStringUTFChars(jstr, &isCopy);
-    check_exception(status, "Exception getting String UTF");
-
-    *buf = strdup(cstr);
-    status->localJniEnv->ReleaseStringUTFChars(jstr, cstr);
-    status->localJniEnv->DeleteLocalRef(jstr);
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->open_file(JNI_wf, fileName, mode, buf);
     debug_printf("[BINDING-COMMONS] - @JNI_Open_File - COMPSs filename: %s\n", *buf);
 }
 
 
+void JNI_Get_File(long appId, char* fileName) {
+    debug_printf("[BINDING-COMMONS] - @JNI_Get_File - Calling runtime getFile method...\n");
+    JNI_wf->get_file(JNI_wf, fileName);
+    debug_printf("[BINDING-COMMONS] - @JNI_Get_File - COMPSs filename: %s\n", fileName);
+}
+
 void JNI_Close_File(long appId, char* fileName, int mode) {
     debug_printf("[BINDING-COMMONS] - @JNI_Close_File - Calling runtime closeFile method...\n");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    switch ((enum direction) mode) {
-        case in_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime,
-                                        midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                        status->localJniEnv->NewStringUTF(fileName),
-                                        par_dir.IN);
-            break;
-        case out_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime,
-                                        midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                        status->localJniEnv->NewStringUTF(fileName),
-                                        par_dir.OUT);
-            break;
-        case inout_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime,
-                                        midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                        status->localJniEnv->NewStringUTF(fileName),
-                                        par_dir.INOUT);
-            break;
-        case concurrent_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime,
-                                        midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                        status->localJniEnv->NewStringUTF(fileName),
-                                        par_dir.CONCURRENT);
-            break;
-        case commutative_dir:
-            status->localJniEnv->CallVoidMethod(globalRuntime,
-                                        midCloseFile,
-                                        status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                        status->localJniEnv->NewStringUTF(fileName),
-                                        par_dir.COMMUTATIVE);
-            break;
-        default:
-            break;
-    }
-    check_exception(status, "Exception calling runtime closeFile");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->close_file(JNI_wf, fileName, mode);
     debug_printf("[BINDING-COMMONS] - @JNI_Close_File - COMPSs filename: %s\n", fileName);
 }
 
@@ -1711,42 +1754,9 @@ void JNI_Delete_File(long appId, char* fileName, int wait, int applicationDelete
     debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - File erased with status: %i\n", (bool) res);
 }
 
-
-void JNI_Get_File(long appId, char* fileName) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_File - Calling runtime getFile method...\n");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                                midGetFile,
-                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                status->localJniEnv->NewStringUTF(fileName));
-    check_exception(status, "Exception received when calling getFile");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_File - COMPSs filename: %s\n", fileName);
-}
-
 void JNI_Get_Directory(long appId, char* dirName) {
     debug_printf("[BINDING-COMMONS] - @JNI_Get_Directory - Calling runtime getDirectory method...\n");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                                midGetDirectory,
-                                status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                                status->localJniEnv->NewStringUTF(dirName));
-    check_exception(status, "Exception received when calling getDirectory");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
+    JNI_wf->get_directory(JNI_wf, dirName);
     debug_printf("[BINDING-COMMONS] - @JNI_Get_Directory - COMPSs directory: %s\n", dirName);
 }
 
@@ -1807,6 +1817,13 @@ void JNI_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
     debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - COMPSs group name: %s\n", groupName);
     JNI_wf->cancelTaskGroup(JNI_wf, groupName, exceptionMessage);
     debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - Task group %s canceled.\n", groupName);
+}
+
+
+void JNI_Cancel_Application_Tasks(long appId) {
+    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - Cancelling all tasks for application.\n");
+    JNI_wf->cancelApplicationTasks(JNI_wf);
+    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - All tasks for application cancelled.\n");
 }
 
 void JNI_Snapshot(long appId) {

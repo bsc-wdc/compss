@@ -60,7 +60,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
     private Workflow wf;
-    private Long appId;
 
 
     /**
@@ -84,7 +83,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
     @Override
     public void invokeExternalMethod() throws JobExecutionException, COMPSsException {
         try {
-            this.appId = null;
+            this.wf = null;
             int jobId = this.invocation.getJobId();
             if (!this.pipes.sendCommand((PipeCommand) this.command)) {
                 LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
@@ -127,7 +126,6 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 Object[] parameters = entpc.getParameters();
                                 if (this.wf == null) {
                                     this.wf = becomesNestedApplication(null);
-                                    this.appId = wf.getId();
                                 }
                                 int numNodes = entpc.getNumNodes();
                                 boolean isReduce = entpc.isReduce();
@@ -166,10 +164,10 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
                                 Direction dir = ofpc.getDirection();
-                                if (this.appId == null) {
+                                if (this.wf == null) {
                                     this.pipes.sendCommand(new SynchPipeCommand(file));
                                 } else {
-                                    String finalLocation = this.context.getRuntimeAPI().openFile(this.appId, file, dir);
+                                    String finalLocation = this.wf.openFile(file, dir);
                                     this.pipes.sendCommand(new SynchPipeCommand(finalLocation));
                                 }
                             }
@@ -178,8 +176,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
                                 Direction dir = ofpc.getDirection();
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().closeFile(this.appId, file, dir);
+                                if (this.wf != null) {
+                                    this.wf.closeFile(file, dir);
                                 }
                             }
                                 break;
@@ -193,8 +191,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case GET_FILE: {
                                 GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
                                 String file = gfpc.getFile();
-                                if (this.appId != null) {
-                                    this.context.getRuntimeAPI().getFile(this.appId, file);
+                                if (this.wf != null) {
+                                    this.wf.getFile(file);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -202,8 +200,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case GET_DIRECTORY: {
                                 GetDirectoryPipeCommand gfpc = (GetDirectoryPipeCommand) rcvdCommand;
                                 String file = gfpc.getDirectory();
-                                if (this.appId != null) {
-                                    context.getRuntimeAPI().getDirectory(this.appId, file);
+                                if (this.wf != null) {
+                                    this.wf.getDirectory(file);
                                 }
                                 pipes.sendCommand(new SynchPipeCommand());
                             }

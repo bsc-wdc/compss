@@ -358,7 +358,7 @@ public class SocketServer extends Server {
          */
         private void handleOpenFile(OpenFilePipeCommand cmd) throws IOException {
             Direction dir = cmd.getDirection();
-            String location = runtime.openFile(this.appId, cmd.getFile(), dir);
+            String location = wf.openFile(cmd.getFile(), dir);
             sendCommand(new SynchPipeCommand(location));
         }
 
@@ -368,7 +368,7 @@ public class SocketServer extends Server {
          * @param cmd command containing the file identifier and access direction.
          */
         private void handleCloseFile(CloseFilePipeCommand cmd) {
-            runtime.closeFile(this.appId, cmd.getFile(), cmd.getDirection());
+            wf.closeFile(cmd.getFile(), cmd.getDirection());
         }
 
         /**
@@ -389,7 +389,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleGetFile(GetFilePipeCommand cmd) throws IOException {
-            runtime.getFile(this.appId, cmd.getFile());
+            wf.getFile(cmd.getFile());
             sendCommand(new SynchPipeCommand());
         }
 
@@ -400,7 +400,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleGetDirectory(GetDirectoryPipeCommand cmd) throws IOException {
-            runtime.getDirectory(this.appId, cmd.getDirectory());
+            wf.getDirectory(cmd.getDirectory());
             sendCommand(new SynchPipeCommand());
         }
 

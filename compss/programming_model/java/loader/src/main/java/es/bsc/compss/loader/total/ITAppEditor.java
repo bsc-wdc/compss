@@ -89,7 +89,6 @@ public class ITAppEditor extends ExprEditor {
     private String itApiVar;
     private String itSRVar;
     private String itWfVar;
-    private String itAppIdVar;
     private CtClass appClass;
 
 
@@ -101,11 +100,10 @@ public class ITAppEditor extends ExprEditor {
      * @param itApiVar COMPSs API pointer.
      * @param itSRVar Stream Registry.
      * @param itWfVar Workflow variable.
-     * @param itAppIdVar COMPSs Application Id variable.
      * @param appClass Application main class.
      */
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-        String itWfVar, String itAppIdVar, CtClass appClass) {
+        String itWfVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
@@ -113,7 +111,6 @@ public class ITAppEditor extends ExprEditor {
         this.itApiVar = itApiVar;
         this.itSRVar = itSRVar;
         this.itWfVar = itWfVar;
-        this.itAppIdVar = itAppIdVar;
         this.appClass = appClass;
     }
 
@@ -332,7 +329,7 @@ public class ITAppEditor extends ExprEditor {
         boolean found = false;
         for (String streamClass : LoaderConstants.getSupportedStreamTypes()) {
             if (className.equals(streamClass)) {
-                modifiedExpr = "$_ = " + CallGenerator.newStreamClass(itSRVar, itAppIdVar, streamClass, callPars) + ";";
+                modifiedExpr = "$_ = " + CallGenerator.newStreamClass(itSRVar, itWfVar, streamClass, callPars) + ";";
                 found = true;
                 break;
             }
@@ -346,7 +343,7 @@ public class ITAppEditor extends ExprEditor {
                 modifiedExpr = PROCEED + callPars + "); ";
                 modifiedExpr += "if ($_ instanceof " + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
                     + FilterOutputStream.class.getCanonicalName() + ") {";
-                modifiedExpr += CallGenerator.newFilterStream(this.itSRVar, this.itAppIdVar, par1);
+                modifiedExpr += CallGenerator.newFilterStream(this.itSRVar, this.itWfVar, par1);
             }
         }
         if (DEBUG) {
@@ -527,7 +524,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceCloseStream() {
-        String streamClose = PROCEED + "$$); " + CallGenerator.closeStream(this.itSRVar, this.itAppIdVar) + ";";
+        String streamClose = PROCEED + "$$); " + CallGenerator.closeStream(this.itSRVar, this.itWfVar) + ";";
         return streamClose;
     }
 
@@ -644,8 +641,8 @@ public class ITAppEditor extends ExprEditor {
                             if (!className.equals(PrintStream.class.getName())
                                 && !className.equals(StringBuilder.class.getName())) {
                                 String taskFile = CallGenerator.isTaskFile(this.itSRVar, parId);
-                                String apiOpenFile = CallGenerator.openFile(this.itApiVar, this.itAppIdVar, parId,
-                                    DATA_DIRECTION + ".INOUT");
+                                String apiOpenFile =
+                                    CallGenerator.openFile(this.itWfVar, parId, DATA_DIRECTION + ".INOUT");
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ");
                             }
                             // If the call is inside a PrintStream or StringBuilder, only synchronize objects files

@@ -47,11 +47,18 @@ public interface COMPSsRuntime {
      * CONFIGURATION
      ******************************************************************************************************************/
     /**
-     * Returns the COMPSs application directory.
+     * Returns the COMPSs application log directory.
      *
-     * @return The COMPSs application directory.
+     * @return The COMPSs application log directory.
      */
-    public String getApplicationDirectory();
+    String getApplicationDirectory();
+
+    /**
+     * Returns the directory where to store temporary files.
+     *
+     * @return The directory where to store temporary files.
+     */
+    String getTempDir();
 
     /**
      * Set the COMPSs application Wall Clock Limit.
@@ -124,56 +131,6 @@ public interface COMPSsRuntime {
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
         String... implTypeArgs);
-
-    /*
-     * *****************************************************************************************************************
-     * DATA ACCESS METHODS
-     ******************************************************************************************************************/
-
-    /**
-     * Returns the renaming of the file version opened.
-     *
-     * @param appId Id of the application accessing the data.
-     * @param fileName File name.
-     * @param mode Access mode.
-     * @return
-     */
-    public String openFile(Long appId, String fileName, Direction mode);
-
-    /**
-     * Returns the renaming of the file version opened.
-     *
-     * @param appId Id of the application accessing the data.
-     * @param dirName Directory name.
-     * @param mode Access mode.
-     * @return
-     */
-    public String openDirectory(Long appId, String dirName, Direction mode);
-
-    /**
-     * Close the opened file version.
-     *
-     * @param appId Id of the application accessing the data.
-     * @param fileName File name.
-     * @param mode Access mode.
-     */
-    public void closeFile(Long appId, String fileName, Direction mode);
-
-    /**
-     * Returns last version of file with its original name.
-     *
-     * @param appId Application id.
-     * @param fileName File name.
-     */
-    public void getFile(Long appId, String fileName);
-
-    /**
-     * Returns last version of directory with its original name.
-     *
-     * @param appId Application id.
-     * @param dirName Directory name.
-     */
-    public void getDirectory(Long appId, String dirName);
 
     /*
      * *****************************************************************************************************************

@@ -23,33 +23,6 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 public interface LoaderAPI {
 
     /**
-     * Returns the renaming of the file version opened.
-     * 
-     * @param appId Id of the application openning the file
-     * @param fileName File.
-     * @param mode Access mode.
-     * @return Renaming of the current file version.
-     */
-    public String openFile(Long appId, String fileName, Direction mode);
-
-    /**
-     * Closes the given file {@code fileName}.
-     * 
-     * @param appId Id of the application closing the file
-     * @param fileName File version name.
-     * @param mode Access mode.
-     */
-    public void closeFile(Long appId, String fileName, Direction mode);
-
-    /**
-     * Retrieves the last version of file with its original name.
-     * 
-     * @param appId Application id.
-     * @param fileName File name.
-     */
-    public void getFile(Long appId, String fileName);
-
-    /**
      * Returns the Stream Registry instance.
      * 
      * @return The Stream Registry instance.
@@ -62,12 +35,5 @@ public interface LoaderAPI {
      * @param sReg Stream Registry.
      */
     public void setStreamRegistry(StreamRegistry sReg);
-
-    /**
-     * Returns the directory where to store temporary files.
-     * 
-     * @return The directory where to store temporary files.
-     */
-    public String getTempDir();
 
 }

@@ -27,7 +27,6 @@ public class COMPSsFile extends File {
     private static final long serialVersionUID = 1L;
 
     private final StreamRegistry sReg;
-    private final LoaderAPI api;
     private final Workflow wf;
     private final String pathname;
 
@@ -36,15 +35,13 @@ public class COMPSsFile extends File {
      * Creates a new COMPSsFile instance associated to the given file {@code f} and pointing to the given LoaderAPI
      * {@code api}.
      *
-     * @param api Associated LoaderAPI.
      * @param wf workflow accessing the file
      * @param sReg StreamRegistry handling the COMPSs file
      * @param f Associated file.
      */
-    public COMPSsFile(LoaderAPI api, Workflow wf, StreamRegistry sReg, File f) {
+    public COMPSsFile(Workflow wf, StreamRegistry sReg, File f) {
         super(f.getAbsolutePath());
         this.sReg = sReg;
-        this.api = api;
         this.wf = wf;
         this.pathname = f.getAbsolutePath();
     }
@@ -99,7 +96,7 @@ public class COMPSsFile extends File {
      * @return File File object after synchronizing its content.
      */
     public File synchFile() {
-        this.api.getFile(wf.getId(), this.pathname);
+        wf.getFile(this.pathname);
         return new File(this.pathname);
     }
 

@@ -493,8 +493,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * **************************************** DATA MANAGEMENT ***************************************************
      * ************************************************************************************************************
      */
-    @Override
-    public void getFile(Long appId, String fileName) {
+    /**
+     * Brings file's last version.
+     * 
+     * @param app application requesting the file
+     * @param fileName path of the file
+     */
+    public static void getFile(Application app, String fileName) {
         APITracer.traced(APIEvent.GET_FILE, (Runnable) () -> {
             // Parse the file name
             DataLocation sourceLocation = null;
@@ -508,7 +513,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
 
             LOGGER.debug("Getting file " + fileName);
-            Application app = Application.registerApplication(appId);
             String renamedPath = openFileSystemData(app, fileName, Direction.INOUT, false);
             // If renamePth is the same as original, file has not accessed. Nothing to do.
             if (!renamedPath.equals(sourceLocation.getPath())) {
@@ -529,16 +533,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         });
     }
 
-    @Override
-    public String openFile(Long appId, String fileName, Direction mode) {
-        return APITracer.traced(APIEvent.OPEN_FILE, () -> {
-            Application app = Application.registerApplication(appId);
-            return openFileSystemData(app, fileName, mode, false);
-        });
-    }
-
-    @Override
-    public void getDirectory(Long appId, String dirName) {
+    /**
+     * Brings directory's last version.
+     * 
+     * @param app application requesting the directory
+     * @param dirName path of the directory
+     */
+    public static void getDirectory(Application app, String dirName) {
         APITracer.traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
             // Parse the dir name
             DataLocation sourceLocation = null;
@@ -552,7 +553,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
 
             LOGGER.debug("Getting directory " + dirName);
-            Application app = Application.registerApplication(appId);
             String renamedPath = openFileSystemData(app, dirName, Direction.IN, true);
             try {
                 LOGGER.debug("Getting directory renamed path: " + renamedPath);
@@ -573,15 +573,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         });
     }
 
-    @Override
-    public String openDirectory(Long appId, String dirName, Direction mode) {
-        return APITracer.traced(APIEvent.OPEN_DIRECTORY, () -> {
-            Application app = Application.registerApplication(appId);
-            return openFileSystemData(app, dirName, mode, true);
-        });
-    }
-
-    private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
+    /**
+     * Handles the opening of a file system-related data.
+     * 
+     * @param app application opening the data
+     * @param fileName path of the data entity
+     * @param direction direction of the access
+     * @param isDir {@literal true} if it is a directory opening; {@literal false} otherwise
+     * @return path of the where to find the data to be opened
+     */
+    public static String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
         LOGGER.info("Opening " + fileName + " in direction " + direction);
         // Parse arguments to internal structures
         DataLocation loc;
@@ -635,14 +636,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return finalPath;
     }
 
-    @Override
-    public void closeFile(Long appId, String fileName, Direction mode) {
-        APITracer.traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
-            Application app = Application.registerApplication(appId);
-            closeFile(app, fileName, mode);
-        });
-    }
-
     /**
      * Closes the opened file version.
      *
@@ -650,7 +643,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * @param fileName File name.
      * @param direction Access mode.
      */
-    private void closeFile(Application app, String fileName, Direction direction) {
+    public static void closeFile(Application app, String fileName, Direction direction) {
         LOGGER.info("Closing " + fileName + " in direction " + direction);
 
         // Parse arguments to internal structures
@@ -819,7 +812,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return hashCode;
     }
 
-    private String mainAccessToFile(FileMainAccess<?, ?> access, String fileName) {
+    private static String mainAccessToFile(FileMainAccess<?, ?> access, String fileName) {
         // Tell the AP that the application wants to access a file.
         DataLocation targetLocation;
         try {

@@ -36,9 +36,13 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.access.BindingObjectMainAccess;
+import es.bsc.compss.types.data.access.DirectoryMainAccess;
+import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
+import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.params.BindingObjectData;
 import es.bsc.compss.types.data.params.CollectionData;
@@ -61,6 +65,7 @@ import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -815,6 +820,27 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
+    public String openFile(String fileName, Direction mode) {
+        return APITracer.traced(APIEvent.OPEN_FILE, () -> {
+            return COMPSsRuntimeImpl.openFileSystemData(this, fileName, mode, false);
+        });
+    }
+
+    @Override
+    public void getFile(String fileName) {
+        APITracer.traced(APIEvent.GET_FILE, (Runnable) () -> {
+            COMPSsRuntimeImpl.getFile(this, fileName);
+        });
+    }
+
+    @Override
+    public void closeFile(String fileName, Direction mode) {
+        APITracer.traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
+            COMPSsRuntimeImpl.closeFile(this, fileName, mode);
+        });
+    }
+
+    @Override
     public boolean deleteFile(String fileName, boolean waitForData, boolean applicationDelete) {
         return APITracer.traced(APIEvent.DELETE_FILE, () -> {
             // Check parameters
@@ -834,6 +860,13 @@ public class WorkflowImpl extends Application implements Workflow {
             LOGGER.info("File " + fileName + " Deleted.");
             // Return deletion was successful
             return true;
+        });
+    }
+
+    @Override
+    public void getDirectory(String dirName) {
+        APITracer.traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
+            COMPSsRuntimeImpl.getDirectory(this, dirName);
         });
     }
 

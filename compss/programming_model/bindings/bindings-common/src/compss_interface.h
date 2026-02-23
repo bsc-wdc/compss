@@ -143,12 +143,37 @@ struct CompssWorkflow {
         char* fileName
     );
 
+
+    void (*open_file)(
+        struct CompssWorkflow* self,
+        char* fileName,
+        int mode,
+        char** buf
+    );
+
+    void (*get_file)(
+        struct CompssWorkflow* self,
+        char* fileName
+    );
+
+    void (*close_file)(
+        struct CompssWorkflow* self,
+        char* fileName,
+        int mode
+    );
+
     bool (*delete_file)(
         struct CompssWorkflow* self,
         char* fileName,
         int waitForData,
         int applicationDelete
     );
+
+    void (*get_directory)(
+        struct CompssWorkflow* self,
+        char* dirName
+    );
+
 };
 
 struct CompssInterface {

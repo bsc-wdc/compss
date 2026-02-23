@@ -18,6 +18,7 @@ package es.bsc.compss.api;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -240,6 +241,30 @@ public interface Workflow {
     boolean isFileAccessed(String fileName);
 
     /**
+     * Returns the renaming of the file version opened.
+     *
+     * @param fileName File.
+     * @param mode Access mode.
+     * @return Renaming of the current file version.
+     */
+    String openFile(String fileName, Direction mode);
+
+    /**
+     * Closes the given file {@code fileName}.
+     *
+     * @param fileName File version name.
+     * @param mode Access mode.
+     */
+    void closeFile(String fileName, Direction mode);
+
+    /**
+     * Retrieves the last version of file with its original name.
+     *
+     * @param fileName File name.
+     */
+    void getFile(String fileName);
+
+    /**
      * Deletes the specified version of a file.
      *
      * @param fileName File name.
@@ -248,6 +273,13 @@ public interface Workflow {
      * @return true if the {@literal fileName} has been deleted, false otherwise.
      */
     boolean deleteFile(String fileName, boolean waitForData, boolean applicationDelete);
+
+    /**
+     * Returns last version of directory with its original name.
+     *
+     * @param dirName Directory name.
+     */
+    void getDirectory(String dirName);
 
     /**
      * Returns a copy of the last version of the given object {@code o}.

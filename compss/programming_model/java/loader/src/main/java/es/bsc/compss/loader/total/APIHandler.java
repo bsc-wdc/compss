@@ -86,7 +86,7 @@ public final class APIHandler {
      * @param fileName File path.
      */
     public static void getFile(COMPSsRuntime api, JavaWorkflow wf, String fileName) {
-        api.getFile(wf.getId(), fileName);
+        wf.getFile(fileName);
     }
 
     /**
@@ -97,7 +97,7 @@ public final class APIHandler {
      * @param path Directory path.
      */
     public static void getDirectory(COMPSsRuntime api, JavaWorkflow wf, String path) {
-        api.getDirectory(wf.getId(), path);
+        wf.getDirectory(path);
     }
 
     /**

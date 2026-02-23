@@ -61,8 +61,11 @@ import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.parameter.impl.StreamParameter;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
+import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
@@ -133,6 +136,14 @@ public class WorkflowImpl extends Application implements Workflow {
             AP.deleteAllApplicationDataRequest(this);
         });
     }
+
+
+    /*
+     * ************************************************************************************************************
+     * **************************************** TASK MANAGEMENT ***************************************************
+     * ************************************************************************************************************
+     */
+
 
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier) {
@@ -328,7 +339,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     String dirName = content.toString();
                     File dirFile = new File(dirName);
                     String originalName = dirFile.getName();
-                    DataLocation location = COMPSsRuntimeImpl.createLocation(ProtocolType.DIR_URI, dirName);
+                    DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
                     pars.add(DirectoryParameter.newDP(this, direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName, monitor));
                     if (DP_ENABLED) {
@@ -354,7 +365,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     String fileName = content.toString();
                     File f = new File(fileName);
                     String originalName = f.getName();
-                    DataLocation location = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, content.toString());
+                    DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
                     pars.add(FileParameter.newFP(this, direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName, monitor));
                     if (DP_ENABLED) {
@@ -391,8 +402,7 @@ public class WorkflowImpl extends Application implements Workflow {
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = content.toString();
-                    DataLocation location =
-                        COMPSsRuntimeImpl.createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
+                    DataLocation location = createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
                     String originalName = new File(fileName).getName();
                     pars.add(ExternalStreamParameter.newESP(this, direction, stream, prefix, name, location,
                         originalName, monitor));
@@ -403,8 +413,9 @@ public class WorkflowImpl extends Application implements Workflow {
                 break;
             case EXTERNAL_PSCO_T:
                 String id = content.toString();
+                int pscoCode = externalObjectHashcode(id);
                 pars.add(ExternalPSCOParameter.newEPOP(this, direction, stream, prefix, name, weight, id,
-                    COMPSsRuntimeImpl.externalObjectHashcode(id), monitor));
+                        pscoCode, monitor));
                 break;
             case BINDING_OBJECT_T:
                 String value = content.toString();
@@ -414,9 +425,9 @@ public class WorkflowImpl extends Application implements Workflow {
                         String extObjectId = fields[0];
                         int extObjectType = Integer.parseInt(fields[1]);
                         int extObjectElements = Integer.parseInt(fields[2]);
+                        int boCode = externalObjectHashcode(extObjectId);
                         pars.add(BindingObjectParameter.newBOP(this, direction, stream, prefix, name, pyType, weight,
-                            new BindingObject(extObjectId, extObjectType, extObjectElements),
-                            COMPSsRuntimeImpl.externalObjectHashcode(extObjectId), monitor));
+                            new BindingObject(extObjectId, extObjectType, extObjectElements), boCode, monitor));
                     } else {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -582,7 +593,7 @@ public class WorkflowImpl extends Application implements Workflow {
 
     private boolean hasReturn(List<Parameter> parameters) {
         boolean hasReturn = false;
-        if (parameters.size() != 0) {
+        if (!parameters.isEmpty()) {
             Parameter lastParam = parameters.get(parameters.size() - 1);
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT && (type == DataType.OBJECT_T
@@ -675,6 +686,12 @@ public class WorkflowImpl extends Application implements Workflow {
 
     }
 
+    /*
+     * ************************************************************************************************************
+     * **************************************** DATA MANAGEMENT ***************************************************
+     * ************************************************************************************************************
+     */
+
     @Override
     public void registerData(DataType type, Object stub, String data) {
         APITracer.traced(APIEvent.REGISTER_DATA, (Runnable) () -> {
@@ -687,7 +704,7 @@ public class WorkflowImpl extends Application implements Workflow {
                         // Parse arguments to internal structures
                         DataLocation loc;
                         try {
-                            loc = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+                            loc = createLocation(ProtocolType.FILE_URI, fileName);
                         } catch (IOException ioe) {
                             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
                             return;
@@ -762,7 +779,7 @@ public class WorkflowImpl extends Application implements Workflow {
             // Parse the file name
             DataLocation sourceLocation = null;
             try {
-                sourceLocation = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+                sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
             } catch (IOException ioe) {
                 ErrorManager.fatal(ERROR_FILE_NAME, ioe);
             }
@@ -805,7 +822,7 @@ public class WorkflowImpl extends Application implements Workflow {
         return APITracer.traced(APIEvent.CHECK_FILE, () -> {
             DataLocation loc;
             try {
-                loc = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+                loc = createLocation(ProtocolType.FILE_URI, fileName);
             } catch (IOException ioe) {
                 ErrorManager.fatal(ERROR_FILE_NAME, ioe);
                 loc = null;
@@ -822,21 +839,45 @@ public class WorkflowImpl extends Application implements Workflow {
     @Override
     public String openFile(String fileName, Direction mode) {
         return APITracer.traced(APIEvent.OPEN_FILE, () -> {
-            return COMPSsRuntimeImpl.openFileSystemData(this, fileName, mode, false);
+            return openFileSystemData(fileName, mode, false);
         });
     }
 
     @Override
     public void getFile(String fileName) {
         APITracer.traced(APIEvent.GET_FILE, (Runnable) () -> {
-            COMPSsRuntimeImpl.getFile(this, fileName);
+            // Parse the file name
+            DataLocation sourceLocation = null;
+            try {
+                sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            }
+            if (sourceLocation == null) {
+                ErrorManager.fatal(ERROR_FILE_NAME);
+            }
+
+            LOGGER.debug("Getting file " + fileName);
+            String renamedPath = openFileSystemData(fileName, Direction.INOUT, false);
+            // If renamePth is the same as original, file has not accessed. Nothing to do.
+            if (!renamedPath.equals(sourceLocation.getPath())) {
+                try {
+                    String intermediateTmpPath = renamedPath + ".tmp";
+                    FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
+                    closeFileData(fileName, Direction.INOUT);
+                    AP.deleteData(this, new FileData(sourceLocation), true, false);
+                    FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
+                } catch (IOException ioe) {
+                    LOGGER.error("Move not possible ", ioe);
+                }
+            }
         });
     }
 
     @Override
     public void closeFile(String fileName, Direction mode) {
         APITracer.traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
-            COMPSsRuntimeImpl.closeFile(this, fileName, mode);
+            closeFileData(fileName, mode);
         });
     }
 
@@ -852,7 +893,7 @@ public class WorkflowImpl extends Application implements Workflow {
 
             // Parse the file name and translate the access mode
             try {
-                DataLocation loc = COMPSsRuntimeImpl.createLocation(ProtocolType.FILE_URI, fileName);
+                DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
                 AP.deleteData(this, new FileData(loc), waitForData, applicationDelete);
             } catch (IOException ioe) {
                 ErrorManager.fatal(ERROR_FILE_NAME, ioe);
@@ -866,7 +907,30 @@ public class WorkflowImpl extends Application implements Workflow {
     @Override
     public void getDirectory(String dirName) {
         APITracer.traced(APIEvent.GET_DIRECTORY, (Runnable) () -> {
-            COMPSsRuntimeImpl.getDirectory(this, dirName);
+            // Parse the dir name
+            DataLocation sourceLocation = null;
+            try {
+                sourceLocation = createLocation(ProtocolType.DIR_URI, dirName);
+            } catch (IOException ioe) {
+                ErrorManager.fatal(ERROR_DIR_NAME, ioe);
+            }
+            if (sourceLocation == null) {
+                ErrorManager.fatal(ERROR_DIR_NAME);
+            }
+
+            LOGGER.debug("Getting directory " + dirName);
+            String renamedPath = openFileSystemData(dirName, Direction.IN, true);
+            try {
+                LOGGER.debug("Getting directory renamed path: " + renamedPath);
+                String intermediateTmpPath = renamedPath + ".tmp";
+                FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
+                closeFileData(dirName, Direction.IN);
+
+                AP.deleteData(this, new FileData(sourceLocation), true, false);
+                FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
+            } catch (IOException ioe) {
+                LOGGER.error("Move not possible ", ioe);
+            }
         });
     }
 
@@ -905,7 +969,7 @@ public class WorkflowImpl extends Application implements Workflow {
             BindingObject bo = BindingObject.generate(fileName);
             BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
             String boId = boLoc.getId();
-            int hashCode = COMPSsRuntimeImpl.externalObjectHashcode(boId);
+            int hashCode = externalObjectHashcode(boId);
             BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(this, Direction.INOUT, bo, hashCode);
 
             // Otherwise we request it from a task
@@ -945,8 +1009,8 @@ public class WorkflowImpl extends Application implements Workflow {
 
             // Parse the binding object name and translate the access mode
             BindingObject bo = BindingObject.generate(fileName);
-            int hashCode = COMPSsRuntimeImpl.externalObjectHashcode(bo.getId());
-            AP.deleteData(this, new BindingObjectData(hashCode), false, false);
+            int boCode = externalObjectHashcode(bo.getId());
+            AP.deleteData(this, new BindingObjectData(boCode), false, false);
 
             // Return deletion was successful
             return true;
@@ -962,4 +1026,185 @@ public class WorkflowImpl extends Application implements Workflow {
         });
     }
 
+
+    /*
+     * ************************************************************************************************************
+     * ***************************************** HELPER METHODS ***************************************************
+     * ************************************************************************************************************
+     */
+
+
+    private String openFileSystemData(String fileName, Direction direction, boolean isDir) {
+        LOGGER.info("Opening " + fileName + " in direction " + direction);
+        // Parse arguments to internal structures
+        DataLocation loc;
+        try {
+            loc = createLocation(isDir ? ProtocolType.DIR_URI : ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            return null;
+        }
+
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
+        String finalPath;
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                FileMainAccess<?, ?> access;
+                if (isDir) {
+                    access = DirectoryMainAccess.constructDMA(this, direction, loc);
+                } else {
+                    access = FileMainAccess.constructFMA(this, direction, loc);
+                }
+                finalPath = mainAccessToFile(access, fileName);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
+                }
+                break;
+            case PERSISTENT:
+                String id = ((PersistentLocation) loc).getId();
+                int ePscoHashcode = externalObjectHashcode(id);
+                ExternalPSCObjectMainAccess eoap;
+                eoap = ExternalPSCObjectMainAccess.constructEPOMA(this, Direction.INOUT, id, ePscoHashcode);
+
+                // Otherwise we request it from a task
+                try {
+                    String newPscoId = AP.mainAccess(eoap);
+                    finalPath = ProtocolType.PERSISTENT_URI.getSchema() + newPscoId;
+                } catch (ValueUnawareRuntimeException e) {
+                    finalPath = id;
+                }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("External PSCO target Location: " + finalPath);
+                }
+                break;
+
+            default:
+                finalPath = null;
+                ErrorManager.error(
+                        "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
+        }
+        return finalPath;
+    }
+
+    public void closeFileData(String fileName, Direction direction) {
+        LOGGER.info("Closing " + fileName + " in direction " + direction);
+
+        // Parse arguments to internal structures
+        DataLocation loc;
+        try {
+            loc = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+            return;
+        }
+
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                FileMainAccess fma = FileMainAccess.constructFMA(this, direction, loc);
+                AP.finishDataAccess(fma, null);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Closing file " + loc.getPath());
+                }
+                break;
+            case PERSISTENT:
+                // Nothing to do
+                ErrorManager.warn("WARN: Cannot close file " + fileName + " with PSCO protocol");
+                break;
+            case BINDING:
+                // Nothing to do
+                ErrorManager.warn("WARN: Cannot close binding object " + fileName + " with PSCO protocol");
+                break;
+            default:
+                ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
+        }
+    }
+
+
+    /**
+     * Computes the HashCode identifier for an external Binding object.
+     *
+     * @param id identifier for an external BO
+     * @return hashcode of the identifier
+     */
+    private static int externalObjectHashcode(String id) {
+        int hashCode = 7;
+        for (int i = 0; i < id.length(); ++i) {
+            hashCode = hashCode * 31 + id.charAt(i);
+        }
+
+        return hashCode;
+    }
+
+    private static String mainAccessToFile(FileMainAccess<?, ?> access, String fileName) {
+        // Tell the AP that the application wants to access a file.
+        DataLocation targetLocation;
+        try {
+            targetLocation = AP.mainAccess(access);
+        } catch (ValueUnawareRuntimeException ex) {
+            targetLocation = access.getParameters().getLocation();
+        }
+
+        // Checks on target
+        String path = (targetLocation == null) ? fileName : targetLocation.getPath();
+        DataLocation finalLocation = (targetLocation == null) ? access.getParameters().getLocation() : targetLocation;
+        if (finalLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+            return null;
+        }
+
+        // Return the final target path
+        String finalPath;
+        MultiURI u = finalLocation.getURIInHost(Comm.getAppHost());
+        if (u != null) {
+            finalPath = u.getPath();
+        } else {
+            finalPath = path;
+        }
+
+        return finalPath;
+    }
+
+    /**
+     * Creates a location from an URI as a string.
+     *
+     * @param defaultSchema schema, if not indicated in the URI
+     * @param uri uri to create a Data Location
+     * @return DataLocation equivalent to the URI
+     * @throws IOException cannot convert to SimpleURI
+     */
+    private static DataLocation createLocation(ProtocolType defaultSchema, String uri) throws IOException {
+        // Check if fileName contains schema
+        SimpleURI sURI = new SimpleURI(uri);
+
+        // Check host
+        Resource host;
+        String hostName = sURI.getHost();
+        host = Comm.getAppHost();
+        if (hostName != null && !hostName.isEmpty()) {
+            Resource uriHost = ResourcesPool.getResource(hostName);
+            if (uriHost == null) {
+                ErrorManager.error("Host " + hostName + " not found when creating data location.");
+            } else {
+                host = uriHost;
+                uri = sURI.getPath();
+            }
+        }
+
+        if (sURI.getSchema().isEmpty()) {
+            if (uri.startsWith("/")) {
+                // todo: make pretty and sure it works
+                sURI = new SimpleURI(defaultSchema.getSchema() + uri);
+            } else {
+                // Add default File scheme and wrap local paths
+                String canonicalPath = new File(uri).getCanonicalPath();
+                sURI = new SimpleURI(defaultSchema.getSchema() + canonicalPath);
+            }
+        }
+
+        // Create location
+        return DataLocation.createLocation(host, sURI);
+    }
 }

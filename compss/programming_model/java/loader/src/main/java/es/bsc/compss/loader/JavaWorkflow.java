@@ -106,11 +106,7 @@ public class JavaWorkflow implements Workflow {
         this.workflow.getDirectory(dirName);
     }
 
-    /**
-     * Registers new write access from the main code of the workflow to an object.
-     *
-     * @param o Object parameter.
-     */
+    @Override
     public <T> T getObject(T o) {
         return this.oReg.newObjectAccess(o, true);
     }
@@ -140,12 +136,6 @@ public class JavaWorkflow implements Workflow {
         return this.oReg.getInternalObject(o);
     }
 
-    /**
-     * Deletes the given object {@code o}.
-     *
-     * @param o Object.
-     * @return {@code true} if the object has been removed, {@code false} otherwise.
-     */
     @Override
     public boolean removeObject(Object o) {
         return this.oReg.delete(o);

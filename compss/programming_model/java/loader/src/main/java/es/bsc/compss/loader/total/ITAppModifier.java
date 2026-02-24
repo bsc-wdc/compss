@@ -162,10 +162,7 @@ public final class ITAppModifier {
         appClass.addField(apiField);
         getters.put("getRuntime", apiField);
 
-        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
-        CtField srField = buildField(classPool, appClass, LoaderConstants.CLASS_STREAM_REGISTRY, itSRVar);
-        appClass.addField(srField);
-        getters.put("getStreamRegistry", srField);
+        String itSR = LoaderConstants.CLASS_STREAM_REGISTRY;
 
         String itWfVar = varName + LoaderConstants.STR_COMPSS_WORKFLOW;
         String instWf;
@@ -183,7 +180,7 @@ public final class ITAppModifier {
         }
 
         // Instrument class
-        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, instWf, isMainClass);
+        instrumentClass(classPool, appClass, annotItf, itApiVar, itSR, instWf, isMainClass);
 
         addGetters(appClass, getters);
         StringBuilder methodBody = new StringBuilder();
@@ -200,7 +197,7 @@ public final class ITAppModifier {
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
 
-        addModifyVariablesMethods(appClass, itApiVar, itSRVar, itWfVar, perThreadWf, isMainClass);
+        addModifyVariablesMethods(appClass, itApiVar, itSR, itWfVar, perThreadWf, isMainClass);
         return appClass;
     }
 
@@ -342,12 +339,10 @@ public final class ITAppModifier {
         methodBody = new StringBuilder();
         methodBody.append("public static void setCOMPSsVariables( ") //
             .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime, ")//
-            .append(LoaderConstants.CLASS_LOADERAPI).append(" loader, ")//
             .append(LoaderConstants.CLASS_WORKFLOW).append(" wf") //
             .append(") {") //
             .append(itApiVar).append("= runtime;") //
-            .append("setupWorkflowSupplier();") //
-            .append(itSRVar).append("= loader.getStreamRegistry();"); //
+            .append("setupWorkflowSupplier();"); //
         String wfSetInstr;
         if (perThreadWf) {
             wfSetInstr = itWfVar + ".set(wf)";
@@ -365,11 +360,9 @@ public final class ITAppModifier {
         methodBody = new StringBuilder();
         methodBody.append("public static void setCOMPSsVariables( ") //
             .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime, ") //
-            .append(LoaderConstants.CLASS_LOADERAPI).append(" loader") //
             .append(") {") //
             .append(itApiVar).append("= runtime;") //
-            .append("setupWorkflowSupplier();") //
-            .append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("(loader);");//
+            .append("setupWorkflowSupplier();");
 
         if (WALL_CLOCK_LIMIT > 0) {
             // Setting wall clock limit with runtime stop.

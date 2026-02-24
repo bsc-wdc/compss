@@ -17,7 +17,6 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.Workflow;
-import es.bsc.compss.loader.LoaderAPI;
 
 import java.io.File;
 
@@ -26,7 +25,6 @@ public class COMPSsFile extends File {
 
     private static final long serialVersionUID = 1L;
 
-    private final StreamRegistry sReg;
     private final Workflow wf;
     private final String pathname;
 
@@ -36,12 +34,10 @@ public class COMPSsFile extends File {
      * {@code api}.
      *
      * @param wf workflow accessing the file
-     * @param sReg StreamRegistry handling the COMPSs file
      * @param f Associated file.
      */
-    public COMPSsFile(Workflow wf, StreamRegistry sReg, File f) {
+    public COMPSsFile(Workflow wf, File f) {
         super(f.getAbsolutePath());
-        this.sReg = sReg;
         this.wf = wf;
         this.pathname = f.getAbsolutePath();
     }
@@ -85,7 +81,7 @@ public class COMPSsFile extends File {
     public boolean delete() {
         boolean deleted = this.wf.deleteFile(this.pathname, true, true);
         if (deleted) {
-            this.sReg.deleteTaskFile(this.pathname);
+            StreamRegistry.deleteTaskFile(this.pathname);
         }
         return deleted;
     }
@@ -97,7 +93,7 @@ public class COMPSsFile extends File {
      */
     public File synchFile() {
         wf.getFile(this.pathname);
-        this.sReg.deleteTaskFile(this.pathname);
+        StreamRegistry.deleteTaskFile(this.pathname);
         return new File(this.pathname);
     }
 

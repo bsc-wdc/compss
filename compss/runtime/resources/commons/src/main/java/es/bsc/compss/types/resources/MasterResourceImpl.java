@@ -20,7 +20,6 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.uri.MultiURI;
 
@@ -85,13 +84,11 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
      * Configures the necessary parameters so tasks executed in the worker are able to detect nested tasks.
      *
      * @param runtimeAPI runtimeAPI implementation handling the task execution
-     * @param loader loaderAPI implementation to detect data accesses
      */
-    public void setupNestedSupport(COMPSsRuntime runtimeAPI, LoaderAPI loader) {
+    public void setupNestedSupport(COMPSsRuntime runtimeAPI) {
         boolean enableNested = Boolean.parseBoolean(System.getProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION));
         if (enableNested) {
             ((COMPSsMaster) this.getNode()).setRuntimeApi(runtimeAPI);
-            ((COMPSsMaster) this.getNode()).setLoaderApi(loader);
         }
     }
 }

@@ -25,7 +25,6 @@ import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.RParams;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.ErrorHandler;
 import es.bsc.compss.types.execution.Invocation;
@@ -598,11 +597,6 @@ public class GOSWorker implements InvocationContext {
 
     @Override
     public COMPSsRuntime getRuntimeAPI() {
-        return null;
-    }
-
-    @Override
-    public LoaderAPI getLoaderAPI() {
         return null;
     }
 

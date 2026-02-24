@@ -20,7 +20,6 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.JavaWorkflow;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.types.CoreElementDefinition;
@@ -44,7 +43,6 @@ public class JavaNestedInvoker extends JavaInvoker {
     private String ceiName;
     private Class<?> ceiClass;
     private final COMPSsRuntime runtimeAPI;
-    private final LoaderAPI loaderAPI;
 
 
     /**
@@ -60,7 +58,6 @@ public class JavaNestedInvoker extends JavaInvoker {
         InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, sandbox, assignedResources);
         runtimeAPI = context.getRuntimeAPI();
-        loaderAPI = context.getLoaderAPI();
     }
 
     @Override
@@ -122,7 +119,6 @@ public class JavaNestedInvoker extends JavaInvoker {
             try {
                 setter = this.methodClass.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                        Class.forName(LoaderConstants.CLASS_LOADERAPI),
                         Class.forName(LoaderConstants.CLASS_WORKFLOW) });
             } catch (Exception e) {
                 throw new JobExecutionException("Class not properly instrumented. Method setCOMPSsVariables not found!",
@@ -130,7 +126,6 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
             try {
                 Object[] values = new Object[] { this.runtimeAPI,
-                    this.loaderAPI,
                     wf };
                 setter.invoke(null, values);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

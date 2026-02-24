@@ -33,7 +33,6 @@ import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.RParams;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
@@ -1474,11 +1473,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public COMPSsRuntime getRuntimeAPI() {
-        return null;
-    }
-
-    @Override
-    public LoaderAPI getLoaderAPI() {
         return null;
     }
 

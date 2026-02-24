@@ -552,7 +552,7 @@ public class Executor implements Runnable, InvocationRunner {
                 Invoker javaInvoker = null;
                 switch (context.getExecutionType()) {
                     case COMPSS:
-                        if (context.getRuntimeAPI() != null && context.getLoaderAPI() != null) {
+                        if (context.getRuntimeAPI() != null) {
                             out.println("Nested Support enabled on the Invocation Context!");
                             javaInvoker = new JavaNestedInvoker(context, invocation, sandbox, assignedResources);
                         } else {

@@ -52,7 +52,6 @@ public class LoaderConstants {
     public static final String CLASS_STREAM_REGISTRY = StreamRegistry.class.getCanonicalName();
     public static final String CLASS_ARRAY_ACCESS_WATCHER = ArrayAccessWatcher.class.getCanonicalName();
     public static final String CLASS_COMPSS_API_IMPL = "es.bsc.compss.api.impl.COMPSsRuntimeImpl";
-    public static final String CLASS_LOADERAPI = LoaderAPI.class.getCanonicalName();
     public static final String CLASS_ANNOTATIONS_ORCHESTRATION = Orchestration.class.getCanonicalName();
     public static final String CLASS_COMPSS_CONSTANTS = COMPSsConstants.class.getCanonicalName();
     public static final String CLASS_COMPSS_GROUP_LOADER = COMPSsGroupLoader.class.getCanonicalName();

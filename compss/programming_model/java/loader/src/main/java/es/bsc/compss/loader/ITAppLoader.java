@@ -68,9 +68,8 @@ public class ITAppLoader {
 
             System.setProperty(COMPSsConstants.APP_NAME, appName);
             Method initializer = modAppClass.getDeclaredMethod("setCOMPSsVariables",
-                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                    Class.forName(LoaderConstants.CLASS_LOADERAPI) });
-            initializer.invoke(null, rt, (LoaderAPI) rt);
+                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API) });
+            initializer.invoke(null, rt);
 
             try {
                 LOGGER.debug("Executing " + appName);

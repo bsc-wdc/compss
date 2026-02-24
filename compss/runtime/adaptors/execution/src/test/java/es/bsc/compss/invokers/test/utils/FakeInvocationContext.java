@@ -19,7 +19,6 @@ package es.bsc.compss.invokers.test.utils;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -261,11 +260,6 @@ public class FakeInvocationContext implements InvocationContext {
 
     @Override
     public COMPSsRuntime getRuntimeAPI() {
-        return null;
-    }
-
-    @Override
-    public LoaderAPI getLoaderAPI() {
         return null;
     }
 

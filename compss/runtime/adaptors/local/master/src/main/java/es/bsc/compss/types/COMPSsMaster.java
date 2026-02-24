@@ -30,7 +30,6 @@ import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.RParams;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
 import es.bsc.compss.log.LoggerManager;
@@ -107,7 +106,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     public static final String SUFFIX_ERR = ".err";
 
     private COMPSsRuntime runtimeApi;
-    private LoaderAPI loaderApi;
 
     private final String storageConf;
     private final TaskExecution executionType;
@@ -180,7 +178,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         // Nested Management variables
         this.runtimeApi = null;
-        this.loaderApi = null;
 
         // Configure worker debug level
         this.out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
@@ -1508,11 +1505,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public LoaderAPI getLoaderAPI() {
-        return this.loaderApi;
-    }
-
-    @Override
     public String getEnvironmentScript() {
         return null;
     }
@@ -1525,10 +1517,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public boolean getDataProvenance() {
         return this.dataProvenance;
-    }
-
-    public void setLoaderApi(LoaderAPI loaderApi) {
-        this.loaderApi = loaderApi;
     }
 
 }

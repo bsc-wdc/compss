@@ -25,7 +25,6 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.socketserver.SocketServer;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
@@ -35,35 +34,20 @@ import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ErrorHandler;
 import es.bsc.compss.types.WallClockTimerTask;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.access.DirectoryMainAccess;
-import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
-import es.bsc.compss.types.data.access.FileMainAccess;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.PersistentLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
-import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -75,7 +59,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler {
+public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
 
     // Exception constants definition
     private static final String WARN_VERSION_PROPERTIES =
@@ -90,9 +74,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     // Boolean for initialization
     private static boolean initialized = false;
     private boolean stopped = false;
-
-    // Registries
-    private static StreamRegistry sReg;
 
     // Components
     private static AccessProcessor ap;
@@ -169,7 +150,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             }
         }
         ErrorManager.init(this);
-        ((MasterResourceImpl) Comm.getAppHost()).setupNestedSupport(this, this);
+        ((MasterResourceImpl) Comm.getAppHost()).setupNestedSupport(this);
     }
 
     /*
@@ -335,16 +316,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      */
 
     @Override
-    public StreamRegistry getStreamRegistry() {
-        return sReg;
-    }
-
-    @Override
-    public void setStreamRegistry(StreamRegistry sReg) {
-        COMPSsRuntimeImpl.sReg = sReg;
-    }
-
-    @Override
     public String getTempDir() {
         return Comm.getAppHost().getWorkingDirectory();
     }
@@ -488,11 +459,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         });
     }
 
-
-
-
-
-
     /**
      * Notifies the runtime that an application will not produce more tasks.
      *
@@ -601,8 +567,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     /*
-     * ************************************************************************************************************
-     * Wall Clock Manager
+     * ************************************************************************************************************ Wall
+     * Clock Manager
      * ************************************************************************************************************
      */
 

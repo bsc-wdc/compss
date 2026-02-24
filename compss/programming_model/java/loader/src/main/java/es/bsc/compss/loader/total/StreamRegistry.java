@@ -17,7 +17,6 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.Workflow;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.util.ErrorManager;
@@ -45,6 +44,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -53,7 +53,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,33 +63,16 @@ public class StreamRegistry {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
     private static final String LINE_SEP = System.getProperty("line.separator");
 
-    // API object used to invoke calls on the COMPSsRuntimeImpl
-    private final LoaderAPI itApi;
-
     /*
      * Map: file absolute path -> list of opened streams of the file Only local files are accepted, since a java stream
      * cannot be opened on a remote file
      */
-    private final Map<String, StreamList> fileToStreams;
+    private static final Map<String, StreamList> FILE_TO_STREAMS = new HashMap<>();
 
-    private final Set<String> taskFiles;
+    private static final Set<String> TASK_FILES = new HashSet<>();
 
-    private final boolean onWindows;
+    private static final boolean ON_WINDOWS = (File.separatorChar == '\\');
 
-
-    /**
-     * Creates a new StreamRegistry instance.
-     * 
-     * @param api Associated Loader API.
-     */
-    public StreamRegistry(LoaderAPI api) {
-        this.itApi = api;
-        this.fileToStreams = new TreeMap<>();
-        this.taskFiles = new HashSet<String>();
-        this.onWindows = (File.separatorChar == '\\');
-
-        this.itApi.setStreamRegistry(this);
-    }
 
     /**
      * Creates a new FileInputStream from the given file {@code file}.
@@ -100,7 +82,7 @@ public class StreamRegistry {
      * @return FileInputStream pointing to the given file.
      * @throws FileNotFoundException When file does not exist.
      */
-    public FileInputStream newFileInputStream(Workflow wf, File file) throws FileNotFoundException {
+    public static FileInputStream newFileInputStream(Workflow wf, File file) throws FileNotFoundException {
         Direction direction = Direction.IN;
         StreamList list = obtainList(wf, file, direction);
 
@@ -128,7 +110,7 @@ public class StreamRegistry {
      * @param fd FileDescriptor.
      * @return FileInputStream pointing to the given file descriptor.
      */
-    public FileInputStream newFileInputStream(Workflow wf, FileDescriptor fd) {
+    public static FileInputStream newFileInputStream(Workflow wf, FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileInputStream fis = new FileInputStream(fd);
         if (list != null) { // Should always be not null
@@ -145,7 +127,7 @@ public class StreamRegistry {
      * @return FileInputStream pointing to the given file name.
      * @throws FileNotFoundException When the file denoted by the abstract {@code fileName} does not exist.
      */
-    public FileInputStream newFileInputStream(Workflow wf, String fileName) throws FileNotFoundException {
+    public static FileInputStream newFileInputStream(Workflow wf, String fileName) throws FileNotFoundException {
         return newFileInputStream(wf, new File(fileName));
     }
 
@@ -158,7 +140,8 @@ public class StreamRegistry {
      * @return FileOutputStream pointing to the given file.
      * @throws FileNotFoundException When the file does not exist.
      */
-    public FileOutputStream newFileOutputStream(Workflow wf, File file, boolean append) throws FileNotFoundException {
+    public static FileOutputStream newFileOutputStream(Workflow wf, File file, boolean append)
+        throws FileNotFoundException {
         Direction direction = (append ? Direction.INOUT : Direction.OUT);
         StreamList list = obtainList(wf, file, direction);
 
@@ -182,7 +165,7 @@ public class StreamRegistry {
      * @param fd File descriptor.
      * @return FileOutputStream pointing to the given file descriptor.
      */
-    public FileOutputStream newFileOutputStream(Workflow wf, FileDescriptor fd) {
+    public static FileOutputStream newFileOutputStream(Workflow wf, FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileOutputStream fos = new FileOutputStream(fd);
         if (list != null) { // Should always be not null
@@ -200,7 +183,7 @@ public class StreamRegistry {
      * @return FileOutputStream pointing to the given file.
      * @throws FileNotFoundException When the file does not exist.
      */
-    public FileOutputStream newFileOutputStream(Workflow wf, File file) throws FileNotFoundException {
+    public static FileOutputStream newFileOutputStream(Workflow wf, File file) throws FileNotFoundException {
         return newFileOutputStream(wf, file, false);
     }
 
@@ -214,7 +197,7 @@ public class StreamRegistry {
      * @return FileOutputStream pointing to the given file name.
      * @throws FileNotFoundException When path denoted by the given abstract file name does not exist.
      */
-    public FileOutputStream newFileOutputStream(Workflow wf, String fileName, boolean append)
+    public static FileOutputStream newFileOutputStream(Workflow wf, String fileName, boolean append)
         throws FileNotFoundException {
         return newFileOutputStream(wf, new File(fileName), append);
     }
@@ -227,7 +210,7 @@ public class StreamRegistry {
      * @return FileOutputStream pointing to the given file name.
      * @throws FileNotFoundException When path denoted by the given abstract file name does not exist.
      */
-    public FileOutputStream newFileOutputStream(Workflow wf, String fileName) throws FileNotFoundException {
+    public static FileOutputStream newFileOutputStream(Workflow wf, String fileName) throws FileNotFoundException {
         return newFileOutputStream(wf, new File(fileName), false);
     }
 
@@ -238,7 +221,7 @@ public class StreamRegistry {
      * @param stream Stream to replace.
      * @param filter Filter to apply.
      */
-    public void newFilterStream(Workflow wf, Object stream, Object filter) {
+    public static void newFilterStream(Workflow wf, Object stream, Object filter) {
         /*
          * We have to replace the stream in its list by the wrapper filter, since the close will be done on the wrapper
          */
@@ -248,7 +231,8 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public RandomAccessFile newRandomAccessFile(Workflow wf, File file, String mode) throws FileNotFoundException {
+    public static RandomAccessFile newRandomAccessFile(Workflow wf, File file, String mode)
+        throws FileNotFoundException {
         Direction direction;
         if (mode.length() == 1) { // mode == "r"
             direction = Direction.IN;
@@ -271,7 +255,7 @@ public class StreamRegistry {
         return raf;
     }
 
-    public RandomAccessFile newRandomAccessFile(Workflow wf, String fileName, String mode)
+    public static RandomAccessFile newRandomAccessFile(Workflow wf, String fileName, String mode)
         throws FileNotFoundException {
         return newRandomAccessFile(wf, new File(fileName), mode);
     }
@@ -279,7 +263,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public FileReader newFileReader(Workflow wf, File file) throws FileNotFoundException {
+    public static FileReader newFileReader(Workflow wf, File file) throws FileNotFoundException {
         Direction direction = Direction.IN;
         StreamList list = obtainList(wf, file, direction);
 
@@ -289,14 +273,14 @@ public class StreamRegistry {
         return fr;
     }
 
-    public FileReader newFileReader(Workflow wf, String fileName) throws FileNotFoundException {
+    public static FileReader newFileReader(Workflow wf, String fileName) throws FileNotFoundException {
         return newFileReader(wf, new File(fileName));
     }
 
     /**
      * TODO javadoc.
      */
-    public FileReader newFileReader(Workflow wf, FileDescriptor fd) {
+    public static FileReader newFileReader(Workflow wf, FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileReader fr = new FileReader(fd);
         if (list != null) { // Should always be not null
@@ -309,7 +293,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public InputStreamReader newInputStreamReader(Workflow wf, InputStream is) {
+    public static InputStreamReader newInputStreamReader(Workflow wf, InputStream is) {
         InputStreamReader isr = new InputStreamReader(is);
         /*
          * We have to replace the old stream in its list because the new one wraps it, and the close will be done on the
@@ -325,7 +309,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public InputStreamReader newInputStreamReader(Workflow wf, InputStream is, Charset cs) {
+    public static InputStreamReader newInputStreamReader(Workflow wf, InputStream is, Charset cs) {
         InputStreamReader isr = new InputStreamReader(is, cs);
         replaceStream(is, isr);
 
@@ -335,7 +319,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public InputStreamReader newInputStreamReader(Workflow wf, InputStream is, CharsetDecoder dec) {
+    public static InputStreamReader newInputStreamReader(Workflow wf, InputStream is, CharsetDecoder dec) {
         InputStreamReader isr = new InputStreamReader(is, dec);
         replaceStream(is, isr);
 
@@ -345,7 +329,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public InputStreamReader newInputStreamReader(Workflow wf, InputStream is, String charsetName)
+    public static InputStreamReader newInputStreamReader(Workflow wf, InputStream is, String charsetName)
         throws UnsupportedEncodingException {
         InputStreamReader isr = new InputStreamReader(is, charsetName);
         replaceStream(is, isr);
@@ -356,7 +340,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public BufferedReader newBufferedReader(Workflow wf, Reader r) {
+    public static BufferedReader newBufferedReader(Workflow wf, Reader r) {
         BufferedReader br = new BufferedReader(r);
         /*
          * We have to replace the old stream in its list because the new one wraps it, and the close will be done on the
@@ -372,7 +356,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public BufferedReader newBufferedReader(Workflow wf, Reader r, int size) {
+    public static BufferedReader newBufferedReader(Workflow wf, Reader r, int size) {
         BufferedReader br = new BufferedReader(r, size);
         replaceStream(r, br);
 
@@ -382,7 +366,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public FileWriter newFileWriter(Workflow wf, File file, boolean append) throws IOException {
+    public static FileWriter newFileWriter(Workflow wf, File file, boolean append) throws IOException {
         Direction direction = append ? Direction.INOUT : Direction.OUT;
         StreamList list = obtainList(wf, file, direction);
 
@@ -392,22 +376,22 @@ public class StreamRegistry {
         return fw;
     }
 
-    public FileWriter newFileWriter(Workflow wf, File file) throws IOException {
+    public static FileWriter newFileWriter(Workflow wf, File file) throws IOException {
         return newFileWriter(wf, file, false);
     }
 
-    public FileWriter newFileWriter(Workflow wf, String fileName, boolean append) throws IOException {
+    public static FileWriter newFileWriter(Workflow wf, String fileName, boolean append) throws IOException {
         return newFileWriter(wf, new File(fileName), append);
     }
 
-    public FileWriter newFileWriter(Workflow wf, String fileName) throws IOException {
+    public static FileWriter newFileWriter(Workflow wf, String fileName) throws IOException {
         return newFileWriter(wf, new File(fileName), false);
     }
 
     /**
      * TODO javadoc.
      */
-    public FileWriter newFileWriter(Workflow wf, FileDescriptor fd) {
+    public static FileWriter newFileWriter(Workflow wf, FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileWriter fw = new FileWriter(fd);
         if (list != null) { // Should always be not null
@@ -420,7 +404,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os) {
+    public static OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os) {
         OutputStreamWriter osw = new OutputStreamWriter(os);
         /*
          * We have to replace the old stream in its list because the new one wraps it, and the close will be done on the
@@ -436,7 +420,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os, Charset cs) {
+    public static OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os, Charset cs) {
         OutputStreamWriter osw = new OutputStreamWriter(os, cs);
         replaceStream(os, osw);
 
@@ -446,7 +430,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os, CharsetEncoder dec) {
+    public static OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os, CharsetEncoder dec) {
         OutputStreamWriter osw = new OutputStreamWriter(os, dec);
         replaceStream(os, osw);
 
@@ -456,7 +440,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os, String charsetName)
+    public static OutputStreamWriter newOutputStreamWriter(Workflow wf, OutputStream os, String charsetName)
         throws UnsupportedEncodingException {
         OutputStreamWriter osw = new OutputStreamWriter(os, charsetName);
         replaceStream(os, osw);
@@ -467,7 +451,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public BufferedWriter newBufferedWriter(Workflow wf, Writer w) {
+    public static BufferedWriter newBufferedWriter(Workflow wf, Writer w) {
         BufferedWriter bw = new BufferedWriter(w);
         /*
          * We have to replace the old stream in its list because the new one wraps it, and the close will be done on the
@@ -483,7 +467,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public BufferedWriter newBufferedWriter(Workflow wf, Writer w, int size) {
+    public static BufferedWriter newBufferedWriter(Workflow wf, Writer w, int size) {
         BufferedWriter bw = new BufferedWriter(w, size);
         replaceStream(w, bw);
 
@@ -493,7 +477,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintStream newPrintStream(Workflow wf, File file) throws FileNotFoundException {
+    public static PrintStream newPrintStream(Workflow wf, File file) throws FileNotFoundException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(wf, file, direction);
 
@@ -506,7 +490,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintStream newPrintStream(Workflow wf, File file, String csn)
+    public static PrintStream newPrintStream(Workflow wf, File file, String csn)
         throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(wf, file, direction);
@@ -520,11 +504,11 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintStream newPrintStream(Workflow wf, String fileName) throws FileNotFoundException {
+    public static PrintStream newPrintStream(Workflow wf, String fileName) throws FileNotFoundException {
         return newPrintStream(wf, new File(fileName));
     }
 
-    public PrintStream newPrintStream(Workflow wf, String fileName, String csn)
+    public static PrintStream newPrintStream(Workflow wf, String fileName, String csn)
         throws FileNotFoundException, UnsupportedEncodingException {
         return newPrintStream(wf, new File(fileName), csn);
     }
@@ -532,7 +516,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintStream newPrintStream(Workflow wf, OutputStream os) {
+    public static PrintStream newPrintStream(Workflow wf, OutputStream os) {
         PrintStream ps = new PrintStream(os);
         replaceStream(os, ps);
 
@@ -542,7 +526,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintStream newPrintStream(Workflow wf, OutputStream os, boolean autoFlush) {
+    public static PrintStream newPrintStream(Workflow wf, OutputStream os, boolean autoFlush) {
         PrintStream ps = new PrintStream(os, autoFlush);
         replaceStream(os, ps);
 
@@ -552,7 +536,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintStream newPrintStream(Workflow wf, OutputStream os, boolean autoFlush, String encoding)
+    public static PrintStream newPrintStream(Workflow wf, OutputStream os, boolean autoFlush, String encoding)
         throws UnsupportedEncodingException {
         PrintStream ps = new PrintStream(os, autoFlush, encoding);
         replaceStream(os, ps);
@@ -563,7 +547,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintWriter newPrintWriter(Workflow wf, File file) throws FileNotFoundException {
+    public static PrintWriter newPrintWriter(Workflow wf, File file) throws FileNotFoundException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(wf, file, direction);
 
@@ -576,7 +560,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintWriter newPrintWriter(Workflow wf, File file, String csn)
+    public static PrintWriter newPrintWriter(Workflow wf, File file, String csn)
         throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(wf, file, direction);
@@ -587,11 +571,11 @@ public class StreamRegistry {
         return pw;
     }
 
-    public PrintWriter newPrintWriter(Workflow wf, String fileName) throws FileNotFoundException {
+    public static PrintWriter newPrintWriter(Workflow wf, String fileName) throws FileNotFoundException {
         return newPrintWriter(wf, new File(fileName));
     }
 
-    public PrintWriter newPrintWriter(Workflow wf, String fileName, String csn)
+    public static PrintWriter newPrintWriter(Workflow wf, String fileName, String csn)
         throws FileNotFoundException, UnsupportedEncodingException {
         return newPrintWriter(wf, new File(fileName), csn);
     }
@@ -599,7 +583,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintWriter newPrintWriter(Workflow wf, OutputStream os) {
+    public static PrintWriter newPrintWriter(Workflow wf, OutputStream os) {
         PrintWriter pw = new PrintWriter(os);
         replaceStream(os, pw);
 
@@ -609,7 +593,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintWriter newPrintWriter(Workflow wf, OutputStream os, boolean autoFlush) {
+    public static PrintWriter newPrintWriter(Workflow wf, OutputStream os, boolean autoFlush) {
         PrintWriter pw = new PrintWriter(os, autoFlush);
         replaceStream(os, pw);
 
@@ -619,7 +603,7 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintWriter newPrintWriter(Workflow wf, Writer w) {
+    public static PrintWriter newPrintWriter(Workflow wf, Writer w) {
         PrintWriter pw = new PrintWriter(w);
         replaceStream(w, pw);
 
@@ -629,43 +613,43 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public PrintWriter newPrintWriter(Workflow wf, Writer w, boolean autoFlush) {
+    public static PrintWriter newPrintWriter(Workflow wf, Writer w, boolean autoFlush) {
         PrintWriter pw = new PrintWriter(w, autoFlush);
         replaceStream(w, pw);
 
         return pw;
     }
 
-    public File newCOMPSsFile(Workflow wf, String filename) {
+    public static File newCOMPSsFile(Workflow wf, String filename) {
         File f = new File(filename);
         return checkAndGetNewFile(wf, f);
     }
 
-    public File newCOMPSsFile(Workflow wf, String parent, String child) {
+    public static File newCOMPSsFile(Workflow wf, String parent, String child) {
         File f = new File(parent, child);
         return checkAndGetNewFile(wf, f);
     }
 
-    public File newCOMPSsFile(Workflow wf, File parent, String child) {
+    public static File newCOMPSsFile(Workflow wf, File parent, String child) {
         File f = new File(parent, child);
         return checkAndGetNewFile(wf, f);
     }
 
-    public File newCOMPSsFile(Workflow wf, URI uri) {
+    public static File newCOMPSsFile(Workflow wf, URI uri) {
         File f = new File(uri);
         return checkAndGetNewFile(wf, f);
     }
 
-    private File checkAndGetNewFile(Workflow wf, File f) {
-        if (taskFiles.contains(f.getAbsolutePath())) {
-            return new COMPSsFile(wf, this, f);
+    private static File checkAndGetNewFile(Workflow wf, File f) {
+        if (TASK_FILES.contains(f.getAbsolutePath())) {
+            return new COMPSsFile(wf, f);
         } else {
             return f;
         }
     }
 
     // Returns the list of streams to which the newly created stream belongs (creating it if necessary)
-    private StreamList obtainList(Workflow wf, File file, Direction direction) {
+    private static StreamList obtainList(Workflow wf, File file, Direction direction) {
         String path = null;
         try {
             // Get the absolute and canonical path of the file
@@ -677,12 +661,12 @@ public class StreamRegistry {
             return null;
         }
 
-        if (onWindows) {
+        if (ON_WINDOWS) {
             // Let's make sure that we have no ambiguities on Windows
             path = path.toLowerCase();
         }
 
-        StreamList list = fileToStreams.get(path);
+        StreamList list = FILE_TO_STREAMS.get(path);
         if (list == null) {
             // First stream opened for this file
             if (DEBUG) {
@@ -715,8 +699,8 @@ public class StreamRegistry {
 
             // Create the list of streams
             list = new StreamList(renaming, direction);
-            synchronized (fileToStreams) {
-                fileToStreams.put(path, list);
+            synchronized (FILE_TO_STREAMS) {
+                FILE_TO_STREAMS.put(path, list);
             }
         } else {
             if (direction != Direction.IN || list.written) {
@@ -744,9 +728,9 @@ public class StreamRegistry {
     }
 
     // Returns the list of streams to which the newly created stream belongs
-    private StreamList obtainList(FileDescriptor fd) {
-        synchronized (fileToStreams) {
-            for (StreamList list : fileToStreams.values()) {
+    private static StreamList obtainList(FileDescriptor fd) {
+        synchronized (FILE_TO_STREAMS) {
+            for (StreamList list : FILE_TO_STREAMS.values()) {
                 if (list.containsFD(fd)) {
                     if (DEBUG) {
                         LOGGER.debug("Found list for file descriptor " + fd + ": file " + list.getRenaming());
@@ -760,9 +744,9 @@ public class StreamRegistry {
     }
 
     // Replace a given stream by another in its list (if present)
-    private void replaceStream(Object oldStream, Object newStream) {
-        synchronized (fileToStreams) {
-            Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
+    private static void replaceStream(Object oldStream, Object newStream) {
+        synchronized (FILE_TO_STREAMS) {
+            Iterator<Entry<String, StreamList>> entryIt = FILE_TO_STREAMS.entrySet().iterator();
             while (entryIt.hasNext()) {
                 Entry<String, StreamList> e = entryIt.next();
                 StreamList list = e.getValue();
@@ -787,14 +771,14 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public void streamClosed(Workflow wf, Object stream) {
+    public static void streamClosed(Workflow wf, Object stream) {
         // Remove the stream from its list
         String filePath = null;
         StreamList list = null;
         boolean found = false;
 
-        synchronized (fileToStreams) {
-            Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
+        synchronized (FILE_TO_STREAMS) {
+            Iterator<Entry<String, StreamList>> entryIt = FILE_TO_STREAMS.entrySet().iterator();
             while (!found && entryIt.hasNext()) {
                 Entry<String, StreamList> e = entryIt.next();
                 filePath = e.getKey();
@@ -835,8 +819,8 @@ public class StreamRegistry {
                 wf.closeFile(filePath, Direction.IN);
             }
             if (list.isEmpty()) {
-                synchronized (fileToStreams) {
-                    fileToStreams.remove(filePath);
+                synchronized (FILE_TO_STREAMS) {
+                    FILE_TO_STREAMS.remove(filePath);
                 }
             }
         }
@@ -845,10 +829,10 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public boolean isTaskFile(String fileName) {
+    public static boolean isTaskFile(String fileName) {
         if (fileName != null) {
             File f = new File(fileName);
-            if (taskFiles.contains(f.getAbsolutePath())) {
+            if (TASK_FILES.contains(f.getAbsolutePath())) {
                 return true;
             } else {
                 return false;
@@ -861,27 +845,27 @@ public class StreamRegistry {
     /**
      * TODO javadoc.
      */
-    public void addTaskFile(String fileName) {
+    public static void addTaskFile(String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }
         File f = new File(fileName);
-        taskFiles.add(f.getAbsolutePath());
+        TASK_FILES.add(f.getAbsolutePath());
     }
 
     /**
      * TODO javadoc.
      */
-    public void deleteTaskFile(String fileName) {
+    public static void deleteTaskFile(String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }
         File f = new File(fileName);
-        taskFiles.remove(f.getAbsolutePath());
+        TASK_FILES.remove(f.getAbsolutePath());
     }
 
 
-    private class StreamList {
+    private static class StreamList {
 
         private String fileRenaming;
         private boolean firstIsInputStream;

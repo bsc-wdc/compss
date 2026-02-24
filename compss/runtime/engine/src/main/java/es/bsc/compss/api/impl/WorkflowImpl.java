@@ -137,13 +137,11 @@ public class WorkflowImpl extends Application implements Workflow {
         });
     }
 
-
     /*
      * ************************************************************************************************************
      * **************************************** TASK MANAGEMENT ***************************************************
      * ************************************************************************************************************
      */
-
 
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier) {
@@ -414,8 +412,8 @@ public class WorkflowImpl extends Application implements Workflow {
             case EXTERNAL_PSCO_T:
                 String id = content.toString();
                 int pscoCode = externalObjectHashcode(id);
-                pars.add(ExternalPSCOParameter.newEPOP(this, direction, stream, prefix, name, weight, id,
-                        pscoCode, monitor));
+                pars.add(ExternalPSCOParameter.newEPOP(this, direction, stream, prefix, name, weight, id, pscoCode,
+                    monitor));
                 break;
             case BINDING_OBJECT_T:
                 String value = content.toString();
@@ -1026,13 +1024,11 @@ public class WorkflowImpl extends Application implements Workflow {
         });
     }
 
-
     /*
      * ************************************************************************************************************
      * ***************************************** HELPER METHODS ***************************************************
      * ************************************************************************************************************
      */
-
 
     private String openFileSystemData(String fileName, Direction direction, boolean isDir) {
         LOGGER.info("Opening " + fileName + " in direction " + direction);
@@ -1082,12 +1078,12 @@ public class WorkflowImpl extends Application implements Workflow {
             default:
                 finalPath = null;
                 ErrorManager.error(
-                        "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
+                    "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
         }
         return finalPath;
     }
 
-    public void closeFileData(String fileName, Direction direction) {
+    private void closeFileData(String fileName, Direction direction) {
         LOGGER.info("Closing " + fileName + " in direction " + direction);
 
         // Parse arguments to internal structures
@@ -1121,7 +1117,6 @@ public class WorkflowImpl extends Application implements Workflow {
                 ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
         }
     }
-
 
     /**
      * Computes the HashCode identifier for an external Binding object.

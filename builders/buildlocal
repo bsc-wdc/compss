@@ -84,7 +84,7 @@ show_opts() {
 
     --rcompss, -r               Enable RCOMPSs installation
     --no-rcompss, -R            Disable RCOMPSs installation
-                                Default: ${DEFAULT_PYCOMPSS}
+                                Default: ${DEFAULT_RCOMPSS}
 
     --tracing, -t               Enable tracing system installation
     --no-tracing, -T            Disable tracing system installation

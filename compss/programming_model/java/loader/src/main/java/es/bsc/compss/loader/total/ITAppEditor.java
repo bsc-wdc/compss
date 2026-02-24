@@ -87,7 +87,6 @@ public class ITAppEditor extends ExprEditor {
     private Method[] remoteMethods;
     private CtMethod[] instrCandidates; // methods that will be instrumented if they are not remote
     private String itApiVar;
-    private String itSRVar;
     private String itWfVar;
     private CtClass appClass;
 
@@ -98,18 +97,16 @@ public class ITAppEditor extends ExprEditor {
      * @param remoteMethods List of ITF remote methods.
      * @param instrCandidates List of detected methods in the main code.
      * @param itApiVar COMPSs API pointer.
-     * @param itSRVar Stream Registry.
      * @param itWfVar Workflow variable.
      * @param appClass Application main class.
      */
-    public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-        String itWfVar, CtClass appClass) {
+    public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itWfVar,
+        CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
         this.instrCandidates = instrCandidates;
         this.itApiVar = itApiVar;
-        this.itSRVar = itSRVar;
         this.itWfVar = itWfVar;
         this.appClass = appClass;
     }
@@ -329,21 +326,21 @@ public class ITAppEditor extends ExprEditor {
         boolean found = false;
         for (String streamClass : LoaderConstants.getSupportedStreamTypes()) {
             if (className.equals(streamClass)) {
-                modifiedExpr = "$_ = " + CallGenerator.newStreamClass(itSRVar, itWfVar, streamClass, callPars) + ";";
+                modifiedExpr = "$_ = " + CallGenerator.newStreamClass(itWfVar, streamClass, callPars) + ";";
                 found = true;
                 break;
             }
         }
         if (!found) { // Not a stream
             if (className.equals(File.class.getCanonicalName())) {
-                modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itSRVar, itWfVar, callPars) + ";";
+                modifiedExpr = "$_ = " + CallGenerator.newCOMPSsFile(itWfVar, callPars) + ";";
             } else {
                 String internalObject = CallGenerator.getRegisteredObjectValue(itWfVar, "$1");
                 String par1 = internalObject + " == null ? $1 : " + internalObject;
                 modifiedExpr = PROCEED + callPars + "); ";
                 modifiedExpr += "if ($_ instanceof " + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
                     + FilterOutputStream.class.getCanonicalName() + ") {";
-                modifiedExpr += CallGenerator.newFilterStream(this.itSRVar, this.itWfVar, par1);
+                modifiedExpr += CallGenerator.newFilterStream(this.itWfVar, par1);
             }
         }
         if (DEBUG) {
@@ -524,7 +521,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceCloseStream() {
-        String streamClose = PROCEED + "$$); " + CallGenerator.closeStream(this.itSRVar, this.itWfVar) + ";";
+        String streamClose = PROCEED + "$$); " + CallGenerator.closeStream(this.itWfVar) + ";";
         return streamClose;
     }
 
@@ -560,7 +557,7 @@ public class ITAppEditor extends ExprEditor {
         }
 
         apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itApiVar).append(",")
-            .append(this.itSRVar).append(",").append(this.itWfVar);
+            .append(this.itWfVar);
 
         if (hasArgs) {
             apiCall.append(", $$");
@@ -640,7 +637,7 @@ public class ITAppEditor extends ExprEditor {
                         } else {
                             if (!className.equals(PrintStream.class.getName())
                                 && !className.equals(StringBuilder.class.getName())) {
-                                String taskFile = CallGenerator.isTaskFile(this.itSRVar, parId);
+                                String taskFile = CallGenerator.isTaskFile(parId);
                                 String apiOpenFile =
                                     CallGenerator.openFile(this.itWfVar, parId, DATA_DIRECTION + ".INOUT");
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ");
@@ -810,9 +807,9 @@ public class ITAppEditor extends ExprEditor {
                         // The File type needs to be specified explicitly, since its formal type is String
                         parType = DATA_TYPES + ".FILE_T";
                         parContent = "FILE";
-                        paramPreparation = CallGenerator.addTaskFile(itSRVar, parVal) + ";";
+                        paramPreparation = CallGenerator.addTaskFile(parVal) + ";";
                         if (par.direction() == Direction.IN_DELETE) {
-                            paramCleanup = CallGenerator.removeTaskFile(itSRVar, parVal) + ";";
+                            paramCleanup = CallGenerator.removeTaskFile(parVal) + ";";
                         }
                         break;
                     case STRING:

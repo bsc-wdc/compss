@@ -17,6 +17,9 @@
 
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.loader.LoaderConstants;
+
+
 public class CallGenerator {
 
     // JavaWorkflow methods
@@ -98,14 +101,13 @@ public class CallGenerator {
 
     /**
      * Constructs the instruction to generate a new COMPSsFile object.
-     * 
-     * @param itSR name of the StreamRegistry variable
+     *
      * @param itWf name of the variable containing the workflow
      * @param callPars parameters to create
      * @return instruction creating a new COMPSsFile instance for the given File
      */
-    public static String newCOMPSsFile(String itSR, String itWf, StringBuilder callPars) {
-        return itSR + NEW_COMPSS_FILE + itWf + "," + callPars + ")";
+    public static String newCOMPSsFile(String itWf, StringBuilder callPars) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + NEW_COMPSS_FILE + itWf + "," + callPars + ")";
     }
 
     /**
@@ -131,71 +133,65 @@ public class CallGenerator {
 
     /**
      * Constructs the instruction to create a new Stream.
-     * 
-     * @param itSR name of the StreamRegistry variable
+     *
      * @param itWf name of the variable containing the workflow
      * @param streamClass stream type
      * @param callPars parameters to call the stream constructor
      * @return instruction to create a new stream
      */
-    public static String newStreamClass(String itSR, String itWf, String streamClass, StringBuilder callPars) {
-        return itSR + ".new" + streamClass + "(" + itWf + "," + callPars + ")";
+    public static String newStreamClass(String itWf, String streamClass, StringBuilder callPars) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + ".new" + streamClass + "(" + itWf + "," + callPars + ")";
     }
 
     /**
      * Constructs the instruction to create a new FilterStream.
-     * 
-     * @param itSR name of the StreamRegistry variable
+     *
      * @param itWf name of the variable containing the workflow
      * @param par name of the paremeter to pass in to the newFilterStream constructor
      * @return instruction to create a newFilterStream
      */
-    public static String newFilterStream(String itSR, String itWf, String par) {
-        return itSR + NEW_FILTER_STREAM + itWf + "," + par + ", (Object)$_); }";
+    public static String newFilterStream(String itWf, String par) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + NEW_FILTER_STREAM + itWf + "," + par + ", (Object)$_); }";
     }
 
     /**
      * Constructs an instruction to close a stream.
-     * 
-     * @param itSR name of the StreamRegistry variable
+     *
      * @param itWf name of the variable containing the workflow
      * @return instruction to register the stream closing
      */
-    public static String closeStream(String itSR, String itWf) {
-        return itSR + STREAM_CLOSED + itWf + ", $0)";
+    public static String closeStream(String itWf) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + STREAM_CLOSED + itWf + ", $0)";
     }
 
     /**
      * Constructs an instruction to register a file as a task parameter.
      *
-     * @param itSR name of the StreamRegistry variable
      * @param file file
      * @return instruction to register a file as a task parameter
      */
-    public static String addTaskFile(String itSR, String file) {
-        return itSR + ADD_TASK_FILE + file + ")";
+    public static String addTaskFile(String file) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + ADD_TASK_FILE + file + ")";
     }
 
     /**
      * Constructs an instruction to check whether a file was passed as a task parameter or not.
-     * 
-     * @param itSR name of the StreamRegistry variable
+     *
      * @param parId file to be checked
      * @return instruction to check whether a file was passed as a task parameter or not
      */
-    public static String isTaskFile(String itSR, String parId) {
-        return itSR + IS_TASK_FILE + parId + ")";
+    public static String isTaskFile(String parId) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + IS_TASK_FILE + parId + ")";
     }
 
     /**
      * Constructs an instruction to call the deleteTaskFile method of the StreamRegistry.
      *
-     * @param itSR name of the StreamRegistry variable
      * @param file file to be checked
      * @return instruction removing the file from the SR
      */
-    public static String removeTaskFile(String itSR, String file) {
-        return itSR + DELETE_TASK_FILE + file + ")";
+    public static String removeTaskFile(String file) {
+        return LoaderConstants.CLASS_STREAM_REGISTRY + DELETE_TASK_FILE + file + ")";
     }
 
     /**

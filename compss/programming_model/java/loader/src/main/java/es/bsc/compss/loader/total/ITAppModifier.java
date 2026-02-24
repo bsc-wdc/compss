@@ -48,8 +48,6 @@ public final class ITAppModifier {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    // Constants
-    private static final String COMPSS_APP_CONSTANT = LoaderConstants.CLASS_COMPSS_CONSTANTS + ".APP_NAME";
 
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
@@ -162,8 +160,6 @@ public final class ITAppModifier {
         appClass.addField(apiField);
         getters.put("getRuntime", apiField);
 
-        String itSR = LoaderConstants.CLASS_STREAM_REGISTRY;
-
         String itWfVar = varName + LoaderConstants.STR_COMPSS_WORKFLOW;
         String instWf;
         String setupWkSupplySrc;
@@ -180,7 +176,7 @@ public final class ITAppModifier {
         }
 
         // Instrument class
-        instrumentClass(classPool, appClass, annotItf, itApiVar, itSR, instWf, isMainClass);
+        instrumentClass(classPool, appClass, annotItf, itApiVar, instWf, isMainClass);
 
         addGetters(appClass, getters);
         StringBuilder methodBody = new StringBuilder();
@@ -197,7 +193,7 @@ public final class ITAppModifier {
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
 
-        addModifyVariablesMethods(appClass, itApiVar, itSR, itWfVar, perThreadWf, isMainClass);
+        addModifyVariablesMethods(appClass, itApiVar, itWfVar, perThreadWf);
         return appClass;
     }
 
@@ -234,7 +230,7 @@ public final class ITAppModifier {
      * orchestration method, or a web service method.
      */
     private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
-        String itSRVar, String itWfVar, boolean isMainClass) throws NotFoundException, CannotCompileException {
+        String itWfVar, boolean isMainClass) throws NotFoundException, CannotCompileException {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
 
@@ -257,7 +253,7 @@ public final class ITAppModifier {
         // Candidates to be instrumented if they are not remote
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itWfVar, appClass);
+        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itWfVar, appClass);
 
         for (CtMethod m : instrCandidates) {
             if (DEBUG) {
@@ -310,8 +306,8 @@ public final class ITAppModifier {
         }
     }
 
-    private static void addModifyVariablesMethods(CtClass appClass, String itApiVar, String itSRVar, String itWfVar,
-        boolean perThreadWf, boolean isMainClass) throws CannotCompileException {
+    private static void addModifyVariablesMethods(CtClass appClass, String itApiVar, String itWfVar,
+        boolean perThreadWf) throws CannotCompileException {
 
         String getWf;
         if (perThreadWf) {
@@ -326,7 +322,6 @@ public final class ITAppModifier {
         StringBuilder methodBody = new StringBuilder();
         methodBody.append("public static void printCOMPSsVariables() { ");
         methodBody.append("System.out.println(\"Api Var: \" + ").append(itApiVar).append(");");
-        methodBody.append("System.out.println(\"SR Var: \" + ").append(itSRVar).append(");");
         methodBody.append("System.out.println(\"App Id: \" + ").append(getWf).append(".getId());");
         methodBody.append("}");
         CtMethod m;
@@ -359,7 +354,7 @@ public final class ITAppModifier {
          */
         methodBody = new StringBuilder();
         methodBody.append("public static void setCOMPSsVariables( ") //
-            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime, ") //
+            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime ") //
             .append(") {") //
             .append(itApiVar).append("= runtime;") //
             .append("setupWorkflowSupplier();");

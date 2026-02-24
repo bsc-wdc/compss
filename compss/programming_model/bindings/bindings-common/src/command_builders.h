@@ -77,8 +77,5 @@ std::string build_close_task_group_command(long appId, const char* groupName);
 std::string build_cancel_task_group_command(long appId, const char* groupName);
 std::string build_snapshot_command(long appId);
 std::string build_emit_event_command(int type, long id);
-std::string build_get_number_of_resources_command(long appId);
-std::string build_request_resources_command(long appId, int numResources, const char* groupName);
-std::string build_free_resources_command(long appId, int numResources, const char* groupName);
 
 #endif  // COMMAND_BUILDERS_H

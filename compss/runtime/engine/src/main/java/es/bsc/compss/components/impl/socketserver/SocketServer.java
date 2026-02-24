@@ -98,12 +98,10 @@ public class SocketServer extends Server {
     private class CompssConnection extends ConnectionHandler {
 
         private final Workflow wf;
-        private final long appId;
 
 
         public CompssConnection() {
             this.wf = runtime.registerWorkflow(null, null);
-            this.appId = this.wf.getId();
         }
 
         /**

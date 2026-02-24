@@ -27,65 +27,59 @@ public final class APIHandler {
     /**
      * Barrier.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      */
-    public static void barrier(COMPSsRuntime api, JavaWorkflow wf) {
+    public static void barrier(JavaWorkflow wf) {
         wf.barrier();
     }
 
     /**
      * Barrier with noMoreTasks flag to avoid file transfers.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      * @param noMoreTasks Whether there are more tasks to be created or not.
      */
-    public static void barrier(COMPSsRuntime api, JavaWorkflow wf, boolean noMoreTasks) {
+    public static void barrier(JavaWorkflow wf, boolean noMoreTasks) {
         wf.barrier(noMoreTasks);
     }
 
     /**
      * Barrier for a group of tasks.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      * @param groupName Name of the group to perform the barrier.
      */
-    public static void barrierGroup(COMPSsRuntime api, JavaWorkflow wf, String groupName) throws COMPSsException {
+    public static void barrierGroup(JavaWorkflow wf, String groupName) throws COMPSsException {
         wf.barrierGroup(groupName);
     }
 
     /**
      * Cancel for a group of tasks.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      * @param groupName Name of the group to cancel.
      */
-    public static void cancelGroup(COMPSsRuntime api, JavaWorkflow wf, String groupName) throws COMPSsException {
+    public static void cancelGroup(JavaWorkflow wf, String groupName) throws COMPSsException {
         wf.cancelTaskGroup(groupName);
     }
 
     /**
      * Unregister the given object from the Runtime.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      * @param o Object to unregister.
      */
-    public static void deregisterObject(COMPSsRuntime api, JavaWorkflow wf, Object o) {
+    public static void deregisterObject(JavaWorkflow wf, Object o) {
         wf.removeObject(o);
     }
 
     /**
      * Returns the file specified by the given abstract pathname.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      * @param fileName File path.
      */
-    public static void getFile(COMPSsRuntime api, JavaWorkflow wf, String fileName) {
+    public static void getFile(JavaWorkflow wf, String fileName) {
         wf.getFile(fileName);
         StreamRegistry.deleteTaskFile(fileName);
     }
@@ -93,56 +87,20 @@ public final class APIHandler {
     /**
      * Returns the file specified by the given abstract pathname.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      * @param path Directory path.
      */
-    public static void getDirectory(COMPSsRuntime api, JavaWorkflow wf, String path) {
+    public static void getDirectory(JavaWorkflow wf, String path) {
         wf.getDirectory(path);
         StreamRegistry.deleteTaskFile(path);
     }
 
     /**
-     * Returns the number of active resources.
-     *
-     * @param api COMPSsRuntimeAPI
-     * @param wf Workflow invoking the API
-     * @return The number of active resources.
-     */
-    public static int getNumberOfResources(COMPSsRuntime api, JavaWorkflow wf) {
-        return api.getNumberOfResources();
-    }
-
-    /**
-     * Requests the creation of {@code numResources} resources.
-     *
-     * @param api COMPSsRuntimeAPI
-     * @param wf Workflow invoking the API
-     * @param numResources Number of resources to create.
-     * @param groupName name of the group to cancel if the creation fails
-     */
-    public static void requestResources(COMPSsRuntime api, JavaWorkflow wf, int numResources, String groupName) {
-        api.requestResources(wf.getId(), numResources, groupName);
-    }
-
-    /**
-     * Requests the destruction of {@code numResources} resources.
-     *
-     * @param api COMPSsRuntimeAPI
-     * @param wf Workflow invoking the API
-     * @param numResources Number of resources to destroy.
-     */
-    public static void freeResources(COMPSsRuntime api, JavaWorkflow wf, int numResources, String groupName) {
-        api.freeResources(wf.getId(), numResources, groupName);
-    }
-
-    /**
      * Requests a checkpoint of the tasks and data.
      *
-     * @param api COMPSsRuntimeAPI
      * @param wf Workflow invoking the API
      */
-    public static void snapshot(COMPSsRuntime api, JavaWorkflow wf) {
+    public static void snapshot(JavaWorkflow wf) {
         wf.snapshot();
     }
 

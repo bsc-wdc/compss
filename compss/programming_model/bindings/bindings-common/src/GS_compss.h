@@ -109,9 +109,6 @@ extern "C" void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appI
 extern "C" void GS_CloseTaskGroup(char* groupName, long appId);
 extern "C" void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage);
 extern "C" void GS_Snapshot(long appId);
-extern "C" int GS_GetNumberOfResources(long appId);
-extern "C" void GS_RequestResources(long appId, int numResources, char* groupName);
-extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
 extern "C" void GS_Get_AppDir(char** buf);

@@ -32,6 +32,8 @@
 #include <unistd.h>
 
 namespace {
+typedef void (*SocketRetrySleepHook)(long seconds);
+
 std::atomic<int> socket_fd{-1};
 std::string inbound_buffer;
 std::atomic<uint64_t> connector_generation{0};
@@ -537,32 +539,6 @@ void SOCKET_Snapshot(long appId) {
     debug_printf("[BINDING-COMMONS] - @SOCKET_Snapshot - APP id: %lu\n", appId);
 }
 
-int SOCKET_GetNumberOfResources(long appId) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_GetNumberOfResources - Requesting number of resources\n");
-    socket_send_command(build_get_number_of_resources_command(appId));
-    std::string result = socket_read_line();
-    const char* response = response_payload(result);
-    int resources = atoi(response);
-    debug_printf("[BINDING-COMMONS] - @SOCKET_GetNumberOfResources - Number of active resources %u\n", resources);
-    return resources;
-}
-
-void SOCKET_RequestResources(long appId, int numResources, char* groupName) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_RequestResources - Requesting resources for APP id: %lu\n", appId);
-    debug_printf("[BINDING-COMMONS] - @SOCKET_RequestResources - numResources: %u\n", numResources);
-    debug_printf("[BINDING-COMMONS] - @SOCKET_RequestResources - groupName: %s\n", groupName);
-    socket_send_command(build_request_resources_command(appId, numResources, groupName));
-    debug_printf("[BINDING-COMMONS] - @SOCKET_RequestResources - Resources creation requested");
-}
-
-void SOCKET_FreeResources(long appId, int numResources, char* groupName) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_FreeResources - Freeing resources for APP id: %lu\n", appId);
-    debug_printf("[BINDING-COMMONS] - @SOCKET_FreeResources - numResources: %u\n", numResources);
-    debug_printf("[BINDING-COMMONS] - @SOCKET_FreeResources - groupName: %s\n", groupName);
-    socket_send_command(build_free_resources_command(appId, numResources, groupName));
-    debug_printf("[BINDING-COMMONS] - @SOCKET_FreeResources - Resources destruction requested");
-}
-
 // Miscellaneous -------------------------------------------------------------------
 
 void SOCKET_Get_AppDir(char** buf) {
@@ -643,9 +619,6 @@ CompssInterface setup_SOCKET_runtime(char* endpoint){
     iface.CloseTaskGroup = SOCKET_CloseTaskGroup;
     iface.CancelTaskGroup = SOCKET_CancelTaskGroup;
     iface.Snapshot = SOCKET_Snapshot;
-    iface.GetNumberOfResources = SOCKET_GetNumberOfResources;
-    iface.RequestResources = SOCKET_RequestResources;
-    iface.FreeResources = SOCKET_FreeResources;
     iface.Get_AppDir = SOCKET_Get_AppDir;
     iface.Get_MasterWorkingDir = SOCKET_Get_MasterWorkingDir;
     iface.EmitEvent = SOCKET_EmitEvent;

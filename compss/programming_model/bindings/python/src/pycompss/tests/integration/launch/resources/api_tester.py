@@ -23,9 +23,6 @@ import os
 import shutil
 import time
 
-# from pycompss.api.api import compss_get_number_of_resources
-# from pycompss.api.api import compss_request_resources
-# from pycompss.api.api import compss_free_resources
 from pycompss.api.api import TaskGroup
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_barrier_group

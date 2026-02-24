@@ -392,21 +392,3 @@ std::string build_emit_event_command(int type, long id) {
     ss << "EMIT_EVENT " << type << " " << id << std::endl;
     return ss.str();
 }
-
-std::string build_get_number_of_resources_command(long appId) {
-    std::ostringstream ss;
-    ss << "GET_RESOURCES " << appId << std::endl;
-    return ss.str();
-}
-
-std::string build_request_resources_command(long appId, int numResources, const char* groupName) {
-    std::ostringstream ss;
-    ss << "REQUEST_RESOURCES " << appId << " " << numResources << " " << groupName << std::endl;
-    return ss.str();
-}
-
-std::string build_free_resources_command(long appId, int numResources, const char* groupName) {
-    std::ostringstream ss;
-    ss << "FREE_RESOURCES " << appId << " " << numResources << " " << groupName << std::endl;
-    return ss.str();
-}

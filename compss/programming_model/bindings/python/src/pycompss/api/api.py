@@ -64,9 +64,6 @@ from pycompss.api.dummy.api import (
     compss_cancel_group as __dummy_compss_cancel_group__,
     compss_snapshot as __dummy_compss_snapshot__,
     compss_wait_on as __dummy_compss_wait_on__,
-    compss_get_number_of_resources as __dummy_compss_get_number_of_resources__,
-    compss_request_resources as __dummy_compss_request_resources__,
-    compss_free_resources as __dummy_compss_free_resources__,
     compss_set_wall_clock as __dummy_compss_set_wall_clock__,
 )
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -93,9 +90,6 @@ if CONTEXT.in_pycompss():
         close_task_group as __close_task_group__,
         cancel_task_group as __cancel_task_group__,
         snapshot as __snapshot__,
-        get_number_of_resources as __get_number_of_resources__,
-        request_resources as __request_resources__,
-        free_resources as __free_resources__,
         set_wall_clock as __set_wall_clock__,
         wait_on as __wait_on__,
         add_logger as __add_logger__,
@@ -325,47 +319,6 @@ def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     if CONTEXT.in_pycompss():
         return __wait_on__(*args, **kwargs)
     return __dummy_compss_wait_on__(*args, **kwargs)
-
-
-def compss_get_number_of_resources() -> int:
-    """Request for the number of active resources.
-
-    :return: The number of active resources.
-    """
-    if CONTEXT.in_pycompss():
-        return __get_number_of_resources__()
-    return __dummy_compss_get_number_of_resources__()
-
-
-def compss_request_resources(
-    num_resources: int, group_name: typing.Optional[str]
-) -> None:
-    """Request the creation of num_resources resources.
-
-    :param num_resources: Number of resources to create.
-    :param group_name: Task group to notify upon resource creation.
-                       (it can be None)
-    :return: None
-    """
-    if CONTEXT.in_pycompss():
-        __request_resources__(num_resources, group_name)
-    else:
-        __dummy_compss_request_resources__(num_resources, group_name)
-
-
-def compss_free_resources(
-    num_resources: int, group_name: typing.Optional[str]
-) -> None:
-    """Request the destruction of num_resources resources.
-
-    :param num_resources: Number of resources to destroy.
-    :param group_name: Task group to notify upon resource creation
-    :return: None
-    """
-    if CONTEXT.in_pycompss():
-        __free_resources__(num_resources, group_name)
-    else:
-        __dummy_compss_free_resources__(num_resources, group_name)
 
 
 def compss_set_wall_clock(wall_clock_limit: int) -> None:

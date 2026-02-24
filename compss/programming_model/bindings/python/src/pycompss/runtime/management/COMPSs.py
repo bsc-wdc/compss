@@ -276,38 +276,6 @@ class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
         """
         return self.compss.get_master_working_path()
 
-    def get_number_of_resources(self, app_id: int) -> int:
-        """Call to number_of_resources.
-
-        :param app_id: Application identifier.
-        :return: Number of resources.
-        """
-        return self.compss.get_number_of_resources(app_id)
-
-    def request_resources(
-        self, app_id: int, num_resources: int, group_name: str
-    ) -> None:
-        """Call to request_resources.
-
-        :param app_id: Application identifier.
-        :param num_resources: Number of resources.
-        :param group_name: Group name.
-        :return: None.
-        """
-        self.compss.request_resources(app_id, num_resources, group_name)
-
-    def free_resources(
-        self, app_id: int, num_resources: int, group_name: str
-    ) -> None:
-        """Call to free_resources.
-
-        :param app_id: Application identifier.
-        :param num_resources: Number of resources.
-        :param group_name: Group name.
-        :return: None.
-        """
-        self.compss.free_resources(app_id, num_resources, group_name)
-
     def set_wall_clock(self, app_id: float, wcl: float) -> None:
         """Call to set_wall_clock.
 

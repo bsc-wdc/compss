@@ -16,12 +16,7 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.worker.COMPSsException;
 
 
 public interface COMPSsRuntime {
@@ -33,14 +28,14 @@ public interface COMPSsRuntime {
     /**
      * Starts the COMPSs Runtime.
      */
-    public void startIT();
+    void startIT();
 
     /**
      * Stops the COMPSs Runtime and terminates it if {@code terminate} is true.
      *
      * @param terminate Whether to terminate the Runtime instance or not.
      */
-    public void stopIT(boolean terminate);
+    void stopIT(boolean terminate);
 
     /*
      * *****************************************************************************************************************
@@ -67,36 +62,11 @@ public interface COMPSsRuntime {
      * @wcl Wall Clock limit in seconds.
      * @stopRT Flag to indicate if runtime must be stopped when limit exceed
      */
-    public void setWallClockLimit(Long appId, long wcl, boolean stopRT);
-
-    /**
-     * Returns the number of active resources.
-     *
-     * @return The number of active resources.
-     */
-    public int getNumberOfResources();
-
-    /**
-     * Requests the creation of {@code numResources} resources.
-     *
-     * @param appId Application Id.
-     * @param numResources Number of resources to create.
-     * @param groupName Task group to notify upon resource creation.
-     */
-    public void requestResources(Long appId, int numResources, String groupName);
-
-    /**
-     * Requests the destruction of {@code numResources} resources.
-     *
-     * @param appId Application Id.
-     * @param numResources Number of resources to destroy.
-     * @param groupName Task group to notify upon resource destruction.
-     */
-    public void freeResources(Long appId, int numResources, String groupName);
+    void setWallClockLimit(Long appId, long wcl, boolean stopRT);
 
     /*
      * *****************************************************************************************************************
-     * TASK METHODS
+     * Workflow METHODS
      ******************************************************************************************************************/
 
     /**
@@ -113,7 +83,7 @@ public interface COMPSsRuntime {
      *
      * @param ced Definition of the core element to add.
      */
-    public void registerCoreElement(CoreElementDefinition ced);
+    void registerCoreElement(CoreElementDefinition ced);
 
     /**
      * Registers a new CoreElement in the Runtime.
@@ -128,9 +98,8 @@ public interface COMPSsRuntime {
      * @param container available if @container is used with other decorators.
      * @param implTypeArgs The implementation specific arguments.
      */
-    public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
-        String... implTypeArgs);
+    void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints, String implType,
+        String implLocal, String implIO, String[] prolog, String[] epilog, String[] container, String... implTypeArgs);
 
     /*
      * *****************************************************************************************************************
@@ -142,6 +111,6 @@ public interface COMPSsRuntime {
      * @param type Event type.
      * @param id Event id.
      */
-    public void emitEvent(int type, long id);
+    void emitEvent(int type, long id);
 
 }

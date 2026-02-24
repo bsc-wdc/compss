@@ -64,8 +64,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
     // Exception constants definition
     private static final String WARN_VERSION_PROPERTIES =
         "WARNING: COMPSs Runtime VERSION-BUILD" + " properties file could not be read";
-    private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
-    private static final String ERROR_DIR_NAME = "ERROR: Not a valid directory";
 
     // COMPSS Version and buildnumber attributes
     private static final String COMPSs_VERSION;
@@ -474,58 +472,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
             LOGGER.debug("Getting Result Files for app" + app.getId());
             ap.getResultFiles(app);
         }
-    }
-
-    /*
-     * ************************************************************************************************************
-     * ************************************** RESOURCE MANAGEMENT *************************************************
-     * ************************************************************************************************************
-     */
-    @Override
-    public int getNumberOfResources() {
-        return APITracer.traced(APIEvent.GET_RESOURCES, () -> {
-            LOGGER.info("Received request for number of active resources");
-            return ResourceManager.getTotalNumberOfWorkers();
-        });
-    }
-
-    @Override
-    public void requestResources(Long appId, int numResources, String groupName) {
-        APITracer.traced(APIEvent.REQUEST_RESOURCES, (Runnable) () -> {
-            LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
-                + " for application " + appId);
-
-            if (numResources > 0) {
-                Application app = Application.registerApplication(appId);
-                // Create listener to cancel the associated task group
-                CancelTaskGroupOnResourceCreation rcl =
-                    new CancelTaskGroupOnResourceCreation(ap, app, numResources, groupName);
-
-                // Request first resource
-                // The rest will be automatically requested by the CancelTaskGroupOnResource listener
-                ResourceManager.requestResources(1, rcl);
-            }
-        });
-    }
-
-    @Override
-    public void freeResources(Long appId, int numResources, String groupName) {
-        APITracer.traced(APIEvent.FREE_RESOURCES, (Runnable) () -> {
-            LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
-                + " for application " + appId);
-
-            Application app = Application.registerApplication(appId);
-            // Cancel associated task group (if provided)
-            if (groupName != null && !groupName.isEmpty()) {
-                ap.cancelTaskGroup(app, groupName);
-            }
-
-            // Destroy resources
-            // No need to sync since task will be re-scheduled as soon as the workers are available
-            if (numResources > 0) {
-                ResourceManager.freeResources(numResources);
-            }
-        });
     }
 
     /*

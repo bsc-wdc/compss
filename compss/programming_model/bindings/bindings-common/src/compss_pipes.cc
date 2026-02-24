@@ -521,45 +521,6 @@ void PIPE_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @PIPE_EmitEvent - Event emitted\n");
 }
 
-
-int PIPE_GetNumberOfResources(long appId) {
-    debug_printf("[BINDING-COMMONS] - @PIPE_GetNumberOfResources - Requesting number of resources\n");
-
-    // MESSAGE: GET_RESOURCES appId
-    // RETURN: (int) number of resources
-    write_command_in_pipe(build_get_number_of_resources_command(appId));
-    string result;
-    result = read_result_from_pipe();
-    int resources = atoi(result.c_str());
-
-    debug_printf("[BINDING-COMMONS] - @PIPE_GetNumberOfResources - Number of active resources %u\n", (int) resources);
-    return (int) resources;
-}
-
-void PIPE_RequestResources(long appId, int numResources, char* groupName) {
-    debug_printf("[BINDING-COMMONS] - @PIPE_RequestResources - Requesting resources for APP id: %lu\n", appId);
-    debug_printf("[BINDING-COMMONS] - @PIPE_RequestResources - numResources: %u\n", numResources);
-    debug_printf("[BINDING-COMMONS] - @PIPE_RequestResources - groupName: %s\n", groupName);
-
-    // MESSAGE: REQUEST_RESOURCES appId numResources char*groupName
-    // NO RETURN
-    write_command_in_pipe(build_request_resources_command(appId, numResources, groupName));
-
-    debug_printf("[BINDING-COMMONS] - @PIPE_RequestResources - Resources creation requested");
-}
-
-void PIPE_FreeResources(long appId, int numResources, char* groupName) {
-    debug_printf("[BINDING-COMMONS] - @PIPE_FreeResources - Freeing resources for APP id: %lu\n", appId);
-    debug_printf("[BINDING-COMMONS] - @PIPE_FreeResources - numResources: %u\n", numResources);
-    debug_printf("[BINDING-COMMONS] - @PIPE_FreeResources - groupName: %s\n", groupName);
-
-    // MESSAGE: FREE_RESOURCES appId numResources groupName
-    // NO RETURN
-    write_command_in_pipe(build_free_resources_command(appId, numResources, groupName));
-
-    debug_printf("[BINDING-COMMONS] - @PIPE_FreeResources - Resources destruction requested");
-}
-
 void PIPE_set_wall_clock(long appId, long wcl, int stopRT){
 	debug_printf("[BINDING-COMMONS] - @PIPE_set_wall_clock NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
 }
@@ -592,9 +553,6 @@ CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
     iface.CloseTaskGroup = PIPE_CloseTaskGroup;
     iface.CancelTaskGroup = PIPE_CancelTaskGroup;
     iface.Snapshot = PIPE_Snapshot;
-    iface.GetNumberOfResources = PIPE_GetNumberOfResources;
-    iface.RequestResources = PIPE_RequestResources;
-    iface.FreeResources = PIPE_FreeResources;
     iface.Get_AppDir = PIPE_Get_AppDir;
     iface.Get_MasterWorkingDir = PIPE_Get_MasterWorkingDir;
     iface.EmitEvent = PIPE_EmitEvent;

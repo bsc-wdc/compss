@@ -46,9 +46,6 @@ class LinkMessages:
         "snapshot",
         "get_logging_path",
         "get_master_working_path",
-        "get_number_of_resources",
-        "request_resources",
-        "free_resources",
         "register_core_element",
         "process_http_task",
         "process_task",
@@ -80,9 +77,6 @@ class LinkMessages:
         self.snapshot = "SNAPSHOT"
         self.get_logging_path = "GET_LOGGING_PATH"
         self.get_master_working_path = "GET_MASTER_WORKING_PATH"
-        self.get_number_of_resources = "GET_NUMBER_OF_RESOURCES"
-        self.request_resources = "REQUEST_RESOURCES"
-        self.free_resources = "FREE_RESOURCES"
         self.register_core_element = "REGISTER_CORE_ELEMENT"
         self.process_http_task = "PROCESS_HTTP_TASK"
         self.process_task = "PROCESS_TASK"

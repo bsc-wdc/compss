@@ -853,57 +853,6 @@ static PyObject* get_master_working_path(PyObject* self, PyObject* args) {
 }
 
 /*
-  Requests the number of active resources to the runtime.
-*/
-static PyObject* get_number_of_resources(PyObject* self, PyObject* args) {
-    debug("Get number of resources\n");
-    long app_id;
-    if (!PyArg_ParseTuple(args, "l", &app_id)) {
-        return NULL;
-    }
-    debug("- App id: %ld\n", (app_id));
-    int resources = GS_GetNumberOfResources(app_id);
-    debug("Number of resources: %i\n", (resources));
-    PyObject* ret = Py_BuildValue("i", resources);
-    return ret;
-}
-
-/*
-  Requests the runtime to increase a given number of resources.
-*/
-static PyObject* request_resources(PyObject* self, PyObject* args) {
-    debug("Request resources creation\n");
-    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    int num_resources = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-    char* group_name = _pystring_to_char(PyTuple_GetItem(args, 2));
-
-    debug("- App id: %ld\n", (app_id));
-    debug("- Number of resources: %i\n", (num_resources));
-    debug("- Group name: %s\n", (group_name));
-
-    GS_RequestResources(app_id, num_resources, group_name);
-    Py_RETURN_NONE;
-}
-
-/*
-  Requests the runtime to decrease a given number of resources.
-*/
-static PyObject* free_resources(PyObject* self, PyObject* args) {
-    debug("Request resources destruction\n");
-
-    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    int num_resources = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 2));
-
-    debug("- App id: %ld\n", (app_id));
-    debug("- Number of resources: %i\n", (num_resources));
-    debug("- Group name: %s\n", (group_name));
-
-    GS_FreeResources(app_id, num_resources, group_name);
-    Py_RETURN_NONE;
-}
-
-/*
   Requests the runtime to decrease a given number of resources.
 */
 static PyObject* set_wall_clock(PyObject* self, PyObject* args) {
@@ -1012,9 +961,6 @@ static PyMethodDef CompssMethods[] = {
     { "snapshot", snapshot, METH_VARARGS, "Perform a snapshot of the tasks and data." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "get_master_working_path", get_master_working_path, METH_VARARGS, "Requests the master working path." },
-    { "get_number_of_resources", get_number_of_resources, METH_VARARGS, "Requests the number of active resources." },
-    { "request_resources", request_resources, METH_VARARGS, "Requests the creation of a new resource."},
-    { "free_resources", free_resources, METH_VARARGS, "Requests the destruction of a resource."},
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 	{ "emit_event", emit_event, METH_VARARGS, "Emit a event in the API Thread." },
 	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },

@@ -556,8 +556,7 @@ public class ITAppEditor extends ExprEditor {
             apiCall.append("$_ = ");
         }
 
-        apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itApiVar).append(",")
-            .append(this.itWfVar);
+        apiCall.append(COMPSS_API).append(".").append(methodName).append("(").append(this.itWfVar);
 
         if (hasArgs) {
             apiCall.append(", $$");

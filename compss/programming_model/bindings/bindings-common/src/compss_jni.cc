@@ -56,6 +56,9 @@ jmethodID midAppDir;                    /* ID of the getApplicationDirectory met
 jmethodID midTempDir;                   /* ID of the getTempDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midRegWf;                     /* ID of the registerWorkflow method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
+jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jclass clsWorkflow;                     /* Class implementing the Workflow interface at runtime */
 jmethodID mid_wf_getID;  
@@ -82,14 +85,6 @@ jmethodID mid_wf_getBindingObject;
 jmethodID mid_wf_deleteBindingObject;
 
 
-
-jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
-
-jmethodID midGetNumberOfResources;      /* ID of the getNumberOfResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midRequestResources;          /* ID of the requestResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-jmethodID midFreeResources;             /* ID of the freeResources method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
@@ -414,18 +409,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // RegisterCE method
     midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
-
-    // getNumberOfResources method
-    midGetNumberOfResources = status->localJniEnv->GetMethodID(clsITimpl, "getNumberOfResources", "()I");
-    check_exception(status, "Cannot find getNumberOfResources");
-
-    // requestResourcesCreation method
-    midRequestResources = status->localJniEnv->GetMethodID(clsITimpl, "requestResources", "(Ljava/lang/Long;ILjava/lang/String;)V");
-    check_exception(status, "Cannot find requestResources");
-
-    // requestResourcesDestruction method
-    midFreeResources = status->localJniEnv->GetMethodID(clsITimpl, "freeResources", "(Ljava/lang/Long;ILjava/lang/String;)V");
-    check_exception(status, "Cannot find freeResources");
 
     // Load stopIT
     midStopIT = status->localJniEnv->GetMethodID(clsITimpl, "stopIT", "(Z)V");
@@ -1857,69 +1840,6 @@ void JNI_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @JNI_EmitEvent - Event emitted\n");
 }
 
-
-int JNI_GetNumberOfResources(long appId) {
-    debug_printf("[BINDING-COMMONS] - @JNI_GetNumberOfResources - Requesting number of resources\n");
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    jint resources = status->localJniEnv->CallIntMethod(globalRuntime, midGetNumberOfResources);
-    check_exception(status, "Exception received when calling getNumberOfResources");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_GetNumberOfResources - Number of active resources %u\n", (int) resources);
-    return (int) resources;
-}
-
-void JNI_RequestResources(long appId, int numResources, char* groupName) {
-    debug_printf("[BINDING-COMMONS] - @JNI_RequestResources - Requesting resources for APP id: %lu\n", appId);
-    debug_printf("[BINDING-COMMONS] - @JNI_RequestResources - numResources: %u\n", numResources);
-    debug_printf("[BINDING-COMMONS] - @JNI_RequestResources - groupName: %s\n", groupName);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midRequestResources,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                              numResources,
-                              status->localJniEnv->NewStringUTF(groupName));
-    check_exception(status, "Exception received when calling requestResources");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_RequestResources - Resources creation requested");
-}
-
-void JNI_FreeResources(long appId, int numResources, char* groupName) {
-    debug_printf("[BINDING-COMMONS] - @JNI_FreeResources - Freeing resources for APP id: %lu\n", appId);
-    debug_printf("[BINDING-COMMONS] - @JNI_FreeResources - numResources: %u\n", numResources);
-    debug_printf("[BINDING-COMMONS] - @JNI_FreeResources - groupName: %s\n", groupName);
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-
-    status->localJniEnv->CallVoidMethod(globalRuntime,
-                              midFreeResources,
-                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
-                              numResources,
-                              status->localJniEnv->NewStringUTF(groupName));
-    check_exception(status, "Exception received when calling freeResources");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_FreeResources - Resources destruction requested");
-}
-
 void JNI_set_wall_clock(long appId, long wcl, int stopRT){
 	debug_printf("[BINDING-COMMONS] - @JNI_set_wall_clock - Setting wall clock limit for APP id:%lu of %lu seconds\n", appId, wcl);
 	// Request thread access to JVM
@@ -1947,14 +1867,12 @@ CompssInterface setup_JNI_runtime(){
     iface.Get_MasterWorkingDir = JNI_Get_MasterWorkingDir;
     iface.Set_wall_clock = JNI_set_wall_clock;
     
-    iface.EmitEvent = JNI_EmitEvent;
-    iface.GetNumberOfResources = JNI_GetNumberOfResources;
-    iface.RequestResources = JNI_RequestResources;
-    iface.FreeResources = JNI_FreeResources;
-
-    
     iface.registerWorkflow = JNI_RegisterWorkflow;
     iface.RegisterCE = JNI_RegisterCE;
+
+    iface.EmitEvent = JNI_EmitEvent;
+
+    
 
     iface.ExecuteTask = JNI_ExecuteTask;
     iface.ExecuteTaskNew = JNI_ExecuteTaskNew;

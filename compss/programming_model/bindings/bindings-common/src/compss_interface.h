@@ -335,22 +335,6 @@ struct CompssInterface {
         long appId
     );
 
-    int (*GetNumberOfResources)(
-        long appId
-    );
-
-    void (*RequestResources)(
-        long appId,
-        int numResources,
-        char* groupName
-    );
-
-    void (*FreeResources)(
-        long appId,
-        int numResources,
-        char* groupName
-    );
-
     // Misc functions
     void (*Get_AppDir)(
         char** buf

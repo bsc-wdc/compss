@@ -191,21 +191,6 @@ void GS_EmitEvent(int type, long id) {
 	runtime.EmitEvent(type, id);
 }
 
-
-int GS_GetNumberOfResources(long appId) {
-	return runtime.GetNumberOfResources(appId);
-}
-
-
-void GS_RequestResources(long appId, int numResources, char* groupName) {
-	runtime.RequestResources(appId, numResources, groupName);
-}
-
-
-void GS_FreeResources(long appId, int numResources, char* groupName) {
-	runtime.FreeResources(appId, numResources, groupName);
-}
-
 void GS_Set_wall_clock(long appId, long wcl, int stopRT){
 	runtime.Set_wall_clock(appId, wcl, stopRT);
 }

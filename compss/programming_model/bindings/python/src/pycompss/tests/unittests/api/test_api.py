@@ -38,9 +38,6 @@ def test_api_calling_dummy():
     from pycompss.api.api import compss_barrier
     from pycompss.api.api import compss_barrier_group
     from pycompss.api.api import compss_wait_on
-    from pycompss.api.api import compss_get_number_of_resources
-    from pycompss.api.api import compss_request_resources
-    from pycompss.api.api import compss_free_resources
     from pycompss.api.api import TaskGroup
 
     # Force to use dummies
@@ -81,9 +78,6 @@ def test_api_calling_dummy():
     compss_barrier_group(group_name)
     compss_wait_on(obj)
     compss_wait_on(*obj)
-    compss_get_number_of_resources()
-    compss_request_resources(num_resources, group_name)
-    compss_free_resources(num_resources, group_name)
 
     with TaskGroup(group_name, implicit_barrier=True):
         # Empty task group check
@@ -110,9 +104,6 @@ def test_dummy_api():
     from pycompss.api.dummy.api import compss_barrier
     from pycompss.api.dummy.api import compss_barrier_group
     from pycompss.api.dummy.api import compss_wait_on
-    from pycompss.api.dummy.api import compss_get_number_of_resources
-    from pycompss.api.dummy.api import compss_request_resources
-    from pycompss.api.dummy.api import compss_free_resources
     from pycompss.api.dummy.api import TaskGroup
 
     file_name = "simulated_file.txt"
@@ -150,9 +141,6 @@ def test_dummy_api():
     compss_barrier_group(group_name)
     compss_wait_on(obj)
     compss_wait_on(*obj)
-    compss_get_number_of_resources()
-    compss_request_resources(num_resources, group_name)
-    compss_free_resources(num_resources, group_name)
 
     with TaskGroup(group_name, implicit_barrier=True):
         # Empty task group check

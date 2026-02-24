@@ -48,7 +48,6 @@ public final class ITAppModifier {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
         && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true");

@@ -40,7 +40,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-dynamic = ["version", "readme"] 
+dynamic = ["version", "readme"]
 
 dependencies = [
     "setuptools",
@@ -55,6 +55,7 @@ docker = [
 
 [project.scripts]
 pycompss = "pycompss_cli.cli.pycompss:main"
+compss = "pycompss_cli.cli.pycompss:main"
 
 [tool.setuptools]
 include-package-data = true

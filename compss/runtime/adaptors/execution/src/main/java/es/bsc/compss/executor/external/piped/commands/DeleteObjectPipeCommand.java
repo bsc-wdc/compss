@@ -28,7 +28,7 @@ public class DeleteObjectPipeCommand extends DeleteObjectExternalCommand impleme
      */
     public DeleteObjectPipeCommand(String[] args) {
         super();
-        this.objectId = args[2];
+        this.objectId = args[1];
     }
 
     @Override

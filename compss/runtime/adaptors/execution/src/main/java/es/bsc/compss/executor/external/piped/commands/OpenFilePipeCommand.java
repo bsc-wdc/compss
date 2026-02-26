@@ -29,8 +29,8 @@ public class OpenFilePipeCommand extends OpenFileExternalCommand implements Pipe
      */
     public OpenFilePipeCommand(String[] args) {
         super();
-        this.file = args[2];
-        this.direction = Direction.values()[Integer.parseInt(args[3])];
+        this.file = args[1];
+        this.direction = Direction.values()[Integer.parseInt(args[2])];
     }
 
     @Override

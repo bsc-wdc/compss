@@ -23,7 +23,7 @@ public class CloseTaskGroupPipeCommand extends CloseTaskGroupExternalCommand imp
 
     public CloseTaskGroupPipeCommand(String[] command) {
         super();
-        this.groupName = command[2];
+        this.groupName = command[1];
     }
 
     @Override

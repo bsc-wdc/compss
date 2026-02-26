@@ -23,7 +23,7 @@ public class BarrierTaskGroupPipeCommand extends BarrierTaskGroupExternalCommand
 
     public BarrierTaskGroupPipeCommand(String[] command) {
         super();
-        this.groupName = command[2];
+        this.groupName = command[1];
     }
 
     @Override

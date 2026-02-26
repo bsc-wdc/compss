@@ -557,9 +557,6 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
     debug_printf("[BINDING-COMMONS] - @PIPE_RegisterCE - Task registered: %s\n", ceSignature);
 }
 
-
-
-
 void PIPE_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @PIPE_EmitEvent - Emit Event\n");
 
@@ -572,104 +569,6 @@ void PIPE_EmitEvent(int type, long id) {
     write_command_in_pipe(build_emit_event_command(type, id));
 
     debug_printf("[BINDING-COMMONS] - @PIPE_EmitEvent - Event emitted\n");
-}
-
-void PIPE_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    PIPE_WF_executeTask(NULL, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize,
-		replicated, distributed, hasTarget, numReturns, numParams, params);
-}
-
-
-void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes,
-		int reduce, int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    PIPE_WF_executeTaskNew(NULL, signature, onFailure, timeout, priority, numNodes,
-		reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-}
-
-
-void PIPE_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
-                         int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-
-    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
-    debug_printf ("[BINDING-COMMONS] NOT YET IMPLEMENTED")
-}
-
-
-void PIPE_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
-    PIPE_WF_cancelTaskGroup(NULL, groupName, exceptionMessage);
-}
-
-
-void PIPE_Cancel_Application_Tasks(long appId) {
-    PIPE_WF_cancelApplicationTasks(NULL);
-}
-
-
-void PIPE_Barrier(long appId) {
-    PIPE_WF_barrier(NULL);
-}
-
-
-void PIPE_BarrierNew(long appId, int noMoreTasks) {
-    PIPE_WF_barrierWithFlag(NULL, noMoreTasks);
-}
-
-
-void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
-    PIPE_WF_barrierGroup(NULL, groupName, exceptionMessage);
-}
-
-
-int PIPE_Accessed_File(long appId, char* fileName){
-    return PIPE_WF_isFileAccessed(NULL, fileName);
-}
-
-void PIPE_Open_File(long appId, char* fileName, int mode, char** buf) {
-    PIPE_WF_openFile(NULL, fileName, mode, buf);
-}
-
-
-void PIPE_Get_File(long appId, char* fileName) {
-    PIPE_WF_getFile(NULL, fileName);
-}
-
-
-void PIPE_Close_File(long appId, char* fileName, int mode) {
-    PIPE_WF_closeFile(NULL, fileName, mode);
-}
-
-
-void PIPE_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
-    PIPE_WF_deleteFile(NULL, fileName, wait, applicationDelete);
-}
-
-void PIPE_Get_Directory(long appId, char* dirName) {
-    PIPE_WF_getDirectory(NULL, dirName);
-}
-
-void PIPE_Get_Object(long appId, char* objectId, char** buf) {
-    PIPE_WF_getObject(NULL, objectId, buf);
-}
-
-
-void PIPE_Delete_Object(long appId, char* objectId, int** buf) {
-    PIPE_WF_deleteObject(NULL, objectId, buf);
-}
-
-
-void PIPE_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
-    PIPE_WF_openTaskGroup(NULL, groupName, implicitBarrier);
-}
-
-
-void PIPE_CloseTaskGroup(char* groupName, long appId){
-    PIPE_WF_closeTaskGroup(NULL, groupName);
-}
-
-
-void PIPE_Snapshot(long appId) {
-    PIPE_WF_snapshot(NULL);
 }
 
 void PIPE_set_wall_clock(long appId, long wcl, int stopRT){
@@ -686,29 +585,16 @@ CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
     iface.On = PIPE_On;
     iface.Off = PIPE_Off;
     iface.read_command = PIPE_read_command;
-    iface.RegisterCE = PIPE_RegisterCE;
-    iface.ExecuteTask = PIPE_ExecuteTask;
-    iface.ExecuteTaskNew = PIPE_ExecuteTaskNew;
-    iface.ExecuteHttpTask = PIPE_ExecuteHttpTask;
-    iface.Cancel_Application_Tasks = PIPE_Cancel_Application_Tasks;
-    iface.Accessed_File = PIPE_Accessed_File;
-    iface.Open_File = PIPE_Open_File;
-    iface.Close_File = PIPE_Close_File;
-    iface.Delete_File = PIPE_Delete_File;
-    iface.Get_File = PIPE_Get_File;
-    iface.Get_Directory = PIPE_Get_Directory;
-    iface.Barrier = PIPE_Barrier;
-    iface.BarrierNew = PIPE_BarrierNew;
-    iface.BarrierGroup = PIPE_BarrierGroup;
-    iface.OpenTaskGroup = PIPE_OpenTaskGroup;
-    iface.CloseTaskGroup = PIPE_CloseTaskGroup;
-    iface.CancelTaskGroup = PIPE_CancelTaskGroup;
-    iface.Snapshot = PIPE_Snapshot;
+
     iface.Get_AppDir = PIPE_Get_AppDir;
     iface.Get_MasterWorkingDir = PIPE_Get_MasterWorkingDir;
+    
+    iface.RegisterCE = PIPE_RegisterCE;
+    iface.registerWorkflow = PIPE_RegisterWorkflow;
+    
     iface.EmitEvent = PIPE_EmitEvent;
-    iface.Get_Object = PIPE_Get_Object;
-    iface.Delete_Object = PIPE_Delete_Object;
+
     iface.Set_wall_clock = PIPE_set_wall_clock;
+
     return iface;
 }

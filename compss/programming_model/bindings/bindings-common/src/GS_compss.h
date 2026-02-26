@@ -30,7 +30,6 @@ extern "C" void GS_set_pipes(char* comPipe, char* resPipe);
 extern "C" void GS_set_socket_endpoint(char* endpoint);
 extern "C" void GS_set_JNI_runtime(void);
 extern "C" void GS_read_command(char** command);
-extern "C" void GS_read_pipes(char** command);
 extern "C" void GS_Off(int code);
 extern "C" void GS_Cancel_Application_Tasks(long appId);
 

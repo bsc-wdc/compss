@@ -48,7 +48,6 @@ pthread_mutex_t globalJniAccessMutex;
 jobject globalRuntime;
 
 CompssWorkflow* JNI_wf;
-long JNI_wf_appId;
 
 jmethodID midStopIT;                    /* ID of the stopIT method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
@@ -83,8 +82,6 @@ jmethodID mid_wf_deleteFile;
 jmethodID mid_wf_getDirectory;
 jmethodID mid_wf_getBindingObject;
 jmethodID mid_wf_deleteBindingObject;
-
-
 
 jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
@@ -1410,38 +1407,42 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     }
 
     // Wrap Java Workflow object into a C struct implementing the interface
-    JNIWorkflow* wf = (JNIWorkflow*) malloc(sizeof(JNIWorkflow));
-    wf->jWorkflow = env->NewGlobalRef(jWorkflowObj);
-
-    wf->base.getId = JNI_WF_getId;
-    wf->base.deregister = JNI_WF_deregister;
-    wf->base.openTaskGroup = JNI_WF_openTaskGroup;
-    wf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
-    wf->base.executeTask = JNI_WF_executeTask;
-    wf->base.executeTaskNew = JNI_WF_executeTaskNew;
-    wf->base.executeHttpTask = JNI_WF_executeHttpTask;
-    wf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;
-    wf->base.cancelApplicationTasks = JNI_WF_cancelApplicationTasks;
-    wf->base.noMoreTasks = JNI_WF_noMoreTasks;
-    wf->base.barrier = JNI_WF_barrier;
-    wf->base.barrierWithFlag = JNI_WF_barrierWithFlag;
-    wf->base.barrierGroup = JNI_WF_barrierGroup;
-    wf->base.snapshot = JNI_WF_snapshot;
-    wf->base.get_object = JNI_WF_getObject;
-    wf->base.delete_object = JNI_WF_deleteObject;
-    wf->base.is_file_accessed = JNI_WF_isFileAccessed;
-    wf->base.open_file = JNI_WF_openFile;
-    wf->base.get_file = JNI_WF_getFile;
-    wf->base.close_file = JNI_WF_closeFile;
-    wf->base.delete_file = JNI_WF_deleteFile;
-    wf->base.get_directory = JNI_WF_getDirectory;
-
+    JNIWorkflow* jwf = (JNIWorkflow*) malloc(sizeof(JNIWorkflow));
+    jwf->jWorkflow = env->NewGlobalRef(jWorkflowObj);
 
     // Revoke thread access to JVM
     access_revoke(status);
 
-    debug_printf ("[BINDING-COMMONS] - @JNI_RegisterWorkflow - Workflow registered\n");
-    return (CompssWorkflow*)wf;
+    jwf->base.getId = JNI_WF_getId;
+    jwf->base.deregister = JNI_WF_deregister;
+    jwf->base.openTaskGroup = JNI_WF_openTaskGroup;
+    jwf->base.closeTaskGroup = JNI_WF_closeTaskGroup;
+    jwf->base.executeTask = JNI_WF_executeTask;
+    jwf->base.executeTaskNew = JNI_WF_executeTaskNew;
+    jwf->base.executeHttpTask = JNI_WF_executeHttpTask;
+    jwf->base.cancelTaskGroup = JNI_WF_cancelTaskGroup;
+    jwf->base.cancelApplicationTasks = JNI_WF_cancelApplicationTasks;
+    jwf->base.noMoreTasks = JNI_WF_noMoreTasks;
+    jwf->base.barrier = JNI_WF_barrier;
+    jwf->base.barrierWithFlag = JNI_WF_barrierWithFlag;
+    jwf->base.barrierGroup = JNI_WF_barrierGroup;
+    jwf->base.snapshot = JNI_WF_snapshot;
+    jwf->base.get_object = JNI_WF_getObject;
+    jwf->base.delete_object = JNI_WF_deleteObject;
+    jwf->base.is_file_accessed = JNI_WF_isFileAccessed;
+    jwf->base.open_file = JNI_WF_openFile;
+    jwf->base.get_file = JNI_WF_getFile;
+    jwf->base.close_file = JNI_WF_closeFile;
+    jwf->base.delete_file = JNI_WF_deleteFile;
+    jwf->base.get_directory = JNI_WF_getDirectory;
+
+    CompssWorkflow* wf = (CompssWorkflow*)jwf;
+    long wf_id = wf->getId(wf);
+    JNI_wf = wf;
+
+    debug_printf ("[BINDING-COMMONS] - @JNI_RegisterWorkflow - Workflow registered with id %ld\n", wf_id);
+
+    return wf;
 }
 
 // ******************************
@@ -1524,18 +1525,14 @@ void JNI_On() {
     // debug_printf ("[BINDING-COMMONS] - @JNI_On - Revoke thread access to JVM\n");
     access_revoke(status);
 
-    CompssWorkflow* wf = JNI_RegisterWorkflow();
-    JNI_wf = wf;
-    long wf_id = wf->getId(wf);
-    JNI_wf_appId = wf_id;
-    debug_printf("[BINDING-COMMONS] - @JNI_On REgistered Workflow with id %ld\n", wf_id);
 }
 
 
 void JNI_Off(int code) {
     debug_printf("[BINDING-COMMONS] - @JNI_Off\n");
-
-    JNI_wf->noMoreTasks(JNI_wf);
+    if (JNI_wf != NULL) {
+        JNI_wf->noMoreTasks(JNI_wf);
+    }
     
     // Request thread access to JVM
     // debug_printf ("[BINDING-COMMONS] - @JNI_Off - Request thread access to JVM\n");
@@ -1677,144 +1674,6 @@ void JNI_Get_MasterWorkingDir(char** buf) {
 }
 
 
-void JNI_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing task execution in bindings-common.\n");
-	JNI_wf->executeTask(JNI_wf, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTask - Task processed.\n");
-}
-
-
-void JNI_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
-                        int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Processing task execution in bindings-common. \n");
-    JNI_wf->executeTaskNew(JNI_wf, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTaskNew - Task processed.\n");
-}
-
-
-void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
-                         int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
-    JNI_wf->executeHttpTask(JNI_wf, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-    debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteHttpTask - HTTP Task processed.\n");
-}
-
-
-int JNI_Accessed_File(long appId, char* fileName){
-    debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Calling runtime isFileAccessed method  for %s  ...\n", fileName);
-    int ret = JNI_wf->is_file_accessed(JNI_wf, fileName);
-    debug_printf("[BINDING-COMMONS] - @JNI_Accessed_File - Access to file %s marked as %d\n", fileName, ret);
-    return ret;
-}
-
-void JNI_Open_File(long appId, char* fileName, int mode, char** buf) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Open_File - Calling runtime OpenFile method  for %s and mode %d ...\n", fileName, mode);
-    JNI_wf->open_file(JNI_wf, fileName, mode, buf);
-    debug_printf("[BINDING-COMMONS] - @JNI_Open_File - COMPSs filename: %s\n", *buf);
-}
-
-
-void JNI_Get_File(long appId, char* fileName) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_File - Calling runtime getFile method...\n");
-    JNI_wf->get_file(JNI_wf, fileName);
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_File - COMPSs filename: %s\n", fileName);
-}
-
-void JNI_Close_File(long appId, char* fileName, int mode) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Close_File - Calling runtime closeFile method...\n");
-    JNI_wf->close_file(JNI_wf, fileName, mode);
-    debug_printf("[BINDING-COMMONS] - @JNI_Close_File - COMPSs filename: %s\n", fileName);
-}
-
-
-void JNI_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - Calling runtime deleteFile method...\n");
-    bool res = JNI_wf->delete_file(JNI_wf, fileName, wait, applicationDelete);
-    debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - File erased with status: %i\n", (bool) res);
-}
-
-void JNI_Get_Directory(long appId, char* dirName) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_Directory - Calling runtime getDirectory method...\n");
-    JNI_wf->get_directory(JNI_wf, dirName);
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_Directory - COMPSs directory: %s\n", dirName);
-}
-
-void JNI_Get_Object(long appId, char* fileName, char** buf) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_Object - Calling runtime getObject method...\n");
-    JNI_wf->get_object(JNI_wf, fileName, buf);
-    debug_printf("[BINDING-COMMONS] - @JNI_Get_Object - COMPSs data id: %s\n", *buf);
-}
-
-
-void JNI_Delete_Object(long appId, char* fileName, int** buf) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Delete_Object - Calling runtime deleteObject method...\n");
-    JNI_wf->delete_object(JNI_wf, fileName, buf);
-    debug_printf("[BINDING-COMMONS] - @JNI_Delete_Binding_Object - COMPSs obj: %s\n", fileName);
-}
-
-
-void JNI_Barrier(long appId) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - Waiting tasks for APP id: %lu\n", appId);
-	JNI_wf->barrier(JNI_wf);
-    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - APP id: %lu\n", appId);
-}
-
-
-void JNI_BarrierNew(long appId, int noMoreTasks) {
-    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - Waiting tasks for APP id: %lu\n", appId);
-
-    // Local variables for JVM call
-    bool _noMoreTasks = false;
-    if (noMoreTasks != 0) _noMoreTasks = true;
-    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - noMoreTasks: %s\n", _noMoreTasks ? "true":"false");
-    JNI_wf->barrierWithFlag(JNI_wf, noMoreTasks);
-    debug_printf("[BINDING-COMMONS] - @JNI_Barrier - APP id: %lu\n", appId);
-}
-
-
-void JNI_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
-    debug_printf("[BINDING-COMMONS] - @JNI_BarrierGroup - COMPSs group name: %s\n", groupName);
-    JNI_wf->barrierGroup(JNI_wf, groupName, exceptionMessage);
-    debug_printf("[BINDING-COMMONS] - @JNI_BarrierGroup - Barrier ended for COMPSs group name: %s\n", groupName);
-}
-
-
-void JNI_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
-    debug_printf("[BINDING-COMMONS] - @JNI_OpenTaskGroup - Opening task group...\n");
-    JNI_wf->openTaskGroup(JNI_wf, groupName, implicitBarrier);
-    debug_printf("[BINDING-COMMONS] - @JNI_OpenTaskGroup - COMPSs group name: %s\n", groupName);
-}
-
-
-void JNI_CloseTaskGroup(char* groupName, long appId){
-    debug_printf("[BINDING-COMMONS] - @JNI_CloseTaskGroup - COMPSs group name: %s\n", groupName);
-    JNI_wf->closeTaskGroup(JNI_wf, groupName);
-    debug_printf("[BINDING-COMMONS] - @JNI_CloseTaskGroup - Task group %s closed.\n", groupName);
-}
-
-void JNI_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
-    debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - COMPSs group name: %s\n", groupName);
-    JNI_wf->cancelTaskGroup(JNI_wf, groupName, exceptionMessage);
-    debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - Task group %s canceled.\n", groupName);
-}
-
-
-void JNI_Cancel_Application_Tasks(long appId) {
-    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - Cancelling all tasks for application.\n");
-    JNI_wf->cancelApplicationTasks(JNI_wf);
-    debug_printf ("[BINDING-COMMONS] - @JNI_Cancel_Application_Tasks - All tasks for application cancelled.\n");
-}
-
-void JNI_Snapshot(long appId) {
-	debug_printf("[BINDING-COMMONS] - @JNI_Snapshot - Snapshot for APP id: %lu\n", appId);
-    JNI_wf->snapshot(JNI_wf);
-    debug_printf("[BINDING-COMMONS] - @JNI_Snapshot - APP id: %lu\n", appId);
-}
-
 void JNI_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @JNI_EmitEvent - Emit Event\n");
 
@@ -1849,7 +1708,7 @@ void JNI_set_wall_clock(long appId, long wcl, int stopRT){
 	// Perform operation
 
 	status->localJniEnv->CallVoidMethod(globalRuntime, midSetWallClockLimit,
-			status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) JNI_wf_appId),
+			status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
 			wcl, _stop);
 	check_exception(status, "Exception received when calling setWallClockLimit");
 
@@ -1865,34 +1724,13 @@ CompssInterface setup_JNI_runtime(){
 
     iface.Get_AppDir = JNI_Get_AppDir;
     iface.Get_MasterWorkingDir = JNI_Get_MasterWorkingDir;
-    iface.Set_wall_clock = JNI_set_wall_clock;
     
     iface.registerWorkflow = JNI_RegisterWorkflow;
     iface.RegisterCE = JNI_RegisterCE;
 
     iface.EmitEvent = JNI_EmitEvent;
 
-    
+    iface.Set_wall_clock = JNI_set_wall_clock;
 
-    iface.ExecuteTask = JNI_ExecuteTask;
-    iface.ExecuteTaskNew = JNI_ExecuteTaskNew;
-    iface.ExecuteHttpTask = JNI_ExecuteHttpTask;
-    iface.Cancel_Application_Tasks = JNI_Cancel_Application_Tasks;
-    iface.Open_File = JNI_Open_File;
-    iface.Close_File = JNI_Close_File;
-    iface.Delete_File = JNI_Delete_File;
-    iface.Get_File = JNI_Get_File;
-    iface.Get_Directory = JNI_Get_Directory;
-    iface.Barrier = JNI_Barrier;
-    iface.BarrierNew = JNI_BarrierNew;
-    iface.BarrierGroup = JNI_BarrierGroup;
-    iface.OpenTaskGroup = JNI_OpenTaskGroup;
-    iface.CloseTaskGroup = JNI_CloseTaskGroup;
-    iface.CancelTaskGroup = JNI_CancelTaskGroup;
-    iface.Snapshot = JNI_Snapshot;
-
-    iface.Get_Object = JNI_Get_Object;
-    iface.Delete_Object = JNI_Delete_Object;
-    iface.Accessed_File = JNI_Accessed_File;
     return iface;
 }

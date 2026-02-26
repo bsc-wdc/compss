@@ -52,7 +52,7 @@ class LinkMessages:
         "set_pipes",
         "set_socket_endpoint",
         "set_jni_runtime",
-        "read_pipes",
+        "read_command",
         "set_wall_clock",
         "command_done",
     ]
@@ -83,7 +83,7 @@ class LinkMessages:
         self.set_pipes = "SET_PIPES"
         self.set_socket_endpoint = "SET_SOCKET_ENDPOINT"
         self.set_jni_runtime = "SET_JNI_RUNTIME"
-        self.read_pipes = "READ_PIPES"
+        self.read_command = "READ_COMMAND"
         self.set_wall_clock = "SET_WALL_CLOCK"
         self.command_done = "COMMAND_DONE"  # Default response message
 

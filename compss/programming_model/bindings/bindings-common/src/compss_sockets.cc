@@ -619,144 +619,6 @@ void SOCKET_RegisterCE(char* ceSignature,
                                                   implTypeArgs));
 }
 
-
-void SOCKET_OpenTaskGroup(char* groupName, int implicitBarrier, long appId) {
-    SOCKET_WF_openTaskGroup(NULL, groupName, implicitBarrier);
-}
-
-void SOCKET_CloseTaskGroup(char* groupName, long appId) {
-    SOCKET_WF_closeTaskGroup(NULL, groupName);
-}
-
-void SOCKET_ExecuteTask(long appId,
-                        char* className,
-                        char* onFailure,
-                        int timeout,
-                        char* methodName,
-                        int priority,
-                        int numNodes,
-                        int reduce,
-                        int reduceChunkSize,
-                        int replicated,
-                        int distributed,
-                        int hasTarget,
-                        int numReturns,
-                        int numParams,
-                        void** params) {
-    SOCKET_WF_executeTask(NULL,
-                        className,
-                        onFailure,
-                        timeout,
-                        methodName,
-                        priority,
-                        numNodes,
-                        reduce,
-                        reduceChunkSize,
-                        replicated,
-                        distributed,
-                        hasTarget,
-                        numReturns,
-                        numParams,
-                        params);
-}
-
-void SOCKET_ExecuteTaskNew(long appId,
-                           char* signature,
-                           char* onFailure,
-                           int timeout,
-                           int priority,
-                           int numNodes,
-                           int reduce,
-                           int reduceChunkSize,
-                           int replicated,
-                           int distributed,
-                           int hasTarget,
-                           int numReturns,
-                           int numParams,
-                           void** params) {
-    SOCKET_WF_executeTaskNew(NULL,
-                                signature,
-                                onFailure,
-                                timeout,
-                                priority,
-                                numNodes,
-                                reduce,
-                                reduceChunkSize,
-                                replicated,
-                                distributed,
-                                hasTarget,
-                                numReturns,
-                                numParams,
-                                params);
-}
-
-void SOCKET_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
-    int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    debug_printf ("[BINDING-COMMONS] - @SOCKET_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
-    debug_printf ("[BINDING-COMMONS] NOT YET IMPLEMENTED")
-}
-
-void SOCKET_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage) {
-    SOCKET_WF_cancelTaskGroup(NULL, groupName, exceptionMessage);
-}
-
-
-void SOCKET_Cancel_Application_Tasks(long appId) {
-    SOCKET_WF_cancelApplicationTasks(NULL);
-}
-
-// Barriers ---------------------------------------------------
-
-void SOCKET_Barrier(long appId) {
-    SOCKET_WF_barrier(NULL);
-}
-
-void SOCKET_BarrierNew(long appId, int noMoreTasks) {
-    SOCKET_WF_barrierWithFlag(NULL, noMoreTasks);
-}
-
-void SOCKET_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
-    SOCKET_WF_barrierGroup(NULL, groupName, exceptionMessage);
-}
-
-// Data operations ----------------------------------------------------------------
-
-int SOCKET_Accessed_File(long appId, char* fileName) {
-    return SOCKET_WF_isFileAccessed(NULL, fileName);
-}
-
-void SOCKET_Open_File(long appId, char* fileName, int mode, char** buf) {
-    SOCKET_WF_openFile(NULL, fileName, mode, buf);
-}
-
-void SOCKET_Get_File(long appId, char* fileName) {
-    SOCKET_WF_getFile(NULL, fileName);
-}
-
-void SOCKET_Close_File(long appId, char* fileName, int mode) {
-    SOCKET_WF_closeFile(NULL, fileName, mode);
-}
-
-void SOCKET_Delete_File(long appId, char* fileName, int waitForData, int applicationDelete) {
-    SOCKET_WF_deleteFile(NULL, fileName, waitForData, applicationDelete);    
-}
-
-void SOCKET_Get_Directory(long appId, char* dirName) {
-    SOCKET_WF_getDirectory(NULL, dirName);
-}
-
-void SOCKET_Get_Object(long appId, char* objectId, char** buf) {
-    SOCKET_WF_getObject(NULL, objectId, buf);
-}
-
-void SOCKET_Delete_Object(long appId, char* objectId, int** buf) {
-    SOCKET_WF_deleteObject(NULL, objectId, buf);
-}
-
-void SOCKET_Snapshot(long appId) {
-    SOCKET_WF_snapshot(NULL);
-}
-
 // Miscellaneous -------------------------------------------------------------------
 
 
@@ -779,29 +641,15 @@ CompssInterface setup_SOCKET_runtime(char* endpoint){
     iface.On = SOCKET_On;
     iface.Off = SOCKET_Off;
     iface.read_command = SOCKET_read_command;
-    iface.RegisterCE = SOCKET_RegisterCE;
-    iface.ExecuteTask = SOCKET_ExecuteTask;
-    iface.ExecuteTaskNew = SOCKET_ExecuteTaskNew;
-    iface.ExecuteHttpTask = SOCKET_ExecuteHttpTask;
-    iface.Cancel_Application_Tasks = SOCKET_Cancel_Application_Tasks;
-    iface.Accessed_File = SOCKET_Accessed_File;
-    iface.Open_File = SOCKET_Open_File;
-    iface.Close_File = SOCKET_Close_File;
-    iface.Delete_File = SOCKET_Delete_File;
-    iface.Get_File = SOCKET_Get_File;
-    iface.Get_Directory = SOCKET_Get_Directory;
-    iface.Barrier = SOCKET_Barrier;
-    iface.BarrierNew = SOCKET_BarrierNew;
-    iface.BarrierGroup = SOCKET_BarrierGroup;
-    iface.OpenTaskGroup = SOCKET_OpenTaskGroup;
-    iface.CloseTaskGroup = SOCKET_CloseTaskGroup;
-    iface.CancelTaskGroup = SOCKET_CancelTaskGroup;
-    iface.Snapshot = SOCKET_Snapshot;
+
     iface.Get_AppDir = SOCKET_Get_AppDir;
     iface.Get_MasterWorkingDir = SOCKET_Get_MasterWorkingDir;
+    
+    iface.registerWorkflow = SOCKET_RegisterWorkflow;
+    iface.RegisterCE = SOCKET_RegisterCE;
+
     iface.EmitEvent = SOCKET_EmitEvent;
-    iface.Get_Object = SOCKET_Get_Object;
-    iface.Delete_Object = SOCKET_Delete_Object;
+
     iface.Set_wall_clock = SOCKET_set_wall_clock;
     return iface;
 }

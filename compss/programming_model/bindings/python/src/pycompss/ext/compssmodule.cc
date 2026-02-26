@@ -282,13 +282,13 @@ static PyObject* set_JNI_runtime(PyObject* self, PyObject* args){
 }
 
 /*
-  A function that reads a command from the pipe mechanism set with set_pipes 
+  A function that reads a command from the runtime - usually a pipe set with set_pipes 
   method. No arguments are used in the function. The result is a string containing
-  the command read from the pipe.
+  the command obtained from the runtime.
 */
-static PyObject* read_pipes(PyObject* self, PyObject* args){
+static PyObject* read_command(PyObject* self, PyObject* args){
     char* command;
-    GS_read_pipes(&command);
+    GS_read_command(&command);
     PyObject *ret = Py_BuildValue("s", command);
     return ret;
 }
@@ -966,7 +966,7 @@ static PyMethodDef CompssMethods[] = {
 	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },
     { "set_socket_endpoint", set_socket_endpoint, METH_VARARGS, "Set compss module to socket communication mode." },
     { "set_JNI_runtime", set_JNI_runtime, METH_NOARGS, "Enable JNI runtime support." },
-    { "read_pipes", read_pipes, METH_VARARGS, "Reads a command using the pipe comunication mode." },
+    { "read_command", read_command, METH_VARARGS, "Reads a command obtained from comunication mode." },
 	{ "set_wall_clock" , set_wall_clock, METH_VARARGS, "Set the application wall clock limit."},
     { NULL, NULL } /* sentinel */
 };

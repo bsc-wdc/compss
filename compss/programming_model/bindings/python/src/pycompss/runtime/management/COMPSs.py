@@ -500,12 +500,12 @@ class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
         """
         self.compss.set_JNI_runtime()
 
-    def read_pipes(self) -> str:
-        """Call to read_pipes.
+    def read_command(self) -> str:
+        """Call to read_command.
 
-        :return: The command read from the pipe.
+        :return: The command read from the runtime.
         """
-        command = self.compss.read_pipes()
+        command = self.compss.read_command()
         return command
 
 

@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <pthread.h>
 
 #include "BindingDataManager.h"
 #include "GS_compss.h"
@@ -34,7 +35,19 @@
 using namespace std;
 
 CompssInterface runtime;
+pthread_mutex_t workflow_mutex = PTHREAD_MUTEX_INITIALIZER;
+CompssWorkflow* workflow = NULL;
+long wf_appId = -1;
 
+void registerWorkflow() {
+	pthread_mutex_lock(&workflow_mutex);
+	// double-check to ensure that other threads hadn't registered the workflow while waiting
+	if (workflow == NULL) {  
+		workflow = runtime.registerWorkflow();
+		wf_appId = workflow->getId(workflow);
+	}
+	pthread_mutex_unlock(&workflow_mutex);
+}
 
 // ******************************
 // API functions
@@ -49,12 +62,7 @@ void GS_set_socket_endpoint(char* endpoint) {
 
 void GS_set_JNI_runtime(void) {
     runtime = setup_JNI_runtime();
-}
-
-
-void GS_read_pipes(char** command){
-	GS_read_command(command);
-}
+} 
 
 void GS_read_command(char **command) {
 	runtime.read_command(command);
@@ -65,21 +73,13 @@ void GS_On(AbstractCache* absCache) {
     GS_On();
 }
 
-
 void GS_On() {
-  runtime.On();
+	runtime.On();
 }
-
 
 void GS_Off(int code) {
-  runtime.Off(code);
+	runtime.Off(code);
 }
-
-
-void GS_Cancel_Application_Tasks(long appId) {
-	runtime.Cancel_Application_Tasks(appId);
-}
-
 
 void GS_Get_AppDir(char** buf) {
 	runtime.Get_AppDir(buf);
@@ -89,108 +89,145 @@ void GS_Get_MasterWorkingDir(char** buf) {
 	runtime.Get_MasterWorkingDir(buf);
 }
 
-
-void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-	runtime.ExecuteTask(appId, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-}
-
-
-void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
-                       int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-	runtime.ExecuteTaskNew(appId, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-}
-
-
-void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
-                        int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    runtime.ExecuteHttpTask(appId, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-}
-
-
 void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numArgs, char** implTypeArgs) {
 	runtime.RegisterCE(ceSignature, implSignature, implConstraints, implType, implLocal, implIO, prolog, epilog, container, numArgs, implTypeArgs);
 }
-
-
-int GS_Accessed_File(long appId, char* fileName){
-	return runtime.Accessed_File(appId, fileName);
-}
-
-
-void GS_Open_File(long appId, char* fileName, int mode, char** buf) {
-	runtime.Open_File(appId, fileName, mode, buf);
-}
-
-
-void GS_Close_File(long appId, char* fileName, int mode) {
-	runtime.Close_File(appId, fileName, mode);
-}
-
-
-void GS_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
-	runtime.Delete_File(appId, fileName, wait, applicationDelete);
-}
-
-
-void GS_Get_File(long appId, char* fileName) {
-	runtime.Get_File(appId, fileName);
-}
-
-
-void GS_Get_Directory(long appId, char* dirName) {
-	runtime.Get_Directory(appId, dirName);
-}
-
-
-void GS_Get_Object(long appId, char* fileName, char** buf) {
-	runtime.Get_Object(appId, fileName, buf);
-}
-
-
-void GS_Delete_Object(long appId, char* fileName, int** buf) {
-	runtime.Delete_Object(appId, fileName, buf);
-}
-
-
-void GS_Barrier(long appId) {
-	runtime.Barrier(appId);
-}
-
-
-void GS_BarrierNew(long appId, int noMoreTasks) {
-	runtime.BarrierNew(appId, noMoreTasks);
-}
-
-
-void GS_Snapshot(long appId) {
-	runtime.Snapshot(appId);
-}
-
-
-void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
-	runtime.BarrierGroup(appId, groupName, exceptionMessage);
-}
-
-
-void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
-	runtime.OpenTaskGroup(groupName, implicitBarrier, appId);
-}
-
-
-void GS_CloseTaskGroup(char* groupName, long appId){
-	runtime.CloseTaskGroup(groupName, appId);
-}
-
-void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
-	runtime.CancelTaskGroup(groupName, appId, exceptionMessage);
-}
-
 
 void GS_EmitEvent(int type, long id) {
 	runtime.EmitEvent(type, id);
 }
 
 void GS_Set_wall_clock(long appId, long wcl, int stopRT){
-	runtime.Set_wall_clock(appId, wcl, stopRT);
+	if (workflow == NULL) {
+		registerWorkflow();
+    }
+	runtime.Set_wall_clock(wf_appId, wcl, stopRT);
+}
+
+void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
+	if (workflow == NULL) {
+		registerWorkflow();
+    }
+	workflow->openTaskGroup(workflow, groupName, implicitBarrier);
+}
+
+void GS_CloseTaskGroup(char* groupName, long appId){
+	if (workflow != NULL){
+		workflow->closeTaskGroup(workflow, groupName);
+	}
+}
+
+void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
+		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+	if (workflow == NULL) {
+		registerWorkflow();
+    }
+	workflow->executeTask(workflow, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+}
+
+void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
+                       int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+	if (workflow == NULL) {
+		registerWorkflow();
+    }
+	workflow->executeTaskNew(workflow, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+}
+
+void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
+                        int distributed, int hasTarget, int numReturns, int numParams, void** params) {
+	if (workflow == NULL) {
+		registerWorkflow();
+    }
+    workflow->executeHttpTask(workflow, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+}
+
+void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
+	if (workflow != NULL){
+		workflow->cancelTaskGroup(workflow, groupName, exceptionMessage);
+	}
+}
+
+void GS_Cancel_Application_Tasks(long appId) {
+	if (workflow != NULL){
+		workflow->cancelApplicationTasks(workflow);
+	}
+}
+
+void GS_Barrier(long appId) {
+	if (workflow != NULL){
+		workflow->barrier(workflow);
+	}
+}
+
+void GS_BarrierNew(long appId, int noMoreTasks) {
+	if (workflow != NULL){
+		workflow->barrierWithFlag(workflow, noMoreTasks);
+	}
+}
+
+void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
+	if (workflow != NULL){
+		workflow->barrierGroup(workflow, groupName, exceptionMessage);
+	}
+}
+
+void GS_Snapshot(long appId) {
+	if (workflow != NULL){
+		workflow->snapshot(workflow);
+	}
+}
+
+void GS_Get_Object(long appId, char* fileName, char** buf) {
+	if (workflow != NULL){
+		workflow->get_object(workflow, fileName, buf);
+	} else {
+		*buf = fileName;
+	}
+}
+
+void GS_Delete_Object(long appId, char* fileName, int** buf) {
+	if (workflow != NULL){
+		workflow->delete_object(workflow, fileName, buf);
+	} else {
+		*buf = NULL;
+	}
+}
+
+int GS_Accessed_File(long appId, char* fileName){
+	if (workflow != NULL){
+		return workflow->is_file_accessed(workflow, fileName);
+	}
+	return 0;
+}
+
+void GS_Open_File(long appId, char* fileName, int mode, char** buf) {
+	if (workflow != NULL){
+		workflow->open_file(workflow, fileName, mode, buf);
+	} else {
+		*buf = fileName;
+	}
+}
+
+void GS_Get_File(long appId, char* fileName) {
+	if (workflow != NULL){
+		workflow->get_file(workflow, fileName);
+	}
+}
+
+void GS_Close_File(long appId, char* fileName, int mode) {
+	if (workflow != NULL){
+		workflow->close_file(workflow, fileName, mode);
+	}
+}
+
+void GS_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
+	if (workflow != NULL){
+		workflow->delete_file(workflow, fileName, wait, applicationDelete);
+	}
+}
+
+void GS_Get_Directory(long appId, char* dirName) {
+	if (workflow != NULL){
+		workflow->get_directory(workflow, dirName);
+	}
 }

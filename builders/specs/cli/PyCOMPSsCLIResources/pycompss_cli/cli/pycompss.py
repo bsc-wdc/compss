@@ -17,7 +17,6 @@
 
 from pycompss_cli.core.arguments import parse_sys_argv
 from pycompss_cli.core.actions_dispatcher import ActionsDispatcher
-import sys
 
 # Globals
 LINE_LENGTH = 79
@@ -27,13 +26,13 @@ LINE = "-" * LINE_LENGTH
 def main():
     """
     MAIN ENTRY POINT
-    """        
-    
+    """
+
     arguments = parse_sys_argv()
 
     if arguments.debug:
         print(LINE)
-        
+
         if 'enqueue_args' in arguments:
             del arguments.enqueue_args
         if 'runcompss_args' in arguments:

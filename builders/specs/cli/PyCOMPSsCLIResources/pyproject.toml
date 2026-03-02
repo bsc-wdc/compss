@@ -15,11 +15,11 @@ maintainers = [
 ]
 description = "Command Line Interface (CLI) for PyCOMPSs. Enables to run PyCOMPSs applications in different environments (docker, cluster, local) from a single command line."
 requires-python = ">=3.7"
-license = { file = "LICENSE.txt" }
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
 keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "CLI"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: Unix",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",

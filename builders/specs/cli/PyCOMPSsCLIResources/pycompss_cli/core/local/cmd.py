@@ -864,7 +864,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
                 )
             else:
                 if e_main_create_action.get("object"):
-                    inputs_tree = action_tree.add("Inputs:")
+                    inputs_tree = action_tree.add("Inputs")
                     for wf_in in e_main_create_action["object"]:
                         if isinstance(wf_in, Entity):
                             if "contentSize" in wf_in:

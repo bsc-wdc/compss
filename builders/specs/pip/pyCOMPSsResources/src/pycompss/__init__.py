@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 #  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #

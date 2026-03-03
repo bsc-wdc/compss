@@ -36,7 +36,7 @@ Installation
     python3 -m pip install pycompss-cli
 
 This should add the pycompss-cli executables (``pycompss``,
-``compss`` and ``dislib``) to your path. They can be used indiferently.
+``compss`` and ``dislib``) to your path. They can be used indifferently.
 
 **Warning:** The user executable path may not be automatically exported
 into the ``PATH`` environment variable. So, take this into account if
@@ -79,7 +79,7 @@ For creating docker environments pycompss-cli currently requires:
    3. Check that docker is correctly installed
 
       .. code:: bash
-   
+
          docker --version
          docker ps # this should be empty as no docker processes are yet running.
 
@@ -87,7 +87,7 @@ For creating docker environments pycompss-cli currently requires:
       `docker-py <https://docker-py.readthedocs.io/en/stable/>`__
 
       .. code:: bash
-   
+
          python3 -m pip install docker
 
 

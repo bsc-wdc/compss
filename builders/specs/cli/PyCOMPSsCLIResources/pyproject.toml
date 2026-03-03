@@ -15,11 +15,11 @@ maintainers = [
 ]
 description = "Command Line Interface (CLI) for PyCOMPSs. Enables to run PyCOMPSs applications in different environments (docker, cluster, local) from a single command line."
 requires-python = ">=3.7"
-license = { file = "LICENSE.txt" }
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
 keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "CLI"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: Unix",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -40,7 +40,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-dynamic = ["version", "readme"] 
+dynamic = ["version", "readme"]
 
 dependencies = [
     "setuptools",
@@ -55,6 +55,7 @@ docker = [
 
 [project.scripts]
 pycompss = "pycompss_cli.cli.pycompss:main"
+compss = "pycompss_cli.cli.pycompss:main"
 
 [tool.setuptools]
 include-package-data = true

@@ -814,9 +814,6 @@ runcompss_standard_main() {
   start_compss_app
 }
 
-# Real runtime execution
-start_compss_app
-
 runcompss_client_main() {
   trap clean_env EXIT
   check_args

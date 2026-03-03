@@ -2,7 +2,7 @@
 
   # This script is intended to be called by the buildpackages script
   # However, it can be invoked alone and still function properly
-  # An example usage would be ./buildpip 2.0
+  # An example usage would be ./buildpipcli 3.4
   # It needs as a command line argument with the version of the target distributable
   # The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
   # exist in the specified repository in PyCOMPSsCLIResources/url file
@@ -32,17 +32,17 @@
   cp -r PyCOMPSsCLIResources/pycompss_cli PyCOMPSsCLI/
   cp PyCOMPSsCLIResources/LICENSE.txt PyCOMPSsCLI/
   cp PyCOMPSsCLIResources/MANIFEST.in PyCOMPSsCLI/
-    cp PyCOMPSsCLIResources/README.rst PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/README.rst PyCOMPSsCLI/
   cp PyCOMPSsCLIResources/VERSION.txt PyCOMPSsCLI/
   cp PyCOMPSsCLIResources/requirements.txt PyCOMPSsCLI/
-  cp PyCOMPSsCLIResources/setup.py PyCOMPSsCLI/
+  cp PyCOMPSsCLIResources/pyproject.toml PyCOMPSsCLI/
 
   # Change permissions. This will avoid issues with, for example, python's subprocess.call
   cd PyCOMPSsCLI
   chmod -R 777 *
-  # Create the tar.gz distributable
-  # This should leave a .tar.gz in PyCOMPSsCLI/dist
-  python3 setup.py sdist
+  # Create the tar.gz and whl distributable
+  # This should leave a .tar.gz and a .whl in PyCOMPSsCLI/dist
+  python3 -m build .
   cd "${SCRIPT_DIR}"
 
   # Finally, move the PyCOMPSsCLI distributable to packages/pip (tgz included)

@@ -111,10 +111,10 @@
   if [ "$kafka" -ne 0 ]; then
     cd "${TMP_DIR}"/dependencies/kafka
     if which gradle; then
-      gradle
+      ./retry_zinc gradle
       ev=$?
     elif [ -n "${GRADLE_HOME}" ]; then
-      "${GRADLE_HOME}"/bin/gradle
+      ./retry_zinc "${GRADLE_HOME}"/bin/gradle
       ev=$?
     else
        echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
@@ -124,7 +124,7 @@
       echo "ERROR: Failed to compile Kafka dependency"
       exit 1
     fi
-    ./gradlew jar
+    ./retry_zinc ./gradlew jar
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to build Kafka dependency"

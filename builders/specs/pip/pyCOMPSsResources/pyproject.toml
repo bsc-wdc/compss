@@ -36,7 +36,7 @@ maintainers = [
 description = "Python Binding for COMP Superscalar Runtime"
 readme = "README.rst"
 requires-python = ">=3.7"
-license = "Apache-2.0"
+license = { text = "Apache-2.0" }
 license-files = ["LICENSE.txt"]
 keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "HPC", "parallelization"]
 classifiers = [

@@ -110,6 +110,7 @@
   echo "- Compiling Streaming Backend (Kafka)"
   if [ "$kafka" -ne 0 ]; then
     cd "${TMP_DIR}"/dependencies/kafka
+    gradle wrapper
     if which gradle; then
       ./retry_zinc gradle
       ev=$?

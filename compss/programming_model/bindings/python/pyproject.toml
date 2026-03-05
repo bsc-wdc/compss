@@ -18,8 +18,7 @@ build-backend = "setuptools.build_meta"
     description = "Python Binding for COMP Superscalar Runtime"
     readme = "README.md"
     requires-python = ">=3.6"
-    license = { text = "Apache-2.0" }
-    license-files = ["LICENSE.txt"]
+    license = { file="LICENSE.txt" } 
     keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "HPC", "parallelization"]
     classifiers = [
         "Development Status :: 5 - Production/Stable",

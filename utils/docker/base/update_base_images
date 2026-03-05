@@ -3,7 +3,7 @@
 base="base22"
 platforms="linux/amd64,linux/arm64"
 images="rt bindings all tutorial ci"
-version=251010-163627
+version=$(date -u +%y%m%d-%H%M%S)
 
 while getopts :b:p: OPTION
 do

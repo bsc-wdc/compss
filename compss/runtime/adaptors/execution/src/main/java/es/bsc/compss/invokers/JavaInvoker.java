@@ -18,6 +18,7 @@ package es.bsc.compss.invokers;
 
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
+import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -38,7 +39,7 @@ import java.util.List;
 import storage.StubItf;
 
 
-public class JavaInvoker extends Invoker {
+public class JavaInvoker extends Invoker<JavaWorkflow> {
 
     public static final String ERROR_CLASS_REFLECTION = "Cannot get class by reflection";
     public static final String ERROR_METHOD_REFLECTION = "Cannot get method by reflection";

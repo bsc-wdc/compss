@@ -28,7 +28,7 @@ public class GetObjectPipeCommand extends GetObjectExternalCommand implements Pi
      */
     public GetObjectPipeCommand(String[] args) {
         super();
-        this.objectId = args[2];
+        this.objectId = args[1];
     }
 
     @Override

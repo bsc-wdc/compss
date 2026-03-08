@@ -181,9 +181,6 @@ public enum TraceEvent implements Event {
     PYTHON_CLOSE_TASK_GROUP(16, TraceEventType.BINDING_MASTER, "Close task group"), //
     PYTHON_GET_LOG_PATH(17, TraceEventType.BINDING_MASTER, "Get log path"), //
     PYTHON_GET_TMP_PATH(18, TraceEventType.BINDING_MASTER, "Get tmp path (master working dir)"), //
-    PYTHON_GET_NUMBER_RESOURCES(19, TraceEventType.BINDING_MASTER, "Get number of resources"), //
-    PYTHON_REQUEST_RESOURCES(20, TraceEventType.BINDING_MASTER, "Request resources"), //
-    PYTHON_FREE_RESOURCES(21, TraceEventType.BINDING_MASTER, "Free resources"), //
     PYTHON_REGISTER_CORE_ELEMENT(22, TraceEventType.BINDING_MASTER, "Register Core Element"), //
     PYTHON_WAIT_ON(23, TraceEventType.BINDING_MASTER, "Wait on"), //
     PYTHON_PROCESS_TASK(24, TraceEventType.BINDING_MASTER, "Call to process task"), //

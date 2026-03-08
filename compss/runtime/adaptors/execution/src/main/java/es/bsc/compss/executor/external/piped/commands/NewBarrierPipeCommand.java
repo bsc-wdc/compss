@@ -23,7 +23,7 @@ public class NewBarrierPipeCommand extends NewBarrierExternalCommand implements 
 
     public NewBarrierPipeCommand(String[] command) {
         super();
-        this.noMoreTasks = Boolean.parseBoolean(command[2]);
+        this.noMoreTasks = Boolean.parseBoolean(command[1]);
     }
 
     @Override

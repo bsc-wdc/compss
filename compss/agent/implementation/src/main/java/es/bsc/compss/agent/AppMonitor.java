@@ -26,6 +26,7 @@ import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
@@ -51,7 +52,7 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class AppMonitor implements ApplicationRunner {
 
-    private long appId;
+    private Workflow wf;
     private TaskResult[] taskResults;
     private COMPSsException exception;
 
@@ -109,12 +110,16 @@ public abstract class AppMonitor implements ApplicationRunner {
         }
     }
 
-    public void setAppId(long appId) {
-        this.appId = appId;
+    public void setWorkflow(Workflow w) {
+        this.wf = w;
+    }
+
+    public Workflow getWorkflow() {
+        return this.wf;
     }
 
     public long getAppId() {
-        return this.appId;
+        return this.wf.getId();
     }
 
     public COMPSsException getException() {
@@ -160,7 +165,7 @@ public abstract class AppMonitor implements ApplicationRunner {
 
             @Override
             public void run() {
-                Agent.finishedApplication(appId);
+                wf.deregister();
                 specificOnCompletion();
             }
         }.start();
@@ -174,7 +179,7 @@ public abstract class AppMonitor implements ApplicationRunner {
 
             @Override
             public void run() {
-                Agent.finishedApplication(appId);
+                wf.deregister();
                 specificOnFailure();
             }
         }.start();

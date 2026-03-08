@@ -16,7 +16,8 @@
  */
 package es.bsc.compss.loader.total;
 
-import es.bsc.compss.loader.LoaderAPI;
+import es.bsc.compss.api.Workflow;
+
 import java.io.File;
 
 
@@ -24,23 +25,20 @@ public class COMPSsFile extends File {
 
     private static final long serialVersionUID = 1L;
 
-    private final LoaderAPI api;
-    private final Long appId;
+    private final Workflow wf;
     private final String pathname;
 
 
     /**
      * Creates a new COMPSsFile instance associated to the given file {@code f} and pointing to the given LoaderAPI
      * {@code api}.
-     * 
-     * @param api Associated LoaderAPI.
-     * @param appId Id of the application accessing the file
+     *
+     * @param wf workflow accessing the file
      * @param f Associated file.
      */
-    public COMPSsFile(LoaderAPI api, Long appId, File f) {
+    public COMPSsFile(Workflow wf, File f) {
         super(f.getAbsolutePath());
-        this.api = api;
-        this.appId = appId;
+        this.wf = wf;
         this.pathname = f.getAbsolutePath();
     }
 
@@ -81,27 +79,22 @@ public class COMPSsFile extends File {
 
     @Override
     public boolean delete() {
-        return this.api.deleteFile(appId, this.pathname);
+        boolean deleted = this.wf.deleteFile(this.pathname, true, true);
+        if (deleted) {
+            StreamRegistry.deleteTaskFile(this.pathname);
+        }
+        return deleted;
     }
 
     /**
      * Returns the File object after synchronizing its content.
-     * 
+     *
      * @return File File object after synchronizing its content.
      */
     public File synchFile() {
-        this.api.getFile(appId, this.pathname);
+        wf.getFile(this.pathname);
+        StreamRegistry.deleteTaskFile(this.pathname);
         return new File(this.pathname);
-    }
-
-    /**
-     * Synchronizes the given COMPSsFile {@code f}.
-     * 
-     * @param f COMPSsFile.
-     * @return File object after synchronizing its content.
-     */
-    public static File synchFile(COMPSsFile f) {
-        return f.synchFile();
     }
 
 }

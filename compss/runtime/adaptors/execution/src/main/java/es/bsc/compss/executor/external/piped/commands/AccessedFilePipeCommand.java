@@ -28,7 +28,7 @@ public class AccessedFilePipeCommand extends AccessedFileExternalCommand impleme
      */
     public AccessedFilePipeCommand(String[] args) {
         super();
-        this.file = args[2];
+        this.file = args[1];
     }
 
     @Override

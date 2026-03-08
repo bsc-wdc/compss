@@ -28,9 +28,9 @@ public class OpenTaskGroupPipeCommand extends OpenTaskGroupExternalCommand imple
      */
     public OpenTaskGroupPipeCommand(String[] command) {
         super();
-        this.groupName = command[2];
-        if (command.length == 4) {
-            this.implicitBarrier = Boolean.parseBoolean(command[3]);
+        this.groupName = command[1];
+        if (command.length == 3) {
+            this.implicitBarrier = Boolean.parseBoolean(command[2]);
         } else {
             this.implicitBarrier = true;
         }

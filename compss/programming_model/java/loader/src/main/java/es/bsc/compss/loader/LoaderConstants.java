@@ -22,8 +22,8 @@ import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.total.ArrayAccessWatcher;
 import es.bsc.compss.loader.total.COMPSsGroupLoader;
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
+import es.bsc.compss.loader.total.WorkflowSupplier;
 import es.bsc.compss.types.annotations.Orchestration;
 import java.io.File;
 import java.util.Arrays;
@@ -50,22 +50,17 @@ public class LoaderConstants {
     public static final String CLASS_COMPSS_API = COMPSs.class.getCanonicalName();
     public static final String CLASS_COMPSSRUNTIME_API = COMPSsRuntime.class.getCanonicalName();
     public static final String CLASS_STREAM_REGISTRY = StreamRegistry.class.getCanonicalName();
-    public static final String CLASS_OBJECT_REGISTRY = ObjectRegistry.class.getCanonicalName();
-    public static final String CLASS_APP_ID = Long.class.getCanonicalName();
     public static final String CLASS_ARRAY_ACCESS_WATCHER = ArrayAccessWatcher.class.getCanonicalName();
-    public static final String CLASS_COMPSS_API_IMPL = "COMPSsRuntimeImpl";
-    public static final String CLASS_LOADERAPI = LoaderAPI.class.getCanonicalName();
+    public static final String CLASS_COMPSS_API_IMPL = "es.bsc.compss.api.impl.COMPSsRuntimeImpl";
     public static final String CLASS_ANNOTATIONS_ORCHESTRATION = Orchestration.class.getCanonicalName();
-    public static final String CLASS_COMPSS_CONSTANTS = COMPSsConstants.class.getCanonicalName();
     public static final String CLASS_COMPSS_GROUP_LOADER = COMPSsGroupLoader.class.getCanonicalName();
     public static final String CLASS_COMPSS_GROUP = COMPSsGroup.class.getCanonicalName();
+    public static final String CLASS_WORKFLOW_SUPPLIER = WorkflowSupplier.class.getCanonicalName();
+    public static final String CLASS_WORKFLOW = JavaWorkflow.class.getCanonicalName();
 
     // Strings for Loader variables
-    public static final String STR_COMPSS_PREFIX = "compss";
     public static final String STR_COMPSS_API = "Api";
-    public static final String STR_COMPSS_STREAM_REGISTRY = "SR";
-    public static final String STR_COMPSS_OBJECT_REGISTRY = "OR";
-    public static final String STR_COMPSS_APP_ID = "AppId";
+    public static final String STR_COMPSS_WORKFLOW = "Workflow";
 
     // Supported Stream Types
     private static final List<String> SUPPORTED_STREAM_TYPES = Arrays.asList("FileInputStream", // 58,700

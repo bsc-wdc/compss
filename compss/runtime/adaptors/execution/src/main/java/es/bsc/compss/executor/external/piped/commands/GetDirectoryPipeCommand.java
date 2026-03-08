@@ -28,7 +28,7 @@ public class GetDirectoryPipeCommand extends GetDirectoryExternalCommand impleme
      */
     public GetDirectoryPipeCommand(String[] args) {
         super();
-        this.directory = args[2];
+        this.directory = args[1];
     }
 
     @Override

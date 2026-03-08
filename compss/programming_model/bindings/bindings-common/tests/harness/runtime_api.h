@@ -222,14 +222,6 @@ struct RuntimeApi {
 
     virtual void snapshot(long appId) { GS_Snapshot(appId); }
 
-    virtual void requestResources(long appId, int numResources, const std::string& groupName) {
-        GS_RequestResources(appId, numResources, const_cast<char*>(groupName.c_str()));
-    }
-
-    virtual void freeResources(long appId, int numResources, const std::string& groupName) {
-        GS_FreeResources(appId, numResources, const_cast<char*>(groupName.c_str()));
-    }
-
     virtual void emitEvent(int type, long id) { GS_EmitEvent(type, id); }
 
     virtual std::string getAppDir() {
@@ -277,8 +269,6 @@ struct RuntimeApi {
         GS_Open_File(appId, const_cast<char*>(file.c_str()), mode, &buffer);
         out = buffer ? std::string(buffer) : std::string();
     }
-
-    virtual int getNumberOfResources(long appId) { return GS_GetNumberOfResources(appId); }
 
     virtual void setWallClock(long appId, long wallClock, bool stopRT) {
         GS_Set_wall_clock(appId, wallClock, stopRT ? 1 : 0);

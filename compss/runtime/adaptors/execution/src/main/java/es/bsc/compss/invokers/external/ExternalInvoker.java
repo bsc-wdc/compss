@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers.external;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.Invoker;
@@ -44,7 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public abstract class ExternalInvoker extends Invoker {
+public abstract class ExternalInvoker extends Invoker<Workflow> {
 
     private static final String ERROR_UNSUPPORTED_JOB_TYPE = "Bindings don't support non-native tasks";
 

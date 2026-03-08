@@ -19,13 +19,14 @@ package es.bsc.compss.invokers;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
-import es.bsc.compss.loader.LoaderAPI;
+import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -42,7 +43,6 @@ public class JavaNestedInvoker extends JavaInvoker {
     private String ceiName;
     private Class<?> ceiClass;
     private final COMPSsRuntime runtimeAPI;
-    private final LoaderAPI loaderAPI;
 
 
     /**
@@ -58,7 +58,6 @@ public class JavaNestedInvoker extends JavaInvoker {
         InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, sandbox, assignedResources);
         runtimeAPI = context.getRuntimeAPI();
-        loaderAPI = context.getLoaderAPI();
     }
 
     @Override
@@ -110,8 +109,7 @@ public class JavaNestedInvoker extends JavaInvoker {
         if (this.ceiClass == null) {
             super.runMethod();
         } else {
-            long appId;
-            appId = becomesNestedApplication(this.ceiName);
+            JavaWorkflow wf = becomesNestedApplication(this.ceiName);
             // Register Core Elements on Runtime
             List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
             for (CoreElementDefinition ced : ceds) {
@@ -121,16 +119,14 @@ public class JavaNestedInvoker extends JavaInvoker {
             try {
                 setter = this.methodClass.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                        Class.forName(LoaderConstants.CLASS_LOADERAPI),
-                        Class.forName(LoaderConstants.CLASS_APP_ID) });
+                        Class.forName(LoaderConstants.CLASS_WORKFLOW) });
             } catch (Exception e) {
                 throw new JobExecutionException("Class not properly instrumented. Method setCOMPSsVariables not found!",
                     e);
             }
             try {
                 Object[] values = new Object[] { this.runtimeAPI,
-                    this.loaderAPI,
-                    appId };
+                    wf };
                 setter.invoke(null, values);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new JobExecutionException("Error setting Nested COMPSs variables", e);
@@ -140,8 +136,46 @@ public class JavaNestedInvoker extends JavaInvoker {
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
             } finally {
-                this.completeNestedApplication(appId);
+                this.completeNestedApplication(wf);
             }
+        }
+    }
+
+    @Override
+    public JavaWorkflow registerWorkflow(String parallelismSource) {
+        return new JavaWorkflow(this.context.getRuntimeAPI(), parallelismSource, this);
+    }
+
+    @Override
+    protected void handleSimpleInputValue(JavaWorkflow wf, InvocationParam p) {
+        switch (p.getType()) {
+            case OBJECT_T:
+            case PSCO_T:
+                Object o = p.getValue();
+                wf.registerData(p.getType(), o, p.getSourceDataId());
+                break;
+            default:
+                super.handleSimpleInputValue(wf, p);
+        }
+    }
+
+    @Override
+    protected void handleSimpleOutputValue(JavaWorkflow wf, InvocationParam p) {
+        switch (p.getType()) {
+            case OBJECT_T:
+            case PSCO_T: {
+                Object o = p.getValue();
+                String dataId = p.getDataMgmtId();
+                if (!wf.bindExistingVersionToData(o, dataId)) {
+                    Object internal = wf.getObject(p.getValue(), false);
+                    p.setValue(internal);
+                } else {
+                    p.resultIsForwarded();
+                }
+            }
+                break;
+            default:
+                super.handleSimpleOutputValue(wf, p);
         }
     }
 }

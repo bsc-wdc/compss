@@ -280,15 +280,6 @@ def c_extension_link(  # pylint: disable=too-many-locals
             elif command == LINK_MESSAGES.get_master_working_path:
                 master_working_path = compss.get_master_working_path()
                 out_queue.put(master_working_path)
-            elif command == LINK_MESSAGES.get_number_of_resources:
-                num_resources = compss.get_number_of_resources(*parameters)
-                out_queue.put(num_resources)
-            elif command == LINK_MESSAGES.request_resources:
-                compss.request_resources(*parameters)
-                out_queue.put(command_done)
-            elif command == LINK_MESSAGES.free_resources:
-                compss.free_resources(*parameters)
-                out_queue.put(command_done)
             elif command == LINK_MESSAGES.register_core_element:
                 compss.register_core_element(*parameters)
                 out_queue.put(command_done)
@@ -307,8 +298,8 @@ def c_extension_link(  # pylint: disable=too-many-locals
             elif command == LINK_MESSAGES.set_jni_runtime:
                 compss.set_JNI_runtime()
                 out_queue.put(command_done)
-            elif command == LINK_MESSAGES.read_pipes:
-                compss.read_pipes(*parameters)
+            elif command == LINK_MESSAGES.read_command:
+                compss.read_command(*parameters)
                 out_queue.put(command_done)
             elif command == LINK_MESSAGES.set_wall_clock:
                 compss.set_wall_clock(*parameters)
@@ -546,51 +537,6 @@ class _COMPSs:
         master_working_path = self.out_queue.get(block=True)
         return master_working_path
 
-    def get_number_of_resources(self, app_id: int) -> int:
-        """Call to number_of_resources.
-
-        :param app_id: Application identifier.
-        :return: Number of resources.
-        """
-        self.in_queue.put((LINK_MESSAGES.get_number_of_resources, app_id))
-        num_resources = self.out_queue.get(block=True)
-        return num_resources
-
-    def request_resources(
-        self, app_id: int, num_resources: int, group_name: str
-    ) -> None:
-        """Call to request_resources.
-
-        :param app_id: Application identifier.
-        :param num_resources: Number of resources.
-        :param group_name: Group name.
-        :return: None.
-        """
-        self.in_queue.put(
-            (
-                LINK_MESSAGES.request_resources,
-                app_id,
-                num_resources,
-                group_name,
-            )
-        )
-        _ = self.out_queue.get(block=True)
-
-    def free_resources(
-        self, app_id: int, num_resources: int, group_name: str
-    ) -> None:
-        """Call to free_resources.
-
-        :param app_id: Application identifier.
-        :param num_resources: Number of resources.
-        :param group_name: Group name.
-        :return: None.
-        """
-        self.in_queue.put(
-            (LINK_MESSAGES.free_resources, app_id, num_resources, group_name)
-        )
-        _ = self.out_queue.get(block=True)
-
     def set_wall_clock(self, app_id: int, wcl: int) -> None:
         """Call to set_wall_clock.
 
@@ -826,11 +772,11 @@ class _COMPSs:
         self.in_queue.put([LINK_MESSAGES.set_jni_runtime])
         _ = self.out_queue.get(block=True)
 
-    def read_pipes(self) -> str:
-        """Call to read_pipes.
+    def read_command(self) -> str:
+        """Call to read_command.
 
-        :return: The command read from the pipe.
+        :return: The command read from the runtime.
         """
-        self.in_queue.put([LINK_MESSAGES.read_pipes])
+        self.in_queue.put([LINK_MESSAGES.read_command])
         command = self.out_queue.get(block=True)
         return command

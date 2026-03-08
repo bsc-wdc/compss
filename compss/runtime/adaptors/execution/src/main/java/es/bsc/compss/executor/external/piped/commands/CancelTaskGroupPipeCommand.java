@@ -23,7 +23,7 @@ public class CancelTaskGroupPipeCommand extends CancelTaskGroupExternalCommand i
 
     public CancelTaskGroupPipeCommand(String[] command) {
         super();
-        this.groupName = command[2];
+        this.groupName = command[1];
     }
 
     @Override

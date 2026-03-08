@@ -20,7 +20,7 @@
 #include <string>
 
 // Build the cancel application tasks payload for transport layers.
-std::string build_cancel_application_tasks_command(long appId);
+std::string build_cancel_application_tasks_command();
 std::string build_get_app_dir_command();
 std::string build_get_master_working_dir_command();
 std::string build_execute_task_class_command(const char* className,
@@ -61,24 +61,21 @@ std::string build_register_ce_command(const char* ceSignature,
                                       char** container,
                                       int numArgs,
                                       char** implTypeArgs);
-std::string build_file_accessed_command(long appId, const char* fileName);
-std::string build_open_file_command(long appId, const char* fileName, int mode);
-std::string build_close_file_command(long appId, const char* fileName, int mode);
-std::string build_delete_file_command(long appId, const char* fileName, int wait, int applicationDelete);
-std::string build_get_file_command(long appId, const char* fileName);
-std::string build_get_directory_command(long appId, const char* dirName);
-std::string build_get_object_command(long appId, const char* objectId);
-std::string build_delete_object_command(long appId, const char* objectId);
-std::string build_barrier_command(long appId);
-std::string build_barrier_new_command(long appId, int noMoreTasks);
-std::string build_barrier_group_command(long appId, const char* groupName);
-std::string build_open_task_group_command(long appId, const char* groupName, int implicitBarrier);
-std::string build_close_task_group_command(long appId, const char* groupName);
-std::string build_cancel_task_group_command(long appId, const char* groupName);
-std::string build_snapshot_command(long appId);
+std::string build_file_accessed_command(const char* fileName);
+std::string build_open_file_command(const char* fileName, int mode);
+std::string build_close_file_command(const char* fileName, int mode);
+std::string build_delete_file_command(const char* fileName, int wait, int applicationDelete);
+std::string build_get_file_command(const char* fileName);
+std::string build_get_directory_command(const char* dirName);
+std::string build_get_object_command(const char* objectId);
+std::string build_delete_object_command(const char* objectId);
+std::string build_barrier_command();
+std::string build_barrier_new_command(int noMoreTasks);
+std::string build_barrier_group_command(const char* groupName);
+std::string build_open_task_group_command(const char* groupName, int implicitBarrier);
+std::string build_close_task_group_command(const char* groupName);
+std::string build_cancel_task_group_command(const char* groupName);
+std::string build_snapshot_command();
 std::string build_emit_event_command(int type, long id);
-std::string build_get_number_of_resources_command(long appId);
-std::string build_request_resources_command(long appId, int numResources, const char* groupName);
-std::string build_free_resources_command(long appId, int numResources, const char* groupName);
 
 #endif  // COMMAND_BUILDERS_H

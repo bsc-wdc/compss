@@ -27,11 +27,13 @@ import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.types.SharedRemoteDataLocation;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
+import es.bsc.compss.api.impl.WorkflowImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
-import es.bsc.compss.loader.total.ObjectRegistry;
+import es.bsc.compss.loader.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
@@ -85,7 +87,7 @@ public class Agent {
 
     private static final List<AgentInterface<?>> INTERFACES;
 
-    private static final int PARAM_LENGTH = COMPSsRuntimeImpl.NUM_FIELDS_PER_PARAM;
+    private static final int PARAM_LENGTH = WorkflowImpl.NUM_FIELDS_PER_PARAM;
 
     static {
         AGENT_NAME = COMPSsNode.getMasterName();
@@ -140,8 +142,6 @@ public class Agent {
 
         };
         ErrorManager.init(feh);
-        RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
-        RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
 
         INTERFACES = new LinkedList<>();
 
@@ -199,8 +199,9 @@ public class Agent {
         synchronized (RUNTIME) {
             // Making sure that the runtime has already been started
         }
-        Long appId = RUNTIME.registerApplication(ceiClass, monitor);
-        monitor.setAppId(appId);
+        Workflow wf = RUNTIME.registerWorkflow(ceiClass, monitor);
+        long appId = wf.getId();
+        monitor.setWorkflow(wf);
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("appId: " + appId);
         LOGGER.debug("Core Element Description: " + ced.toString());
@@ -223,13 +224,13 @@ public class Agent {
             LOGGER.debug("Handles parameters:");
             for (ApplicationParameter param : arguments) {
                 LOGGER.debug("\t Parameter:" + param.getParamName());
-                processParameter(appId, param, position, params);
+                processParameter(wf, param, position, params);
                 position += PARAM_LENGTH;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
-                processParameter(appId, target, position, params);
+                processParameter(wf, target, position, params);
                 position += PARAM_LENGTH;
             }
 
@@ -247,8 +248,7 @@ public class Agent {
             onFailure = OnFailure.FAIL;
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
-            RUNTIME.executeTask(appId, // APP ID
-                lang, true, null, null, ced.getCeSignature(), // Method to call
+            wf.executeTask(lang, true, null, null, ced.getCeSignature(), // Method to call
                 onFailure, // On failure behavior
                 0, // Time out of the task
                 false, // isPriority
@@ -270,7 +270,7 @@ public class Agent {
         return appId;
     }
 
-    private static String processCollParamValue(ApplicationParameterCollection<ApplicationParameter> param, Long appId,
+    private static String processCollParamValue(ApplicationParameterCollection<ApplicationParameter> param, Workflow wf,
         String colName) throws Exception {
 
         int collSize = param.getCollectionParameters().size();
@@ -288,7 +288,7 @@ public class Agent {
                 @SuppressWarnings("unchecked")
                 ApplicationParameterCollection<ApplicationParameter> collSubParam =
                     (ApplicationParameterCollection<ApplicationParameter>) (subParam);
-                paramValue = processCollParamValue(collSubParam, appId, subParamName);
+                paramValue = processCollParamValue(collSubParam, wf, subParamName);
             } else {
                 paramValue = subParam.getValueContent().toString() + " " + subParam.getContentType();
             }
@@ -303,13 +303,13 @@ public class Agent {
                     stub = paramValue;
                 }
                 addRemoteData(remote);
-                RUNTIME.registerData(appId, subParam.getType(), stub, remote.getRenaming());
+                wf.registerData(subParam.getType(), stub, remote.getRenaming());
             }
         }
         return sb.toString();
     }
 
-    private static Object processParamValue(Long appId, int position, ApplicationParameter param) throws Exception {
+    private static Object processParamValue(Workflow wf, int position, ApplicationParameter param) throws Exception {
         RemoteDataInformation remote = param.getRemoteData();
         Object stub;
         if (remote == null && param.getType() != DataType.COLLECTION_T) {
@@ -319,27 +319,27 @@ public class Agent {
             if (param.getType() == DataType.FILE_T) {
                 stub = param.getValueContent();
             } else {
-                stub = "app_" + appId + "_param" + position;
+                stub = "app_" + wf.getId() + "_param" + position;
                 if (param.getType() == DataType.COLLECTION_T) {
                     @SuppressWarnings("unchecked")
                     ApplicationParameterCollection<ApplicationParameter> collSubParam =
                         (ApplicationParameterCollection<ApplicationParameter>) (param);
-                    stub = processCollParamValue(collSubParam, appId, (String) stub);
+                    stub = processCollParamValue(collSubParam, wf, (String) stub);
                 }
             }
 
             if (remote != null) {
                 addRemoteData(remote);
-                RUNTIME.registerData(appId, param.getType(), stub, remote.getRenaming());
+                wf.registerData(param.getType(), stub, remote.getRenaming());
             }
         }
         return stub;
     }
 
-    private static void processParameter(Long appId, ApplicationParameter param, int position, Object[] arguments)
+    private static void processParameter(Workflow wf, ApplicationParameter param, int position, Object[] arguments)
         throws AgentException, Exception {
 
-        Object value = processParamValue(appId, position, param);
+        Object value = processParamValue(wf, position, param);
         addTaskParameter(value, param, position, arguments);
     }
 
@@ -661,18 +661,5 @@ public class Agent {
             }
             start();
         }
-    }
-
-    /**
-     * Handles the notification of the end of an application.
-     *
-     * @param appId Identifier of the finished application
-     */
-    public static void finishedApplication(long appId) {
-        synchronized (RUNTIME) {
-            // Making sure that the runtime has already been started
-        }
-        // Remove all data bound to the application and remove app
-        RUNTIME.deregisterApplication(appId);
     }
 }

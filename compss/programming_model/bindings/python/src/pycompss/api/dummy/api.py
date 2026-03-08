@@ -227,44 +227,6 @@ def compss_wait_on(
     return ret
 
 
-def compss_get_number_of_resources() -> int:
-    """Request for the number of active resources dummy.
-
-    Does nothing.
-
-    :return: The number of active resources
-    """
-    return 1
-
-
-def compss_request_resources(
-    num_resources: int,  # pylint: disable=unused-argument
-    group_name: typing.Optional[str],  # pylint: disable=unused-argument
-) -> None:
-    """Request the creation of num_resources resources dummy.
-
-    Does nothing.
-
-    :param num_resources: Number of resources to create.
-    :param group_name: Task group to notify upon resource creation
-    :return: None
-    """
-
-
-def compss_free_resources(
-    num_resources: int,  # pylint: disable=unused-argument
-    group_name: typing.Optional[str],  # pylint: disable=unused-argument
-) -> None:
-    """Request the destruction of num_resources resources dummy.
-
-    Does nothing.
-
-    :param num_resources: Number of resources to destroy.
-    :param group_name: Task group to notify upon resource creation
-    :return: None
-    """
-
-
 def compss_set_wall_clock(
     wall_clock_limit: int,  # pylint: disable=unused-argument
 ) -> None:

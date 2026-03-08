@@ -703,46 +703,6 @@ TEST_P(GenericRuntimeTransportTest, PipeSnapshot_WritesCommand) {
     EXPECT_EQ(harness->commands(), "SNAPSHOT 1\n");
 }
 
-TEST_P(GenericRuntimeTransportTest, PipeRequestResources_WritesCommand) {
-    long appId = 1L;
-    int numResources = 5;
-    std::string groupName = "myResourceGroup";
-
-    runtime->requestResources(appId, numResources, groupName);
-
-    EXPECT_EQ(harness->commands(), "REQUEST_RESOURCES 1 5 myResourceGroup\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeRequestResources_EmptyGroupName_WritesCommand) {
-    long appId = 1L;
-    int numResources = 5;
-    std::string groupName = ""; // Empty group name
-
-    runtime->requestResources(appId, numResources, groupName);
-
-    EXPECT_EQ(harness->commands(), "REQUEST_RESOURCES 1 5 \n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeFreeResources_WritesCommand) {
-    long appId = 1L;
-    int numResources = 3;
-    std::string groupName = "myFreeResourceGroup";
-
-    runtime->freeResources(appId, numResources, groupName);
-
-    EXPECT_EQ(harness->commands(), "FREE_RESOURCES 1 3 myFreeResourceGroup\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeFreeResources_EmptyGroupName_WritesCommand) {
-    long appId = 1L;
-    int numResources = 3;
-    std::string groupName = ""; // Empty group name
-
-    runtime->freeResources(appId, numResources, groupName);
-
-    EXPECT_EQ(harness->commands(), "FREE_RESOURCES 1 3 \n");
-}
-
 TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_WritesCommand) {
     int type = 10;
     long id = 20L;
@@ -884,19 +844,6 @@ TEST_P(PipeRuntimeTransportTest, PipeSetWallClock_WritesCommand) {
     stopRT = false;
     runtime->setWallClock(appId, wallClockTime, stopRT);
     EXPECT_TRUE(harness->commands().empty());
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeGetNumberOfResources_WritesCommandAndParsesResult) {
-    long appId = 1L;
-    int expectedResources = 10;
-
-    // Simulate runtime returning the number of resources
-    harness->enqueueResponse(std::to_string(expectedResources) + "\n");
-
-    int actualResources = runtime->getNumberOfResources(appId);
-
-    EXPECT_EQ(harness->commands(), "GET_RESOURCES 1\n");
-    EXPECT_EQ(actualResources, expectedResources);
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeOpenFile_WritesCommandAndParsesResult) {
@@ -1211,14 +1158,6 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_String64AndExternalPsco_Writ
         " { \"Value\" : \"psco://object/abc123\", \"DataType\" : 13, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"psco\", \"ContType\" : \"null\", \"Weight\" : \"2.0\", \"KeepRename\" : false } ] \n";
 
     EXPECT_EQ(harness->commands(), expected);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeGetNumberOfResources_Zero_WritesCommandAndParsesResult) {
-    long appId = 3L;
-    harness->enqueueResponse("0\n");
-    int resources = runtime->getNumberOfResources(appId);
-    EXPECT_EQ(harness->commands(), "GET_RESOURCES 3\n");
-    EXPECT_EQ(resources, 0);
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_ReduceReplicatedTargetPriority_WritesCorrectCommand) {

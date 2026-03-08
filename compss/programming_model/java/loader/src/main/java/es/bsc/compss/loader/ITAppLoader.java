@@ -16,10 +16,14 @@
  */
 package es.bsc.compss.loader;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 
@@ -47,17 +51,34 @@ public class ITAppLoader {
             myLoader = new CustomLoader(new URL[] {});
 
             LOGGER.debug("Modifying application " + appName);
+
             // Get annotated interface and run main modify method
             Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
-            Class<?> modAppClass = ITAppModifier.modifyToMemory(appName, annotItf, true, true);
-            if (modAppClass != null) { // if null, the modified app has been written to a file, and thus we're done
-                LOGGER.debug("Application " + appName + " instrumented, executing...");
-                // Start runtime
-                Method initializer = modAppClass.getDeclaredMethod("initCOMPSsVariables");
-                initializer.invoke(null);
+            Class<?> modAppClass;
+            modAppClass = ITAppModifier.modifyToMemory(appName, annotItf, true, true);
+            LOGGER.debug("Application " + appName + " instrumented, executing...");
+
+            // Start runtime
+            LOGGER.debug("Creating runtime");
+            COMPSsRuntime rt;
+            rt = createRuntime();
+
+            LOGGER.debug("Starting runtime");
+            rt.startIT();
+
+            System.setProperty(COMPSsConstants.APP_NAME, appName);
+            Method initializer = modAppClass.getDeclaredMethod("setCOMPSsVariables",
+                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API) });
+            initializer.invoke(null, rt);
+
+            try {
+                LOGGER.debug("Executing " + appName);
                 // Start main
                 Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
                 main.invoke(null, new Object[] { appArgs });
+            } finally {
+                // Stop the runtime whether the execution raises an exception or not
+                rt.stopIT(true);
             }
         } catch (Exception e) {
             throw e;
@@ -67,6 +88,13 @@ public class ITAppLoader {
                 myLoader.close();
             }
         }
+    }
+
+    private static COMPSsRuntime createRuntime() throws ClassNotFoundException, NoSuchMethodException,
+        InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> schedClass = Class.forName(LoaderConstants.CLASS_COMPSS_API_IMPL);
+        Constructor<?> rtConstructor = schedClass.getDeclaredConstructor();
+        return (COMPSsRuntime) rtConstructor.newInstance();
     }
 
     /**

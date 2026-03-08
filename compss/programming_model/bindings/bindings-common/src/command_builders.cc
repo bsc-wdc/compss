@@ -182,9 +182,9 @@ std::string build_param_fragment(void** params, int index) {
 
 }  // namespace
 
-std::string build_cancel_application_tasks_command(long appId) {
+std::string build_cancel_application_tasks_command() {
     std::ostringstream oss;
-    oss << "CANCEL_APPLICATION_TASKS " << appId << std::endl;
+    oss << "CANCEL_APPLICATION_TASKS " << std::endl;
     return oss.str();
 }
 
@@ -295,118 +295,100 @@ std::string build_register_ce_command(const char* ceSignature,
     return ss.str();
 }
 
-std::string build_file_accessed_command(long appId, const char* fileName) {
+std::string build_file_accessed_command(const char* fileName) {
     std::ostringstream ss;
-    ss << "FILE_ACCESSED " << appId << " " << fileName << std::endl;
+    ss << "FILE_ACCESSED " << fileName << std::endl;
     return ss.str();
 }
 
-std::string build_open_file_command(long appId, const char* fileName, int mode) {
+std::string build_open_file_command(const char* fileName, int mode) {
     std::ostringstream ss;
-    ss << "OPEN_FILE " << appId << " " << fileName << " " << mode << std::endl;
+    ss << "OPEN_FILE " << fileName << " " << mode << std::endl;
     return ss.str();
 }
 
-std::string build_close_file_command(long appId, const char* fileName, int mode) {
+std::string build_close_file_command(const char* fileName, int mode) {
     std::ostringstream ss;
-    ss << "CLOSE_FILE " << appId << " " << fileName << " " << mode << std::endl;
+    ss << "CLOSE_FILE " << fileName << " " << mode << std::endl;
     return ss.str();
 }
 
-std::string build_delete_file_command(long appId, const char* fileName, int wait, int applicationDelete) {
+std::string build_delete_file_command(const char* fileName, int wait, int applicationDelete) {
     std::ostringstream ss;
-    ss << "DELETE_FILE " << appId << " " << fileName << " " << to_bool_literal(wait) << " "
+    ss << "DELETE_FILE " << fileName << " " << to_bool_literal(wait) << " "
        << to_bool_literal(applicationDelete) << std::endl;
     return ss.str();
 }
 
-std::string build_get_file_command(long appId, const char* fileName) {
+std::string build_get_file_command(const char* fileName) {
     std::ostringstream ss;
-    ss << "GET_FILE " << appId << " " << fileName << std::endl;
+    ss << "GET_FILE " << fileName << std::endl;
     return ss.str();
 }
 
-std::string build_get_directory_command(long appId, const char* dirName) {
+std::string build_get_directory_command(const char* dirName) {
     std::ostringstream ss;
-    ss << "GET_DIRECTORY " << appId << " " << dirName << std::endl;
+    ss << "GET_DIRECTORY " << dirName << std::endl;
     return ss.str();
 }
 
-std::string build_get_object_command(long appId, const char* objectId) {
+std::string build_get_object_command(const char* objectId) {
     std::ostringstream ss;
-    ss << "GET_OBJECT" << appId << " " << objectId << std::endl;
+    ss << "GET_OBJECT" << objectId << std::endl;
     return ss.str();
 }
 
-std::string build_delete_object_command(long appId, const char* objectId) {
+std::string build_delete_object_command(const char* objectId) {
     std::ostringstream ss;
-    ss << "DELETE_OBJECT" << appId << " " << objectId << std::endl;
+    ss << "DELETE_OBJECT" << objectId << std::endl;
     return ss.str();
 }
 
-std::string build_barrier_command(long appId) {
+std::string build_barrier_command() {
     std::ostringstream ss;
-    ss << "BARRIER " << appId << std::endl;
+    ss << "BARRIER " << std::endl;
     return ss.str();
 }
 
-std::string build_barrier_new_command(long appId, int noMoreTasks) {
+std::string build_barrier_new_command(int noMoreTasks) {
     std::ostringstream ss;
-    ss << "BARRIER_NEW " << appId << " " << to_bool_literal(noMoreTasks) << " " << std::endl;
+    ss << "BARRIER_NEW " << to_bool_literal(noMoreTasks) << " " << std::endl;
     return ss.str();
 }
 
-std::string build_barrier_group_command(long appId, const char* groupName) {
+std::string build_barrier_group_command(const char* groupName) {
     std::ostringstream ss;
-    ss << "BARRIER_GROUP " << appId << " " << groupName << std::endl;
+    ss << "BARRIER_GROUP " << groupName << std::endl;
     return ss.str();
 }
 
-std::string build_open_task_group_command(long appId, const char* groupName, int implicitBarrier) {
+std::string build_open_task_group_command(const char* groupName, int implicitBarrier) {
     std::ostringstream ss;
-    ss << "OPEN_TASK_GROUP " << appId << " " << groupName << " " << to_bool_literal(implicitBarrier) << " "
+    ss << "OPEN_TASK_GROUP " << groupName << " " << to_bool_literal(implicitBarrier) << " "
        << std::endl;
     return ss.str();
 }
 
-std::string build_close_task_group_command(long appId, const char* groupName) {
+std::string build_close_task_group_command(const char* groupName) {
     std::ostringstream ss;
-    ss << "CLOSE_TASK_GROUP " << appId << " " << groupName << std::endl;
+    ss << "CLOSE_TASK_GROUP " << groupName << std::endl;
     return ss.str();
 }
 
-std::string build_cancel_task_group_command(long appId, const char* groupName) {
+std::string build_cancel_task_group_command(const char* groupName) {
     std::ostringstream ss;
-    ss << "CANCEL_TASK_GROUP " << appId << " " << groupName << std::endl;
+    ss << "CANCEL_TASK_GROUP " << groupName << std::endl;
     return ss.str();
 }
 
-std::string build_snapshot_command(long appId) {
+std::string build_snapshot_command() {
     std::ostringstream ss;
-    ss << "SNAPSHOT " << appId << std::endl;
+    ss << "SNAPSHOT " << std::endl;
     return ss.str();
 }
 
 std::string build_emit_event_command(int type, long id) {
     std::ostringstream ss;
     ss << "EMIT_EVENT " << type << " " << id << std::endl;
-    return ss.str();
-}
-
-std::string build_get_number_of_resources_command(long appId) {
-    std::ostringstream ss;
-    ss << "GET_RESOURCES " << appId << std::endl;
-    return ss.str();
-}
-
-std::string build_request_resources_command(long appId, int numResources, const char* groupName) {
-    std::ostringstream ss;
-    ss << "REQUEST_RESOURCES " << appId << " " << numResources << " " << groupName << std::endl;
-    return ss.str();
-}
-
-std::string build_free_resources_command(long appId, int numResources, const char* groupName) {
-    std::ostringstream ss;
-    ss << "FREE_RESOURCES " << appId << " " << numResources << " " << groupName << std::endl;
     return ss.str();
 }

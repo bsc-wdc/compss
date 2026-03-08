@@ -28,7 +28,7 @@ public class GetFilePipeCommand extends GetFileExternalCommand implements PipeCo
      */
     public GetFilePipeCommand(String[] args) {
         super();
-        this.file = args[2];
+        this.file = args[1];
     }
 
     @Override

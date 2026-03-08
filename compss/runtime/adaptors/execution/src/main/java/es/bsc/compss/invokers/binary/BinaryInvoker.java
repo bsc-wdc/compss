@@ -19,6 +19,7 @@ package es.bsc.compss.invokers.binary;
 import static es.bsc.compss.types.implementations.definition.ContainerDescription.ContainerEngine.SINGULARITY;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.execution.types.InvocationResources;
@@ -41,7 +42,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 
-public class BinaryInvoker extends Invoker {
+public class BinaryInvoker extends Invoker<Workflow> {
 
     private static final int NUM_BASE_BINARY_ARGS = 1;
 

@@ -30,7 +30,6 @@ extern "C" void GS_set_pipes(char* comPipe, char* resPipe);
 extern "C" void GS_set_socket_endpoint(char* endpoint);
 extern "C" void GS_set_JNI_runtime(void);
 extern "C" void GS_read_command(char** command);
-extern "C" void GS_read_pipes(char** command);
 extern "C" void GS_Off(int code);
 extern "C" void GS_Cancel_Application_Tasks(long appId);
 
@@ -109,9 +108,6 @@ extern "C" void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appI
 extern "C" void GS_CloseTaskGroup(char* groupName, long appId);
 extern "C" void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage);
 extern "C" void GS_Snapshot(long appId);
-extern "C" int GS_GetNumberOfResources(long appId);
-extern "C" void GS_RequestResources(long appId, int numResources, char* groupName);
-extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
 extern "C" void GS_Get_AppDir(char** buf);

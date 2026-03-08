@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl.socketserver;
 
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.components.impl.socketserver.ipc.ConnectionHandler;
 import es.bsc.compss.components.impl.socketserver.ipc.Server;
@@ -86,6 +87,7 @@ public class SocketServer extends Server {
      */
     @Override
     public ConnectionHandler onNewClient() {
+
         return new CompssConnection();
     }
 
@@ -95,8 +97,12 @@ public class SocketServer extends Server {
      */
     private class CompssConnection extends ConnectionHandler {
 
-        private Long appId;
+        private final Workflow wf;
 
+
+        public CompssConnection() {
+            this.wf = runtime.registerWorkflow(null, null);
+        }
 
         /**
          * Logs the arrival of a new socket client.
@@ -136,15 +142,13 @@ public class SocketServer extends Server {
         @Override
         public void onClose() {
             LOGGER.debug("Socket client disconnected");
-            if (this.appId != null) {
-                try {
-                    runtime.barrier(this.appId);
-                } catch (Exception e) {
-                    LOGGER.warn("Barrier failed while closing connection", e);
-                } finally {
-                    runtime.deregisterApplication(this.appId);
-                    this.appId = null;
-                }
+
+            try {
+                this.wf.barrier();
+            } catch (Exception e) {
+                LOGGER.warn("Barrier failed while closing connection", e);
+            } finally {
+                this.wf.deregister();
             }
         }
 
@@ -309,38 +313,27 @@ public class SocketServer extends Server {
         }
 
         /**
-         * Lazily registers an application so runtime calls can be associated with its identifier.
-         */
-        private void ensureApplicationRegistered() {
-            if (this.appId == null) {
-                this.appId = runtime.registerApplication(null, null);
-                LOGGER.debug("Registered application {}", this.appId);
-            }
-        }
-
-        /**
          * Executes a nested task requested by the client.
          *
          * @param cmd command describing the task execution.
          * @throws COMPSsException if the runtime reports a failure.
          */
         private void handleExecuteNestedTask(ExecuteNestedTaskPipeCommand cmd) throws COMPSsException {
-            ensureApplicationRegistered();
             switch (cmd.getEntryPoint()) {
                 case SIGNATURE:
-                    runtime.executeTask(this.appId, cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(),
+                    wf.executeTask(cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getPrioritary(),
+                        cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(),
+                        cmd.isDistributed(), cmd.hasTarget(), cmd.getNumReturns(), cmd.getParameterCount(),
+                        cmd.getParameters());
+                    break;
+                case CLASS_METHOD:
+                    wf.executeTask(cmd.getMethodClass(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getMethodName(),
                         cmd.getPrioritary(), cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(),
                         cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(), cmd.getNumReturns(),
                         cmd.getParameterCount(), cmd.getParameters());
                     break;
-                case CLASS_METHOD:
-                    runtime.executeTask(this.appId, cmd.getMethodClass(), cmd.getOnFailure(), cmd.getTimeOut(),
-                        cmd.getMethodName(), cmd.getPrioritary(), cmd.getNumNodes(), cmd.isReduce(),
-                        cmd.getReduceChunkSize(), cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(),
-                        cmd.getNumReturns(), cmd.getParameterCount(), cmd.getParameters());
-                    break;
                 default:
-                    LOGGER.warn("Unsupported nested task entry point {}", cmd.getEntryPoint());
+                    LOGGER.warn("Unsupported task entry point {}", cmd.getEntryPoint());
             }
         }
 
@@ -351,12 +344,8 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleAccessedFile(AccessedFilePipeCommand cmd) throws IOException {
-            if (this.appId == null) {
-                sendCommand(new SynchPipeCommand("0"));
-            } else {
-                boolean accessed = runtime.isFileAccessed(this.appId, cmd.getFile());
-                sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
-            }
+            boolean accessed = wf.isFileAccessed(cmd.getFile());
+            sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
         }
 
         /**
@@ -367,12 +356,8 @@ public class SocketServer extends Server {
          */
         private void handleOpenFile(OpenFilePipeCommand cmd) throws IOException {
             Direction dir = cmd.getDirection();
-            if (this.appId == null) {
-                sendCommand(new SynchPipeCommand(cmd.getFile()));
-            } else {
-                String location = runtime.openFile(this.appId, cmd.getFile(), dir);
-                sendCommand(new SynchPipeCommand(location));
-            }
+            String location = wf.openFile(cmd.getFile(), dir);
+            sendCommand(new SynchPipeCommand(location));
         }
 
         /**
@@ -381,9 +366,7 @@ public class SocketServer extends Server {
          * @param cmd command containing the file identifier and access direction.
          */
         private void handleCloseFile(CloseFilePipeCommand cmd) {
-            if (this.appId != null) {
-                runtime.closeFile(this.appId, cmd.getFile(), cmd.getDirection());
-            }
+            wf.closeFile(cmd.getFile(), cmd.getDirection());
         }
 
         /**
@@ -393,7 +376,7 @@ public class SocketServer extends Server {
          * @throws IOException if the response cannot be sent.
          */
         private void handleDeleteFile(DeleteFilePipeCommand cmd) throws IOException {
-            boolean deleted = runtime.deleteFile(this.appId, cmd.getFile());
+            boolean deleted = wf.deleteFile(cmd.getFile(), true, true);
             sendCommand(new SynchPipeCommand(deleted ? "1" : "0"));
         }
 
@@ -404,9 +387,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleGetFile(GetFilePipeCommand cmd) throws IOException {
-            if (this.appId != null) {
-                runtime.getFile(this.appId, cmd.getFile());
-            }
+            wf.getFile(cmd.getFile());
             sendCommand(new SynchPipeCommand());
         }
 
@@ -417,9 +398,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleGetDirectory(GetDirectoryPipeCommand cmd) throws IOException {
-            if (this.appId != null) {
-                runtime.getDirectory(this.appId, cmd.getDirectory());
-            }
+            wf.getDirectory(cmd.getDirectory());
             sendCommand(new SynchPipeCommand());
         }
 
@@ -430,9 +409,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleGetObject(GetObjectPipeCommand cmd) throws IOException {
-            if (this.appId != null) {
-                runtime.getBindingObject(this.appId, cmd.getObjectId());
-            }
+            wf.getBindingObject(cmd.getObjectId());
             sendCommand(new SynchPipeCommand());
         }
 
@@ -466,9 +443,7 @@ public class SocketServer extends Server {
          */
         private void handleDeleteObject(DeleteObjectPipeCommand cmd) throws IOException {
             boolean deleted = false;
-            if (this.appId != null) {
-                deleted = runtime.deleteFile(this.appId, cmd.getObjectId());
-            }
+            deleted = wf.deleteFile(cmd.getObjectId(), true, true);
             sendCommand(new SynchPipeCommand(deleted ? "1" : "0"));
         }
 
@@ -478,9 +453,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleBarrier() throws IOException {
-            if (this.appId != null) {
-                runtime.barrier(this.appId);
-            }
+            this.wf.barrier();
             sendCommand(new SynchPipeCommand());
         }
 
@@ -491,9 +464,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleBarrierNew(NewBarrierPipeCommand cmd) throws IOException {
-            if (this.appId != null) {
-                runtime.barrier(this.appId, cmd.isNoMoreTasks());
-            }
+            this.wf.barrier(cmd.isNoMoreTasks());
             sendCommand(new SynchPipeCommand());
         }
 
@@ -504,17 +475,11 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement or exception cannot be sent.
          */
         private void handleBarrierGroup(BarrierTaskGroupPipeCommand cmd) throws IOException {
-            boolean synch = true;
-            if (this.appId != null) {
-                try {
-                    runtime.barrierGroup(this.appId, cmd.getGroupName());
-                } catch (COMPSsException ce) {
-                    sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
-                    synch = false;
-                }
-            }
-            if (synch) {
+            try {
+                this.wf.barrierGroup(cmd.getGroupName());
                 sendCommand(new SynchPipeCommand());
+            } catch (COMPSsException ce) {
+                sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
             }
         }
 
@@ -524,8 +489,7 @@ public class SocketServer extends Server {
          * @param cmd command describing the desired task group.
          */
         private void handleOpenTaskGroup(OpenTaskGroupPipeCommand cmd) {
-            ensureApplicationRegistered();
-            runtime.openTaskGroup(cmd.getGroupName(), cmd.isImplicitBarrier(), this.appId);
+            this.wf.openTaskGroup(cmd.getGroupName(), cmd.isImplicitBarrier());
         }
 
         /**
@@ -534,9 +498,7 @@ public class SocketServer extends Server {
          * @param cmd command containing the task group name.
          */
         private void handleCloseTaskGroup(CloseTaskGroupPipeCommand cmd) {
-            if (this.appId != null) {
-                runtime.closeTaskGroup(cmd.getGroupName(), this.appId);
-            }
+            this.wf.closeTaskGroup(cmd.getGroupName());
         }
 
         /**
@@ -546,17 +508,11 @@ public class SocketServer extends Server {
          * @throws IOException if the exception cannot be sent.
          */
         private void handleCancelTaskGroup(CancelTaskGroupPipeCommand cmd) throws IOException {
-            boolean ack = true;
-            if (this.appId != null) {
-                try {
-                    runtime.cancelTaskGroup(cmd.getGroupName(), this.appId);
-                } catch (COMPSsException ce) {
-                    sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
-                    ack = false;
-                }
-            }
-            if (ack) {
+            try {
+                this.wf.cancelTaskGroup(cmd.getGroupName());
                 sendCommand(new SynchPipeCommand());
+            } catch (COMPSsException ce) {
+                sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
             }
         }
 
@@ -567,9 +523,7 @@ public class SocketServer extends Server {
          * @throws IOException if the acknowledgement cannot be sent.
          */
         private void handleNoMoreTasks(NoMoreTasksPipeCommand cmd) throws IOException {
-            if (this.appId != null) {
-                runtime.noMoreTasks(this.appId);
-            }
+            this.wf.noMoreTasks();
             sendCommand(new SynchPipeCommand());
         }
 

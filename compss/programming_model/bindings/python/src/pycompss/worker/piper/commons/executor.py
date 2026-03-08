@@ -444,7 +444,7 @@ def executor(
         # MAIN EXECUTOR LOOP
         while alive and not event.is_set():
             # Runtime -> pipe - Read command from pipe
-            command = COMPSs.read_pipes()
+            command = COMPSs.read_command()
             if command != "":
                 if __debug__:
                     logger.debug(

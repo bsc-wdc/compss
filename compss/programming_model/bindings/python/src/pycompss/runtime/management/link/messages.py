@@ -46,16 +46,13 @@ class LinkMessages:
         "snapshot",
         "get_logging_path",
         "get_master_working_path",
-        "get_number_of_resources",
-        "request_resources",
-        "free_resources",
         "register_core_element",
         "process_http_task",
         "process_task",
         "set_pipes",
         "set_socket_endpoint",
         "set_jni_runtime",
-        "read_pipes",
+        "read_command",
         "set_wall_clock",
         "command_done",
     ]
@@ -80,16 +77,13 @@ class LinkMessages:
         self.snapshot = "SNAPSHOT"
         self.get_logging_path = "GET_LOGGING_PATH"
         self.get_master_working_path = "GET_MASTER_WORKING_PATH"
-        self.get_number_of_resources = "GET_NUMBER_OF_RESOURCES"
-        self.request_resources = "REQUEST_RESOURCES"
-        self.free_resources = "FREE_RESOURCES"
         self.register_core_element = "REGISTER_CORE_ELEMENT"
         self.process_http_task = "PROCESS_HTTP_TASK"
         self.process_task = "PROCESS_TASK"
         self.set_pipes = "SET_PIPES"
         self.set_socket_endpoint = "SET_SOCKET_ENDPOINT"
         self.set_jni_runtime = "SET_JNI_RUNTIME"
-        self.read_pipes = "READ_PIPES"
+        self.read_command = "READ_COMMAND"
         self.set_wall_clock = "SET_WALL_CLOCK"
         self.command_done = "COMMAND_DONE"  # Default response message
 

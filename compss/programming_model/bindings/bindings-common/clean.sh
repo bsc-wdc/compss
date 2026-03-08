@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
   rm -f src/libbindings_common.la
-  rm -f src/libbindings_common_la-GS_compss.lo
-  rm -f src/libbindings_common_la-GS_compss.o
+  rm -f src/*.lo
+  rm -f src/*.o
 
   rm -rf src/.deps
   rm -rf src/.libs

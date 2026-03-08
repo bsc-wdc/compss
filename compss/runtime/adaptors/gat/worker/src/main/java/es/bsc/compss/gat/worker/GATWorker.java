@@ -21,7 +21,6 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
-import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationExecutionRequest;
@@ -510,11 +509,6 @@ public class GATWorker implements InvocationContext {
 
     @Override
     public COMPSsRuntime getRuntimeAPI() {
-        return null;
-    }
-
-    @Override
-    public LoaderAPI getLoaderAPI() {
         return null;
     }
 

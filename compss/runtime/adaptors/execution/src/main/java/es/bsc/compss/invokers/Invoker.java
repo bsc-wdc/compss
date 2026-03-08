@@ -17,13 +17,13 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
@@ -58,7 +58,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class Invoker extends DoNothingApplicationMonitor {
+public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMonitor {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
     protected static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
@@ -431,43 +431,39 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
             this.context.getThreadErrStream(), null, executable.isFailByExitValue());
     }
 
-    protected long becomesNestedApplication(String parallelismSource) {
-        long appId = this.context.getRuntimeAPI().registerApplication(parallelismSource, this);
-        LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+    protected W becomesNestedApplication(String parallelismSource) {
+        W wf = registerWorkflow(parallelismSource);
+        LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + wf.getId());
         for (InvocationParam p : this.invocation.getParams()) {
-            handleInputValue(appId, p);
+            handleInputValue(wf, p);
         }
         InvocationParam p = this.invocation.getTarget();
         if (p != null) {
-            handleInputValue(appId, p);
+            handleInputValue(wf, p);
         }
-        return appId;
+        return wf;
     }
 
-    private void handleInputValue(Long appId, InvocationParam p) {
+    public W registerWorkflow(String parallelismSource) {
+        return (W) this.context.getRuntimeAPI().registerWorkflow(parallelismSource, this);
+    }
+
+    private void handleInputValue(W wf, InvocationParam p) {
         if (p.isCollective()) {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
             for (InvocationParam sp : cp.getCollectionParameters()) {
-                handleInputValue(appId, sp);
+                handleInputValue(wf, sp);
             }
         } else {
-            switch (p.getType()) {
-                case OBJECT_T:
-                case PSCO_T: {
-                    Object o = p.getValue();
-                    this.context.getRuntimeAPI().registerData(appId, p.getType(), o, p.getSourceDataId());
-                }
-                    break;
-                case FILE_T: {
-                    String originalName = p.getOriginalName();
-                    this.context.getRuntimeAPI().registerData(appId, p.getType(), originalName, p.getSourceDataId());
-                }
-                    break;
-                default:
-                    // Do Nothing
-            }
+            handleSimpleInputValue(wf, p);
         }
+    }
 
+    protected void handleSimpleInputValue(W wf, InvocationParam p) {
+        if (p.getType() == DataType.FILE_T) {
+            String originalName = p.getOriginalName();
+            wf.registerData(p.getType(), originalName, p.getSourceDataId());
+        }
     }
 
     @Override
@@ -482,58 +478,43 @@ public abstract class Invoker extends DoNothingApplicationMonitor {
         this.runner.readyToContinueExecution(sem);
     }
 
-    protected void completeNestedApplication(long appId) {
+    protected void completeNestedApplication(W wf) {
         // Wait for all nested tasks to end
-        this.context.getRuntimeAPI().barrier(appId);
+        wf.barrier();
 
         // Handle Output Parameters
         for (InvocationParam p : this.invocation.getParams()) {
             if (p.isWriteFinalValue()) {
-                handleOutputValue(appId, p);
+                handleOutputValue(wf, p);
             }
         }
         for (InvocationParam p : this.invocation.getResults()) {
-            handleOutputValue(appId, p);
+            handleOutputValue(wf, p);
         }
 
         // Removing internal application
-        this.context.getRuntimeAPI().deregisterApplication(appId);
+        wf.deregister();
     }
 
-    private void handleOutputValue(Long appId, InvocationParam p) {
+    private void handleOutputValue(W wf, InvocationParam p) {
         if (p.isCollective()) {
             InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
             for (InvocationParam sp : cp.getCollectionParameters()) {
-                handleOutputValue(appId, sp);
+                handleOutputValue(wf, sp);
             }
         } else {
-            switch (p.getType()) {
-                case OBJECT_T:
-                case PSCO_T: {
-                    Object o = p.getValue();
-                    String dataId = p.getDataMgmtId();
-                    ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
-                    if (!or.bindToDataIfExisting(appId, o, dataId)) {
-                        Object internal = or.collectObjectLastValue(appId, p.getValue());
-                        p.setValue(internal);
-                    } else {
-                        p.resultIsForwarded();
-                    }
-                }
-                    break;
-                case FILE_T: {
-                    String originalName = (String) p.getValue();
-                    String dataId = p.getDataMgmtId();
-                    if (this.context.getRuntimeAPI().bindExistingVersionToData(appId, originalName, dataId)) {
-                        p.resultIsForwarded();
-                    }
-                }
-                    break;
-                default:
-                    // Do Nothing
+            handleSimpleOutputValue(wf, p);
+        }
+    }
+
+    protected void handleSimpleOutputValue(W wf, InvocationParam p) {
+        if (p.getType() == DataType.FILE_T) {
+            String originalName = (String) p.getValue();
+            String dataId = p.getDataMgmtId();
+            if (wf.bindExistingVersionToData(originalName, dataId)) {
+                p.resultIsForwarded();
             }
         }
-
     }
 
     protected void logProvenanceOfParameters(List<? extends InvocationParam> params, String direction) {

@@ -18,35 +18,31 @@
 #ifndef COMPSS_INTERFACE_H
 #define COMPSS_INTERFACE_H
 
-typedef struct CompssInterface {
+typedef struct CompssWorkflow CompssWorkflow;
+typedef struct CompssInterface CompssInterface;
 
-    // COMPSs Runtime state
-    void (*On)(
-    );
-    
-    void (*Off)(
-        int code
+struct CompssWorkflow {
+    long (*getId) (
+        struct CompssWorkflow* self
     );
 
-    void (*read_command)(char** command);
-
-    // Task methods
-    void (*RegisterCE)(
-        char* ceSignature,
-        char* implSignature,
-        char* implConstraints,
-        char* implType,
-        char* implLocal,
-        char* implIO,
-        char** prolog,
-        char** epilog,
-        char** container,
-        int numParams,
-        char** implTypeArgs
+    void (*deregister)(
+        struct CompssWorkflow* self
     );
 
-    void (*ExecuteTask)(
-        long appId,
+    void (*openTaskGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName,
+        bool implicitBarrier
+    );
+
+    void (*closeTaskGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName
+    );
+
+    void (*executeTask)(
+        struct CompssWorkflow* self,
         char* className,
         char* onFailure,
         int timeout,
@@ -63,8 +59,8 @@ typedef struct CompssInterface {
         void** params
     );
 
-    void (*ExecuteTaskNew)(
-        long appId,
+    void (*executeTaskNew)(
+        struct CompssWorkflow* self,
         char* signature,
         char* onFailure,
         int timeout,
@@ -80,8 +76,8 @@ typedef struct CompssInterface {
         void** params
     );
 
-    void (*ExecuteHttpTask)(
-        long appId,
+    void (*executeHttpTask)(
+        struct CompssWorkflow* self,
         char* signature,
         char* onFailure,
         int timeout,
@@ -95,102 +91,120 @@ typedef struct CompssInterface {
         int numReturns,
         int numParams,
         void** params
+    );
+
+    void (*cancelTaskGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName,
+        char** exceptionMessage
+    );
+
+    void (*cancelApplicationTasks)(
+        struct CompssWorkflow* self
+    );
+
+    void (*noMoreTasks)(
+        struct CompssWorkflow* self
+    );
+
+    void (*barrier)(
+        struct CompssWorkflow* self
+    );
+
+    void (*barrierWithFlag)(
+        struct CompssWorkflow* self,
+        bool noMoreTasksFlag
+    );
+
+    void (*barrierGroup)(
+        struct CompssWorkflow* self,
+        const char* groupName,
+        char** exceptionMessage
+    );
+
+    void (*snapshot)(
+        struct CompssWorkflow* self
+    );
+
+    void (*get_object)(
+        struct CompssWorkflow* self,
+        char* objectId,
+        char** buf
+    );
+
+    void (*delete_object)(
+        struct CompssWorkflow* self,
+        char* objectId,
+        int** buf
     );
     
-    void (*Cancel_Application_Tasks)(
-        long appId
-    );
-
-    // Data methods
-    int (*Accessed_File)(
-        long appId,
+    int (*is_file_accessed)(
+        struct CompssWorkflow* self,
         char* fileName
     );
 
-    void (*Open_File)(
-        long appId,
+
+    void (*open_file)(
+        struct CompssWorkflow* self,
         char* fileName,
         int mode,
         char** buf
     );
 
-    void (*Close_File)(
-        long appId,
+    void (*get_file)(
+        struct CompssWorkflow* self,
+        char* fileName
+    );
+
+    void (*close_file)(
+        struct CompssWorkflow* self,
         char* fileName,
         int mode
     );
 
-    void (*Delete_File)(
-        long appId,
+    bool (*delete_file)(
+        struct CompssWorkflow* self,
         char* fileName,
         int waitForData,
         int applicationDelete
     );
 
-    void (*Get_File)(
-        long appId,
-        char* fileName
-    );
-
-    void (*Get_Directory)(
-        long appId,
+    void (*get_directory)(
+        struct CompssWorkflow* self,
         char* dirName
     );
 
-    // COMPSs API Calls
-    void (*Barrier)(
-        long appId
+};
+
+struct CompssInterface {
+
+    // COMPSs Runtime state
+    void (*On)(
+    );
+    
+    void (*Off)(
+        int code
     );
 
-    void (*BarrierNew)(
-        long appId,
-        int noMoreTasks
+    void (*read_command)(char** command);
+
+    CompssWorkflow* (*registerWorkflow)(
     );
 
-    void (*BarrierGroup)(
-        long appId,
-        char* groupName,
-        char** exceptionMessage
+    void (*RegisterCE)(
+        char* ceSignature,
+        char* implSignature,
+        char* implConstraints,
+        char* implType,
+        char* implLocal,
+        char* implIO,
+        char** prolog,
+        char** epilog,
+        char** container,
+        int numParams,
+        char** implTypeArgs
     );
 
-    void (*OpenTaskGroup)(
-        char* groupName,
-        int implicitBarrier,
-        long appId
-    );
-
-    void (*CloseTaskGroup)(
-        char* groupName,
-        long appId
-    );
-
-    void (*CancelTaskGroup)(
-        char* groupName,
-        long appId,
-        char** exceptionMessage
-    );
-
-    void (*Snapshot)(
-        long appId
-    );
-
-    int (*GetNumberOfResources)(
-        long appId
-    );
-
-    void (*RequestResources)(
-        long appId,
-        int numResources,
-        char* groupName
-    );
-
-    void (*FreeResources)(
-        long appId,
-        int numResources,
-        char* groupName
-    );
-
-    // Misc functions
     void (*Get_AppDir)(
         char** buf
     );
@@ -204,24 +218,12 @@ typedef struct CompssInterface {
         long id
     );
 
-    void (*Get_Object)(
-        long appId,
-        char* objectId,
-        char** buf
-    );
-
-    void (*Delete_Object)(
-        long appId,
-        char* objectId,
-        int** buf
-    );
-    
     void (*Set_wall_clock)(
         long appId,
         long wcl,
         int stopRT
     );
 
-} CompssInterface;
+};
 
 #endif // COMPSS_INTERFACE_H

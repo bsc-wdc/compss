@@ -1,7 +1,7 @@
 ARG DEBIAN_FRONTEND=noninteractive
 ARG BASE=base22
 # TODO: define BASE_VERSION whenever a new release is done
-ARG BASE_VERSION=latest
+ARG BASE_VERSION=260305-135057
 
 FROM compss/${BASE}_ci:${BASE_VERSION} AS ci
 
@@ -17,7 +17,7 @@ ENV COMPSS_HOME=/opt/COMPSs
 RUN cd /framework && \
     ./submodules_get.sh && \
     python3 -m pip --no-cache-dir install pip wheel setuptools kafka-python --upgrade && \
-    /framework/builders/buildlocal --rcompss /opt/COMPSs && \
+    /framework/builders/buildlocal --skip-tests --no-pycompss-compile --no-python-style --rcompss /opt/COMPSs && \
     mv /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework /home/jenkins/
 
@@ -52,12 +52,13 @@ ENV COMPSS_HOME=/opt/COMPSs/
 ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
 ARG TZ=Etc/UTC
 
-RUN python3 -m pip install --no-cache-dir dislib pycompss-cli && \
+RUN python3 -m pip install "setuptools<70" wheel hatchling hatch hatch-nodejs-version hatch-jupyter-builder --upgrade --force-reinstall && \
+    python3 -m pip install --no-cache-dir --no-build-isolation dislib pycompss-cli && \
     git clone https://github.com/bsc-wdc/jupyter-extension.git je && \
     cd je && sed -i '/\"pycompss\"/d' ipycompss_kernel/pyproject.toml && \
-    python3 -m pip install ./ipycompss_kernel && cd ipycompss_lab_extension && \
+    python3 -m pip install --no-build-isolation ./ipycompss_kernel && cd ipycompss_lab_extension && \
     jlpm install --network-timeout 600000 --network-concurrency 100 && \
-    jlpm run build:prod && python3 -m pip --no-cache-dir install . && cd ../.. && rm -r je
+    jlpm run build:prod && python3 -m pip --no-cache-dir install --no-build-isolation . && cd ../.. && rm -r je
 
 EXPOSE 22
 EXPOSE 43000-44000
@@ -74,7 +75,7 @@ ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 
 
-FROM compss/${BASE}_python:${BASE_VERSION} AS pycompss
+FROM compss/${BASE}_bindings:${BASE_VERSION} AS pycompss
 
 COPY --from=ci /opt/COMPSs /opt/COMPSs
 COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor

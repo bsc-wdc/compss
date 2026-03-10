@@ -505,6 +505,7 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
     if (
         ca_name := ca.get("name")
     ) and not exec_info_str.startswith("#COMPSs"):
+        # Compatibility with non-COMPSs crates
         action_tree.add(f"Name —— [green]{ca_name}")
 
     # actionStatus
@@ -673,7 +674,8 @@ def _inspect_crate(path, crate: ROCrate) -> _CrateContext:
             else:
                 # COMPSs 3.0 crates did not have 'instrument'
                 # Does this increase processing time a lot for ProvenanceRun???
-                if e.get("name").startswith("COMPSs") and all(e.get(k) for k in ["actionStatus", "endTime", "agent"]):
+                ca_name = e.get("name")
+                if ca_name and ca_name.startswith("COMPSs") and all(e.get(k) for k in ["actionStatus", "endTime", "agent"]):
                     ctx.create_action = e
 
         elif "ControlAction" in e.type:

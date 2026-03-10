@@ -183,25 +183,97 @@ def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
     print("App deployed from " + local_source + " to " + dst)
 
 
+def _render_times(action_tree, ca, verbose):
+    start_time = end_time = None
+    if ca.get("startTime"):
+        try:
+            start_time = datetime.fromisoformat(
+                ca["startTime"]
+            )
+        except (TypeError, ValueError):
+            start_time = None
+    if ca.get("endTime"):
+        try:
+            end_time = datetime.fromisoformat(ca["endTime"])
+        except (TypeError, ValueError):
+            end_time = None
+
+    time_details = None
+    if start_time and end_time:
+        total_time = end_time - start_time
+        time_details = action_tree.add(
+            f"Execution Time —— [magenta]{total_time} s[/magenta]"
+        )
+    if verbose and (start_time or end_time):
+        if not time_details:
+            time_details = action_tree.add(f"Execution Time")
+        if start_time:
+            time_details.add(
+                f"Start Time —— [green]{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+            )
+        if end_time:
+            time_details.add(
+                f"End Time   —— [green]{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+            )
+
+
 def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool):
     ca = ctx.create_action
+    m_e = ctx.main_entity
     if not ca:
         return
 
     action_tree = tree.add("Execution details")
 
-    if name := ca.get("name"):
-        action_tree.add(f"Name —— [green]{name}")
+    # Name
+    exec_info_str = ca.get("@id")
+    if (
+        ca_name := ca.get("name")
+    ) and not exec_info_str.startswith("#COMPSs"):
+        action_tree.add(f"Name —— [green]{ca_name}")
 
-    # _render_action_status(action_tree, ca)
-    # _render_task_summary(action_tree, ctx)
-    # _render_times(action_tree, ca, verbose)
+    # actionStatus
+    if main_ca_status := ca.get("actionStatus", ""):
+    # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
+        if "Completed" in main_ca_status:
+            action_tree.add(f"Status —— {'[yellow]COMPLETED[/yellow]'}")
+        elif "Failed" in main_ca_status:
+            action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
+
+    # Task summary
+    if m_e.get("step"):
+        task_tree = action_tree.add(
+            f"Executed Tasks: {ctx.task_stats['total']} —— [green]COMPLETED: {ctx.task_stats['completed']}[/green] —— [red]FAILED: {ctx.task_stats['failed']}[/red] —— [yellow]CANCELED: {ctx.task_stats['canceled']}[/yellow]"
+        )
+
+    _render_times(action_tree, ca, verbose)
+
+
+
     # _render_host_info(action_tree, ctx.crate, ca)
     # _render_resource_usage(action_tree, ca, verbose)
     # _render_agent(action_tree, ca)
     # _render_submission(action_tree, ca, ctx.crate, verbose)
     # _render_environment(action_tree, ca, verbose)
     # _render_data_assets(action_tree, ca, data_assets)
+
+
+def _render_software_reqs(tree, main_entity):
+    if not main_entity:
+        return
+    
+    software_requirements = main_entity.get("softwareRequirements")
+    if not software_requirements:
+        return
+    
+    deps_tree = tree.add("Software Requirements")
+    if not isinstance(software_requirements, list):
+        software_requirements = [software_requirements]
+
+    for s in software_requirements:
+        s_name = s.get("name", "")
+        ver = s.get("softwareVersion")  # canonical expected
+        deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
 
 
 def _render_main_entity(tree, main_entity):
@@ -304,12 +376,17 @@ def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
     if desc := e.get("description"):
         tree.add(f"Description —— [green]{desc}")
 
-    _add_authors(tree, e, "creator")
-    _add_authors(tree, e, "author")
+    if "creator" in e:
+        _add_authors(tree, e, "creator")
+    elif "author" in e:
+        _add_authors(tree, e, "author")
 
     _render_license(tree, e)
     _render_publish_date(tree, e)
     _render_main_entity(tree, ctx.main_entity)
+
+    if verbose:
+        _render_software_reqs(tree, ctx.main_entity)
 
     if verbose and ctx.profiles:
         prof_tree = tree.add("RO-Crate compliance")
@@ -318,6 +395,7 @@ def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
 
 
 def update_task_stats(stats, action):
+    # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
     status = action.get("actionStatus", "")
     if "Completed" in status:
         stats["completed"] += 1
@@ -347,6 +425,7 @@ def _inspect_crate(crate: ROCrate) -> _CrateContext:
     ctx = _CrateContext(crate=crate)
 
     for e in crate.get_entities():
+        # --- GENERAL INFO ---
         if e.id == "./":
             ctx.root = e
             ctx.main_entity = e.get("mainEntity")
@@ -368,7 +447,7 @@ def _load_crate(path, console):
         return None
 
 
-def NEW_local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
+def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
     console = Console()
 
     for path in ro_crate_list:
@@ -389,7 +468,7 @@ def NEW_local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets:
         console.rule()
 
 
-def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
+def OLD_local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
     console = Console()
 
     for ro_crate_zip_or_dir in ro_crate_list:

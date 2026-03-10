@@ -997,29 +997,69 @@ def local_inspect_tasks(
         log_tree = {}
         failing_tasks = set()
         canceled_tasks = set()
-        task_create_actions = []
+        print_candidates = []
+        task_counter = 0
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
             is_compss_wf = True
         else:
             is_compss_wf = False
 
+        # import time
+        # part_time = time.time()
+
         # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
         # ControlAction  -> object: CreateAction of the task
-
         for e in crate.get_entities():
             # Get all the ControlActions from the OrganizeAction
+            # print_candidates will include CreateActions of potential tasks to be printed, not all task CreateActions
             if "OrganizeAction" in e.type:
                 for control_action in e.get("object", []):
                     if not isinstance(control_action, Entity):
                         break  # Nextflow has ControlActions as strings, which should not be correct
-                    create_action = control_action.get("object")
-                    if isinstance(create_action, list) and len(create_action) == 1:
-                        create_action = create_action[0]
-                    if create_action:
-                        task_create_actions.append(create_action)
+                    task_create_action = control_action.get("object")
+                    # Print candidate must match: task id, method_name, or status FAILED
+                    task_id = task_create_action.id.split("_")[1] if is_compss_wf else task_create_action.id
+                    task_counter += 1
+                    method = task_create_action.get("instrument", {})
+                    if is_compss_wf:
+                        # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
+                        method_name = method.get("@id", "").removeprefix("#")
+                    else:
+                        method_name = method.get("name", "")
+                    if "CompletedActionStatus" in task_create_action.get("actionStatus", ""):
+                        status = "[green]COMPLETED[/green]"
+                    elif "FailedActionStatus" in task_create_action.get("actionStatus", ""):
+                        status = "[red]FAILED[/red]"
+                        failing_tasks.add(task_id)
+                    elif "PotentialActionStatus" in task_create_action.get("actionStatus", ""):
+                        status = "[yellow]CANCELED[/yellow]"
+                        canceled_tasks.add(task_id)
+                    else:
+                        status = ""
+                    # Eval candidate task
+                    try:
+                        should_print = (
+                            (
+                                methods_to_inspect is None
+                                or any(re.search(m, method_name) for m in methods_to_inspect)
+                            )
+                            and (not tasks_to_inspect or (task_id in tasks_to_inspect))
+                            and (not failing_tasks_only or ("FAILED" in status))
+                        )
+                    except re.error:
+                        print("Error: Invalid regex for method name")
+                        exit(1)
+                    if should_print:
+                        if isinstance(task_create_action, list) and len(task_create_action) == 1:
+                            task_create_action = task_create_action[0]
+                        if task_create_action:
+                            print_candidates.append(task_create_action)
 
             # —— LOGS ——
+            # There is no way around this, all Files need to be examined, since the log will reference the corresponding task CreateAction with 'mentions'
+            # There is no reference from the task CreateAction to the corresponding logs
+            # Buidling all log_trees is useless for non print_candidates (if they will never be printed)
             if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
                 task_id = (
                     e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
@@ -1032,22 +1072,23 @@ def local_inspect_tasks(
                     log_tree.setdefault(task_id, [])
                     log_tree[task_id].append(e.id)
 
-        task_tree = {}
-        task_counter = 0
+        # print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
+        # print(f"TO BE PRINTED: {len(print_candidates)}")
 
-        for e in task_create_actions:
+        task_tree = {}
+
+        # part_time = time.time()
+
+        for e in print_candidates:
             # Possible improvement: task_id could have been obtained from the Task ControlAction -> instrument -> position
             task_id = e.id.split("_")[1] if is_compss_wf else e.id
-            task_counter += 1
 
             if "CompletedActionStatus" in e.get("actionStatus", ""):
                 status = "[green]COMPLETED[/green]"
             elif "FailedActionStatus" in e.get("actionStatus", ""):
                 status = "[red]FAILED[/red]"
-                failing_tasks.add(task_id)
             elif "PotentialActionStatus" in e.get("actionStatus", ""):
                 status = "[yellow]CANCELED[/yellow]"
-                canceled_tasks.add(task_id)
             else:
                 status = ""
 
@@ -1060,76 +1101,64 @@ def local_inspect_tasks(
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 
-            try:
-                should_print = (
-                    (
-                        methods_to_inspect is None
-                        or any(re.search(m, method_name) for m in methods_to_inspect)
-                    )
-                    and (not tasks_to_inspect or task_id in tasks_to_inspect)
-                    and (not failing_tasks_only or "FAILED" in status)
+            # All tasks will be printed here
+            task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
+            task_tree[task_id] = tree.add(task_label)
+
+            # —— STATUS ——
+            if status:
+                task_tree[task_id].add(f"Status: {status}")
+
+            # —— METHOD ——
+            if method_name:
+                task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+
+            # —— EXECUTION TIME ——
+            start_time = end_time = None
+            if e.get("startTime"):
+                try:
+                    start_time = datetime.fromisoformat(e.get("startTime"))
+                except (TypeError, ValueError):
+                    start_time = None
+            if e.get("endTime"):
+                try:
+                    end_time = datetime.fromisoformat(e.get("endTime"))
+                except (TypeError, ValueError):
+                    end_time = None
+
+            if start_time and end_time:
+                execution_time = end_time - start_time
+                task_tree[task_id].add(
+                    f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
                 )
-            except re.error:
-                print("Error: Invalid regex for method name")
-                exit(1)
 
-            if should_print:
-                task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
-                task_tree[task_id] = tree.add(task_label)
+            # —— HOST ——
+            if e.get("name") and is_compss_wf:
+                name_before, _, name_host = e.get("name").rpartition(" ")
+                host = name_host if name_before.endswith("host") else ""
+                if host:
+                    task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
-                # —— STATUS ——
-                if status:
-                    task_tree[task_id].add(f"Status: {status}")
+            # —— INPUTS ——
+            render_parameters(
+                parent_node=task_tree[task_id],
+                title="Inputs",
+                property_values=e.get("object", []),
+                valid_formal_params=method_input_params,
+                is_compss_wf=is_compss_wf,
+            )
 
-                # —— METHOD ——
-                if method_name:
-                    task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
-
-                # —— EXECUTION TIME ——
-                start_time = end_time = None
-                if e.get("startTime"):
-                    try:
-                        start_time = datetime.fromisoformat(e.get("startTime"))
-                    except (TypeError, ValueError):
-                        start_time = None
-                if e.get("endTime"):
-                    try:
-                        end_time = datetime.fromisoformat(e.get("endTime"))
-                    except (TypeError, ValueError):
-                        end_time = None
-
-                if start_time and end_time:
-                    execution_time = end_time - start_time
-                    task_tree[task_id].add(
-                        f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
-                    )
-
-                # —— HOST ——
-                if e.get("name") and is_compss_wf:
-                    name_before, _, name_host = e.get("name").rpartition(" ")
-                    host = name_host if name_before.endswith("host") else ""
-                    if host:
-                        task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
-
-                # —— INPUTS ——
+            # —— OUTPUTS ——
+            if "COMPLETED" in status or not status:
                 render_parameters(
                     parent_node=task_tree[task_id],
-                    title="Inputs",
-                    property_values=e.get("object", []),
-                    valid_formal_params=method_input_params,
+                    title="Outputs",
+                    property_values=e.get("result", []),
+                    valid_formal_params=method_output_params,
                     is_compss_wf=is_compss_wf,
                 )
 
-                # —— OUTPUTS ——
-                if "COMPLETED" in status or not status:
-                    render_parameters(
-                        parent_node=task_tree[task_id],
-                        title="Outputs",
-                        property_values=e.get("result", []),
-                        valid_formal_params=method_output_params,
-                        is_compss_wf=is_compss_wf,
-                    )
-
+        # This can consume quite some time if all log_tree's are generated for extremely large workflows
         for task_id, logs in log_tree.items():
             if task_id in task_tree:
                 log_section = task_tree[task_id].add("[bold green]Logs:[/bold green]")
@@ -1149,3 +1178,5 @@ def local_inspect_tasks(
             )
 
         console.print(tree)
+
+        # print(f"PROVENANCE | Process and print selected tasks TIME: {time.time() - part_time} s")        

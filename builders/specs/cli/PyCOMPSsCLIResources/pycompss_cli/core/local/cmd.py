@@ -601,6 +601,15 @@ def _render_software_reqs(tree, main_entity):
         ver = s.get("softwareVersion")  # canonical expected
         deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
 
+def _truncate_description(s, max_lines=5, max_chars=500):
+    cut = min(len(s), max_chars)
+    lines = 0
+    for i, c in enumerate(s[:cut]):
+        if c == "\n":
+            lines += 1
+            if lines >= max_lines:
+                return s[:i+1] + "\n ... (truncated text)"
+    return s[:cut] + "\n ... (truncated text)"
 
 def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
     e = ctx.root
@@ -611,7 +620,7 @@ def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
         tree.add(f"Name —— [green]{name}")
 
     if desc := e.get("description"):
-        tree.add(f"Description —— [green]{desc}")
+        tree.add(f"Description —— [green]{desc if verbose else _truncate_description(desc)}")
 
     if "creator" in e:
         _add_authors(tree, e, "creator")
@@ -787,7 +796,7 @@ def render_parameters(
         param_section.add(f"Value: [dark_goldenrod]{value}[/dark_goldenrod]")
 
 
-def local_inspect_tasks(
+def OLD_local_inspect_tasks(
     ro_crate_list,
     failing_tasks_only: bool,
     tasks_to_inspect: list[str],
@@ -813,6 +822,202 @@ def local_inspect_tasks(
         log_tree = {}
         failing_tasks = set()
         canceled_tasks = set()
+        task_create_actions = []
+
+        if crate.mainEntity.get("programmingLanguage").id == "#compss":
+            is_compss_wf = True
+        else:
+            is_compss_wf = False
+
+        import time
+        part_time = time.time()
+
+        # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
+        # ControlAction  -> object: CreateAction of the task
+
+        for e in crate.get_entities():
+            # Get all the ControlActions from the OrganizeAction
+            if "OrganizeAction" in e.type:
+                for control_action in e.get("object", []):
+                    if not isinstance(control_action, Entity):
+                        break  # Nextflow has ControlActions as strings, which should not be correct
+                    create_action = control_action.get("object")
+                    if isinstance(create_action, list) and len(create_action) == 1:
+                        create_action = create_action[0]
+                    if create_action:
+                        task_create_actions.append(create_action)
+
+            # —— LOGS ——
+            if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
+                task_id = (
+                    e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
+                )
+                if (
+                    (not tasks_to_inspect)
+                    or (task_id in tasks_to_inspect)
+                    or (failing_tasks_only and task_id in failing_tasks)
+                ):
+                    log_tree.setdefault(task_id, [])
+                    log_tree[task_id].append(e.id)
+
+        task_tree = {}
+        task_counter = 0
+
+        for e in task_create_actions:
+            # Possible improvement: task_id could have been obtained from the Task ControlAction -> instrument -> position
+            task_id = e.id.split("_")[1] if is_compss_wf else e.id
+            task_counter += 1
+
+            if "CompletedActionStatus" in e.get("actionStatus", ""):
+                status = "[green]COMPLETED[/green]"
+            elif "FailedActionStatus" in e.get("actionStatus", ""):
+                status = "[red]FAILED[/red]"
+                failing_tasks.add(task_id)
+            elif "PotentialActionStatus" in e.get("actionStatus", ""):
+                status = "[yellow]CANCELED[/yellow]"
+                canceled_tasks.add(task_id)
+            else:
+                status = ""
+
+            method = e.get("instrument", {})
+            if is_compss_wf:
+                # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
+                method_name = method.get("@id", "").removeprefix("#")
+            else:
+                method_name = method.get("name", "")
+            method_input_params = method.get("input", [])
+            method_output_params = method.get("output", [])
+
+            try:
+                should_print = (
+                    (
+                        methods_to_inspect is None
+                        or any(re.search(m, method_name) for m in methods_to_inspect)
+                    )
+                    and (not tasks_to_inspect or task_id in tasks_to_inspect)
+                    and (not failing_tasks_only or "FAILED" in status)
+                )
+            except re.error:
+                print("Error: Invalid regex for method name")
+                exit(1)
+
+            if should_print:
+                task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
+                task_tree[task_id] = tree.add(task_label)
+
+                # —— STATUS ——
+                if status:
+                    task_tree[task_id].add(f"Status: {status}")
+
+                # —— METHOD ——
+                if method_name:
+                    task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+
+                # —— EXECUTION TIME ——
+                start_time = end_time = None
+                if e.get("startTime"):
+                    try:
+                        start_time = datetime.fromisoformat(e.get("startTime"))
+                    except (TypeError, ValueError):
+                        start_time = None
+                if e.get("endTime"):
+                    try:
+                        end_time = datetime.fromisoformat(e.get("endTime"))
+                    except (TypeError, ValueError):
+                        end_time = None
+
+                if start_time and end_time:
+                    execution_time = end_time - start_time
+                    task_tree[task_id].add(
+                        f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
+                    )
+
+                # —— HOST ——
+                if e.get("name") and is_compss_wf:
+                    name_before, _, name_host = e.get("name").rpartition(" ")
+                    host = name_host if name_before.endswith("host") else ""
+                    if host:
+                        task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+
+                # —— INPUTS ——
+                render_parameters(
+                    parent_node=task_tree[task_id],
+                    title="Inputs",
+                    property_values=e.get("object", []),
+                    valid_formal_params=method_input_params,
+                    is_compss_wf=is_compss_wf,
+                )
+
+                # —— OUTPUTS ——
+                if "COMPLETED" in status or not status:
+                    render_parameters(
+                        parent_node=task_tree[task_id],
+                        title="Outputs",
+                        property_values=e.get("result", []),
+                        valid_formal_params=method_output_params,
+                        is_compss_wf=is_compss_wf,
+                    )
+
+        for task_id, logs in log_tree.items():
+            if task_id in task_tree:
+                log_section = task_tree[task_id].add("[bold green]Logs:[/bold green]")
+                for log in logs:
+                    log_section.add(f"[dim]{log}[/dim]")
+
+        total_t = tree.add(f"[bold cyan]Total Tasks —— {task_counter}")
+        total_t.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
+        total_t.add(f"[yellow]Canceled Tasks —— {len(canceled_tasks)}[/yellow]")
+
+        if crate.mainEntity and not crate.mainEntity.get("step"):
+            console.print(
+                Panel(
+                    "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
+                    border_style="yellow",
+                )
+            )
+
+        console.print(tree)
+        print(f"PROVENANCE | OLD TOTAL TIME: {time.time() - part_time} s")
+
+
+def local_inspect_tasks(
+    ro_crate_list,
+    failing_tasks_only: bool,
+    tasks_to_inspect: list[str],
+    methods_to_inspect: list[str],
+):
+    from datetime import datetime
+    from rich.tree import Tree
+    from rich.console import Console
+
+    console = Console()
+
+    # Transform list to set to have faster "in" comparisons
+    tasks_to_inspect = set(tasks_to_inspect) if tasks_to_inspect else None
+    # Join and pre-compile the regular expression to achieve faster comparisons
+    if methods_to_inspect:
+        try:
+            # compiled_methods = [re.compile(m) for m in methods_to_inspect]
+            combined_methods = re.compile("|".join(methods_to_inspect))
+        except re.error as e:
+            raise ValueError(
+            f"Invalid regex in methods: {methods_to_inspect}\n{e}"
+        )
+
+    for ro_crate_zip_or_dir in ro_crate_list:
+        try:
+            crate = ROCrate(ro_crate_zip_or_dir)
+        except Exception as e:
+            console.print(
+                f"[bold red] Error loading RO-Crate[/bold red] from [yellow]{ro_crate_zip_or_dir}[/yellow]: {e}"
+            )
+            continue
+
+        tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
+
+        log_tree = {}
+        failing_tasks = set()
+        canceled_tasks = set()
         print_candidates = []
         task_counter = 0
 
@@ -821,8 +1026,8 @@ def local_inspect_tasks(
         else:
             is_compss_wf = False
 
-        # import time
-        # part_time = time.time()
+        import time
+        part_time = time.time()
 
         # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
         # ControlAction  -> object: CreateAction of the task
@@ -854,18 +1059,12 @@ def local_inspect_tasks(
                     else:
                         status = ""
                     # Eval candidate task
-                    try:
-                        should_print = (
-                            (
-                                methods_to_inspect is None
-                                or any(re.search(m, method_name) for m in methods_to_inspect)
-                            )
-                            and (not tasks_to_inspect or (task_id in tasks_to_inspect))
-                            and (not failing_tasks_only or ("FAILED" in status))
-                        )
-                    except re.error:
-                        print("Error: Invalid regex for method name")
-                        exit(1)
+                    # From less to most expensive evaluation. Once a part is false, the rest does not get evaluated
+                    should_print = (
+                        (not failing_tasks_only or ("FAILED" in status))
+                        and (not tasks_to_inspect or (task_id in tasks_to_inspect))
+                        and (not methods_to_inspect or combined_methods.search(method_name))
+                    )
                     if should_print:
                         if isinstance(task_create_action, list) and len(task_create_action) == 1:
                             task_create_action = task_create_action[0]
@@ -996,3 +1195,6 @@ def local_inspect_tasks(
         console.print(tree)
 
         # print(f"PROVENANCE | Process and print selected tasks TIME: {time.time() - part_time} s")        
+
+        print(f"PROVENANCE | NEW TOTAL TIME: {time.time() - part_time} s")
+

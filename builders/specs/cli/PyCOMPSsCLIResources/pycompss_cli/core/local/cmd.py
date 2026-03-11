@@ -262,6 +262,7 @@ def _render_host_info(tree, crate, ca):
         # Old CreateAction id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117 
         # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
         # and some host names can be bsc_nvidia (with underscores), so, splitting by underscores may not work
+        # It may be easier to get the host and job id from the 'name' rather than from the '@id'
         match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
         host_name_text = match.group(1) if match else ""
         num_nodes_e = crate.get("#slurm_job_num_nodes")
@@ -534,7 +535,9 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
 def _add_single_author(tree, entity, field):
     if field not in entity:
         return
-    authors = entity.get(field)
+    if not (authors := entity.get(field)):
+        # Some WFHub crates come with the authors field, but with an empty list
+        return
     if not isinstance(authors, list):
         authors = [authors]
     if len(authors) == 1:

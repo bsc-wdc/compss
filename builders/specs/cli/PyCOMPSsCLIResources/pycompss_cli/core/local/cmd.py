@@ -259,22 +259,21 @@ def _render_host_info(tree, crate, ca):
     exec_info_str = ca.get("@id")
     if exec_info_str.startswith("#COMPSs"):
         # We can extract more details. Hostname included from COMPSs 3.2 version
-        # Old Create action id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117
+        # Old CreateAction id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117 
         # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
-        exec_info = exec_info_str.split("_")
-        host_index = exec_info.index("Crate") + 1
-        host_name_text = (
-            exec_info[host_index] if exec_info[host_index] != "for" else ""
-        )  # Avoid problems with < 3.2 versions
+        # and some host names can be bsc_nvidia (with underscores), so, splitting by underscores may not work
+        match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
+        host_name_text = match.group(1) if match else ""
         num_nodes_e = crate.get("#slurm_job_num_nodes")
         num_nodes_text = (
             f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
         )
         job_id = None
+        match = re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str)
         if job_id_e := crate.get("#slurm_job_id"):
             job_id = job_id_e.get("value", None)
-        elif len(exec_info) >= 9:
-            job_id = exec_info[-1]
+        elif match:
+            job_id = match.group(1)
         job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
         tree.add(
             f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
@@ -532,6 +531,18 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
     _render_data_assets(action_tree, ca, data_assets)
 
 
+def _add_single_author(tree, entity, field):
+    if field not in entity:
+        return
+    authors = entity.get(field)
+    if not isinstance(authors, list):
+        authors = [authors]
+    if len(authors) == 1:
+        tree.add(f"Authors - {_format_author(authors[0])}")
+    else:
+        tree.add(f"Authors - {_format_author(authors[0])}[green] and {len(authors) - 1 } more[/green]")
+
+
 def _add_authors(tree, entity, field):
     if field not in entity:
         return
@@ -602,14 +613,19 @@ def _render_software_reqs(tree, main_entity):
         deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
 
 def _truncate_description(s, max_lines=5, max_chars=500):
-    cut = min(len(s), max_chars)
+    # cut = min(len(s), max_chars)
     lines = 0
-    for i, c in enumerate(s[:cut]):
+    for i, c in enumerate(s[:max_chars]):
         if c == "\n":
             lines += 1
             if lines >= max_lines:
                 return s[:i+1] + "\n ... (truncated text)"
-    return s[:cut] + "\n ... (truncated text)"
+    if len(s) >= max_chars + 10:
+        # Try to finish current word
+        return s[:max_chars + 10] + "\n ... (truncated text)"
+    else:
+        return s
+
 
 def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
     e = ctx.root
@@ -623,9 +639,9 @@ def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
         tree.add(f"Description —— [green]{desc if verbose else _truncate_description(desc)}")
 
     if "creator" in e:
-        _add_authors(tree, e, "creator")
+        _add_authors(tree, e, "creator") if verbose else _add_single_author(tree, e, "creator")
     elif "author" in e:
-        _add_authors(tree, e, "author")
+        _add_authors(tree, e, "author") if verbose else _add_single_author(tree, e, "author")
 
     _render_license(tree, e)
     _render_publish_date(tree, e)

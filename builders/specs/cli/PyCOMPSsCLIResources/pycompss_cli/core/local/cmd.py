@@ -543,7 +543,7 @@ def _add_single_author(tree, entity, field):
     if len(authors) == 1:
         tree.add(f"Authors - {_format_author(authors[0])}")
     else:
-        tree.add(f"Authors - {_format_author(authors[0])}[green] and {len(authors) - 1 } more[/green]")
+        tree.add(f"Authors - {_format_author(authors[0])}[gold1] and {len(authors) - 1 } more[/]")
 
 
 def _add_authors(tree, entity, field):

@@ -622,10 +622,10 @@ def _truncate_description(s, max_lines=5, max_chars=500):
         if c == "\n":
             lines += 1
             if lines >= max_lines:
-                return s[:i+1] + "\n ... (truncated text)"
+                return s[:i+1] + "\n[cyan][... truncated text ...][/]"
     if len(s) >= max_chars + 10:
         # Try to finish current word
-        return s[:max_chars + 10] + "\n ... (truncated text)"
+        return s[:max_chars + 10] + "\n[cyan][... truncated text ...][/]"
     else:
         return s
 

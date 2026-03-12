@@ -202,7 +202,7 @@ def add_parameter_value(compss_crate: ROCrate, param: Parameter, character_limit
         half_limit = character_limit // 2
         hashcode = hashlib.shake_256(param.value.encode()).hexdigest(5)
         property_value_id = f"#{param.method}::{param.name}-{hashcode}"
-        param.value = f"{param.value[:half_limit]} ... {param.value[-half_limit:]}"
+        param.value = f"{param.value[:half_limit]} [cyan][... truncated value ...][/] {param.value[-half_limit:]}"
     else:
         property_value_id = f"#{param.method}::{param.name}={param.value}"
 

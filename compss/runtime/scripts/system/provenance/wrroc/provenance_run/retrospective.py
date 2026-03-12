@@ -197,7 +197,7 @@ def add_parameter_value(compss_crate: ROCrate, param: Parameter, character_limit
 
     :return: The created PropertyValue instance.
     """
-    if param.is_array and len(param.value) > character_limit:
+    if (param.is_array or "DataType" in param.dtype) and len(param.value) > character_limit:
         # If the value is too long, we hash it and use the hash value in the ID and shorten the value itself
         half_limit = character_limit // 2
         hashcode = hashlib.shake_256(param.value.encode()).hexdigest(5)

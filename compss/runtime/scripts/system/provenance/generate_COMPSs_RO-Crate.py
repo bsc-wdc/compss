@@ -52,7 +52,7 @@ from provenance.wrroc.profiling_plots import generate_plots
 from rocrate.utils import iso_now
 
 PROVENANCE_RUN_ENABLED = True  # Provenance Run Crate profile is enabled by default
-PARAM_SIZE_LIMIT = 200  # Default character limit of parameter values
+PARAM_SIZE_LIMIT = 400  # Default character limit of parameter values
 
 
 def main():

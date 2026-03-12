@@ -335,7 +335,7 @@ class LocalActions(Actions):
     def inspect(self):
         # Code that inspects the RO-Crate
         if (
-            self.arguments.failing_tasks or self.arguments.methods
+            self.arguments.failing_tasks or self.arguments.methods or self.arguments.methods == []
             or self.arguments.tasks or self.arguments.tasks == []
         ):
             local_inspect_tasks(self.arguments.ro_crate,

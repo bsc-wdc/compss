@@ -872,8 +872,10 @@ def local_inspect_tasks(
             if "OrganizeAction" in e.type:
                 for control_action in e.get("object", []):
                     if not isinstance(control_action, Entity):
-                        break  # Nextflow has ControlActions as strings, which should not be correct
+                        continue  # Nextflow has ControlActions as strings, which should not be correct
                     task_create_action = control_action.get("object")
+                    if not isinstance(task_create_action, Entity):
+                        continue
                     # Print candidate must match: task id, method_name, or status FAILED
                     task_id = task_create_action.id.split("_")[1] if is_compss_wf else task_create_action.id
                     task_counter += 1

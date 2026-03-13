@@ -861,76 +861,111 @@ def local_inspect_tasks(
         else:
             is_compss_wf = False
 
-        # import time
-        # part_time = time.time()
+        import time
+        part_time = time.time()
 
-        # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
-        # ControlAction  -> object: CreateAction of the task
-        for e in crate.get_entities():
-            # Get all the ControlActions from the OrganizeAction
-            # print_candidates will include CreateActions of potential tasks to be printed, not all task CreateActions
-            if "OrganizeAction" in e.type:
-                for control_action in e.get("object", []):
-                    if not isinstance(control_action, Entity):
-                        continue  # Nextflow has ControlActions as strings, which should not be correct
-                    task_create_action = control_action.get("object")
-                    if not isinstance(task_create_action, Entity):
-                        continue
-                    # Print candidate must match: task id, method_name, or status FAILED
-                    task_id = task_create_action.id.split("_")[1] if is_compss_wf else task_create_action.id
-                    task_counter += 1
-                    method = task_create_action.get("instrument", {})
-                    if is_compss_wf:
-                        # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
-                        method_name = method.get("@id", "").removeprefix("#")
-                    else:
-                        method_name = method.get("name", "")
-                    if "CompletedActionStatus" in task_create_action.get("actionStatus", ""):
-                        status = "[green]COMPLETED[/green]"
-                    elif "FailedActionStatus" in task_create_action.get("actionStatus", ""):
-                        status = "[red]FAILED[/red]"
-                        failing_tasks.add(task_id)
-                    elif "PotentialActionStatus" in task_create_action.get("actionStatus", ""):
-                        status = "[yellow]CANCELED[/yellow]"
-                        canceled_tasks.add(task_id)
-                    else:
-                        status = ""
-                    # Eval candidate task
-                    # From less to most expensive evaluation. Once a part is false, the rest does not get evaluated
-                    should_print = (
-                        (not failing_tasks_only or ("FAILED" in status))
-                        and (not tasks_to_inspect or (task_id in tasks_to_inspect))
-                        and (not methods_to_inspect or combined_methods.search(method_name))
+
+        if is_compss_wf:
+            # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
+            # ControlAction  -> object: CreateAction of the task
+            for e in crate.get_entities():
+                # Get all the ControlActions from the OrganizeAction
+                # print_candidates will include CreateActions of potential tasks to be printed, not all task CreateActions
+                if "OrganizeAction" in e.type:
+                    for control_action in e.get("object", []):
+                        if not isinstance(control_action, Entity):
+                            continue  # Nextflow has ControlActions as strings, which should not be correct
+                        task_create_action = control_action.get("object")
+                        if not isinstance(task_create_action, Entity):
+                            continue
+
+                        # Print candidate must match: task id, method_name, or status FAILED
+                        task_id = task_create_action.id.split("_")[1] if is_compss_wf else task_create_action.id
+                        task_counter += 1
+                        method = task_create_action.get("instrument", {})
+                        if is_compss_wf:
+                            # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
+                            method_name = method.get("@id", "").removeprefix("#")
+                        else:
+                            method_name = method.get("name", "")
+                        if "CompletedActionStatus" in task_create_action.get("actionStatus", ""):
+                            status = "[green]COMPLETED[/green]"
+                        elif "FailedActionStatus" in task_create_action.get("actionStatus", ""):
+                            status = "[red]FAILED[/red]"
+                            failing_tasks.add(task_id)
+                        elif "PotentialActionStatus" in task_create_action.get("actionStatus", ""):
+                            status = "[yellow]CANCELED[/yellow]"
+                            canceled_tasks.add(task_id)
+                        else:
+                            status = ""
+
+                        # Eval candidate task. From less to most expensive evaluation. Once a part is false, the rest does not get evaluated
+                        should_print = (
+                            (not failing_tasks_only or ("FAILED" in status))
+                            and (not tasks_to_inspect or (task_id in tasks_to_inspect))
+                            and (not methods_to_inspect or combined_methods.search(method_name))
+                        )
+                        if should_print:
+                            if isinstance(task_create_action, list) and len(task_create_action) == 1:
+                                task_create_action = task_create_action[0]
+                            if task_create_action:
+                                print_candidates.append(task_create_action)
+                # —— LOGS ——
+                # There is no way around this, all Files need to be examined, since the log will reference the corresponding task CreateAction with 'mentions'
+                # There is no reference from the task CreateAction to the corresponding logs
+                # Buidling all log_trees is useless for non print_candidates (if they will never be printed)
+                elif "File" in e.type and e.get("about") and "logs" in e.get("@id"):
+                    task_id = (
+                        e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
                     )
-                    if should_print:
-                        if isinstance(task_create_action, list) and len(task_create_action) == 1:
-                            task_create_action = task_create_action[0]
-                        if task_create_action:
-                            print_candidates.append(task_create_action)
+                    if (
+                        (not tasks_to_inspect)
+                        or (task_id in tasks_to_inspect)
+                        or (failing_tasks_only and task_id in failing_tasks)
+                    ):
+                        log_tree.setdefault(task_id, [])
+                        log_tree[task_id].append(e.id)
+        else:
+            # In the specification, OrganizeAction is MAY, and ControlAction is SHOULD. Therefore sequential search of Task CreateActions is needed
+            main_entity = crate.root_dataset.get("mainEntity")
+            for e in crate.get_entities():
+                if "CreateAction" in e.type:
+                    if e.get("instrument") != main_entity:
+                        # A Task CreateAction
+                        # Print candidate must match: task id, method_name, or status FAILED
+                        task_id = e.id
+                        task_counter += 1
+                        method = e.get("instrument", {})
+                        method_name = method.get("name", "")
+                        if "CompletedActionStatus" in e.get("actionStatus", ""):
+                            status = "[green]COMPLETED[/green]"
+                        elif "FailedActionStatus" in e.get("actionStatus", ""):
+                            status = "[red]FAILED[/red]"
+                            failing_tasks.add(task_id)
+                        elif "PotentialActionStatus" in e.get("actionStatus", ""):
+                            status = "[yellow]CANCELED[/yellow]"
+                            canceled_tasks.add(task_id)
+                        else:
+                            status = ""
+                            
+                        # Eval candidate task. From less to most expensive evaluation. Once a part is false, the rest does not get evaluated
+                        should_print = (
+                            (not failing_tasks_only or ("FAILED" in status))
+                            and (not tasks_to_inspect or (task_id in tasks_to_inspect))
+                            and (not methods_to_inspect or combined_methods.search(method_name))
+                        )
+                        if should_print:
+                            print_candidates.append(e)
 
-            # —— LOGS ——
-            # There is no way around this, all Files need to be examined, since the log will reference the corresponding task CreateAction with 'mentions'
-            # There is no reference from the task CreateAction to the corresponding logs
-            # Buidling all log_trees is useless for non print_candidates (if they will never be printed)
-            if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
-                task_id = (
-                    e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
-                )
-                if (
-                    (not tasks_to_inspect)
-                    or (task_id in tasks_to_inspect)
-                    or (failing_tasks_only and task_id in failing_tasks)
-                ):
-                    log_tree.setdefault(task_id, [])
-                    log_tree[task_id].append(e.id)
 
-        # print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
-        # print(f"TO BE PRINTED: {len(print_candidates)}")
+        print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
+        print(f"TO BE PRINTED: {len(print_candidates)}")
 
         task_tree = {}
 
         for e in print_candidates:
-            # Possible improvement: task_id could have been obtained from the Task ControlAction -> instrument -> position
+            # task_id could have been obtained from the Task ControlAction -> instrument -> position but is only meaningful for COMPSs
+            # Is it useful to print the 'position' for other WMSs???
             task_id = e.id.split("_")[1] if is_compss_wf else e.id
 
             if "CompletedActionStatus" in e.get("actionStatus", ""):

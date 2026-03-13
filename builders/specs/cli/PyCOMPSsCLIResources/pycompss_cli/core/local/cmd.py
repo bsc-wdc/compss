@@ -875,7 +875,7 @@ def local_inspect_tasks(
         if crate.mainEntity and not crate.mainEntity.get("step"):
             console.print(tree)
             console.print(
-                "[yellow]Note: Task-level execution details are missing in this RO-Crate. For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run."
+                " [yellow]Note: Task-level execution details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
             )
             console.rule()
             continue

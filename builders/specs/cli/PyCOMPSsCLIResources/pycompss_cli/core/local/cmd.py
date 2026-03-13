@@ -715,7 +715,7 @@ def _load_crate(path, console):
     try:
         return ROCrate(path)
     except Exception as e:
-        console.print(f"[red]Error loading the RO-Crate from {path}: {e}")
+        console.print(f"[bold red] Error loading RO-Crate[/bold red] from [yellow]{path}[/yellow]: {e}")
         return None
 
 
@@ -840,6 +840,7 @@ def local_inspect_tasks(
         )
 
     for ro_crate_zip_or_dir in ro_crate_list:
+        console.rule("RO-Crate Task Inspection")
         try:
             crate = ROCrate(ro_crate_zip_or_dir)
         except Exception as e:
@@ -849,6 +850,14 @@ def local_inspect_tasks(
             continue
 
         tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
+
+        if crate.mainEntity and not crate.mainEntity.get("step"):
+            console.print(tree)
+            console.print(
+                "[yellow]Note: Task-level execution details are missing in this RO-Crate. For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run."
+            )
+            console.rule()
+            continue
 
         log_tree = {}
         failing_tasks = set()
@@ -861,8 +870,8 @@ def local_inspect_tasks(
         else:
             is_compss_wf = False
 
-        import time
-        part_time = time.time()
+        # import time
+        # part_time = time.time()
 
         # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
         # ControlAction  -> object: CreateAction of the task
@@ -872,8 +881,9 @@ def local_inspect_tasks(
         main_entity = crate.root_dataset.get("mainEntity")
         for e in crate.get_entities():
             if "CreateAction" in e.type:
-                if e.get("instrument") != main_entity:
-                    # A Task CreateAction. Print candidate must match: task id, method_name, or status FAILED
+                instr = e.get("instrument", None)  # CreateAction MUST have instrument to be considered an orchestrated Tool execution
+                if instr and instr != main_entity:
+                    # A Task / Tool execution CreateAction. Print candidate must match: task id, method_name, or status FAILED
                     # task_id = e.id
                     task_id = e.id.split("_")[1] if is_compss_wf else e.id
                     task_counter += 1
@@ -922,7 +932,7 @@ def local_inspect_tasks(
                     log_tree[task_id].append(e.id)
 
 
-        print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
+        # print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
         # print(f"TO BE PRINTED: {len(print_candidates)}")
 
         task_tree = {}
@@ -1018,15 +1028,8 @@ def local_inspect_tasks(
         total_t.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
         total_t.add(f"[yellow]Canceled Tasks —— {len(canceled_tasks)}[/yellow]")
 
-        if crate.mainEntity and not crate.mainEntity.get("step"):
-            console.print(
-                Panel(
-                    "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
-                    border_style="yellow",
-                )
-            )
-
         console.print(tree)
+        console.rule()
 
         # print(f"PROVENANCE | NEW TOTAL TIME: {time.time() - part_time} s")
 

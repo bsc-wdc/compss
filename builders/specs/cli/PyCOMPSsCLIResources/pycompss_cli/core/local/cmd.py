@@ -745,7 +745,7 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
         # print(f"PROVENANCE | Process and print whole crate TIME: {time.time() - part_time} s")  
 
 
-def render_parameters(
+def _render_parameters(
     parent_node,
     title,
     property_values,
@@ -815,6 +815,30 @@ def render_parameters(
         param_section.add(f"Value: [dark_goldenrod]{value}[/dark_goldenrod]")
 
 
+def _get_task_id(e, is_compss_wf):
+    return e.id.split("_")[1] if is_compss_wf else e.id
+
+
+def _get_method_name(e, is_compss_wf):
+    method = e.get("instrument", {})
+    if is_compss_wf:
+        return method.get("@id", "").removeprefix("#")
+    return method.get("name", ""), method
+
+
+def _get_status(e):
+    action_status = e.get("actionStatus", "")
+
+    if "CompletedActionStatus" in action_status:
+        return "[green]COMPLETED[/green]", "COMPLETED"
+    if "FailedActionStatus" in action_status:
+        return "[red]FAILED[/red]", "FAILED"
+    if "PotentialActionStatus" in action_status:
+        return "[yellow]CANCELED[/yellow]", "CANCELED"
+
+    return "", ""
+
+
 def local_inspect_tasks(
     ro_crate_list,
     failing_tasks_only: bool,
@@ -841,12 +865,9 @@ def local_inspect_tasks(
 
     for ro_crate_zip_or_dir in ro_crate_list:
         console.rule("RO-Crate Task Inspection")
-        try:
-            crate = ROCrate(ro_crate_zip_or_dir)
-        except Exception as e:
-            console.print(
-                f"[bold red] Error loading RO-Crate[/bold red] from [yellow]{ro_crate_zip_or_dir}[/yellow]: {e}"
-            )
+
+        crate = _load_crate(ro_crate_zip_or_dir, console)
+        if not crate:
             continue
 
         tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
@@ -859,16 +880,16 @@ def local_inspect_tasks(
             console.rule()
             continue
 
+        if crate.mainEntity.get("programmingLanguage").id == "#compss":
+            is_compss_wf = True
+        else:
+            is_compss_wf = False
+
         log_tree = {}
         failing_tasks = set()
         canceled_tasks = set()
         print_candidates = []
         task_counter = 0
-
-        if crate.mainEntity.get("programmingLanguage").id == "#compss":
-            is_compss_wf = True
-        else:
-            is_compss_wf = False
 
         # import time
         # part_time = time.time()
@@ -884,32 +905,18 @@ def local_inspect_tasks(
                 instr = e.get("instrument", None)  # CreateAction MUST have instrument to be considered an orchestrated Tool execution
                 if instr and instr != main_entity:
                     # A Task / Tool execution CreateAction. Print candidate must match: task id, method_name, or status FAILED
-                    # task_id = e.id
-                    task_id = e.id.split("_")[1] if is_compss_wf else e.id
-                    task_counter += 1
-
-                    method = e.get("instrument", {})
-                    if is_compss_wf:
-                        # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
-                        method_name = method.get("@id", "").removeprefix("#")
-                    else:
-                        method_name = method.get("name", "")
-
-                    if "CompletedActionStatus" in e.get("actionStatus", ""):
-                        status = "[green]COMPLETED[/green]"
-                    elif "FailedActionStatus" in e.get("actionStatus", ""):
-                        status = "[red]FAILED[/red]"
+                    task_id = _get_task_id(e, is_compss_wf)
+                    method_name, _ = _get_method_name(e, is_compss_wf)
+                    status, status_plain = _get_status(e)
+                    if status_plain == "FAILED":
                         failing_tasks.add(task_id)
-                    elif "PotentialActionStatus" in e.get("actionStatus", ""):
-                        status = "[yellow]CANCELED[/yellow]"
+                    elif status_plain == "CANCELED":
                         canceled_tasks.add(task_id)
-                    else:
-                        status = ""
                         
                     # Eval candidate task. From less to most expensive evaluation. Once a part is false, the rest does not get evaluated
                     should_print = (
-                        (not failing_tasks_only or ("FAILED" in status))
-                        and (not tasks_to_inspect or (task_id in tasks_to_inspect))
+                        (not failing_tasks_only or status_plain == "FAILED")
+                        and (not tasks_to_inspect or task_id in tasks_to_inspect)
                         and (not methods_to_inspect or combined_methods.search(method_name))
                     )
                     if should_print:
@@ -940,23 +947,14 @@ def local_inspect_tasks(
         for e in print_candidates:
             # task_id could have been obtained from the Task ControlAction -> instrument -> position but is only meaningful for COMPSs
             # Is it useful to print the 'position' for other WMSs???
-            task_id = e.id.split("_")[1] if is_compss_wf else e.id
 
-            if "CompletedActionStatus" in e.get("actionStatus", ""):
-                status = "[green]COMPLETED[/green]"
-            elif "FailedActionStatus" in e.get("actionStatus", ""):
-                status = "[red]FAILED[/red]"
-            elif "PotentialActionStatus" in e.get("actionStatus", ""):
-                status = "[yellow]CANCELED[/yellow]"
-            else:
-                status = ""
-
-            method = e.get("instrument", {})
-            if is_compss_wf:
-                # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
-                method_name = method.get("@id", "").removeprefix("#")
-            else:
-                method_name = method.get("name", "")
+            task_id = _get_task_id(e, is_compss_wf)
+            method_name, method = _get_method_name(e, is_compss_wf)
+            status, status_plain = _get_status(e)
+            if status_plain == "FAILED":
+                failing_tasks.add(task_id)
+            elif status_plain == "CANCELED":
+                canceled_tasks.add(task_id)
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 
@@ -999,7 +997,7 @@ def local_inspect_tasks(
                     task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
             # —— INPUTS ——
-            render_parameters(
+            _render_parameters(
                 parent_node=task_tree[task_id],
                 title="Inputs",
                 property_values=e.get("object", []),
@@ -1009,7 +1007,7 @@ def local_inspect_tasks(
 
             # —— OUTPUTS ——
             if "COMPLETED" in status or not status:
-                render_parameters(
+                _render_parameters(
                     parent_node=task_tree[task_id],
                     title="Outputs",
                     property_values=e.get("result", []),

@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class _CrateContext:
+    crate_path: str
     crate: ROCrate
     root: Entity | None = None
     main_entity: Entity | None = None
@@ -183,66 +184,6 @@ def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
     print("App deployed from " + local_source + " to " + dst)
 
 
-def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool):
-    ca = ctx.create_action
-    if not ca:
-        return
-
-    action_tree = tree.add("Execution details")
-
-    if name := ca.get("name"):
-        action_tree.add(f"Name —— [green]{name}")
-
-    # _render_action_status(action_tree, ca)
-    # _render_task_summary(action_tree, ctx)
-    # _render_times(action_tree, ca, verbose)
-    # _render_host_info(action_tree, ctx.crate, ca)
-    # _render_resource_usage(action_tree, ca, verbose)
-    # _render_agent(action_tree, ca)
-    # _render_submission(action_tree, ca, ctx.crate, verbose)
-    # _render_environment(action_tree, ca, verbose)
-    # _render_data_assets(action_tree, ca, data_assets)
-
-
-def _render_main_entity(tree, main_entity):
-    if not main_entity:
-        return
-
-    me_tree = tree.add(f"Main entity —— [green]{main_entity.get('@id', '')}")
-
-    if pl := main_entity.get("programmingLanguage"):
-        name = pl.get("name", "")
-        ver = pl.get("version")
-        me_tree.add(
-            f"Programming language —— [green]{name} {f'({ver})' if ver else ''}"
-        )
-
-
-def _render_publish_date(tree, entity):
-    raw = entity.get("datePublished")
-    try:
-        dt = datetime.fromisoformat(raw)
-        tree.add(
-            f"Date Published —— [green]{dt.strftime('%A, %d of %B of %Y - %H:%M %Z')}"
-        )
-    except Exception:
-        if raw:
-            tree.add(f"Date Published —— [green]{raw}")
-
-
-def _render_license(tree, entity):
-    lic = entity.get("license")
-    if not lic:
-        return
-
-    if isinstance(lic, ContextEntity):
-        name = lic.get("name", "")
-        url = lic.get("url", "")
-        tree.add(f"License —— [green]{name} {f'({url})' if url else ''}")
-    else:
-        tree.add(f"License —— [green]{lic}")
-
-
 def _format_email(cp):
     if isinstance(cp, ContextEntity):
         return cp.get("email", "")
@@ -280,6 +221,331 @@ def _format_author(author):
     )
 
 
+def _render_times(action_tree, ca, verbose):
+    start_time = end_time = None
+    if ca.get("startTime"):
+        try:
+            start_time = datetime.fromisoformat(
+                ca["startTime"]
+            )
+        except (TypeError, ValueError):
+            start_time = None
+    if ca.get("endTime"):
+        try:
+            end_time = datetime.fromisoformat(ca["endTime"])
+        except (TypeError, ValueError):
+            end_time = None
+
+    time_details = None
+    if start_time and end_time:
+        total_time = end_time - start_time
+        time_details = action_tree.add(
+            f"Execution Time —— [magenta]{total_time} s[/magenta]"
+        )
+    if verbose and (start_time or end_time):
+        if not time_details:
+            time_details = action_tree.add(f"Execution Time")
+        if start_time:
+            time_details.add(
+                f"Start Time —— [green]{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+            )
+        if end_time:
+            time_details.add(
+                f"End Time   —— [green]{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+            )
+
+
+def _render_host_info(tree, crate, ca):
+    exec_info_str = ca.get("@id")
+    if exec_info_str.startswith("#COMPSs"):
+        # We can extract more details. Hostname included from COMPSs 3.2 version
+        # Old CreateAction id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117 
+        # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
+        # and some host names can be bsc_nvidia (with underscores), so, splitting by underscores may not work
+        # It may be easier to get the host and job id from the 'name' rather than from the '@id'
+        match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
+        host_name_text = match.group(1) if match else ""
+        num_nodes_e = crate.get("#slurm_job_num_nodes")
+        num_nodes_text = (
+            f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
+        )
+        job_id = None
+        match = re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str)
+        if job_id_e := crate.get("#slurm_job_id"):
+            job_id = job_id_e.get("value", None)
+        elif match:
+            job_id = match.group(1)
+        job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
+        tree.add(
+            f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
+        )
+
+
+def _render_resource_usage(action_tree, ca, verbose):
+    if "resourceUsage" in ca:
+        # Create a dictionary with Resource Usage info, then print it
+        ru_dict = {}
+        for e in ca["resourceUsage"]:
+            is_master = False
+            keys = e.get("@id", "").split(".")
+            value = e.get("value", "")
+            host = keys[0].lstrip("#").removesuffix("-ib0")
+            if host.endswith("-MASTER"):
+                host = host.removesuffix("-MASTER")
+                is_master = True
+            if host == "overall":
+                host = host.upper()
+            if host not in ru_dict:
+                ru_dict[host] = {}
+            if is_master:
+                ru_dict[host]["is_master"] = True
+            if len(keys) == 2:
+                # Metric id: #[host|host-MASTER].metric_name
+                metric = keys[1]
+                ru_dict[host][metric] = value
+            elif len(keys) >= 3:
+                # Metric id's are: #[overall|host].filename.method_name.metric_name
+                method = ".".join(keys[1:-1])
+                if method not in ru_dict[host]:
+                    ru_dict[host][method] = {}
+                metric = keys[-1]
+                ru_dict[host][method][metric] = value
+
+        # Calculate totals for non-verbose
+        cpu_values = []
+        mem_values = []
+
+        del_key = None
+        master_avg_cpu = None
+        master_avg_mem = None
+        for key, host_data in ru_dict.items():
+            if "is_master" in host_data:
+                master_avg_cpu = host_data.get("cpuAvg")
+                master_avg_mem = host_data.get("memAvg")
+                # We ingnore the data from the master to calculate the avg and merge entries
+                continue
+            cpu = host_data.get("cpuAvg")
+            mem = host_data.get("memAvg")
+            if cpu is not None:
+                cpu_values.append(float(cpu))
+            if mem is not None:
+                mem_values.append(float(mem))
+        avg_cpu = (
+            round(sum(cpu_values) / len(cpu_values), 2) if cpu_values else None
+        )
+        avg_mem = (
+            round(sum(mem_values) / len(mem_values), 2) if mem_values else None
+        )
+
+        # Non-verbose
+        if not verbose:
+            if avg_cpu and avg_mem:
+                usage_tree = action_tree.add(
+                    f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
+                )
+            else:
+                if master_avg_cpu or master_avg_mem:
+                    usage_tree = action_tree.add(
+                        f"Resource Usage —— CPU [gold1]{master_avg_cpu} %[/] —— Mem [gold1]{master_avg_mem} %[/]"
+                    )
+        else:
+            # add to usage_tree
+            usage_tree = action_tree.add(
+                f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)"
+            )
+            for host, host_dict in sorted(ru_dict.items()):
+                host_executed_tasks = 0
+                master_text = (
+                    " (master node)" if "is_master" in host_dict else ""
+                )
+                if host != "OVERALL":
+                    host_tree = usage_tree.add(f"[blue]{host}{master_text}")
+                else:
+                    host_tree = usage_tree.add(f"[gold1]Overall Statistics")
+                for metric, metric_value in host_dict.items():
+                    if isinstance(metric_value, dict):
+                        # Info about a method
+                        if "executionTime" in metric_value:
+                            continue  # Ignore executionTime metric
+                        executions = metric_value.get("executions")
+                        if executions == "None":
+                            # None comes as a string in the host_dict, not as a real None
+                            executions = 0
+                        else:
+                            executions = int(executions)
+                        if host != "OVERALL" and executions == 0:
+                            continue  # Do not print if no executions in a host, but print in the OVERALL
+                        host_executed_tasks += executions
+                        if executions > 0:
+                            host_tree.add(
+                                f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
+                            )
+                        else:
+                            host_tree.add(
+                                f"[cyan]{metric}[/] ({metric_value.get('executions', '')})"
+                            )
+                # Deal with info about a machine direct metric
+                if "cpuAvg" in host_dict:
+                    host_tree.add(
+                        f"CPU: [gold1]{host_dict.get('cpuAvg', '')} %[/] —— [bright_red]{host_dict.get('cpuMax', '')} %"
+                    )
+                elif host == "OVERALL":
+                    if avg_cpu:
+                        host_tree.add(f"CPU: [gold1]{avg_cpu} %")
+                    else:
+                        host_tree.add(f"CPU: [gold1]{master_avg_cpu} %")
+                if "memAvg" in host_dict:
+                    host_tree.add(
+                        f"Memory: [gold1]{host_dict.get('memAvg', '')} %[/] —— [bright_red]{host_dict.get('memMax', '')} %[/] —— [light_green]{host_dict.get('memMin', '')} %"
+                    )
+                elif host == "OVERALL":
+                    if avg_mem:
+                        host_tree.add(f"Memory: [gold1]{avg_mem} %")
+                    else:
+                        host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
+                if host != "OVERALL":
+                    host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"
+
+
+def _render_agent(action_tree, ca):
+    if ca.get("agent"):
+        agent = ca.get("agent")
+        action_tree.add(f"Agent —— {_format_author(agent)}")
+
+
+def _render_submission(action_tree, ctx):
+    crate_path = ctx.crate_path
+    ca = ctx.create_action
+    description = ca.get("description")
+    # Backwards compatible with txt files, only works when Crates are not zipped
+    args_files = [
+        Path(crate_path) / f
+        for f in [
+            "compss_command_line_arguments.txt",
+            "compss_submission_command_line.txt",
+        ]
+    ]  # Backward compatible with COMPSs < 3.3.3
+    for file in args_files:
+        try:
+            with file.open("r", encoding="utf-8") as f:
+                description = f.readline().strip()
+        except Exception:
+            pass
+    if description:
+        action_tree.add(f"Submission —— [dim]{description}")
+
+
+def _render_environment(action_tree, ca, verbose):
+    if ca.get("environment"):
+        if verbose:
+            env_tree = action_tree.add("Environment")
+            for env in ca["environment"]:
+                env_tree.add(
+                    f"[dark_goldenrod]{env['name']}[/dark_goldenrod] = [green]{env['value']}[/green]"
+                )
+        else:
+            action_tree.add(
+                f"Environment —— [dark_goldenrod]{len(ca['environment'])} variables [/dark_goldenrod]"
+            )
+
+
+def _render_io(tree, title, items):
+    if not items:
+        return
+
+    if not isinstance(items, list):
+        items = [items]
+
+    io_tree = tree.add(title)
+
+    for item in items:
+        if isinstance(item, Entity):
+            if "contentSize" in item:
+                io_tree.add(
+                    f"[dark_goldenrod]{item.get('@id')}[/dark_goldenrod] "
+                    f"[dim]({int(item['contentSize']):,} bytes)[/dim]"
+                )
+            else:
+                io_tree.add(
+                    f"[dark_goldenrod]{item.get('@id')}[/dark_goldenrod]"
+                )
+        elif isinstance(item, str):
+            # Backwards compatible with COMPSs 3.0
+            io_tree.add(f"[dark_goldenrod]{item}[/dark_goldenrod]")
+
+
+def _render_data_assets(action_tree, ca, data_assets):
+    if not data_assets:
+        ins_e = ca.get("object")
+        if ins_e and not isinstance(ins_e, list):
+            ins_e = [ins_e]
+        outs_e = ca.get("result")
+        if outs_e and not isinstance(outs_e, list):
+            outs_e = [outs_e]
+        action_tree.add(
+            f"Data assets —— [dark_goldenrod]{len(ins_e) if ins_e else 0} Inputs —— [dark_goldenrod]{len(outs_e) if outs_e else 0} Outputs"
+        )
+    else:
+        if wf_in := ca.get("object"):
+            _render_io(action_tree, "Inputs", wf_in)
+        if wf_out := ca.get("result"):
+            _render_io(action_tree, "Outputs", wf_out)
+
+
+def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool):
+    ca = ctx.create_action
+    m_e = ctx.main_entity
+    if not ca:
+        return
+
+    action_tree = tree.add("Execution details")
+
+    # Name
+    exec_info_str = ca.get("@id")
+    if (
+        ca_name := ca.get("name")
+    ) and not exec_info_str.startswith("#COMPSs"):
+        # Compatibility with non-COMPSs crates
+        action_tree.add(f"Name —— [green]{ca_name}")
+
+    # actionStatus
+    if main_ca_status := ca.get("actionStatus", ""):
+    # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
+        if "Completed" in main_ca_status:
+            action_tree.add(f"Status —— {'[yellow]COMPLETED[/yellow]'}")
+        elif "Failed" in main_ca_status:
+            action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
+
+    # Task summary
+    if m_e.get("step"):
+        task_tree = action_tree.add(
+            f"Executed Tasks: {ctx.task_stats['total']} —— [green]COMPLETED: {ctx.task_stats['completed']}[/green] —— [red]FAILED: {ctx.task_stats['failed']}[/red] —— [yellow]CANCELED: {ctx.task_stats['canceled']}[/yellow]"
+        )
+
+    _render_times(action_tree, ca, verbose)
+    _render_host_info(action_tree, ctx.crate, ca)
+    _render_resource_usage(action_tree, ca, verbose)
+    _render_agent(action_tree, ca)
+    if verbose:
+        _render_submission(action_tree, ctx)
+    _render_environment(action_tree, ca, verbose)
+    _render_data_assets(action_tree, ca, data_assets)
+
+
+def _add_single_author(tree, entity, field):
+    if field not in entity:
+        return
+    if not (authors := entity.get(field)):
+        # Some WFHub crates come with the authors field, but with an empty list
+        return
+    if not isinstance(authors, list):
+        authors = [authors]
+    if len(authors) == 1:
+        tree.add(f"Authors - {_format_author(authors[0])}")
+    else:
+        tree.add(f"Authors - {_format_author(authors[0])}[gold1] and {len(authors) - 1 } more[/]")
+
+
 def _add_authors(tree, entity, field):
     if field not in entity:
         return
@@ -293,6 +559,77 @@ def _add_authors(tree, entity, field):
         authors_tree.add(_format_author(author))
 
 
+def _render_license(tree, entity):
+    lic = entity.get("license")
+    if not lic:
+        return
+
+    if isinstance(lic, ContextEntity):
+        name = lic.get("name", "")
+        url = lic.get("url", "")
+        tree.add(f"License —— [green]{name} {f'({url})' if url else ''}")
+    else:
+        tree.add(f"License —— [green]{lic}")
+
+
+def _render_publish_date(tree, entity):
+    raw = entity.get("datePublished")
+    try:
+        dt = datetime.fromisoformat(raw)
+        tree.add(
+            f"Date Published —— [green]{dt.strftime('%A, %d of %B of %Y - %H:%M %Z')}"
+        )
+    except Exception:
+        if raw:
+            tree.add(f"Date Published —— [green]{raw}")
+
+
+def _render_main_entity(tree, main_entity):
+    if not main_entity:
+        return
+
+    me_tree = tree.add(f"Main entity —— [green]{main_entity.get('@id', '')}")
+
+    if pl := main_entity.get("programmingLanguage"):
+        name = pl.get("name", "")
+        ver = pl.get("version")
+        me_tree.add(
+            f"Programming language —— [green]{name} {f'({ver})' if ver else ''}"
+        )
+
+
+def _render_software_reqs(tree, main_entity):
+    if not main_entity:
+        return
+    
+    software_requirements = main_entity.get("softwareRequirements")
+    if not software_requirements:
+        return
+    
+    deps_tree = tree.add("Software Requirements")
+    if not isinstance(software_requirements, list):
+        software_requirements = [software_requirements]
+
+    for s in software_requirements:
+        s_name = s.get("name", "")
+        ver = s.get("softwareVersion")  # canonical expected
+        deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
+
+def _truncate_description(s, max_lines=5, max_chars=500):
+    # cut = min(len(s), max_chars)
+    lines = 0
+    for i, c in enumerate(s[:max_chars]):
+        if c == "\n":
+            lines += 1
+            if lines >= max_lines:
+                return s[:i+1] + "\n[cyan][... truncated text ...][/]"
+    if len(s) >= max_chars + 10:
+        # Try to finish current word
+        return s[:max_chars + 10] + "\n[cyan][... truncated text ...][/]"
+    else:
+        return s
+
+
 def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
     e = ctx.root
     if not e:
@@ -302,30 +639,24 @@ def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
         tree.add(f"Name —— [green]{name}")
 
     if desc := e.get("description"):
-        tree.add(f"Description —— [green]{desc}")
+        tree.add(f"Description —— [green]{desc if verbose else _truncate_description(desc)}")
 
-    _add_authors(tree, e, "creator")
-    _add_authors(tree, e, "author")
+    if "creator" in e:
+        _add_authors(tree, e, "creator") if verbose else _add_single_author(tree, e, "creator")
+    elif "author" in e:
+        _add_authors(tree, e, "author") if verbose else _add_single_author(tree, e, "author")
 
     _render_license(tree, e)
     _render_publish_date(tree, e)
     _render_main_entity(tree, ctx.main_entity)
 
+    if verbose:
+        _render_software_reqs(tree, ctx.main_entity)
+
     if verbose and ctx.profiles:
         prof_tree = tree.add("RO-Crate compliance")
         for prof in ctx.profiles:
             prof_tree.add(f"[green]{prof}")
-
-
-def update_task_stats(stats, action):
-    status = action.get("actionStatus", "")
-    if "Completed" in status:
-        stats["completed"] += 1
-    elif "Failed" in status:
-        stats["failed"] += 1
-    elif "Potential" in status:
-        stats["canceled"] += 1
-    stats["total"] += 1
 
 
 def _collect_profiles(ctx, entity):
@@ -343,20 +674,40 @@ def _collect_profiles(ctx, entity):
             ctx.profiles.append(prof)
 
 
-def _inspect_crate(crate: ROCrate) -> _CrateContext:
-    ctx = _CrateContext(crate=crate)
+def _update_task_stats(stats, action):
+    # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
+    status = action.get("actionStatus", "")
+    if "Completed" in status:
+        stats["completed"] += 1
+    elif "Failed" in status:
+        stats["failed"] += 1
+    elif "Potential" in status:
+        stats["canceled"] += 1
+    stats["total"] += 1
+
+
+def _inspect_crate(path, crate: ROCrate) -> _CrateContext:
+    # Provenance Run Crate: OrganizeAction and ControlActions are not mandatory. Task CreateActions must be searched sequentially
+    ctx = _CrateContext(crate_path=path, crate=crate)
+
+    ctx.root = crate.root_dataset
+    ctx.main_entity = ctx.root.get("mainEntity")
+    _collect_profiles(ctx, crate.root_dataset)
 
     for e in crate.get_entities():
-        if e.id == "./":
-            ctx.root = e
-            ctx.main_entity = e.get("mainEntity")
-            _collect_profiles(ctx, e)
-
-        elif "CreateAction" in e.type and e.get("instrument") == ctx.main_entity:
-            ctx.create_action = e
-
-        elif "ControlAction" in e.type:
-            update_task_stats(ctx.task_stats, e)
+        if "CreateAction" in e.type:
+            if e.get("instrument") == ctx.main_entity:
+                ctx.create_action = e
+            else:
+                # COMPSs 3.0 crates did not have 'instrument'
+                # Does this increase processing time a lot for ProvenanceRun???
+                ca_name = e.get("name")
+                if ca_name and ca_name.startswith("COMPSs") and all(e.get(k) for k in ["actionStatus", "endTime", "agent"]):
+                    ctx.create_action = e
+                else:
+                    # Task CreateAction
+                    _update_task_stats(ctx.task_stats, e)
+            
     return ctx
 
 
@@ -364,29 +715,8 @@ def _load_crate(path, console):
     try:
         return ROCrate(path)
     except Exception as e:
-        console.print(f"[red]Error loading the RO-Crate from {path}: {e}")
+        console.print(f"[bold red] Error loading RO-Crate[/bold red] from [yellow]{path}[/yellow]: {e}")
         return None
-
-
-def NEW_local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
-    console = Console()
-
-    for path in ro_crate_list:
-        console.rule("RO-Crate Inspection")
-
-        crate = _load_crate(path, console)
-        if not crate:
-            continue
-
-        root_tree = Tree(f"[bold cyan]CRATE {path}")
-
-        ctx = _inspect_crate(crate)
-
-        _render_general_info(root_tree, ctx, verbose)
-        _render_execution(root_tree, ctx, verbose, data_assets)
-
-        console.print(root_tree)
-        console.rule()
 
 
 def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: bool):
@@ -394,514 +724,28 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 
     for ro_crate_zip_or_dir in ro_crate_list:
         console.rule("RO-Crate Inspection")
-        try:
-            crate = ROCrate(ro_crate_zip_or_dir)
-        except Exception as e:
-            console.print(
-                f"[red]Error loading the RO-Crate from {ro_crate_zip_or_dir}: {e}"
-            )
+
+        crate = _load_crate(ro_crate_zip_or_dir, console)
+        if not crate:
             continue
 
         root_tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
 
-        nr_of_tasks_completed = 0
-        nr_of_tasks_failed = 0
-        nr_of_tasks_canceled = 0
-        total_tasks = 0
-        profiles = []
-        e_main_create_action = None
-        e_main_entity = None
+        # import time
+        # part_time = time.time()
 
-        for e in crate.get_entities():
-            # --- GENERAL INFO ---
-            if e.id == "./":
-                if crate_name := e.get("name"):
-                    root_tree.add(f"Name —— [green]{crate_name}")
+        ctx = _inspect_crate(ro_crate_zip_or_dir, crate)
 
-                if crate_desc := e.get("description", ""):
-                    root_tree.add(f"Description —— [green]{crate_desc}")
-
-                if "creator" in e:
-                    authors_tree = root_tree.add("Authors")
-                    c_list = []
-                    c_e = e.get("creator")
-                    if isinstance(c_e, str):
-                        authors_tree.add(f"[green]{c_e}")
-                    elif isinstance(c_e, list):
-                        c_list = c_e
-                    elif isinstance(c_e, Entity):
-                        c_list.append(c_e)
-
-                    for c in c_list:
-                        if isinstance(c, str):
-                            authors_tree.add(f"[green]{c}")
-                        else:
-                            author_str = c.get("name", c.get("@id", ""))
-                            if not "name" in c:
-                                given_n = c.get("givenName")
-                                family_n = c.get("familyName")
-                                if given_n or family_n:
-                                    author_str = (
-                                        family_n
-                                        if not given_n
-                                        else (
-                                            f"{family_n}, {given_n}"
-                                            if family_n
-                                            else given_n
-                                        )
-                                    )
-                            affiliation = c.get("affiliation", {})
-                            if isinstance(affiliation, ContextEntity):
-                                affiliation_str = affiliation.get(
-                                    "name", affiliation.get("@id", "")
-                                )
-                            else:
-                                affiliation_str = str(affiliation or "")
-
-                            contact_point = c.get("contactPoint", "")
-                            if isinstance(contact_point, ContextEntity):
-                                email = contact_point.get("email", "")
-                            elif isinstance(contact_point, str):
-                                email = contact_point
-                            else:
-                                email = ""
-
-                            authors_tree.add(
-                                f"[green]{author_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
-                            )
-                elif "author" in e:
-                    authors_tree = root_tree.add("Authors")
-                    c_list = []
-                    c_e = e.get("author")
-                    if isinstance(c_e, str):
-                        authors_tree.add(f"[green]{c_e}")
-                    elif isinstance(c_e, list):
-                        c_list = c_e
-                    elif isinstance(c_e, Entity):
-                        c_list.append(c_e)
-
-                    for c in c_list:
-                        if isinstance(c, str):
-                            authors_tree.add(f"[green]{c}")
-                        else:
-                            author_str = c.get("name", c.get("@id", ""))
-                            if not "name" in c:
-                                given_n = c.get("givenName")
-                                family_n = c.get("familyName")
-                                if given_n or family_n:
-                                    author_str = (
-                                        family_n
-                                        if not given_n
-                                        else (
-                                            f"{family_n}, {given_n}"
-                                            if family_n
-                                            else given_n
-                                        )
-                                    )
-                            affiliation = c.get("affiliation", {})
-                            if isinstance(affiliation, ContextEntity):
-                                affiliation_str = affiliation.get(
-                                    "name", affiliation.get("@id", "")
-                                )
-                            else:
-                                affiliation_str = str(affiliation or "")
-
-                            contact_point = c.get("contactPoint", "")
-                            if isinstance(contact_point, ContextEntity):
-                                email = contact_point.get("email", "")
-                            elif isinstance(contact_point, str):
-                                email = contact_point
-                            else:
-                                email = ""
-
-                            authors_tree.add(
-                                f"[green]{author_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
-                            )
-
-                if license_e := e.get("license"):
-                    if isinstance(license_e, ContextEntity):
-                        lic_name = license_e.get("name", "")
-                        lic_url = license_e.get("url", "")
-                        root_tree.add(
-                            f"License —— [green]{lic_name} {f'({lic_url})' if lic_url else ''}"
-                        )
-
-                    else:
-                        root_tree.add(f"License —— [green]{license_e}")
-
-                try:
-                    publish_time = datetime.fromisoformat(e.get("datePublished"))
-                except (TypeError, ValueError):
-                    publish_time = None
-                    publish_time_str = e.get("datePublished")
-                if publish_time:
-                    root_tree.add(
-                        f"Date Published —— [green]{publish_time.strftime('%A, %d of %B of %Y - %H:%M %Z')}"
-                    )
-                else:
-                    root_tree.add(f"Date Published —— [green]{publish_time_str}")
-
-                if e_main_entity := e.get("mainEntity"):
-                    if isinstance(e_main_entity, Entity):
-                        me_tree = root_tree.add(
-                            f"Main entity —— [green]{e_main_entity.get('@id', '')}"
-                        )
-                        if prog_lang_e := e_main_entity.get("programmingLanguage"):
-                            pl_name = prog_lang_e.get("name", "")
-                            pl_version = prog_lang_e.get("version")
-                            me_tree.add(
-                                f"Programming language —— [green]{pl_name} {f'({pl_version})' if pl_version else ''}"
-                            )
-
-                conforms_to = e.get("conformsTo")
-                if isinstance(conforms_to, ContextEntity):
-                    profiles.append(
-                        f"{conforms_to.get('name', '')} ({conforms_to.get('version', '')})"
-                    )
-                elif isinstance(conforms_to, list):
-                    for prof in conforms_to:
-                        if isinstance(prof, ContextEntity):
-                            profiles.append(
-                                f"{prof.get('name', '')} ({prof.get('version', '')})"
-                            )
-                        elif isinstance(prof, str):
-                            profiles.append(prof)
-
-            elif "CreateAction" in e.type and e.get("instrument") == e_main_entity:
-                e_main_create_action = e
-
-            elif "ControlAction" in e.type:
-                # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
-                action_status = e.get("actionStatus", "")
-                if "Completed" in action_status:
-                    nr_of_tasks_completed += 1
-                elif "Failed" in action_status:
-                    nr_of_tasks_failed += 1
-                elif "Potential" in action_status:
-                    nr_of_tasks_canceled += 1
-                total_tasks += 1
-
-        if (
-            e_main_entity
-            and (software_requirements := e_main_entity.get("softwareRequirements"))
-            and verbose
-        ):
-            deps_tree = root_tree.add("Software Requirements")
-            if isinstance(software_requirements, list):
-                for s in software_requirements:
-                    s_name = s.get("name", "")
-                    ver = s.get("softwareVersion")  # canonical expected
-                    deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
-            else:
-                s_name = software_requirements.get("name", "")
-                ver = software_requirements.get("softwareVersion", "")
-                deps_tree.add(f"[#B5651D]{s_name}{f' ({ver})' if ver else ''}")
-
-        if verbose and profiles:
-            prof_tree = root_tree.add("RO-Crate compliance")
-            for prof in profiles:
-                prof_tree.add(f"[green]{prof}[/green]")
-
-        # --- EXECUTION DETAILS ---
-        if e_main_create_action:
-            action_tree = root_tree.add("Execution details")
-
-            exec_info_str = e_main_create_action.get("@id")
-            if (
-                ca_name := e_main_create_action.get("name")
-            ) and not exec_info_str.startswith("#COMPSs"):
-                action_tree.add(f"Name —— [green]{ca_name}")
-
-            if main_ca_status := e_main_create_action.get("actionStatus", ""):
-                # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
-                if "Completed" in main_ca_status:
-                    action_tree.add(f"Status —— {'[yellow]COMPLETED[/yellow]'}")
-                elif "Failed" in main_ca_status:
-                    action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
-
-            if e_main_entity.get("step"):
-                task_tree = action_tree.add(
-                    f"Executed Tasks: {total_tasks} —— [green]COMPLETED: {nr_of_tasks_completed}[/green] —— [red]FAILED: {nr_of_tasks_failed}[/red] —— [yellow]CANCELED: {nr_of_tasks_canceled}[/yellow]"
-                )
-
-            start_time = end_time = None
-            if e_main_create_action.get("startTime"):
-                try:
-                    start_time = datetime.fromisoformat(
-                        e_main_create_action["startTime"]
-                    )
-                except (TypeError, ValueError):
-                    start_time = None
-            if e_main_create_action.get("endTime"):
-                try:
-                    end_time = datetime.fromisoformat(e_main_create_action["endTime"])
-                except (TypeError, ValueError):
-                    end_time = None
-
-            time_details = None
-            if start_time and end_time:
-                total_time = end_time - start_time
-                time_details = action_tree.add(
-                    f"Execution Time —— [magenta]{total_time} s[/magenta]"
-                )
-            # elif (start_time or end_time) and verbose:
-            #     time_details = action_tree.add(f"Execution Time")
-            if verbose and (start_time or end_time):
-                if not time_details:
-                    time_details = action_tree.add(f"Execution Time")
-                if start_time:
-                    time_details.add(
-                        f"Start Time —— [green]{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
-                    )
-                if end_time:
-                    time_details.add(
-                        f"End Time   —— [green]{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
-                    )
-
-            if exec_info_str.startswith("#COMPSs"):
-                # We can extract more details. Hostname included from COMPSs 3.4 version
-                # Old Create action id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117
-                # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
-                exec_info = exec_info_str.split("_")
-                host_index = exec_info.index("Crate") + 1
-                host_name_text = (
-                    exec_info[host_index] if exec_info[host_index] != "for" else ""
-                )  # Avoid problems with < 3.2 versions
-                num_nodes_e = crate.get("#slurm_job_num_nodes")
-                num_nodes_text = (
-                    f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
-                )
-                job_id = None
-                if job_id_e := crate.get("#slurm_job_id"):
-                    job_id = job_id_e.get("value", None)
-                elif len(exec_info) >= 9:
-                    job_id = exec_info[-1]
-                job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
-                action_tree.add(
-                    f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
-                )
-
-            # Resource Usage section
-            if "resourceUsage" in e_main_create_action:
-                # Create a dictionary with Resource Usage info, then print it
-                ru_dict = {}
-                for e in e_main_create_action["resourceUsage"]:
-                    is_master = False
-                    keys = e.get("@id", "").split(".")
-                    value = e.get("value", "")
-                    host = keys[0].lstrip("#").removesuffix("-ib0")
-                    if host.endswith("-MASTER"):
-                        host = host.removesuffix("-MASTER")
-                        is_master = True
-                    if host == "overall":
-                        host = host.upper()
-                    if host not in ru_dict:
-                        ru_dict[host] = {}
-                    if is_master:
-                        ru_dict[host]["is_master"] = True
-                    if len(keys) == 2:
-                        # Metric id: #[host|host-MASTER].metric_name
-                        metric = keys[1]
-                        ru_dict[host][metric] = value
-                    elif len(keys) >= 3:
-                        # Metric id's are: #[overall|host].filename.method_name.metric_name
-                        method = ".".join(keys[1:-1])
-                        if method not in ru_dict[host]:
-                            ru_dict[host][method] = {}
-                        metric = keys[-1]
-                        ru_dict[host][method][metric] = value
-
-                # Calculate totals for non-verbose
-                cpu_values = []
-                mem_values = []
-
-                del_key = None
-                master_avg_cpu = None
-                master_avg_mem = None
-                for key, host_data in ru_dict.items():
-                    if "is_master" in host_data:
-                        master_avg_cpu = host_data.get("cpuAvg")
-                        master_avg_mem = host_data.get("memAvg")
-                        # We ingnore the data from the master to calculate the avg and merge entries
-                        continue
-                    cpu = host_data.get("cpuAvg")
-                    mem = host_data.get("memAvg")
-                    if cpu is not None:
-                        cpu_values.append(float(cpu))
-                    if mem is not None:
-                        mem_values.append(float(mem))
-                avg_cpu = (
-                    round(sum(cpu_values) / len(cpu_values), 2) if cpu_values else None
-                )
-                avg_mem = (
-                    round(sum(mem_values) / len(mem_values), 2) if mem_values else None
-                )
-
-                # Non-verbose
-                if not verbose:
-                    if avg_cpu and avg_mem:
-                        usage_tree = action_tree.add(
-                            f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
-                        )
-                    else:
-                        if master_avg_cpu or master_avg_mem:
-                            usage_tree = action_tree.add(
-                                f"Resource Usage —— CPU [gold1]{master_avg_cpu} %[/] —— Mem [gold1]{master_avg_mem} %[/]"
-                            )
-                else:
-                    # add to usage_tree
-                    usage_tree = action_tree.add(
-                        f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)"
-                    )
-                    for host, host_dict in sorted(ru_dict.items()):
-                        host_executed_tasks = 0
-                        master_text = (
-                            " (master node)" if "is_master" in host_dict else ""
-                        )
-                        if host != "OVERALL":
-                            host_tree = usage_tree.add(f"[blue]{host}{master_text}")
-                        else:
-                            host_tree = usage_tree.add(f"[gold1]Overall Statistics")
-                        for metric, metric_value in host_dict.items():
-                            if isinstance(metric_value, dict):
-                                # Info about a method
-                                if "executionTime" in metric_value:
-                                    continue  # Ignore executionTime metric
-                                executions = metric_value.get("executions")
-                                if executions == "None":
-                                    # None comes as a string in the host_dict, not as a real None
-                                    executions = 0
-                                else:
-                                    executions = int(executions)
-                                if host != "OVERALL" and executions == 0:
-                                    continue  # Do not print if no executions in a host, but print in the OVERALL
-                                host_executed_tasks += executions
-                                if executions > 0:
-                                    host_tree.add(
-                                        f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
-                                    )
-                                else:
-                                    host_tree.add(
-                                        f"[cyan]{metric}[/] ({metric_value.get('executions', '')})"
-                                    )
-                        # Deal with info about a machine direct metric
-                        if "cpuAvg" in host_dict:
-                            host_tree.add(
-                                f"CPU: [gold1]{host_dict.get('cpuAvg', '')} %[/] —— [bright_red]{host_dict.get('cpuMax', '')} %"
-                            )
-                        elif host == "OVERALL":
-                            if avg_cpu:
-                                host_tree.add(f"CPU: [gold1]{avg_cpu} %")
-                            else:
-                                host_tree.add(f"CPU: [gold1]{master_avg_cpu} %")
-                        if "memAvg" in host_dict:
-                            host_tree.add(
-                                f"Memory: [gold1]{host_dict.get('memAvg', '')} %[/] —— [bright_red]{host_dict.get('memMax', '')} %[/] —— [light_green]{host_dict.get('memMin', '')} %"
-                            )
-                        elif host == "OVERALL":
-                            if avg_mem:
-                                host_tree.add(f"Memory: [gold1]{avg_mem} %")
-                            else:
-                                host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
-                        if host != "OVERALL":
-                            host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"
-
-            if e_main_create_action.get("agent"):
-                agent = e_main_create_action.get("agent")
-                agent_str = agent.get("name", str(agent))
-                affiliation = agent.get("affiliation")
-                if isinstance(affiliation, ContextEntity):
-                    affiliation_str = affiliation.get("name", affiliation.get("@id"))
-                else:
-                    affiliation_str = str(affiliation or "")
-
-                contact_point = agent.get("contactPoint", "")
-                if isinstance(contact_point, ContextEntity):
-                    email = contact_point.get("email", "")
-                elif isinstance(contact_point, str):
-                    email = contact_point
-                else:
-                    email = ""
-
-                action_tree.add(
-                    f"Agent —— [green]{agent_str}[/green] {f'[dark_orange]({affiliation_str})[/]' if affiliation_str else ''} {f'[cyan]({email})[/]' if email else ''}"
-                )
-
-            if (description := e_main_create_action.get("description")) and verbose:
-                # Backwards compatible with txt files, only works when Crates are not zipped
-                args_files = [
-                    Path(ro_crate_zip_or_dir) / f
-                    for f in [
-                        "compss_command_line_arguments.txt",
-                        "compss_submission_command_line.txt",
-                    ]
-                ]  # Backward compatible with COMPSs < 3.3.3
-                for file in args_files:
-                    try:
-                        with file.open("r", encoding="utf-8") as f:
-                            description = f.readline().strip()
-                    except Exception:
-                        pass
-                action_tree.add(f"Submission —— [dim]{description}")
-
-            if e_main_create_action.get("environment"):
-                if verbose:
-                    env_tree = action_tree.add("Environment")
-                    for env in e_main_create_action["environment"]:
-                        env_tree.add(
-                            f"[dark_goldenrod]{env['name']}[/dark_goldenrod] = [green]{env['value']}[/green]"
-                        )
-                else:
-                    action_tree.add(
-                        f"Environment —— [dark_goldenrod]{len(e_main_create_action['environment'])} variables [/dark_goldenrod]"
-                    )
-
-            if not data_assets:
-                ins_e = e_main_create_action.get("object")
-                outs_e = e_main_create_action.get("result")
-                action_tree.add(
-                    f"Data assets —— [dark_goldenrod]{len(ins_e) if ins_e else 0} Inputs —— [dark_goldenrod]{len(outs_e) if outs_e else 0} Outputs"
-                )
-            else:
-                if e_main_create_action.get("object"):
-                    inputs_tree = action_tree.add("Inputs")
-                    for wf_in in e_main_create_action["object"]:
-                        if isinstance(wf_in, Entity):
-                            if "contentSize" in wf_in:
-                                inputs_tree.add(
-                                    f"[dark_goldenrod]{wf_in.get('@id')}[/dark_goldenrod] [dim]({int(wf_in['contentSize']):,} bytes)[/dim]"
-                                )
-                            else:
-                                inputs_tree.add(
-                                    f"[dark_goldenrod]{wf_in.get('@id')}[/dark_goldenrod]"
-                                )
-                        if isinstance(wf_in, str):
-                            # Backwards compatible with COMPSs 3.0
-                            inputs_tree.add(f"[dark_goldenrod]{wf_in}[/dark_goldenrod]")
-
-                if e_main_create_action.get("result"):
-                    outputs_tree = action_tree.add("Outputs")
-                    for wf_out in e_main_create_action["result"]:
-                        if isinstance(wf_out, Entity):
-                            if "contentSize" in wf_out:
-                                outputs_tree.add(
-                                    f"[dark_goldenrod]{wf_out.get('@id')}[/dark_goldenrod] [dim]({int(wf_out['contentSize']):,} bytes)[/dim]"
-                                )
-                            else:
-                                outputs_tree.add(
-                                    f"[dark_goldenrod]{wf_out.get('@id')}[/dark_goldenrod]"
-                                )
-                        elif isinstance(wf_out, str):
-                            # Backwards compatible with COMPSs 3.0
-                            outputs_tree.add(
-                                f"[dark_goldenrod]{wf_out}[/dark_goldenrod]"
-                            )
+        _render_general_info(root_tree, ctx, verbose)
+        _render_execution(root_tree, ctx, verbose, data_assets)
 
         console.print(root_tree)
         console.rule()
 
+        # print(f"PROVENANCE | Process and print whole crate TIME: {time.time() - part_time} s")  
 
-def render_parameters(
+
+def _render_parameters(
     parent_node,
     title,
     property_values,
@@ -971,6 +815,30 @@ def render_parameters(
         param_section.add(f"Value: [dark_goldenrod]{value}[/dark_goldenrod]")
 
 
+def _get_task_id(e, is_compss_wf):
+    return e.id.split("_")[1] if is_compss_wf else e.id
+
+
+def _get_method_name(e, is_compss_wf):
+    method = e.get("instrument", {})
+    if is_compss_wf:
+        return method.get("@id", "").removeprefix("#")
+    return method.get("name", ""), method
+
+
+def _get_status(e):
+    action_status = e.get("actionStatus", "")
+
+    if "CompletedActionStatus" in action_status:
+        return "[green]COMPLETED[/green]", "COMPLETED"
+    if "FailedActionStatus" in action_status:
+        return "[red]FAILED[/red]", "FAILED"
+    if "PotentialActionStatus" in action_status:
+        return "[yellow]CANCELED[/yellow]", "CANCELED"
+
+    return "", ""
+
+
 def local_inspect_tasks(
     ro_crate_list,
     failing_tasks_only: bool,
@@ -983,44 +851,82 @@ def local_inspect_tasks(
 
     console = Console()
 
-    for ro_crate_zip_or_dir in ro_crate_list:
+    # Transform list to set to have faster "in" comparisons
+    tasks_to_inspect = set(tasks_to_inspect) if tasks_to_inspect else None
+    # Join and pre-compile the regular expression to achieve faster comparisons
+    if methods_to_inspect:
         try:
-            crate = ROCrate(ro_crate_zip_or_dir)
-        except Exception as e:
-            console.print(
-                f"[bold red] Error loading RO-Crate[/bold red] from [yellow]{ro_crate_zip_or_dir}[/yellow]: {e}"
-            )
+            # compiled_methods = [re.compile(m) for m in methods_to_inspect]
+            combined_methods = re.compile("|".join(methods_to_inspect))
+        except re.error as e:
+            raise ValueError(
+            f"Invalid regex in methods: {methods_to_inspect}\n{e}"
+        )
+
+    for ro_crate_zip_or_dir in ro_crate_list:
+        console.rule("RO-Crate Task Inspection")
+
+        crate = _load_crate(ro_crate_zip_or_dir, console)
+        if not crate:
             continue
 
         tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
 
-        log_tree = {}
-        failing_tasks = set()
-        canceled_tasks = set()
-        task_create_actions = []
+        if crate.mainEntity and not crate.mainEntity.get("step"):
+            console.print(tree)
+            console.print(
+                " [yellow]Note: Task-level execution details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
+            )
+            console.rule()
+            continue
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
             is_compss_wf = True
         else:
             is_compss_wf = False
 
+        log_tree = {}
+        failing_tasks = set()
+        canceled_tasks = set()
+        print_candidates = []
+        task_counter = 0
+
+        # import time
+        # part_time = time.time()
+
         # OrganizeAction -> object: all ControlActions of the tasks; result: main CreateAction
         # ControlAction  -> object: CreateAction of the task
-
+        # Even when with COMPSs Task CreateActions could be found navigating from OrganizeAction -> object (ControlAction) -> object (CreateAction)
+        # sequential search of CreateActions works much faster (6s vs 10s with 512K tasks)    
+        # In the specification, OrganizeAction is MAY, and ControlAction is SHOULD. Therefore sequential search of Task CreateActions is always needed
+        main_entity = crate.root_dataset.get("mainEntity")
         for e in crate.get_entities():
-            # Get all the ControlActions from the OrganizeAction
-            if "OrganizeAction" in e.type:
-                for control_action in e.get("object", []):
-                    if not isinstance(control_action, Entity):
-                        break  # Nextflow has ControlActions as strings, which should not be correct
-                    create_action = control_action.get("object")
-                    if isinstance(create_action, list) and len(create_action) == 1:
-                        create_action = create_action[0]
-                    if create_action:
-                        task_create_actions.append(create_action)
-
+            if "CreateAction" in e.type:
+                instr = e.get("instrument", None)  # CreateAction MUST have instrument to be considered an orchestrated Tool execution
+                if instr and instr != main_entity:
+                    # A Task / Tool execution CreateAction. Print candidate must match: task id, method_name, or status FAILED
+                    task_id = _get_task_id(e, is_compss_wf)
+                    method_name, _ = _get_method_name(e, is_compss_wf)
+                    status, status_plain = _get_status(e)
+                    if status_plain == "FAILED":
+                        failing_tasks.add(task_id)
+                    elif status_plain == "CANCELED":
+                        canceled_tasks.add(task_id)
+                        
+                    # Eval candidate task. From less to most expensive evaluation. Once a part is false, the rest does not get evaluated
+                    should_print = (
+                        (not failing_tasks_only or status_plain == "FAILED")
+                        and (not tasks_to_inspect or task_id in tasks_to_inspect)
+                        and (not methods_to_inspect or combined_methods.search(method_name))
+                    )
+                    if should_print:
+                        print_candidates.append(e)
+            
             # —— LOGS ——
-            if "File" in e.type and e.get("about") and "logs" in e.get("@id"):
+            # There is no way around this, all Files need to be examined, since the log will reference the corresponding task CreateAction with 'mentions'
+            # There is no reference from the task CreateAction to the corresponding logs
+            # Buidling all log_trees is useless for non print_candidates (if they will never be printed)
+            elif is_compss_wf and "File" in e.type and e.get("about") and "logs" in e.get("@id"):
                 task_id = (
                     e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
                 )
@@ -1032,104 +938,84 @@ def local_inspect_tasks(
                     log_tree.setdefault(task_id, [])
                     log_tree[task_id].append(e.id)
 
+
+        # print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
+        # print(f"TO BE PRINTED: {len(print_candidates)}")
+
         task_tree = {}
-        task_counter = 0
 
-        for e in task_create_actions:
-            # Possible improvement: task_id could have been obtained from the Task ControlAction -> instrument -> position
-            task_id = e.id.split("_")[1] if is_compss_wf else e.id
-            task_counter += 1
+        for e in print_candidates:
+            # task_id could have been obtained from the Task ControlAction -> instrument -> position but is only meaningful for COMPSs
+            # Is it useful to print the 'position' for other WMSs???
 
-            if "CompletedActionStatus" in e.get("actionStatus", ""):
-                status = "[green]COMPLETED[/green]"
-            elif "FailedActionStatus" in e.get("actionStatus", ""):
-                status = "[red]FAILED[/red]"
+            task_id = _get_task_id(e, is_compss_wf)
+            method_name, method = _get_method_name(e, is_compss_wf)
+            status, status_plain = _get_status(e)
+            if status_plain == "FAILED":
                 failing_tasks.add(task_id)
-            elif "PotentialActionStatus" in e.get("actionStatus", ""):
-                status = "[yellow]CANCELED[/yellow]"
+            elif status_plain == "CANCELED":
                 canceled_tasks.add(task_id)
-            else:
-                status = ""
-
-            method = e.get("instrument", {})
-            if is_compss_wf:
-                # Richer info in the id than on the name. This should be fixed when generating the static_binding_dp.out info in worker.py
-                method_name = method.get("@id", "").removeprefix("#")
-            else:
-                method_name = method.get("name", "")
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 
-            try:
-                should_print = (
-                    (
-                        methods_to_inspect is None
-                        or any(re.search(m, method_name) for m in methods_to_inspect)
-                    )
-                    and (not tasks_to_inspect or task_id in tasks_to_inspect)
-                    and (not failing_tasks_only or "FAILED" in status)
+            # All tasks will be printed here
+            task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
+            task_tree[task_id] = tree.add(task_label)
+
+            # —— STATUS ——
+            if status:
+                task_tree[task_id].add(f"Status: {status}")
+
+            # —— METHOD ——
+            if method_name:
+                task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+
+            # —— EXECUTION TIME ——
+            start_time = end_time = None
+            if e.get("startTime"):
+                try:
+                    start_time = datetime.fromisoformat(e.get("startTime"))
+                except (TypeError, ValueError):
+                    start_time = None
+            if e.get("endTime"):
+                try:
+                    end_time = datetime.fromisoformat(e.get("endTime"))
+                except (TypeError, ValueError):
+                    end_time = None
+
+            if start_time and end_time:
+                execution_time = end_time - start_time
+                task_tree[task_id].add(
+                    f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
                 )
-            except re.error:
-                print("Error: Invalid regex for method name")
-                exit(1)
 
-            if should_print:
-                task_label = f"[bold yellow]Task {task_id}[/bold yellow]"
-                task_tree[task_id] = tree.add(task_label)
+            # —— HOST ——
+            if  is_compss_wf and e.get("name"):
+                name_before, _, name_host = e.get("name").rpartition(" ")
+                host = name_host if name_before.endswith("host") else ""
+                if host:
+                    task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
-                # —— STATUS ——
-                if status:
-                    task_tree[task_id].add(f"Status: {status}")
+            # —— INPUTS ——
+            _render_parameters(
+                parent_node=task_tree[task_id],
+                title="Inputs",
+                property_values=e.get("object", []),
+                valid_formal_params=method_input_params,
+                is_compss_wf=is_compss_wf,
+            )
 
-                # —— METHOD ——
-                if method_name:
-                    task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
-
-                # —— EXECUTION TIME ——
-                start_time = end_time = None
-                if e.get("startTime"):
-                    try:
-                        start_time = datetime.fromisoformat(e.get("startTime"))
-                    except (TypeError, ValueError):
-                        start_time = None
-                if e.get("endTime"):
-                    try:
-                        end_time = datetime.fromisoformat(e.get("endTime"))
-                    except (TypeError, ValueError):
-                        end_time = None
-
-                if start_time and end_time:
-                    execution_time = end_time - start_time
-                    task_tree[task_id].add(
-                        f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
-                    )
-
-                # —— HOST ——
-                if e.get("name") and is_compss_wf:
-                    name_before, _, name_host = e.get("name").rpartition(" ")
-                    host = name_host if name_before.endswith("host") else ""
-                    if host:
-                        task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
-
-                # —— INPUTS ——
-                render_parameters(
+            # —— OUTPUTS ——
+            if "COMPLETED" in status or not status:
+                _render_parameters(
                     parent_node=task_tree[task_id],
-                    title="Inputs",
-                    property_values=e.get("object", []),
-                    valid_formal_params=method_input_params,
+                    title="Outputs",
+                    property_values=e.get("result", []),
+                    valid_formal_params=method_output_params,
                     is_compss_wf=is_compss_wf,
                 )
 
-                # —— OUTPUTS ——
-                if "COMPLETED" in status or not status:
-                    render_parameters(
-                        parent_node=task_tree[task_id],
-                        title="Outputs",
-                        property_values=e.get("result", []),
-                        valid_formal_params=method_output_params,
-                        is_compss_wf=is_compss_wf,
-                    )
-
+        # This can consume quite some time if all log_tree's are generated for extremely large workflows
         for task_id, logs in log_tree.items():
             if task_id in task_tree:
                 log_section = task_tree[task_id].add("[bold green]Logs:[/bold green]")
@@ -1140,12 +1026,8 @@ def local_inspect_tasks(
         total_t.add(f"[bold red]Failing Tasks —— {len(failing_tasks)}[/bold red]")
         total_t.add(f"[yellow]Canceled Tasks —— {len(canceled_tasks)}[/yellow]")
 
-        if crate.mainEntity and not crate.mainEntity.get("step"):
-            console.print(
-                Panel(
-                    "[yellow]Note: Task-level execution details are missing in this RO-Crate. Enable `provenance_run: True` in the `ro-crate-info.yaml` on your next run.",
-                    border_style="yellow",
-                )
-            )
-
         console.print(tree)
+        console.rule()
+
+        # print(f"PROVENANCE | NEW TOTAL TIME: {time.time() - part_time} s")
+

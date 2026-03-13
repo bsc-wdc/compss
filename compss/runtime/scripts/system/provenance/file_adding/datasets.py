@@ -403,7 +403,8 @@ def add_manual_datasets(
             continue
         resolved_data_entity = str(path_data_entity.resolve())
         # MN5 Hack: sometimes we get /gpfs/home, sometimes /home. Normalise to /home
-        resolved_data_entity = resolved_data_entity.removeprefix("/gpfs")
+        if os.getenv("BSC_MACHINE") and resolved_data_entity.startswith("/gpfs/home/"):
+            resolved_data_entity = resolved_data_entity.removeprefix("/gpfs")
         if os.path.isfile(resolved_data_entity):
             new_data_entity = "file://" + socket.gethostname() + resolved_data_entity
         elif os.path.isdir(resolved_data_entity):

@@ -18,7 +18,6 @@
 package es.bsc.compss.agent.comm;
 
 import es.bsc.comm.Connection;
-import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
@@ -49,12 +48,16 @@ public class CommAppMonitor extends AppMonitor {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
-    private static final TransferManager TM = CommAgentAdaptor.getTransferManager();
+    private static CommAgentAdaptor commManager;
     private final CommResource orchestrator;
     private final CommTask task;
 
     private boolean successful;
 
+
+    public static void setCommManager(CommAgentAdaptor commMgr) {
+        commManager = commMgr;
+    }
 
     /**
      * Constructs a new Task Monitor.
@@ -144,7 +147,7 @@ public class CommAppMonitor extends AppMonitor {
         }
 
         NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
-        Connection c = TM.startConnection(n);
+        Connection c = commManager.startConnection(n);
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getProfile(), task.getHistory().toString(),
             this.getException());
         c.sendCommand(cmd);
@@ -178,7 +181,7 @@ public class CommAppMonitor extends AppMonitor {
 
                 int transferGroupId = CommAppMonitor.this.task.getTransferGroupId();
 
-                Connection c = TM.startConnection(n);
+                Connection c = commManager.startConnection(n);
                 CommandDataReceived cmd = new CommandDataReceived(transferGroupId);
                 c.sendCommand(cmd);
                 c.finishConnection();

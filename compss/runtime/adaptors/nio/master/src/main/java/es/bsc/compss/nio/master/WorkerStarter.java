@@ -279,7 +279,7 @@ public class WorkerStarter {
             }
 
             // Send command check
-            Connection c = NIOAdaptor.getTransferManager().startConnection(n);
+            Connection c = nw.getCommManager().startConnection(n);
             NIOAgent.registerOngoingCommand(c, cmd);
             c.sendCommand(cmd);
             c.receive();

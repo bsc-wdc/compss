@@ -18,11 +18,13 @@ package es.bsc.compss.nio;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.TransferManager;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.NIOEventManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
@@ -91,7 +93,8 @@ public abstract class NIOAgent {
     public static final String ID = NIOAgent.class.getCanonicalName();
 
     // Transfer Manager instance
-    protected static final TransferManager TM = new TransferManager();
+    private static final TransferManager TM = new TransferManager();
+    private final NIOHandler handler;
 
     public static final int NUM_PARAMS_PER_WORKER_SH = 7;
     public static final int NUM_PARAMS_NIO_WORKER = 41;
@@ -123,7 +126,8 @@ public abstract class NIOAgent {
     protected NIONode masterNode;
 
     // Tracing
-    protected boolean tracingTaskDependencies;
+    protected boolean tracingTaskDependencies =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
     protected int tracingId = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected HashMap<Connection, Integer> connection2partner;
 
@@ -147,8 +151,53 @@ public abstract class NIOAgent {
         this.dataToRequests = new HashMap<>();
         this.connection2partner = new HashMap<>();
         this.finish = false;
+        this.handler = new NIOHandler(this);
 
         LOGGER.debug(DBG_PREFIX + "Debug: " + DEBUG);
+    }
+
+    /**
+     * Starts the TransferManager for the NIO Agent.
+     * 
+     * @param port port where Agent will be listening
+     * @throws CommException Error initializing the TransferManager or starting the server
+     */
+    protected void init(int port) throws CommException {
+        // Init the Transfer Manager
+        LOGGER.debug("  Initializing the TransferManager structures...");
+        try {
+            TM.init(NIO_EVENT_MANAGER_CLASS, null);
+        } catch (CommException ce) {
+            String errMsg = "Error initializing the TransferManager";
+            throw new CommException(ce.getError(), errMsg, ce);
+        }
+        NIONode server = new NIONode(null, port);
+        // Start the server
+        LOGGER.debug("  Starting transfer server...");
+        try {
+            TM.startServer(server, handler);
+        } catch (CommException ce) {
+            String errMsg = "Error starting transfer server";
+            throw new CommException(ce.getError(), errMsg, ce);
+        }
+    }
+
+    /**
+     * Starts a new connection.
+     *
+     * @return The new connection.
+     */
+    public Connection startConnection(NIONode node) {
+        return TM.startConnection(node, handler);
+    }
+
+    protected void shutdown(Connection notifyTo) {
+        LOGGER.debug("- Shutting down TM...");
+        TM.shutdown(true, notifyTo);
+    }
+
+    protected void waitUntilShutdown() throws InterruptedException {
+        TM.join();
     }
 
     /**
@@ -225,7 +274,7 @@ public abstract class NIOAgent {
             Connection c = null;
 
             try {
-                c = TM.startConnection(nn);
+                c = TM.startConnection(nn, handler);
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will be used to acquire data "
                         + dr.getTarget() + " stored in " + nn + " with name " + dr.getSource().getDataMgmtId());
@@ -1061,8 +1110,6 @@ public abstract class NIOAgent {
     public abstract void receivedNIOTaskDone(Connection c, NIOTaskResult tr, NIOTaskProfile profile, boolean successful,
         Exception e);
 
-    public abstract void shutdown(Connection closingConnection);
-
     public abstract void shutdownNotification(Connection c);
 
     public abstract void shutdownExecutionManager(Connection closingConnection);
@@ -1130,7 +1177,7 @@ public abstract class NIOAgent {
      * @param cmd Command to re-send
      */
     protected void resendCommand(NIONode node, Command cmd) {
-        Connection c = TM.startConnection(node);
+        Connection c = TM.startConnection(node, handler);
         registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.finishConnection();

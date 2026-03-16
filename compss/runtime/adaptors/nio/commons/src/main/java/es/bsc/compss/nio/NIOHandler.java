@@ -17,7 +17,8 @@
 package es.bsc.compss.nio;
 
 import es.bsc.comm.Connection;
-import es.bsc.comm.MessageHandler;
+import es.bsc.comm.ConnectionListener;
+import es.bsc.comm.ServerHandler;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.exceptions.NIOException;
@@ -30,7 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class NIOMessageHandler implements MessageHandler {
+public class NIOHandler implements ServerHandler, ConnectionListener {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
@@ -42,7 +43,7 @@ public class NIOMessageHandler implements MessageHandler {
      * 
      * @param agent Associated NIO Agent.
      */
-    public NIOMessageHandler(NIOAgent agent) {
+    public NIOHandler(NIOAgent agent) {
         this.agent = agent;
     }
 
@@ -50,6 +51,16 @@ public class NIOMessageHandler implements MessageHandler {
     public void init() throws CommException {
         // The class has all its parameters
         // The server has been initialized by the TransferManager
+        // Nothing to do
+    }
+
+    @Override
+    public ConnectionListener getConnectionListener() {
+        return this;
+    }
+
+    @Override
+    public void shutdown() {
         // Nothing to do
     }
 
@@ -112,11 +123,6 @@ public class NIOMessageHandler implements MessageHandler {
         if (!c.hasErrors()) {
             this.agent.unregisterConnectionInOngoingCommands(c);
         }
-    }
-
-    @Override
-    public void shutdown() {
-        // Nothing to do
     }
 
 }

@@ -31,7 +31,7 @@ import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
-import es.bsc.compss.nio.NIOMessageHandler;
+import es.bsc.compss.nio.NIOHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskProfile;
@@ -194,28 +194,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public void init() {
         LOGGER.info("Initializing NIO Adaptor...");
         this.masterNode = new NIONode(null, MASTER_PORT);
-
-        // Instantiate the NIO Message Handler
-        final NIOMessageHandler mhm = new NIOMessageHandler(this);
-
-        // Init the Transfer Manager
-        LOGGER.debug("  Initializing the TransferManager structures...");
         try {
-            TM.init(NIO_EVENT_MANAGER_CLASS, null, mhm);
+            super.init(MASTER_PORT);
         } catch (CommException ce) {
-            String errMsg = "Error initializing the TransferManager";
-            ErrorManager.error(errMsg, ce);
-        }
-
-        this.tracingTaskDependencies =
-            Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
-        // Start the server
-        LOGGER.debug("  Starting transfer server...");
-        try {
-            TM.startServer(masterNode);
-        } catch (CommException ce) {
-            String errMsg = "Error starting transfer server";
-            ErrorManager.error(errMsg, ce);
+            ErrorManager.error(ce.getMessage(), (Exception) ce.getCause());
         }
     }
 
@@ -395,8 +377,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
         LOGGER.debug("- Workers stopped");
 
-        LOGGER.debug("- Shutting down TM...");
-        TM.shutdown(true, null);
+        super.shutdown(null);
         LOGGER.debug("NIO Adaptor stop completed!");
     }
 

@@ -90,6 +90,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         commAgentAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.class.getCanonicalName());
         if (nioAdaptor == null && commAgentAdaptor == null) {
             adaptor = new CommAgentAdaptor(this);
+            CommAppMonitor.setCommManager(adaptor);
             LOGGER.info("Starting CommAgent on port " + port);
             adaptor.init();
             Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);

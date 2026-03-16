@@ -42,11 +42,7 @@ public class FetchDataOperationListener extends MultiOperationFetchListener {
 
     @Override
     public void doCompleted() {
-        CommandDataReceived cdr = new CommandDataReceived(this.transferId);
-        Connection c = this.nw.startConnection();
-        NIOAgent.registerOngoingCommand(c, cdr);
-        c.sendCommand(cdr);
-        c.finishConnection();
+        this.nw.sendFetchedData(transferId);
     }
 
     @Override

@@ -37,7 +37,6 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
-import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.NIOResult;
@@ -515,12 +514,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     /**
-     * Starts a new connection.
+     * Notifies that the data for a transfer group has been obtained.
      *
-     * @return The new connection.
+     * @param transferId id of the completed transfer group
      */
-    public Connection startConnection() {
-        return TM.startConnection(this.masterNode);
+    public void sendFetchedData(int transferId) {
+        CommandDataReceived cdr = new CommandDataReceived(transferId);
+        Connection c = startConnection(this.masterNode);
+        NIOAgent.registerOngoingCommand(c, cdr);
+        c.sendCommand(cdr);
+        c.finishConnection();
     }
 
     /**
@@ -621,7 +624,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     private void sendNIOTaskDoneCommandSequence(CommandNIOTaskDone cmd) {
-        Connection c = TM.startConnection(this.masterNode);
+        Connection c = startConnection(this.masterNode);
         registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
 
@@ -697,7 +700,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         CommandDataReceived cdr = new CommandDataReceived(task.getTransferGroupId());
-        Connection c = TM.startConnection(this.masterNode);
+        Connection c = startConnection(this.masterNode);
         registerOngoingCommand(c, cdr);
         c.sendCommand(cdr);
         c.finishConnection();
@@ -754,7 +757,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             closingConnection.finishConnection();
         }
 
-        TM.shutdown(true, closingConnection);
+        super.shutdown(closingConnection);
         if (REMOVE_WD) {
             try {
                 removeWorkingDir(workingDir);
@@ -1295,26 +1298,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             traceHost, traceTaskDependencies, storageConf, executionType, persistentC, workingDir, installDir, appDir,
             javaParams, pyParams, cParams, rParams, lang, ear, dataProvenance);
 
-        NIOMessageHandler mh = new NIOMessageHandler(nw);
-
         // Initialize the Transfer Manager
         WORKER_LOGGER.debug("  Initializing the TransferManager structures...");
-        try {
-            TM.init(NIO_EVENT_MANAGER_CLASS, null, mh);
-        } catch (CommException ce) {
-            WORKER_LOGGER.error("Error initializing Transfer Manager on worker " + nw.getHostName(), ce);
-            // Shutdown the Worker since the error it is not recoverable
-            nw.shutdown(null);
-            return;
-        }
 
-        // Start the Transfer Manager thread (starts the EventManager)
-        // WORKER_LOGGER.debug(" Starting TransferManager Thread");
-        // TM.start();
         try {
-            TM.startServer(new NIONode(null, wPort));
+            nw.init(wPort);
         } catch (CommException ce) {
-            WORKER_LOGGER.error("Error starting TransferManager Server at Worker" + nw.getHostName(), ce);
+            WORKER_LOGGER.error(ce.getMessage() + " on worker " + nw.getHostName(), ce.getCause());
+            nw.shutdownExecutionManager(null);
             nw.shutdown(null);
             return;
         }
@@ -1324,8 +1315,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * JOIN AND END
          *************************************************************************************************************/
         // Wait for the Transfer Manager thread to finish (the shutdown is received on that thread)
+
         try {
-            TM.join();
+            nw.waitUntilShutdown();
         } catch (InterruptedException ie) {
             WORKER_LOGGER.warn("TransferManager interrupted", ie);
             Thread.currentThread().interrupt();

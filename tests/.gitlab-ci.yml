@@ -76,9 +76,9 @@ docker_build:
     - docker rm -f compss_test || true
     - docker rmi compss || true
     - if grep "FROM compss/\${BASE}_ci" Dockerfile; then
-        docker build --pull --no-cache --target ci -t compss .
+        docker build --pull --target ci -t compss .
       else
-        docker build --pull --no-cache -t compss .
+        docker build --pull -t compss .
       fi
     - echo "Image successfully built"
   rules:
@@ -113,7 +113,7 @@ tests:
         --name=compss_test compss
     - docker exec compss_test bash -c "sudo /framework/tests/scripts/configure_hosts_insert && chmod a+w $DOCKER_WORKING_DIR_MOUNT && chmod a+w $DOCKER_APP_DIR_MOUNT && chmod a+w $DOCKER_PYCOMPSS_MOUNT && usermod -aG docker jenkins && groupmod -g $(stat -c '%g' /var/run/docker.sock) docker"
     - docker exec --user jenkins compss_test python3 /framework/tests/scripts/tests.py \
-          -cfg /framework/tests/configurations/NIO_Docker.cfg -FF
+          -cfg /framework/tests/configurations/NIO_Docker.cfg -FF -R
     - docker rm -f compss_test
     - docker rmi compss
     - docker volume rm $DOCKER_WORKING_DIR_VOLUME || true

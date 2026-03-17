@@ -732,8 +732,9 @@ def _execute_test(
         )
         # Clean orphan processes (if any)
         _clean_procs(compss_cfg)
-        # Sleep between executions
-        time.sleep(4)
+        # Sleep before retrying (not needed on success or last attempt)
+        if test_ev == ExitValue.FAIL and retry < max_retries:
+            time.sleep(4)
         # Increase retry counter
         retry = retry + 1
     end_time = time.time()

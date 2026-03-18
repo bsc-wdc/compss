@@ -263,12 +263,18 @@ def _render_host_info(tree, crate, ca):
         # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
         # and some host names can be bsc_nvidia (with underscores), so, splitting by underscores may not work
         # It may be easier to get the host and job id from the 'name' rather than from the '@id'
-        match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
-        host_name_text = match.group(1) if match else ""
+
+        if location := ca.get("location"):
+            host_name_text = location
+        else:
+            match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
+            host_name_text = match.group(1) if match else ""
+        
         num_nodes_e = crate.get("#slurm_job_num_nodes")
         num_nodes_text = (
             f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
         )
+
         job_id = None
         match = re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str)
         if job_id_e := crate.get("#slurm_job_id"):
@@ -276,9 +282,15 @@ def _render_host_info(tree, crate, ca):
         elif match:
             job_id = match.group(1)
         job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
-        tree.add(
-            f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
-        )
+
+        if location:
+            tree.add(
+                f"Location —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
+            )
+        else:
+            tree.add(
+                f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
+            )
 
 
 def _render_resource_usage(action_tree, ca, verbose):
@@ -1050,7 +1062,10 @@ def local_inspect_tasks(
             if  is_compss_wf and e.get("name"):
                 name_before, _, name_host = e.get("name").rpartition(" ")
                 host = name_host if name_before.endswith("host") else ""
-                if host:
+                location = e.get("location")
+                if location:
+                    task_tree[task_id].add(f"Location: [blue]{location}[/blue]")
+                elif host:
                     task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
             # —— INPUTS ——

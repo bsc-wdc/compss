@@ -748,71 +748,116 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 def _render_parameters(
     parent_node,
     title,
-    property_values,
+    values,
     valid_formal_params,
     is_compss_wf,
 ):
     section = parent_node.add(f"[bold green]{title}:[/bold green]")
 
-    for index, pv in enumerate(property_values):
+    # Ensure both values (PropertyValues, Datasets, Files, ...) and FormalParameters are lists
+    if not isinstance(values, list):
+        values = [values]
+    if not isinstance(valid_formal_params, list):
+        valid_formal_params = [valid_formal_params]
+
+    # Provenance Run Crate says matching of values with FormalParameters with exampleOfWork / workExample is not mandatory
+    # It also recommends that the FormalParameter and the value have the same name
+    for index, v in enumerate(values):
         param_section = section.add(f"Parameter {index + 1}")
-
         # Simple literal value
-        if isinstance(pv, str):
-            param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+        if isinstance(v, str):
+            param_section.add(f"Value: [dark_goldenrod]{v}[/dark_goldenrod]")
             continue
 
-        # Get the corresponding FormalParameter for this PropertyValue
-        formal_params = pv.get("exampleOfWork", [])
+        # if not is_compss_wf:
+        #     # Print whatever we find in the entity. No matching can happen without mandatory rules from the spec
+        #     if par_name := v.get('name', ''):
+        #         param_section.add(f"Name: [cyan]{par_name}[/cyan]")
+        #     if type_str := v.get("@type"):
+        #         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
+        #     if desc_str := v.get("description"):
+        #         param_section.add(f"Description: [grey50]{desc_str}[/grey50]")
+        #     value_str = v.get("value") or v.get("alternateName") or v.get("@id")
+        #     if value_str:
+        #         param_section.add(f"Value: [dark_goldenrod]{value_str}[/dark_goldenrod]")
+        #     Potential validation of parameters for non-COMPSs RO-Crates, disabled by now
+        #     Some RO-Crates list all parameters with the same name under the same PropertyValue instance
+        #     In this case, we have to look for the one that belongs to the method of the current task
+        # else:
+            # Expected types for COMPSs workflows are ["PropertyValue", "File", "Dataset"]
+            # Matching can happen, since we fully use exampleOfWork / workExample
 
-        # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
-        # In this case, we have to look for the one that belongs to the method of the current task
-        fp = None
-        if isinstance(formal_params, list):
-            for _fp in formal_params:
-                if _fp in valid_formal_params:
-                    fp = _fp
-                    # Should we break here once the first is found??? Or do we need the last?
+        # Try to get the corresponding FormalParameter for this value. This may fail since it is not
+        # mandatory in the spec to add the correspondence
+        eow = v.get("exampleOfWork", [])
+        if not isinstance(eow, list):
+            eow = [eow]
+        fp_v = None
+        for _fp in eow:
+            if _fp in valid_formal_params:
+                fp_v = _fp
+                # First valid FormalParameter matching is enough
+                break
+        # if not fp_v, get whatever we can from v
+        # if not (fp_v and v):
+        #     # The PropertyValue / data entity has not been matched with any FormalParameter
+        #     continue
+
+        # In case of multi-file objects (Collection) we only print the main file name:
+        if v.get("@type") == "Collection":
+            v = v.get("mainEntity", {})
+
+        # NAME
+        name_str = None
+        if fp_v:
+            # Get variable name in the code, not the actual file name. Important for data entities. E.g. get 'fa' not 'A.0.0'
+            name_str = fp_v.get('name')
         else:
-            fp = formal_params
+            name_str = v.get('name')
+        if name_str:
+            param_section.add(f"Name: [cyan]{name_str}[/cyan]")
 
-        if not (fp and pv):
-            continue
+        # TYPE
+        type_str = None
+        if fp_v:
+            # SHOULD include: File, Dataset or Collection if it maps to a file, directory or multi-file dataset, respectively; 
+            # PropertyValue if it maps to a dictionary-like structured value (e.g. a CWL record); 
+            # DataType or one of its subtypes (e.g. Integer) if it maps to a non-structured value.
+            additional_type = fp_v.get("additionalType") or fp_v.get("@type", "")
+            type_str = (
+                ", ".join(additional_type)
+                if isinstance(additional_type, list)
+                else additional_type
+            )
+            if multiv := fp_v.get("multipleValues"):
+                # In the RO-Crate, the multipleValues obtained is a string, thus we compare to a string here
+                if multiv == "True":
+                    type_str = "Array, " + type_str
+            if isinstance(additional_type, list) or multiv == "True":
+                type_str = "[" + type_str + "]"
+        else:
+            type_str = v.get("@type")
+        if type_str:
+            param_section.add(f"Type: [grey50]{type_str}[/grey50]")
 
-        # In case of Collection of files we only print the main file name:
-        if pv.get("@type") == "Collection":
-            pv = pv.get("mainEntity", {})
-
-        param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
-
-        additional_type = fp.get("additionalType") or fp.get("@type", "")
-        type_str = (
-            ", ".join(additional_type)
-            if isinstance(additional_type, list)
-            else additional_type
-        )
-        if multiv := fp.get("multipleValues"):
-            # In the RO-Crate, the multipleValues obtained is a string, thus we compare to a string here
-            if multiv == "True":
-                type_str = "Array, " + type_str
-        if isinstance(additional_type, list) or multiv == "True":
-            type_str = "[" + type_str + "]"
-        param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-
-        if desc_str := pv.get("description"):
-            # Rich information for Arrays and Dicts, worth to be printed
+        # DESCRIPTION
+        if desc_str := v.get("description"):
+            # In COMPSs, we provide Rich information for Arrays and Dicts, worth to be printed
             param_section.add(f"Description: [grey50]{desc_str}[/grey50]")
 
+        # VALUE
+        # Data entities involved in an application’s input and output SHOULD have an @id that reflects the original file or directory name 
+        # as processed by the application, but MAY be renamed to avoid clashes with other entities in the crate. In this case, 
+        # they SHOULD refer to the original name via alternateName.
+        # In COMPSs, for File and Datasets, we have the path to the file in the @id, better to print that than the 'name' or the 'alternateName'
+        # even if they exist
+        value_str = None
         if is_compss_wf:
-            value = (
-                pv.get("@id")
-                if pv.get("@type") in ["File", "Dataset"]
-                else pv.get("value")
-            )
+            value_str = v.get("@id") if v.get("@type") in ["File", "Dataset"] else v.get("value")
         else:
-            value = pv.get("value") or pv.get("alternateName") or pv.get("@id")
-
-        param_section.add(f"Value: [dark_goldenrod]{value}[/dark_goldenrod]")
+            value_str = v.get("value") or v.get("alternateName") or v.get("@id")
+        if value_str:
+            param_section.add(f"Value: [dark_goldenrod]{value_str}[/dark_goldenrod]")
 
 
 def _get_task_id(e, is_compss_wf):
@@ -822,7 +867,7 @@ def _get_task_id(e, is_compss_wf):
 def _get_method_name(e, is_compss_wf):
     method = e.get("instrument", {})
     if is_compss_wf:
-        return method.get("@id", "").removeprefix("#")
+        return method.get("@id", "").removeprefix("#"), method
     return method.get("name", ""), method
 
 
@@ -878,7 +923,7 @@ def local_inspect_tasks(
                 " [yellow]Note: Task-level execution details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
             )
             console.rule()
-            continue
+            # continue
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
             is_compss_wf = True
@@ -1000,7 +1045,7 @@ def local_inspect_tasks(
             _render_parameters(
                 parent_node=task_tree[task_id],
                 title="Inputs",
-                property_values=e.get("object", []),
+                values=e.get("object", []),
                 valid_formal_params=method_input_params,
                 is_compss_wf=is_compss_wf,
             )
@@ -1010,7 +1055,7 @@ def local_inspect_tasks(
                 _render_parameters(
                     parent_node=task_tree[task_id],
                     title="Outputs",
-                    property_values=e.get("result", []),
+                    values=e.get("result", []),
                     valid_formal_params=method_output_params,
                     is_compss_wf=is_compss_wf,
                 )

@@ -517,7 +517,8 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
             action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
 
     # Task summary
-    if m_e.get("step"):
+    if ctx.task_stats['total'] != 0:
+        # Can't trust m_e.get("step"), since Process Run can have executed tasks but no steps defined 
         task_tree = action_tree.add(
             f"Executed Tasks: {ctx.task_stats['total']} —— [green]COMPLETED: {ctx.task_stats['completed']}[/green] —— [red]FAILED: {ctx.task_stats['failed']}[/red] —— [yellow]CANCELED: {ctx.task_stats['canceled']}[/yellow]"
         )
@@ -870,6 +871,12 @@ def _get_method_name(e, is_compss_wf):
         return method.get("@id", "").removeprefix("#"), method
     return method.get("name", ""), method
 
+def _get_method_desc(e, is_compss_wf):
+    # In CreateActions, 'name' usually includes a brief description of the task to be performed
+    # Not useful to print this in COMPSs workflows, it is redundant
+    method_desc = e.get("name", None)
+    return method_desc if not is_compss_wf else None
+
 
 def _get_status(e):
     action_status = e.get("actionStatus", "")
@@ -920,10 +927,9 @@ def local_inspect_tasks(
         if crate.mainEntity and not crate.mainEntity.get("step"):
             console.print(tree)
             console.print(
-                " [yellow]Note: Task-level execution details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
+                " [yellow]Note: Workflow Step details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
             )
             console.rule()
-            # continue
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
             is_compss_wf = True
@@ -950,6 +956,7 @@ def local_inspect_tasks(
                 instr = e.get("instrument", None)  # CreateAction MUST have instrument to be considered an orchestrated Tool execution
                 if instr and instr != main_entity:
                     # A Task / Tool execution CreateAction. Print candidate must match: task id, method_name, or status FAILED
+                    task_counter += 1
                     task_id = _get_task_id(e, is_compss_wf)
                     method_name, _ = _get_method_name(e, is_compss_wf)
                     status, status_plain = _get_status(e)
@@ -990,16 +997,17 @@ def local_inspect_tasks(
         task_tree = {}
 
         for e in print_candidates:
-            # task_id could have been obtained from the Task ControlAction -> instrument -> position but is only meaningful for COMPSs
+            # task_id could have been obtained from the Task ControlAction -> instrument -> position but it is only meaningful for COMPSs
             # Is it useful to print the 'position' for other WMSs???
 
             task_id = _get_task_id(e, is_compss_wf)
-            method_name, method = _get_method_name(e, is_compss_wf)
             status, status_plain = _get_status(e)
             if status_plain == "FAILED":
                 failing_tasks.add(task_id)
             elif status_plain == "CANCELED":
                 canceled_tasks.add(task_id)
+            method_name, method = _get_method_name(e, is_compss_wf)
+            method_desc = _get_method_desc(e, is_compss_wf)
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 
@@ -1014,6 +1022,10 @@ def local_inspect_tasks(
             # —— METHOD ——
             if method_name:
                 task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+
+            # —— DESCRIPTION ——
+            if method_desc:
+                task_tree[task_id].add(f"Description: [grey50]{method_desc}[/grey50]")
 
             # —— EXECUTION TIME ——
             start_time = end_time = None

@@ -825,7 +825,8 @@ def _render_parameters(
         if fp_v:
             # Get variable name in the code, not the actual file name. Important for data entities. E.g. get 'fa' not 'A.0.0'
             name_str = fp_v.get('name')
-        else:
+        elif not name_str:
+            # If the FormalParameter had no 'name' defined, try to get the one from the value
             name_str = v.get('name')
         if name_str:
             param_section.add(f"Name: [cyan]{name_str}[/cyan]")

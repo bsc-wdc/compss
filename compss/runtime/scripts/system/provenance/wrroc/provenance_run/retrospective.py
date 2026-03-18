@@ -211,6 +211,7 @@ def add_parameter_value(compss_crate: ROCrate, param: Parameter, character_limit
 
     properties = {
         "@type": "PropertyValue",
+        "name": param.name,
         "value": param.value
     }
 

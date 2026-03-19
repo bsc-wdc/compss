@@ -283,11 +283,7 @@ def _render_host_info(tree, crate, ca):
             job_id = match.group(1)
         job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
 
-        if location:
-            tree.add(
-                f"Location —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
-            )
-        else:
+        if host_name_text:
             tree.add(
                 f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
             )
@@ -782,24 +778,8 @@ def _render_parameters(
             param_section.add(f"Value: [dark_goldenrod]{v}[/dark_goldenrod]")
             continue
 
-        # if not is_compss_wf:
-        #     # Print whatever we find in the entity. No matching can happen without mandatory rules from the spec
-        #     if par_name := v.get('name', ''):
-        #         param_section.add(f"Name: [cyan]{par_name}[/cyan]")
-        #     if type_str := v.get("@type"):
-        #         param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-        #     if desc_str := v.get("description"):
-        #         param_section.add(f"Description: [grey50]{desc_str}[/grey50]")
-        #     value_str = v.get("value") or v.get("alternateName") or v.get("@id")
-        #     if value_str:
-        #         param_section.add(f"Value: [dark_goldenrod]{value_str}[/dark_goldenrod]")
-        #     Potential validation of parameters for non-COMPSs RO-Crates, disabled by now
-        #     Some RO-Crates list all parameters with the same name under the same PropertyValue instance
-        #     In this case, we have to look for the one that belongs to the method of the current task
-        # else:
-            # Expected types for COMPSs workflows are ["PropertyValue", "File", "Dataset"]
-            # Matching can happen, since we fully use exampleOfWork / workExample
-
+        # Expected types for COMPSs workflows are ["PropertyValue", "File", "Dataset"]
+        # Matching can happen, since we fully use exampleOfWork / workExample
         # Try to get the corresponding FormalParameter for this value. This may fail since it is not
         # mandatory in the spec to add the correspondence
         eow = v.get("exampleOfWork", [])
@@ -811,10 +791,7 @@ def _render_parameters(
                 fp_v = _fp
                 # First valid FormalParameter matching is enough
                 break
-        # if not fp_v, get whatever we can from v
-        # if not (fp_v and v):
-        #     # The PropertyValue / data entity has not been matched with any FormalParameter
-        #     continue
+        # if not fp_v, get whatever we can from v, since The PropertyValue / data entity has not been matched with any FormalParameter
 
         # In case of multi-file objects (Collection) we only print the main file name:
         if v.get("@type") == "Collection":
@@ -1060,14 +1037,14 @@ def local_inspect_tasks(
                 )
 
             # —— HOST ——
-            if  is_compss_wf and e.get("name"):
+            host = None
+            if location := e.get("location"):
+                host = location
+            elif is_compss_wf and e.get("name"):
                 name_before, _, name_host = e.get("name").rpartition(" ")
-                host = name_host if name_before.endswith("host") else ""
-                location = e.get("location")
-                if location:
-                    task_tree[task_id].add(f"Location: [blue]{location}[/blue]")
-                elif host:
-                    task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+                host = name_host if name_before.endswith("host") else None
+            if host:
+                task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
             # —— INPUTS ——
             _render_parameters(

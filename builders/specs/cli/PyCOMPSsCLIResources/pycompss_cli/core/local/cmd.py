@@ -472,21 +472,32 @@ def _render_io(tree, title, items):
         items = [items]
 
     io_tree = tree.add(title)
-
+    # The items in 'object' and 'result' should be values (PropertyValue, File, Dataset, Collection, ...)
     for item in items:
-        if isinstance(item, Entity):
-            if "contentSize" in item:
-                io_tree.add(
-                    f"[dark_goldenrod]{item.get('@id')}[/dark_goldenrod] "
-                    f"[dim]({int(item['contentSize']):,} bytes)[/dim]"
-                )
-            else:
-                io_tree.add(
-                    f"[dark_goldenrod]{item.get('@id')}[/dark_goldenrod]"
-                )
-        elif isinstance(item, str):
+        item_str = ""
+        if isinstance(item, str):
             # Backwards compatible with COMPSs 3.0
-            io_tree.add(f"[dark_goldenrod]{item}[/dark_goldenrod]")
+            io_tree.add(f"[dark_goldenrod]{item}[/]")
+        elif isinstance(item, Entity):
+            e_type = item.get("@type")
+            if any(t in e_type for t in ["File", "Dataset", "Collection"]):
+                item_id = item.get('@id')
+                item_str = f"[dark_goldenrod]{item_id}[/]"
+                if any(t in e_type for t in ["Dataset", "Collection"]) and item_id != "./":
+                    item_str += f" [dim]({len(item.get('hasPart'))} items)[/]"
+                if "contentSize" in item:
+                    # Mainly true for Files, but Datasets could have it defined
+                    item_str += f" [dim]({int(item['contentSize']):,} bytes)[/]"
+            elif e_type == "PropertyValue":
+                name = item.get("name") or item.get("@id")
+                value = str(item.get("value"))[:80]
+                item_str = f"[dark_goldenrod]{name}[/] = [green]{value}[/]"
+            else:
+                # This needs to change if we want to print more info on other entities
+                    item_str = f"[dark_goldenrod]{item.get('@id')}[/]"
+            if item_str:
+                io_tree.add(item_str)
+
 
 
 def _render_data_assets(action_tree, ca, data_assets):

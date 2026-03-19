@@ -256,37 +256,44 @@ def _render_times(action_tree, ca, verbose):
 
 
 def _render_host_info(tree, crate, ca):
+    host_name_text = ""
+    num_nodes_text = ""
+    job_id_text = ""
+    job_id = None
+
+    if location := ca.get("location"):
+        if isinstance(location, str):
+            host_name_text = location
+        elif isinstance(location, Entity):
+            host_name_text = location.get("name") or location.get("alternateName") or location.get("@id")
+    
     exec_info_str = ca.get("@id")
-    if exec_info_str.startswith("#COMPSs"):
+    if not location and exec_info_str.startswith("#COMPSs"):
         # We can extract more details. Hostname included from COMPSs 3.2 version
         # Old CreateAction id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117 
         # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
         # and some host names can be bsc_nvidia (with underscores), so, splitting by underscores may not work
         # It may be easier to get the host and job id from the 'name' rather than from the '@id'
-
-        if location := ca.get("location"):
-            host_name_text = location
-        else:
-            match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
-            host_name_text = match.group(1) if match else ""
+        match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
+        host_name_text = match.group(1) if match else ""
         
-        num_nodes_e = crate.get("#slurm_job_num_nodes")
-        num_nodes_text = (
-            f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
-        )
+    num_nodes_e = crate.get("#slurm_job_num_nodes")
+    num_nodes_text = (
+        f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
+    )
 
-        job_id = None
-        match = re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str)
-        if job_id_e := crate.get("#slurm_job_id"):
-            job_id = job_id_e.get("value", None)
-        elif match:
+    if job_id_e := crate.get("#slurm_job_id"):
+        job_id = job_id_e.get("value", "")
+    else:
+        if match := re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str):
             job_id = match.group(1)
+    if job_id:
         job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
 
-        if host_name_text:
-            tree.add(
-                f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
-            )
+    if host_name_text or num_nodes_text or job_id_text:
+        tree.add(
+            f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
+        )
 
 
 def _render_resource_usage(action_tree, ca, verbose):
@@ -915,11 +922,9 @@ def local_inspect_tasks(
         tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
 
         if crate.mainEntity and not crate.mainEntity.get("step"):
-            console.print(tree)
             console.print(
                 " [yellow]Note: Workflow Step details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
             )
-            console.rule()
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
             is_compss_wf = True
@@ -1039,6 +1044,7 @@ def local_inspect_tasks(
             # —— HOST ——
             host = None
             if location := e.get("location"):
+                
                 host = location
             elif is_compss_wf and e.get("name"):
                 name_before, _, name_host = e.get("name").rpartition(" ")

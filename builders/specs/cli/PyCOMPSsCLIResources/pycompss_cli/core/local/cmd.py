@@ -481,9 +481,16 @@ def _render_io(tree, title, items):
         elif isinstance(item, Entity):
             e_type = item.get("@type")
             if any(t in e_type for t in ["File", "Dataset", "Collection"]):
-                item_id = item.get('@id')
-                item_str = f"[dark_goldenrod]{item_id}[/]"
-                if any(t in e_type for t in ["Dataset", "Collection"]) and item_id != "./":
+                # NAME
+                if e_type == "Collection":
+                    item_me = item.get("mainEntity", {})
+                    item_name = item_me.get("alternateName") or item_me.get("@id")
+                else:
+                    item_name = item.get("alternateName") or item.get('@id')
+                item_str = f"[dark_goldenrod]{item_name}[/]"
+
+                # ADD num items and / or contentSize
+                if any(t in e_type for t in ["Dataset", "Collection"]) and item_name != "./":
                     item_str += f" [dim]({len(item.get('hasPart'))} items)[/]"
                 if "contentSize" in item:
                     # Mainly true for Files, but Datasets could have it defined
@@ -497,7 +504,6 @@ def _render_io(tree, title, items):
                     item_str = f"[dark_goldenrod]{item.get('@id')}[/]"
             if item_str:
                 io_tree.add(item_str)
-
 
 
 def _render_data_assets(action_tree, ca, data_assets):

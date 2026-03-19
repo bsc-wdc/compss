@@ -483,8 +483,19 @@ def _render_io(tree, title, items):
             if any(t in e_type for t in ["File", "Dataset", "Collection"]):
                 # NAME
                 if e_type == "Collection":
-                    item_me = item.get("mainEntity", {})
-                    item_name = item_me.get("alternateName") or item_me.get("@id")
+                    if item_me := item.get("mainEntity", {}):
+                        item_name = item_me.get("alternateName") or item_me.get("@id")
+                    else:
+                        # Galaxy and WfExS do not declare a mainEntity in Collections
+                        item_name = item.get("alternateName")
+                        if not item_name:
+                            # Last chance, get the name from the FormalParameter if found
+                            if fp_item := item.get("exampleOfWork"):
+                                if isinstance(fp_item, list):
+                                    fp_item = fp_item[0]
+                                item_name = fp_item.get("name") or item.get("@id")
+                            else:
+                                item_name = item.get("@id")
                 else:
                     item_name = item.get("alternateName") or item.get('@id')
                 item_str = f"[dark_goldenrod]{item_name}[/]"
@@ -497,7 +508,7 @@ def _render_io(tree, title, items):
                     item_str += f" [dim]({int(item['contentSize']):,} bytes)[/]"
             elif e_type == "PropertyValue":
                 name = item.get("name") or item.get("@id")
-                value = str(item.get("value"))[:80]
+                value = str(item.get("value"))[:200]
                 item_str = f"[dark_goldenrod]{name}[/] = [green]{value}[/]"
             else:
                 # This needs to change if we want to print more info on other entities

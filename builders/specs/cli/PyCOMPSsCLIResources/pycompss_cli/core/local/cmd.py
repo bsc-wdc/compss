@@ -407,7 +407,7 @@ def _render_resource_usage(action_tree, ca, verbose):
                 elif host == "OVERALL":
                     if avg_cpu:
                         host_tree.add(f"CPU: [gold1]{avg_cpu} %")
-                    else:
+                    elif master_avg_cpu:
                         host_tree.add(f"CPU: [gold1]{master_avg_cpu} %")
                 if "memAvg" in host_dict:
                     host_tree.add(
@@ -416,7 +416,7 @@ def _render_resource_usage(action_tree, ca, verbose):
                 elif host == "OVERALL":
                     if avg_mem:
                         host_tree.add(f"Memory: [gold1]{avg_mem} %")
-                    else:
+                    elif master_avg_mem:
                         host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
                 if host != "OVERALL":
                     host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"

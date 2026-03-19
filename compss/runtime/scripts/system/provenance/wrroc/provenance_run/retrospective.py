@@ -101,6 +101,9 @@ def add_create_action_for_task(
     elif task.status == "CANCELED":
         properties["name"] = f"Canceled execution of Task {task.tid}{f' on host {task.host}' if task.host else ''}"
 
+    if task.host:
+        properties['location'] = task.host
+
     return compss_crate.add(ContextEntity(
         crate=compss_crate,
         identifier=create_action_id,
@@ -208,6 +211,7 @@ def add_parameter_value(compss_crate: ROCrate, param: Parameter, character_limit
 
     properties = {
         "@type": "PropertyValue",
+        "name": param.name,
         "value": param.value
     }
 

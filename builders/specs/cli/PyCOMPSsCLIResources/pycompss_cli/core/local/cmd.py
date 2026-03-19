@@ -256,8 +256,19 @@ def _render_times(action_tree, ca, verbose):
 
 
 def _render_host_info(tree, crate, ca):
+    host_name_text = ""
+    num_nodes_text = ""
+    job_id_text = ""
+    job_id = None
+
+    if location := ca.get("location"):
+        if isinstance(location, str):
+            host_name_text = location
+        elif isinstance(location, Entity):
+            host_name_text = location.get("name") or location.get("alternateName") or location.get("@id")
+    
     exec_info_str = ca.get("@id")
-    if exec_info_str.startswith("#COMPSs"):
+    if not location and exec_info_str.startswith("#COMPSs"):
         # We can extract more details. Hostname included from COMPSs 3.2 version
         # Old CreateAction id format #COMPSs_Workflow_Run_Crate_marenostrum4_SLURM_JOB_ID_27072117 
         # New format: #COMPSs_WRROC_Workflow_Run_Crate_MacBook-Pro-Raul-2025.local_4f748a91-50d8-4716-b107-f737045c548e
@@ -265,17 +276,21 @@ def _render_host_info(tree, crate, ca):
         # It may be easier to get the host and job id from the 'name' rather than from the '@id'
         match = re.search(r"Crate_(.+?)(?:_SLURM_JOB_ID|_[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}|$)", exec_info_str)
         host_name_text = match.group(1) if match else ""
-        num_nodes_e = crate.get("#slurm_job_num_nodes")
-        num_nodes_text = (
-            f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
-        )
-        job_id = None
-        match = re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str)
-        if job_id_e := crate.get("#slurm_job_id"):
-            job_id = job_id_e.get("value", None)
-        elif match:
+        
+    num_nodes_e = crate.get("#slurm_job_num_nodes")
+    num_nodes_text = (
+        f" ({num_nodes_e.get('value', '')} nodes)" if num_nodes_e else ""
+    )
+
+    if job_id_e := crate.get("#slurm_job_id"):
+        job_id = job_id_e.get("value", "")
+    else:
+        if match := re.search(r"_SLURM_JOB_ID_(\d+)$", exec_info_str):
             job_id = match.group(1)
+    if job_id:
         job_id_text = f" —— Job ID —— [blue]{job_id}" if job_id else ""
+
+    if host_name_text or num_nodes_text or job_id_text:
         tree.add(
             f"Host —— [blue]{host_name_text}{num_nodes_text}[/blue]{job_id_text}"
         )
@@ -392,7 +407,7 @@ def _render_resource_usage(action_tree, ca, verbose):
                 elif host == "OVERALL":
                     if avg_cpu:
                         host_tree.add(f"CPU: [gold1]{avg_cpu} %")
-                    else:
+                    elif master_avg_cpu:
                         host_tree.add(f"CPU: [gold1]{master_avg_cpu} %")
                 if "memAvg" in host_dict:
                     host_tree.add(
@@ -401,7 +416,7 @@ def _render_resource_usage(action_tree, ca, verbose):
                 elif host == "OVERALL":
                     if avg_mem:
                         host_tree.add(f"Memory: [gold1]{avg_mem} %")
-                    else:
+                    elif master_avg_mem:
                         host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
                 if host != "OVERALL":
                     host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"
@@ -457,21 +472,49 @@ def _render_io(tree, title, items):
         items = [items]
 
     io_tree = tree.add(title)
-
+    # The items in 'object' and 'result' should be values (PropertyValue, File, Dataset, Collection, ...)
     for item in items:
-        if isinstance(item, Entity):
-            if "contentSize" in item:
-                io_tree.add(
-                    f"[dark_goldenrod]{item.get('@id')}[/dark_goldenrod] "
-                    f"[dim]({int(item['contentSize']):,} bytes)[/dim]"
-                )
-            else:
-                io_tree.add(
-                    f"[dark_goldenrod]{item.get('@id')}[/dark_goldenrod]"
-                )
-        elif isinstance(item, str):
+        item_str = ""
+        if isinstance(item, str):
             # Backwards compatible with COMPSs 3.0
-            io_tree.add(f"[dark_goldenrod]{item}[/dark_goldenrod]")
+            io_tree.add(f"[dark_goldenrod]{item}[/]")
+        elif isinstance(item, Entity):
+            e_type = item.get("@type")
+            if any(t in e_type for t in ["File", "Dataset", "Collection"]):
+                # NAME
+                if e_type == "Collection":
+                    if item_me := item.get("mainEntity", {}):
+                        item_name = item_me.get("alternateName") or item_me.get("@id")
+                    else:
+                        # Galaxy and WfExS do not declare a mainEntity in Collections
+                        item_name = item.get("alternateName")
+                        if not item_name:
+                            # Last chance, get the name from the FormalParameter if found
+                            if fp_item := item.get("exampleOfWork"):
+                                if isinstance(fp_item, list):
+                                    fp_item = fp_item[0]
+                                item_name = fp_item.get("name") or item.get("@id")
+                            else:
+                                item_name = item.get("@id")
+                else:
+                    item_name = item.get("alternateName") or item.get('@id')
+                item_str = f"[dark_goldenrod]{item_name}[/]"
+
+                # ADD num items and / or contentSize
+                if any(t in e_type for t in ["Dataset", "Collection"]) and item_name != "./":
+                    item_str += f" [dim]({len(item.get('hasPart'))} items)[/]"
+                if "contentSize" in item:
+                    # Mainly true for Files, but Datasets could have it defined
+                    item_str += f" [dim]({int(item['contentSize']):,} bytes)[/]"
+            elif e_type == "PropertyValue":
+                name = item.get("name") or item.get("@id")
+                value = str(item.get("value"))[:200]
+                item_str = f"[dark_goldenrod]{name}[/] = [green]{value}[/]"
+            else:
+                # This needs to change if we want to print more info on other entities
+                    item_str = f"[dark_goldenrod]{item.get('@id')}[/]"
+            if item_str:
+                io_tree.add(item_str)
 
 
 def _render_data_assets(action_tree, ca, data_assets):
@@ -517,7 +560,8 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
             action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
 
     # Task summary
-    if m_e.get("step"):
+    if ctx.task_stats['total'] != 0:
+        # Can't trust m_e.get("step"), since Process Run can have executed tasks but no steps defined 
         task_tree = action_tree.add(
             f"Executed Tasks: {ctx.task_stats['total']} —— [green]COMPLETED: {ctx.task_stats['completed']}[/green] —— [red]FAILED: {ctx.task_stats['failed']}[/red] —— [yellow]CANCELED: {ctx.task_stats['canceled']}[/yellow]"
         )
@@ -748,71 +792,98 @@ def local_inspect_execution(ro_crate_list: list, verbose: bool, data_assets: boo
 def _render_parameters(
     parent_node,
     title,
-    property_values,
+    values,
     valid_formal_params,
     is_compss_wf,
 ):
     section = parent_node.add(f"[bold green]{title}:[/bold green]")
 
-    for index, pv in enumerate(property_values):
+    # Ensure both values (PropertyValues, Datasets, Files, ...) and FormalParameters are lists
+    if not isinstance(values, list):
+        values = [values]
+    if not isinstance(valid_formal_params, list):
+        valid_formal_params = [valid_formal_params]
+
+    # Provenance Run Crate says matching of values with FormalParameters with exampleOfWork / workExample is not mandatory
+    # It also recommends that the FormalParameter and the value have the same name
+    for index, v in enumerate(values):
         param_section = section.add(f"Parameter {index + 1}")
-
         # Simple literal value
-        if isinstance(pv, str):
-            param_section.add(f"Value: [dark_goldenrod]{pv}[/dark_goldenrod]")
+        if isinstance(v, str):
+            param_section.add(f"Value: [dark_goldenrod]{v}[/dark_goldenrod]")
             continue
 
-        # Get the corresponding FormalParameter for this PropertyValue
-        formal_params = pv.get("exampleOfWork", [])
+        # Expected types for COMPSs workflows are ["PropertyValue", "File", "Dataset"]
+        # Matching can happen, since we fully use exampleOfWork / workExample
+        # Try to get the corresponding FormalParameter for this value. This may fail since it is not
+        # mandatory in the spec to add the correspondence
+        eow = v.get("exampleOfWork", [])
+        if not isinstance(eow, list):
+            eow = [eow]
+        fp_v = None
+        for _fp in eow:
+            if _fp in valid_formal_params:
+                fp_v = _fp
+                # First valid FormalParameter matching is enough
+                break
+        # if not fp_v, get whatever we can from v, since The PropertyValue / data entity has not been matched with any FormalParameter
 
-        # Some RO-Crates list all parameters with the same name under the same PropertyValue instance
-        # In this case, we have to look for the one that belongs to the method of the current task
-        fp = None
-        if isinstance(formal_params, list):
-            for _fp in formal_params:
-                if _fp in valid_formal_params:
-                    fp = _fp
-                    # Should we break here once the first is found??? Or do we need the last?
+        # In case of multi-file objects (Collection) we only print the main file name:
+        if v.get("@type") == "Collection":
+            v = v.get("mainEntity", {})
+
+        # NAME
+        name_str = None
+        if fp_v:
+            # Get variable name in the code, not the actual file name. Important for data entities. E.g. get 'fa' not 'A.0.0'
+            name_str = fp_v.get('name')
+        elif not name_str:
+            # If the FormalParameter had no 'name' defined, try to get the one from the value
+            name_str = v.get('name')
+        if name_str:
+            param_section.add(f"Name: [cyan]{name_str}[/cyan]")
+
+        # TYPE
+        type_str = None
+        if fp_v:
+            # SHOULD include: File, Dataset or Collection if it maps to a file, directory or multi-file dataset, respectively; 
+            # PropertyValue if it maps to a dictionary-like structured value (e.g. a CWL record); 
+            # DataType or one of its subtypes (e.g. Integer) if it maps to a non-structured value.
+            additional_type = fp_v.get("additionalType") or fp_v.get("@type", "")
+            type_str = (
+                ", ".join(additional_type)
+                if isinstance(additional_type, list)
+                else additional_type
+            )
+            if multiv := fp_v.get("multipleValues"):
+                # In the RO-Crate, the multipleValues obtained is a string, thus we compare to a string here
+                if multiv == "True":
+                    type_str = "Array, " + type_str
+            if isinstance(additional_type, list) or multiv == "True":
+                type_str = "[" + type_str + "]"
         else:
-            fp = formal_params
+            type_str = v.get("@type")
+        if type_str:
+            param_section.add(f"Type: [grey50]{type_str}[/grey50]")
 
-        if not (fp and pv):
-            continue
-
-        # In case of Collection of files we only print the main file name:
-        if pv.get("@type") == "Collection":
-            pv = pv.get("mainEntity", {})
-
-        param_section.add(f"Name: [cyan]{fp.get('name', '')}[/cyan]")
-
-        additional_type = fp.get("additionalType") or fp.get("@type", "")
-        type_str = (
-            ", ".join(additional_type)
-            if isinstance(additional_type, list)
-            else additional_type
-        )
-        if multiv := fp.get("multipleValues"):
-            # In the RO-Crate, the multipleValues obtained is a string, thus we compare to a string here
-            if multiv == "True":
-                type_str = "Array, " + type_str
-        if isinstance(additional_type, list) or multiv == "True":
-            type_str = "[" + type_str + "]"
-        param_section.add(f"Type: [grey50]{type_str}[/grey50]")
-
-        if desc_str := pv.get("description"):
-            # Rich information for Arrays and Dicts, worth to be printed
+        # DESCRIPTION
+        if desc_str := v.get("description"):
+            # In COMPSs, we provide Rich information for Arrays and Dicts, worth to be printed
             param_section.add(f"Description: [grey50]{desc_str}[/grey50]")
 
+        # VALUE
+        # Data entities involved in an application’s input and output SHOULD have an @id that reflects the original file or directory name 
+        # as processed by the application, but MAY be renamed to avoid clashes with other entities in the crate. In this case, 
+        # they SHOULD refer to the original name via alternateName.
+        # In COMPSs, for File and Datasets, we have the path to the file in the @id, better to print that than the 'name' or the 'alternateName'
+        # even if they exist
+        value_str = None
         if is_compss_wf:
-            value = (
-                pv.get("@id")
-                if pv.get("@type") in ["File", "Dataset"]
-                else pv.get("value")
-            )
+            value_str = v.get("@id") if v.get("@type") in ["File", "Dataset"] else v.get("value")
         else:
-            value = pv.get("value") or pv.get("alternateName") or pv.get("@id")
-
-        param_section.add(f"Value: [dark_goldenrod]{value}[/dark_goldenrod]")
+            value_str = v.get("value") or v.get("alternateName") or v.get("@id")
+        if value_str:
+            param_section.add(f"Value: [dark_goldenrod]{value_str}[/dark_goldenrod]")
 
 
 def _get_task_id(e, is_compss_wf):
@@ -822,8 +893,14 @@ def _get_task_id(e, is_compss_wf):
 def _get_method_name(e, is_compss_wf):
     method = e.get("instrument", {})
     if is_compss_wf:
-        return method.get("@id", "").removeprefix("#")
+        return method.get("@id", "").removeprefix("#"), method
     return method.get("name", ""), method
+
+def _get_method_desc(e, is_compss_wf):
+    # In CreateActions, 'name' usually includes a brief description of the task to be performed
+    # Not useful to print this in COMPSs workflows, it is redundant
+    method_desc = e.get("name", None)
+    return method_desc if not is_compss_wf else None
 
 
 def _get_status(e):
@@ -873,12 +950,9 @@ def local_inspect_tasks(
         tree = Tree(f"[bold cyan]CRATE {ro_crate_zip_or_dir}")
 
         if crate.mainEntity and not crate.mainEntity.get("step"):
-            console.print(tree)
             console.print(
-                " [yellow]Note: Task-level execution details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
+                " [yellow]Note: Workflow Step details are missing in this RO-Crate.\n For COMPSs, enable 'provenance_run: True' in the 'ro-crate-info.yaml' on your next run"
             )
-            console.rule()
-            continue
 
         if crate.mainEntity.get("programmingLanguage").id == "#compss":
             is_compss_wf = True
@@ -905,6 +979,7 @@ def local_inspect_tasks(
                 instr = e.get("instrument", None)  # CreateAction MUST have instrument to be considered an orchestrated Tool execution
                 if instr and instr != main_entity:
                     # A Task / Tool execution CreateAction. Print candidate must match: task id, method_name, or status FAILED
+                    task_counter += 1
                     task_id = _get_task_id(e, is_compss_wf)
                     method_name, _ = _get_method_name(e, is_compss_wf)
                     status, status_plain = _get_status(e)
@@ -945,16 +1020,17 @@ def local_inspect_tasks(
         task_tree = {}
 
         for e in print_candidates:
-            # task_id could have been obtained from the Task ControlAction -> instrument -> position but is only meaningful for COMPSs
+            # task_id could have been obtained from the Task ControlAction -> instrument -> position but it is only meaningful for COMPSs
             # Is it useful to print the 'position' for other WMSs???
 
             task_id = _get_task_id(e, is_compss_wf)
-            method_name, method = _get_method_name(e, is_compss_wf)
             status, status_plain = _get_status(e)
             if status_plain == "FAILED":
                 failing_tasks.add(task_id)
             elif status_plain == "CANCELED":
                 canceled_tasks.add(task_id)
+            method_name, method = _get_method_name(e, is_compss_wf)
+            method_desc = _get_method_desc(e, is_compss_wf)
             method_input_params = method.get("input", [])
             method_output_params = method.get("output", [])
 
@@ -969,6 +1045,10 @@ def local_inspect_tasks(
             # —— METHOD ——
             if method_name:
                 task_tree[task_id].add(f"Method: [cyan]{method_name}[/cyan]")
+
+            # —— DESCRIPTION ——
+            if method_desc:
+                task_tree[task_id].add(f"Description: [grey50]{method_desc}[/grey50]")
 
             # —— EXECUTION TIME ——
             start_time = end_time = None
@@ -990,17 +1070,21 @@ def local_inspect_tasks(
                 )
 
             # —— HOST ——
-            if  is_compss_wf and e.get("name"):
+            host = None
+            if location := e.get("location"):
+                
+                host = location
+            elif is_compss_wf and e.get("name"):
                 name_before, _, name_host = e.get("name").rpartition(" ")
-                host = name_host if name_before.endswith("host") else ""
-                if host:
-                    task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
+                host = name_host if name_before.endswith("host") else None
+            if host:
+                task_tree[task_id].add(f"Host: [blue]{host}[/blue]")
 
             # —— INPUTS ——
             _render_parameters(
                 parent_node=task_tree[task_id],
                 title="Inputs",
-                property_values=e.get("object", []),
+                values=e.get("object", []),
                 valid_formal_params=method_input_params,
                 is_compss_wf=is_compss_wf,
             )
@@ -1010,7 +1094,7 @@ def local_inspect_tasks(
                 _render_parameters(
                     parent_node=task_tree[task_id],
                     title="Outputs",
-                    property_values=e.get("result", []),
+                    values=e.get("result", []),
                     valid_formal_params=method_output_params,
                     is_compss_wf=is_compss_wf,
                 )

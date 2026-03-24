@@ -68,7 +68,10 @@ import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
 import es.bsc.compss.types.implementations.definition.JuliaDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
+import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
+import es.bsc.compss.types.implementations.definition.NativeDefinition;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
@@ -241,7 +244,7 @@ public class Executor implements Runnable, InvocationRunner {
 
     /**
      * Runs the invocation in this executor.
-     * 
+     *
      * @param inv invocation to run
      * @param listener element to notify changes in the execution
      * @throws COMPSsException COMPSs exception raised by the user code
@@ -293,16 +296,21 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void execute() throws Exception {
-        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
-            && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
-            && invocation.getLang() != Lang.C && invocation.getLang() != Lang.R) {
-            String errMsg = "Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId();
+        Lang lang = null;
+        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD) {
+            lang = ((MethodDefinition) invocation.getMethodImplementation().getDefinition()).getLang();
+        } else {
+            if (invocation.getMethodImplementation().getMethodType() == MethodType.MULTI_NODE) {
+                lang = ((MultiNodeDefinition) invocation.getMethodImplementation().getDefinition()).getLang();
+            }
+        }
+        if (lang != null && lang != Lang.JAVA && lang != Lang.PYTHON && lang != Lang.C && lang != Lang.R) {
+            String errMsg = "Incorrect language " + lang + " in job " + invocation.getJobId();
             LOGGER.error(errMsg);
             // Print to the job.err file
             this.context.getThreadErrStream().println(errMsg);
-            throw new JobExecutionException("Incorrect language " + invocation.getLang());
+            throw new JobExecutionException("Incorrect language " + lang);
         }
-
         totalTimerAndTracingWrapperAndRun();
     }
 
@@ -547,7 +555,8 @@ public class Executor implements Runnable, InvocationRunner {
     private Invoker selectNativeMethodInvoker(ExecutionSandbox sandbox, InvocationResources assignedResources)
         throws JobExecutionException {
         PrintStream out = context.getThreadOutStream();
-        switch (invocation.getLang()) {
+        Lang lang = ((NativeDefinition) invocation.getMethodImplementation().getDefinition()).getLang();
+        switch (lang) {
             case JAVA:
                 Invoker javaInvoker = null;
                 switch (context.getExecutionType()) {

@@ -30,6 +30,12 @@ interface	return TOK_INTERFACE;
 \"[^"]*\"	yylval.name = yytext; return TOK_DBLQUOTE;
 "["		return TOK_LEFT_BRAKET;
 "]"		return TOK_RIGHT_BRAKET;
+@		return TOK_AT;
+
+[Cc]onstraints    return TOK_CONSTRAINTS;
+[Ii]mplements     return TOK_IMPLEMENTS;
+[Pp]rocessors	  return TOK_PROCESSORS;
+[Pp]rocessor	  return TOK_PROCESSOR;
 
 in			return TOK_IN;
 out			return TOK_OUT;
@@ -58,7 +64,6 @@ enum        return TOK_ENUM;
 include     return TOK_INCLUDE;
 
 \#[^\n]*\n	line++; /* Ignore preprocessor directives */
-\@[^\n]*\n	line++; /* Ignore constraints directives */
 \/\/[^\n]*\n	line++; /* C++ style comments */
 
 "/*"		{	/* C style comments */
@@ -71,6 +76,6 @@ include     return TOK_INCLUDE;
 
 {header_identfier} yylval.name = strdup(yytext); return TOK_HEADER;
 {identifier}	yylval.name = strdup(yytext); return TOK_IDENTIFIER;
-[0-9]+  		yylval.name = strdup(yytext); return NUMBER;
+[0-9]+([.][0-9]+)?[fF]?  	yylval.name = strdup(yytext); return NUMBER;
 .			return TOK_ERROR;
 %%

@@ -43,24 +43,6 @@ struct CompssWorkflow {
 
     void (*executeTask)(
         struct CompssWorkflow* self,
-        char* className,
-        char* onFailure,
-        int timeout,
-        char* methodName,
-        int priority,
-        int hasTarget,
-        int numNodes,
-        int reduce,
-        int reduceChunkSize,
-        int replicated,
-        int distributed,
-        int numReturns,
-        int numParams,
-        void** params
-    );
-
-    void (*executeTaskNew)(
-        struct CompssWorkflow* self,
         char* signature,
         char* onFailure,
         int timeout,

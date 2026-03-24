@@ -22,13 +22,16 @@
 typedef struct function function;
 typedef struct interface interface;
 typedef struct argument argument;
-typedef struct constraint constraint;
+typedef struct processor processor;
+typedef struct constraints constraints;
+typedef struct property property;
 typedef struct include include;
 
 struct argument {
     char *name;
     char *classname;
     enum datatype	type;
+    char *signature_type;
     enum direction	dir;
     enum io_stream     stream;
     int passing_in_order;
@@ -37,9 +40,23 @@ struct argument {
     argument *next_argument;
 };
 
-struct constraint {
+struct property {
     char *name;
-    constraint *next_constraint;
+    char *value;
+    property *next_property;
+};
+
+struct processor{
+    property *first_property;
+    property *current_property;
+    processor *next_processor;
+};
+
+struct constraints {
+    processor *first_processor;
+    processor *current_processor;
+    property *first_property;
+    property *current_property;
 };
 
 struct include {
@@ -49,16 +66,27 @@ struct include {
 
 struct function {
     char *name;
-    int access_static;
+
     char *methodname;
     char *classname;
-    char *return_typename;
-    enum datatype return_type;
-    char *return_elements;
+
+    int access_static;
+
     argument *first_argument;
     int argument_count;
     int exec_arg_count;
-    constraint *first_constraint;
+
+    char *return_typename;
+    enum datatype return_type;
+    char *return_elements;
+    
+    char *implements_name;
+    function *polymorphism_next; // ring with all the sibling functions.
+    
+    constraints *constraints;
+
+    char *ce_signature;
+    char *impl_signature;
     function *next_function;
 };
 
@@ -71,13 +99,24 @@ void add_header(char* name);
 void add_static(int val);
 void begin_interface(char *interface_name);
 void end_interface();
+
+void add_implements(char *function_name);
+
+void begin_constraints();
+void begin_processors();
+void begin_processor();
+void add_processor_param(char *key, char *value);
+void end_processor();
+void end_processors();
+void add_constraint(char *key, char *value);
+void end_constraints();
+
 void begin_function(char *function_name);
+
 void add_return_type(enum datatype return_type, char *return_typename, char* return_elements);
 void end_function();
 char const* get_current_function_name();
 void begin_arguments();
-void begin_constraints();
-void add_constraint(char *constraint);
 
 void end_arguments();
 int began_arguments();

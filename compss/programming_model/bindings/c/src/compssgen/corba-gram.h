@@ -17,7 +17,8 @@
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +31,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -45,8 +46,12 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
+#ifndef YY_YY_CORBA_GRAM_H_INCLUDED
+# define YY_YY_CORBA_GRAM_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -55,93 +60,65 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TOK_INTERFACE = 258,
-    TOK_LEFT_CUR_BRAKET = 259,
-    TOK_RIGHT_CUR_BRAKET = 260,
-    TOK_LEFT_PARENTHESIS = 261,
-    TOK_LEFT_BRAKET = 262,
-    TOK_RIGHT_BRAKET = 263,
-    TOK_RIGHT_PARENTHESIS = 264,
-    TOK_COMMA = 265,
-    TOK_SEMICOLON = 266,
-    TOK_IN = 267,
-    TOK_OUT = 268,
-    TOK_INOUT = 269,
-    TOK_FILE = 270,
-    TOK_STATIC = 271,
-    TOK_UNSIGNED = 272,
-    TOK_VOID = 273,
-    TOK_SHORT = 274,
-    TOK_LONG = 275,
-    TOK_LONGLONG = 276,
-    TOK_INT = 277,
-    TOK_FLOAT = 278,
-    TOK_DOUBLE = 279,
-    TOK_CHAR = 280,
-    TOK_WCHAR = 281,
-    TOK_BOOLEAN = 282,
-    TOK_STRING = 283,
-    TOK_WSTRING = 284,
-    TOK_ANY = 285,
-    TOK_ERROR = 286,
-    TOK_EQUAL = 287,
-    TOK_DBLQUOTE = 288,
-    TOK_ENUM = 289,
-    TOK_INCLUDE = 290,
-    TOK_IDENTIFIER = 291,
-    TOK_HEADER = 292,
-    NUMBER = 293
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    TOK_INTERFACE = 258,           /* TOK_INTERFACE  */
+    TOK_LEFT_CUR_BRAKET = 259,     /* TOK_LEFT_CUR_BRAKET  */
+    TOK_RIGHT_CUR_BRAKET = 260,    /* TOK_RIGHT_CUR_BRAKET  */
+    TOK_LEFT_PARENTHESIS = 261,    /* TOK_LEFT_PARENTHESIS  */
+    TOK_LEFT_BRAKET = 262,         /* TOK_LEFT_BRAKET  */
+    TOK_RIGHT_BRAKET = 263,        /* TOK_RIGHT_BRAKET  */
+    TOK_RIGHT_PARENTHESIS = 264,   /* TOK_RIGHT_PARENTHESIS  */
+    TOK_COMMA = 265,               /* TOK_COMMA  */
+    TOK_SEMICOLON = 266,           /* TOK_SEMICOLON  */
+    TOK_IN = 267,                  /* TOK_IN  */
+    TOK_OUT = 268,                 /* TOK_OUT  */
+    TOK_INOUT = 269,               /* TOK_INOUT  */
+    TOK_FILE = 270,                /* TOK_FILE  */
+    TOK_AT = 271,                  /* TOK_AT  */
+    TOK_STATIC = 272,              /* TOK_STATIC  */
+    TOK_UNSIGNED = 273,            /* TOK_UNSIGNED  */
+    TOK_VOID = 274,                /* TOK_VOID  */
+    TOK_SHORT = 275,               /* TOK_SHORT  */
+    TOK_LONG = 276,                /* TOK_LONG  */
+    TOK_LONGLONG = 277,            /* TOK_LONGLONG  */
+    TOK_INT = 278,                 /* TOK_INT  */
+    TOK_FLOAT = 279,               /* TOK_FLOAT  */
+    TOK_DOUBLE = 280,              /* TOK_DOUBLE  */
+    TOK_CHAR = 281,                /* TOK_CHAR  */
+    TOK_WCHAR = 282,               /* TOK_WCHAR  */
+    TOK_BOOLEAN = 283,             /* TOK_BOOLEAN  */
+    TOK_STRING = 284,              /* TOK_STRING  */
+    TOK_WSTRING = 285,             /* TOK_WSTRING  */
+    TOK_ANY = 286,                 /* TOK_ANY  */
+    TOK_ERROR = 287,               /* TOK_ERROR  */
+    TOK_EQUAL = 288,               /* TOK_EQUAL  */
+    TOK_DBLQUOTE = 289,            /* TOK_DBLQUOTE  */
+    TOK_ENUM = 290,                /* TOK_ENUM  */
+    TOK_INCLUDE = 291,             /* TOK_INCLUDE  */
+    TOK_CONSTRAINTS = 292,         /* TOK_CONSTRAINTS  */
+    TOK_IMPLEMENTS = 293,          /* TOK_IMPLEMENTS  */
+    TOK_PROCESSORS = 294,          /* TOK_PROCESSORS  */
+    TOK_PROCESSOR = 295,           /* TOK_PROCESSOR  */
+    TOK_IDENTIFIER = 296,          /* TOK_IDENTIFIER  */
+    TOK_HEADER = 297,              /* TOK_HEADER  */
+    NUMBER = 298                   /* NUMBER  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Tokens.  */
-#define TOK_INTERFACE 258
-#define TOK_LEFT_CUR_BRAKET 259
-#define TOK_RIGHT_CUR_BRAKET 260
-#define TOK_LEFT_PARENTHESIS 261
-#define TOK_LEFT_BRAKET 262
-#define TOK_RIGHT_BRAKET 263
-#define TOK_RIGHT_PARENTHESIS 264
-#define TOK_COMMA 265
-#define TOK_SEMICOLON 266
-#define TOK_IN 267
-#define TOK_OUT 268
-#define TOK_INOUT 269
-#define TOK_FILE 270
-#define TOK_STATIC 271
-#define TOK_UNSIGNED 272
-#define TOK_VOID 273
-#define TOK_SHORT 274
-#define TOK_LONG 275
-#define TOK_LONGLONG 276
-#define TOK_INT 277
-#define TOK_FLOAT 278
-#define TOK_DOUBLE 279
-#define TOK_CHAR 280
-#define TOK_WCHAR 281
-#define TOK_BOOLEAN 282
-#define TOK_STRING 283
-#define TOK_WSTRING 284
-#define TOK_ANY 285
-#define TOK_ERROR 286
-#define TOK_EQUAL 287
-#define TOK_DBLQUOTE 288
-#define TOK_ENUM 289
-#define TOK_INCLUDE 290
-#define TOK_IDENTIFIER 291
-#define TOK_HEADER 292
-#define NUMBER 293
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 17 "corba-gram.y" /* yacc.c:1909  */
+#line 17 "corba-gram.y"
 
     char		*elements;
 	char		*name;
@@ -149,9 +126,9 @@ union YYSTYPE
 	enum datatype	dtype;
 	enum direction	dir;
 
-#line 138 "y.tab.h" /* yacc.c:1909  */
-};
+#line 115 "corba-gram.h"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -160,6 +137,8 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE yylval;
 
+
 int yyparse (void);
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+
+#endif /* !YY_YY_CORBA_GRAM_H_INCLUDED  */

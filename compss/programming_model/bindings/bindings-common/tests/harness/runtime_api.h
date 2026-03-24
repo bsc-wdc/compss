@@ -94,40 +94,6 @@ struct RuntimeApi {
                       c_implTypeArgs.empty() ? nullptr : c_implTypeArgs.data());
     }
 
-    virtual void executeTask(long appId,
-                             const std::string& className,
-                             const std::string& onFailure,
-                             int timeout,
-                             const std::string& methodName,
-                             int priority,
-                             int numNodes,
-                             bool reduce,
-                             int reduceChunkSize,
-                             bool replicated,
-                             bool distributed,
-                             bool hasTarget,
-                             int numReturns,
-                             const std::vector<Parameter>& params) {
-        std::vector<void*> allocations;
-        std::vector<void*> param_block = prepareParams(params, allocations);
-        GS_ExecuteTask(appId,
-                       const_cast<char*>(className.c_str()),
-                       const_cast<char*>(onFailure.c_str()),
-                       timeout,
-                       const_cast<char*>(methodName.c_str()),
-                       priority,
-                       numNodes,
-                       reduce ? 1 : 0,
-                       reduceChunkSize,
-                       replicated ? 1 : 0,
-                       distributed ? 1 : 0,
-                       hasTarget ? 1 : 0,
-                       numReturns,
-                       static_cast<int>(params.size()),
-                       param_block.empty() ? nullptr : param_block.data());
-        releaseAllocations(allocations);
-    }
-
     virtual void executeTaskNew(long appId,
                                   const std::string& signature,
                                   const std::string& onFailure,

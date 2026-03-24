@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -36,8 +37,8 @@ public class AbstractMethodImplementation extends Implementation {
      * @return Dummy abstract method implementation.
      */
     public static AbstractMethodImplementation generateDummy(MethodResourceDescription constraints) {
-        return new AbstractMethodImplementation(null, null,
-            new ImplementationDescription<>(new MethodDefinition("", ""), "", false, constraints, null, null));
+        return new AbstractMethodImplementation(null, null, new ImplementationDescription<>(
+            new MethodDefinition(COMPSsConstants.Lang.UNKNOWN, "", ""), "", false, constraints, null, null));
     }
 
     public AbstractMethodImplementation() {

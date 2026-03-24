@@ -23,17 +23,20 @@ void yyerror(char *s);
 }
 
 %token TOK_INTERFACE TOK_LEFT_CUR_BRAKET TOK_RIGHT_CUR_BRAKET TOK_LEFT_PARENTHESIS TOK_LEFT_BRAKET TOK_RIGHT_BRAKET
-%token TOK_RIGHT_PARENTHESIS TOK_COMMA TOK_SEMICOLON TOK_IN TOK_OUT TOK_INOUT TOK_FILE
+%token TOK_RIGHT_PARENTHESIS TOK_COMMA TOK_SEMICOLON TOK_IN TOK_OUT TOK_INOUT TOK_FILE TOK_AT
 %token TOK_STATIC TOK_UNSIGNED TOK_VOID TOK_SHORT TOK_LONG TOK_LONGLONG TOK_INT TOK_FLOAT TOK_DOUBLE TOK_CHAR
 %token TOK_WCHAR TOK_BOOLEAN TOK_STRING TOK_WSTRING TOK_ANY
 %token TOK_ERROR
 %token TOK_EQUAL TOK_DBLQUOTE
 %token TOK_ENUM TOK_INCLUDE 
+%token TOK_CONSTRAINTS TOK_IMPLEMENTS TOK_PROCESSORS TOK_PROCESSOR
 
 %token <name> TOK_IDENTIFIER TOK_HEADER 
 %token <elements> NUMBER
 %type <dtype> data_type numeric_type array_type enum_type
 %type <dir> direction
+%type <elements> constraints_list constraint processor_list processor processor_param
+
 
 %%
 
@@ -51,7 +54,51 @@ interface: TOK_INTERFACE TOK_IDENTIFIER { begin_interface($2); } TOK_LEFT_CUR_BR
 ;
 
 prototypes:	/* Empty */
-		| prototypes prototype 
+		| prototypes annotated_prototype 
+;
+
+annotated_prototype:
+      annotations prototype
+;
+
+annotations:
+      /* empty */
+    | annotations annotation
+;
+
+annotation:
+      TOK_AT TOK_IMPLEMENTS TOK_LEFT_PARENTHESIS TOK_IDENTIFIER TOK_RIGHT_PARENTHESIS { add_implements($4); } TOK_SEMICOLON
+    | TOK_AT TOK_CONSTRAINTS TOK_LEFT_PARENTHESIS { begin_constraints(); } constraints_list TOK_RIGHT_PARENTHESIS { end_constraints(); } TOK_SEMICOLON
+;
+
+constraints_list:
+      constraint
+    | constraints_list TOK_COMMA constraint
+;
+
+constraint:
+      TOK_IDENTIFIER TOK_EQUAL TOK_IDENTIFIER { add_constraint($1, $3); }
+    | TOK_IDENTIFIER TOK_EQUAL NUMBER { add_constraint($1, $3); }
+    | TOK_PROCESSORS { begin_processors(); } TOK_EQUAL TOK_LEFT_CUR_BRAKET processor_list TOK_RIGHT_CUR_BRAKET { end_processors(); }
+;
+
+processor_list:
+      processor
+    | processor_list TOK_COMMA processor
+;
+
+processor:
+      TOK_AT TOK_PROCESSOR TOK_LEFT_PARENTHESIS { begin_processor(); } processor_params TOK_RIGHT_PARENTHESIS { end_processor(); } 
+;
+
+processor_params:
+      processor_param
+    | processor_params TOK_COMMA processor_param
+;
+
+processor_param:
+      TOK_IDENTIFIER TOK_EQUAL TOK_IDENTIFIER { add_processor_param($1, $3); }
+    | TOK_IDENTIFIER TOK_EQUAL NUMBER { add_processor_param($1, $3); }
 ;
 
 prototype: data_type TOK_IDENTIFIER {  begin_function($2); add_static(0); add_return_type($1, "", NULL); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON

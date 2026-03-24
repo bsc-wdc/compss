@@ -26,6 +26,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
+import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.util.CoreManager;
@@ -74,9 +75,9 @@ public class Task extends AbstractTask {
     private boolean submitted;
 
 
-    private Task(Application app, TaskMonitor monitor, TaskType type, Lang lang, String signature, boolean isPrioritary,
-        int numNodes, boolean isReduction, boolean isReplicated, boolean isDistributed, OnFailure onFailure,
-        long timeOut, boolean hasTarget, int numReturns, List<Parameter> parameters) {
+    private Task(Application app, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes,
+        boolean isReduction, boolean isReplicated, boolean isDistributed, OnFailure onFailure, long timeOut,
+        boolean hasTarget, int numReturns, List<Parameter> parameters) {
         super(app, nextTaskId.getAndIncrement());
         this.taskMonitor = monitor;
         this.commutativeGroup = new TreeMap<>();
@@ -84,8 +85,8 @@ public class Task extends AbstractTask {
 
         CoreElement core = CoreManager.getCore(signature);
         String parallelismSource = app.getParallelismSource();
-        this.taskDescription = new TaskDescription<>(type, lang, signature, core, parallelismSource, isPrioritary,
-            numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+        this.taskDescription = new TaskDescription<>(signature, core, parallelismSource, isPrioritary, numNodes,
+            isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
         this.submitted = false;
     }
 
@@ -93,7 +94,6 @@ public class Task extends AbstractTask {
      * Creates a new METHOD task with the given parameters.
      *
      * @param app Application to which the task belongs.
-     * @param lang Application language.
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes used by the task.
@@ -107,13 +107,11 @@ public class Task extends AbstractTask {
      * @param onFailure On failure mechanisms.
      * @param timeOut Time for a task time out.
      */
-    public Task(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReduction,
+    public Task(Application app, String signature, boolean isPrioritary, int numNodes, boolean isReduction,
         boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
         TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
         this(app, monitor,
-            // Taks type
-            TaskType.METHOD, lang,
             // Signature
             signature,
             // Scheduler hints
@@ -135,14 +133,12 @@ public class Task extends AbstractTask {
      * @param onFailure OnFailure mechanisms.
      * @param timeOut Time for a task timeOut.
      */
-    public Task(Application app, String declareMethodFullyQualifiedName, boolean isPrioritary, boolean hasTarget,
-        int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+    public Task(Application app, String signature, boolean isPrioritary, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
         this(app, monitor,
-            // Task type
-            TaskType.HTTP, Lang.UNKNOWN,
             // Signature
-            SignatureBuilder.getHTTPSignature(declareMethodFullyQualifiedName, hasTarget, numReturns, parameters),
+            signature,
             // Scheduler hints
             isPrioritary, Constants.SINGLE_NODE, false, false, false, onFailure, timeOut,
             // Parameters
@@ -301,7 +297,13 @@ public class Task extends AbstractTask {
         ColorNode color = ColorConfiguration.getColors()[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
         String shape;
-        if (taskDescription.getType() == TaskType.METHOD) {
+        TaskType type = TaskType.METHOD;
+        for (Implementation impl : this.taskDescription.getCoreElement().getImplementations()) {
+            if (impl.getTaskType() == TaskType.HTTP) {
+                type = TaskType.HTTP;
+            }
+        }
+        if (type == TaskType.METHOD) {
             if (this.taskDescription.isReplicated()) {
                 shape = "doublecircle";
             } else {

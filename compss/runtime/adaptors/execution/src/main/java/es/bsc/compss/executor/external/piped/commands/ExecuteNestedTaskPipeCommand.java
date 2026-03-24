@@ -29,69 +29,30 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
      */
     public ExecuteNestedTaskPipeCommand(String cmd, String[] command) {
         super();
-
-        this.entryPoint = EntryPoint.valueOf(command[1]);
-
-        switch (this.entryPoint) {
-            case SIGNATURE:
-                loadWithSignature(cmd, command);
-                break;
-            case CLASS_METHOD:
-                loadWithClassAndMethod(cmd, command);
-                break;
-            default:
-                // Nothing to do
-                break;
-        }
+        load(cmd, command);
     }
 
-    private void loadWithClassAndMethod(String cmd, String[] command) {
-        // EXECUTE_NESTED_TASK "CLASS_METHOD" METHOD_CLASS ONFAILURE TIMEOUT METHOD_NAME
-        // IS_PRIORITARY NUM_NODES IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED
-        // HAS_TARGET NUM_RETURNS PARAMETER_COUNT PARAMENTERS
-        this.methodClass = command[2];
-        this.onFailure = command[3];
-        this.timeout = Integer.parseInt(command[4]);
-        this.methodName = command[5];
-        this.prioritary = Boolean.parseBoolean(command[6]);
-        this.numNodes = Integer.parseInt(command[7]);
-        this.reduce = Boolean.parseBoolean(command[8]);
-        this.reduceChunkSize = Integer.parseInt(command[9]);
-        this.isReplicated = Boolean.parseBoolean(command[10]);
-        this.isDistributed = Boolean.parseBoolean(command[11]);
-        this.hasTarget = Boolean.parseBoolean(command[12]);
-        this.numReturns = Integer.parseInt(command[13]);
-        this.parameterCount = Integer.parseInt(command[14]);
-        int taskCharNum = 0;
-        for (int i = 0; i < 15; i++) {
-            taskCharNum += command[i].length();
-        }
-        String params = cmd.substring(taskCharNum + 14); // 14 cause of the spaces
-        this.parameters = processParameters(params);
-
-    }
-
-    private void loadWithSignature(String cmd, String[] command) {
+    private void load(String cmd, String[] command) {
         // EXECUTE_NESTED_TASK "SIGNATURE" SIGNATURE ONFAILURE TIMEOUT IS_PRIORITARY NUM_NODES
         // IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED HAS_TARGET NUM_RETURNS
         // PARAMETER_COUNT PARAMENTERS
-        this.signature = command[2];
-        this.onFailure = command[3];
-        this.timeout = Integer.parseInt(command[4]);
-        this.prioritary = Boolean.parseBoolean(command[5]);
-        this.numNodes = Integer.parseInt(command[6]);
-        this.reduce = Boolean.parseBoolean(command[7]);
-        this.reduceChunkSize = Integer.parseInt(command[8]);
-        this.isReplicated = Boolean.parseBoolean(command[9]);
-        this.isDistributed = Boolean.parseBoolean(command[10]);
-        this.hasTarget = Boolean.parseBoolean(command[11]);
-        this.numReturns = Integer.parseInt(command[12]);
-        this.parameterCount = Integer.parseInt(command[13]);
+        this.signature = command[1];
+        this.onFailure = command[2];
+        this.timeout = Integer.parseInt(command[3]);
+        this.prioritary = Boolean.parseBoolean(command[4]);
+        this.numNodes = Integer.parseInt(command[5]);
+        this.reduce = Boolean.parseBoolean(command[6]);
+        this.reduceChunkSize = Integer.parseInt(command[7]);
+        this.isReplicated = Boolean.parseBoolean(command[8]);
+        this.isDistributed = Boolean.parseBoolean(command[9]);
+        this.hasTarget = Boolean.parseBoolean(command[10]);
+        this.numReturns = Integer.parseInt(command[11]);
+        this.parameterCount = Integer.parseInt(command[12]);
         int taskCharNum = 0;
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 13; i++) {
             taskCharNum += command[i].length();
         }
-        String params = cmd.substring(taskCharNum + 14); // 14 cause of the spaces
+        String params = cmd.substring(taskCharNum + 13); // 14 cause of the spaces
         this.parameters = processParameters(params);
 
     }

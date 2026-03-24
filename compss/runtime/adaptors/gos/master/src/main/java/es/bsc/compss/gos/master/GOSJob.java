@@ -457,12 +457,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
     }
 
     private void argumentsMethodImpl(GOSJobDescription jd, AbstractMethodImplementation absImpl) {
-        COMPSsConstants.Lang lang = getLang();
-        if (lang == COMPSsConstants.Lang.UNKNOWN) {
-            throw new LangNotDefinedException();
-        }
 
-        jd.addArgument("lang", lang.toString().toLowerCase());
         jd.addArgument("taskSandboxWorkingDir", getConfig().getSandboxWorkingDir());
         jd.addArgument("javaClasspath", getClasspath());
         jd.addArgument("Pythonpath", getPythonpath());
@@ -475,8 +470,6 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
         jd.addArgument("implType", String.valueOf(absImpl.getMethodType()));
         final int startImplementationArgs = jd.numArgs();
         switch (absImpl.getMethodType()) {
-            default:
-                throw new RuntimeException("Not supported Method type: " + absImpl.getMethodType());
             case METHOD:
                 MethodDefinition methodImpl = (MethodDefinition) absImpl.getDefinition();
                 String methodName = methodImpl.getAlternativeMethodName();
@@ -521,6 +514,8 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
                 ContainerDefinition containerImpl = (ContainerDefinition) absImpl.getDefinition();
                 containerImpl.appendToArgs(jd.arguments, null);
                 break;
+            default:
+                throw new RuntimeException("Not supported Method type: " + absImpl.getMethodType());
         }
         jd.fillKeys("implementationArgument");
         final int endImplementationArgs = jd.numArgs() - 1;

@@ -297,30 +297,10 @@ void SOCKET_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
     debug_printf("[BINDING-COMMONS] - @SOCKET_CloseTaskGroup - Task group %s closed.\n", groupName);
 }
 
-void SOCKET_WF_executeTask(CompssWorkflow* self, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_ExecuteTask - Processing task execution in bindings-common.\n");
-    socket_send_command(build_execute_task_class_command(className,
-                                                         onFailure,
-                                                         timeout,
-                                                         methodName,
-                                                         priority,
-                                                         numNodes,
-                                                         reduce,
-                                                         reduceChunkSize,
-                                                         replicated,
-                                                         distributed,
-                                                         hasTarget,
-                                                         numReturns,
-                                                         numParams,
-                                                         params));
-    debug_printf("[BINDING-COMMONS] - @SOCKET_ExecuteTask - Task processed.\n");
-}
-
-void SOCKET_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+void SOCKET_WF_executeTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_ExecuteTaskNew - Processing task execution in bindings-common. \n");
-    socket_send_command(build_execute_task_signature_command(signature,
+    debug_printf("[BINDING-COMMONS] - @SOCKET_ExecuteTask - Processing task execution in bindings-common. \n");
+    socket_send_command(build_execute_task_command(signature,
                                                              onFailure,
                                                              timeout,
                                                              priority,
@@ -333,7 +313,7 @@ void SOCKET_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFai
                                                              numReturns,
                                                              numParams,
                                                              params));
-    debug_printf("[BINDING-COMMONS] - @SOCKET_ExecuteTaskNew - Task processed.\n");
+    debug_printf("[BINDING-COMMONS] - @SOCKET_ExecuteTask - Task processed.\n");
 }
 
 void SOCKET_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
@@ -537,7 +517,6 @@ CompssWorkflow* SOCKET_RegisterWorkflow() {
     wf->openTaskGroup = SOCKET_WF_openTaskGroup;
     wf->closeTaskGroup = SOCKET_WF_closeTaskGroup;
     wf->executeTask = SOCKET_WF_executeTask;
-    wf->executeTaskNew = SOCKET_WF_executeTaskNew;
     wf->executeHttpTask = SOCKET_WF_executeHttpTask;
     wf->cancelTaskGroup = SOCKET_WF_cancelTaskGroup;
     wf->cancelApplicationTasks = SOCKET_WF_cancelApplicationTasks;

@@ -56,13 +56,6 @@ public interface Invocation {
     public TaskType getTaskType();
 
     /**
-     * Returns the task language.
-     *
-     * @return The task language.
-     */
-    public Lang getLang();
-
-    /**
      * Returns the method implementation type.
      *
      * @return The method implementation type.

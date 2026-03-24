@@ -90,7 +90,7 @@ public class ResourceOptimizer extends Thread {
     // To don't consider the first execution we initialize the value to -1
     private int everythingBlockedRetryCount = -1;
     private long lastPotentialBlockedCheck = System.currentTimeMillis();
-    private Map<CloudInstanceTypeDescription, CloudTypeProfile> defaultProfiles;
+    private Map<CloudInstanceTypeDescription, CloudTypeProfile> cloudProfiles;
 
 
     /**
@@ -105,13 +105,13 @@ public class ResourceOptimizer extends Thread {
         this.setName("ResourceOptimizer");
         this.ts = ts;
         redo = false;
-        this.defaultProfiles = new HashMap<>();
+        this.cloudProfiles = new HashMap<>();
         for (CloudProvider cp : ResourceManager.getAvailableCloudProviders()) {
             for (CloudInstanceTypeDescription citd : cp.getAllTypes()) {
                 JSONObject citdJSON = ts.getJSONForCloudInstanceTypeDescription(cp, citd);
                 JSONObject implsJSON = ts.getJSONForImplementations();
                 CloudTypeProfile prof = generateCloudTypeProfile(citdJSON, implsJSON);
-                this.defaultProfiles.put(citd, prof);
+                this.cloudProfiles.put(citd, prof);
                 RUNTIME_LOGGER.debug("[ResourceOptimizer] JSONProfile for " + citd.getName() + " --> " + citdJSON);
             }
         }
@@ -136,14 +136,17 @@ public class ResourceOptimizer extends Thread {
      * @return CloudTypeProfile.
      */
     protected CloudTypeProfile getCloudTypeProfile(CloudInstanceTypeDescription citd) {
-        return this.defaultProfiles.get(citd);
+        return this.cloudProfiles.get(citd);
     }
 
     /**
      * Actions to perform after the core elements are updated.
      */
     public void coreElementsUpdated() {
-        // Nothing to do
+        for (CloudTypeProfile p : this.cloudProfiles.values()) {
+            p.updatedCEs();
+        }
+
     }
 
     @Override
@@ -175,18 +178,19 @@ public class ResourceOptimizer extends Thread {
                 // Remove obsoletes
                 periodicRemoveObsoletes();
                 periodicCheckWorkers();
-                // Wait until applying next optimization
-                try {
-                    synchronized (this) {
-                        if (this.running) {
-                            this.wait(SLEEP_TIME);
-                        }
-                    }
-                } catch (InterruptedException ie) {
-                    // Do nothing. It was interrupted to trigger another optimization
-                }
             } catch (Exception e) {
                 RUNTIME_LOGGER.error(ERROR_OPT_RES, e);
+                e.printStackTrace();
+            }
+            // Wait until applying next optimization
+            try {
+                synchronized (this) {
+                    if (this.running) {
+                        this.wait(SLEEP_TIME);
+                    }
+                }
+            } catch (InterruptedException ie) {
+                // Do nothing. It was interrupted to trigger another optimization
             }
         }
     }
@@ -1469,25 +1473,31 @@ public class ResourceOptimizer extends Thread {
     // Private Classes
     protected class CloudTypeProfile {
 
+        private final JSONObject resMap;
+        private final JSONObject implMap;
         private Profile[][] implProfiles;
 
 
         public CloudTypeProfile(JSONObject typeJSON, JSONObject implsJSON) {
-            this.implProfiles = loadProfiles(typeJSON, implsJSON);
+            this.resMap = typeJSON;
+            this.implMap = implsJSON;
+            this.implProfiles = loadProfiles();
         }
 
         public Profile getImplProfiles(int coreId, int implId) {
             return this.implProfiles[coreId][implId];
         }
 
+        public void updatedCEs() {
+            this.implProfiles = loadProfiles();
+        }
+
         /**
          * Prepares the default profiles for each implementation cores.
-         *
-         * @param resMap default profile values for the resource.
-         * @param implMap default profile values for the implementation.
+         ** 
          * @return default profile structure.
          */
-        private final Profile[][] loadProfiles(JSONObject resMap, JSONObject implMap) {
+        private Profile[][] loadProfiles() {
             Profile[][] profiles;
             int coreCount = CoreManager.getCoreCount();
             profiles = new Profile[coreCount][];

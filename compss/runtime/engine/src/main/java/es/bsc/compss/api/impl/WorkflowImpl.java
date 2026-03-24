@@ -18,7 +18,6 @@ package es.bsc.compss.api.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.ApplicationRunner;
-import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
@@ -69,7 +68,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
@@ -157,92 +155,14 @@ public class WorkflowImpl extends Application implements Workflow {
         });
     }
 
-    // C
     @Override
-    public int executeTask(String methodClass, String onFailure, int timeOut, String methodName, boolean isPrioritary,
-        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-
-        return executeTask(COMPSsConstants.Lang.C, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
-            timeOut, isPrioritary, Constants.SINGLE_NODE, false, 0, isReplicated, isDistributed, hasTarget, numReturns,
-            parameterCount, parameters);
-    }
-
-    // Python
-    @Override
-    public int executeTask(String signature, String onFailure, int timeOut, boolean isPrioritary, int numNodes,
+    public int executeTask(String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
         Integer numReturns, int parameterCount, Object... parameters) {
-        COMPSsConstants.Lang lang = COMPSsConstants.Lang.PYTHON;
-        if (DEFAULT_LANG == COMPSsConstants.Lang.R) {
-            lang = COMPSsConstants.Lang.R;
-        }
-        return executeTask(lang, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut, isPrioritary,
-            numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
-            parameters);
-    }
-
-    // Java - Loader
-    @Override
-    public int executeTask(COMPSsConstants.Lang lang, String methodClass, String methodName, boolean isPrioritary,
-        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
-
-        return executeTask(lang, false, methodClass, methodName, null, onFailure, timeOut, isPrioritary, numNodes,
-            isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
-    }
-
-    // HTTP
-    @Override
-    public int executeTask(String methodFQN, boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize,
-        boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure,
-        int timeOut, Object... parameters) {
-
-        return APITracer.traced(APIEvent.TASK, () -> {
-            if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
-                ErrorManager.fatal("ERROR: Unsupported feature for HTTP: multi-node, replicated or distributed");
-            }
-
-            LOGGER.info("Creating HTTP task for application " + this.getId() + " and declaring class:" + methodFQN);
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
-                    + (parameterCount > 1 ? "s" : ""));
-            }
-
-            TaskMonitor monitor = this.getTaskMonitor();
-            // Process the parameters
-            List<Parameter> pars = processParameters(parameterCount, parameters, monitor);
-            boolean hasReturn = hasReturn(pars);
-            int numReturns = hasReturn ? 1 : 0;
-
-            // Register the task
-            int task = AP.newTask(this, monitor, methodFQN, isPrioritary, isReduce, reduceChunkSize, hasTarget,
-                numReturns, pars, onFailure, timeOut);
-
-            for (Parameter p : pars) {
-                if (p.getDirection().equals(Direction.IN_DELETE)) {
-                    deleteParameter(p);
-                }
-            }
-            return task;
-        });
-    }
-
-    @Override
-    public int executeTask(COMPSsConstants.Lang lang, boolean hasSignature, String methodClass, String methodName,
-        String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes, boolean isReduce,
-        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
-        int parameterCount, Object... parameters) {
         // Tracing flag for task creation
         return APITracer.traced(APIEvent.TASK, () -> {
             // Log the details
-            if (hasSignature) {
-                LOGGER.info("Creating task from method " + signature + " for application " + this.getId());
-            } else {
-                LOGGER.info("Creating task from method " + methodName + " in " + methodClass + " for application "
-                    + this.getId());
-            }
+            LOGGER.info("Creating task from method " + signature + " for application " + this.getId());
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("There " + (parameterCount == 1 ? "is " : "are ") + parameterCount + " parameter"
@@ -257,17 +177,8 @@ public class WorkflowImpl extends Application implements Workflow {
             if (nReturns == null) {
                 nReturns = hasReturn(pars) ? 1 : 0;
             }
-            String fSign = signature;
-            // Create the signature if it is not created
-            if (!hasSignature) {
-                fSign = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, nReturns, pars);
-            }
-            COMPSsConstants.Lang fLang = lang;
-            if (lang == null) {
-                fLang = DEFAULT_LANG;
-            }
 
-            int task = AP.newTask(this, monitor, fLang, fSign, isPrioritary, numNodes, isReduce, reduceChunkSize,
+            int task = AP.newTask(this, monitor, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
                 isReplicated, isDistributed, hasTarget, nReturns, pars, onFailure, timeOut);
 
             if (DP_ENABLED) {

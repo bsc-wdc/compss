@@ -122,34 +122,34 @@ get_implementation_parameters() {
     persistentBinding=$1
     shift 1
 
-    lang=$1
-    taskSandboxWorkingDir=$2
-    cp=$3
-    pythonpath=$4
-    pythonInterpreter=$5
-    pythonVersion=$6
-    pythonVirtualEnvironment=$7
-    pythonPropagateVirtualEnvironment=$8
-    pythonExtraeFile=$9
-    provenance=${10}
+    taskSandboxWorkingDir=$1
+    cp=$2
+    pythonpath=$3
+    pythonInterpreter=$4
+    pythonVersion=$5
+    pythonVirtualEnvironment=$6
+    pythonPropagateVirtualEnvironment=$7
+    pythonExtraeFile=$8
+    
     # Added to support coverage
     if [[ "${pythonInterpreter}" = coverage* ]]; then
          pythonInterpreter=$(echo ${pythonInterpreter} | tr "#" " " )
     fi
-    langFlags=("${persistentBinding}" "${lang}" "${taskSandboxWorkingDir}" "${cp}" "${pythonpath}" "${pythonInterpreter}"
+    langFlags=("${persistentBinding}" "${taskSandboxWorkingDir}" "${cp}" "${pythonpath}" "${pythonInterpreter}"
                   "${pythonVersion}" "${pythonVirtualEnvironment}" "${pythonPropagateVirtualEnvironment}"
-                  "${pythonExtraeFile}" "${provenance}")
+                  "${pythonExtraeFile}")
     # Shit all parameters except method ones
-    shift 9
-
-
+    shift 8
 
     implType=$1
     #${arr[@]:s:n}	Retrieve n elements starting at index s
     specificSandbox=false;
      case "${implType}" in
           "METHOD" | "MULTI_NODE")
-            implNumArguments=2
+            implNumArguments=3
+            implArguments=(${@:2:$implNumArguments});;
+          "MULTI_NODE")
+            implNumArguments=4
             implArguments=(${@:2:$implNumArguments});;
           "CONTAINER")
             implNumArguments=10
@@ -333,7 +333,6 @@ printTracingParams(){
 printLangParams(){
   echo "[WORKER_COMMONS.SH] Language Parameters ---------------------------"
   echo "[WORKER_COMMONS.SH]         - persistentBinding                  = ${persistentBinding}"
-  echo "[WORKER_COMMONS.SH]         - lang                               = ${lang}"
   echo "[WORKER_COMMONS.SH]         - taskSandboxWorkingDir              = ${taskSandboxWorkingDir}"
   echo "[WORKER_COMMONS.SH]         - appDir                             = ${appDir}"
   echo "[WORKER_COMMONS.SH]         - javaClasspath                      = ${cp}"
@@ -358,8 +357,9 @@ printImplementationParams(){
   echo "[WORKER_COMMONS.SH]         - implementation args                = ${implArguments[*]}"
   case "${implType}" in
       "METHOD")
-        echo "[WORKER_COMMONS.SH]         - class name                         = ${implArguments[0]}"
-        echo "[WORKER_COMMONS.SH]         - method name                        = ${implArguments[1]}"
+        echo "[WORKER_COMMONS.SH]         - lang                               = ${implArguments[0]}"
+        echo "[WORKER_COMMONS.SH]         - class name                         = ${implArguments[1]}"
+        echo "[WORKER_COMMONS.SH]         - method name                        = ${implArguments[2]}"
         ;;
       "MPI")
         echo "[WORKER_COMMONS.SH]         - mpi                                = ${implArguments[0]}"

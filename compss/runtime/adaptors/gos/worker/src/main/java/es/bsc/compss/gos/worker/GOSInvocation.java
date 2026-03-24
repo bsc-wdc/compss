@@ -47,7 +47,6 @@ public class GOSInvocation implements Invocation {
     private final boolean debug;
     private final int jobId;
     private final int taskId;
-    private final Lang lang;
     private final JobHistory history;
     private final OnFailure onFailure;
     private final long timeout;
@@ -76,13 +75,11 @@ public class GOSInvocation implements Invocation {
      * @param args Application arguments.
      * @param appArgsIdx Application arguments parsing index.
      */
-    public GOSInvocation(boolean enableDebug, Lang lang, AbstractMethodImplementation impl, String[] args,
-        int appArgsIdx) {
+    public GOSInvocation(boolean enableDebug, AbstractMethodImplementation impl, String[] args, int appArgsIdx) {
 
         this.impl = impl;
         this.jobId = Integer.parseInt(args[appArgsIdx++]);
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
-        this.lang = lang;
         this.history = JobHistory.valueOf(args[appArgsIdx++]);
 
         this.timeout = Long.parseLong(args[appArgsIdx++]);
@@ -387,11 +384,6 @@ public class GOSInvocation implements Invocation {
     @Override
     public JobHistory getHistory() {
         return history;
-    }
-
-    @Override
-    public Lang getLang() {
-        return lang;
     }
 
     @Override

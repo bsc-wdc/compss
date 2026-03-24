@@ -1152,6 +1152,139 @@ static void generate_class_includes_and_check_types(FILE *outFile, Types *curren
 }
 
 /*
+ * Convert camelCase to snake_case
+ */
+static char* camel_to_snake(const char* camelCase) {
+    if (!camelCase) return strdup("");
+    
+    size_t len = strlen(camelCase);
+    char *result = malloc(len * 2 + 1);  /* Worst case: every char is followed by underscore */
+    char *pos = result;
+    
+    for (size_t i = 0; i < len; i++) {
+        if (isupper(camelCase[i])) {
+            if (i > 0) *pos++ = '_';
+            *pos++ = tolower(camelCase[i]);
+        } else {
+            *pos++ = camelCase[i];
+        }
+    }
+    *pos = '\0';
+    return result;
+}
+
+/*
+ * Generate CE registration before calling the task.
+ */
+static void generate_ce_registration(FILE *outFile, function *func) {
+
+    fprintf(outFile, "\t static int registered = 0;\n");
+    fprintf(outFile, "\t if (!registered) { \n");
+	fprintf(outFile, "\t\t debug_printf(\"Registering CE for method %s\\n\");\n", func->name);
+    fprintf(outFile, "\t\t char *ce_signature=\"%s\";\n", func->ce_signature);
+    fprintf(outFile, "\t\t char *impl_signature;\n");
+    fprintf(outFile, "\t\t char *constraints;\n");
+
+    fprintf(outFile, "\t\t char *prolog[3];\n");
+    fprintf(outFile, "\t\t prolog[0] = \"[unassigned]\";\n");
+    fprintf(outFile, "\t\t prolog[1] = \"[unassigned]\";\n");
+    fprintf(outFile, "\t\t prolog[2] = \"[unassigned]\";\n");
+
+    fprintf(outFile, "\t\t char *epilog[3];\n");
+    fprintf(outFile, "\t\t epilog[0] = \"[unassigned]\";\n");
+    fprintf(outFile, "\t\t epilog[1] = \"[unassigned]\";\n");
+    fprintf(outFile, "\t\t epilog[2] = \"[unassigned]\";\n");
+
+    fprintf(outFile, "\t\t char *container[3];\n");
+    fprintf(outFile, "\t\t container[0] = \"[unassigned]\";\n");
+    fprintf(outFile, "\t\t container[1] = \"[unassigned]\";\n");
+    fprintf(outFile, "\t\t container[2] = \"[unassigned]\";\n");
+
+    fprintf(outFile, "\t\t char *implTypeArgs[3];\n");
+    fprintf(outFile, "\t\t implTypeArgs[0] = \"C\";\n");
+
+    /* Build constraints string */
+    char *constraints_str = NULL;
+    
+    function *method = func;
+    do {
+        if (method->constraints) {
+            char buffer[16384];  /* Pre-allocated buffer */
+            char *pos = buffer;
+            char *end = buffer + sizeof(buffer) - 1;
+            
+            #define APPEND_STR(str) do { \
+                size_t len = strlen(str); \
+                if (pos + len < end) { memcpy(pos, str, len); pos += len; } \
+            } while(0)
+            
+            #define APPEND_FMT(fmt, ...) do { \
+                int n = snprintf(pos, end - pos, fmt, __VA_ARGS__); \
+                if (n > 0) pos += n; \
+            } while(0)
+            
+
+            processor *proc = method->constraints->first_processor;
+            property *glob_prop = method->constraints->first_property;
+
+            /* Process processors and their properties */
+            if (proc) {
+                APPEND_STR("processors:[");
+                
+                int first_proc = 1;
+                while (proc && pos < end) {
+                    if (!first_proc) APPEND_STR(",");
+                    APPEND_STR("{");
+                    
+                    property *prop = proc->first_property;
+                    int first_prop = 1;
+                    while (prop && pos < end) {
+                        if (!first_prop) APPEND_STR(",");
+                        APPEND_FMT("%s:%s", prop->name, prop->value);
+                        prop = prop->next_property;
+                        first_prop = 0;
+                    }
+                    APPEND_STR("}");
+                    proc = proc->next_processor;
+                    first_proc = 0;
+                }
+                APPEND_STR("]");
+                if (glob_prop) APPEND_STR(",");
+            }
+            
+            /* Process global constraint properties */
+            if (glob_prop && pos < end) {
+                int first_glob = 1;
+                while (glob_prop && pos < end) {
+                    if (!first_glob) APPEND_STR(",");
+                    char *glob_name = camel_to_snake(glob_prop->name);
+                    APPEND_FMT("%s:%s", glob_name, glob_prop->value);
+                    free(glob_name);
+                    glob_prop = glob_prop->next_property;
+                    first_glob = 0;
+                }
+            }
+            
+            *pos = '\0';
+            constraints_str = strdup(buffer);
+        } else {
+            constraints_str = strdup("");
+        }
+    
+        fprintf(outFile, "\t\t\n");
+        fprintf(outFile, "\t\t impl_signature = \"%s\";\n", method->impl_signature);
+        fprintf(outFile, "\t\t constraints = \"%s\";\n", constraints_str);
+        fprintf(outFile, "\t\t implTypeArgs[1] = \"%s\";\n", method->classname ? method->classname : "NULL");
+        fprintf(outFile, "\t\t implTypeArgs[2] = \"%s\";\n", method->name);
+        fprintf(outFile, "\t\t GS_RegisterCE(ce_signature, impl_signature, constraints, \"METHOD\", \"false\", \"false\", prolog, epilog, container, 3, (char**)implTypeArgs);\n");
+        method = method->polymorphism_next;
+    } while (method != func);
+
+    fprintf(outFile, "\t\t registered = 1;\n");
+    fprintf(outFile, "\t } \n");
+}
+
+/*
  * Generate buffer to add task parameters before calling the task execution
  */
 static void generate_parameter_buffers(FILE *outFile, function *func) {
@@ -1396,8 +1529,8 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
 
     fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
     //ExecuteTask params: appId, className, onFailure, timeout,  method_name, priority, num_nodes, is_reduce, reduce_chunk, is_replicated, is_distributed, has_target,  num_returns, num_params params
-    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", %d, method_name, %d, %d, %d, %d, %d, %d, %d, %d, %d, (void**)arrayObjs);\n", 
-		    class_name, on_failure, time_out, priority, num_nodes, is_reduce, reduce_chunk, is_replicated, is_distributed, has_target, num_returns, arg_count);
+    fprintf(outFile, "\t GS_ExecuteTaskNew(0L, \"%s\", \"%s\", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, (void**)arrayObjs);\n", 
+		    func->impl_signature, on_failure, time_out, priority, num_nodes, is_reduce, reduce_chunk, is_replicated, is_distributed, has_target, num_returns, arg_count);
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n");
     fprintf(outFile, "\n");
     
@@ -2188,7 +2321,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
  */
 static void generate_struct_nanos6_wrapper(FILE *outFile, Types current_types, function *func) {
     argument *arg;
-    fprintf(outFile, "typedef struct {\n", func->methodname);
+    fprintf(outFile, "typedef struct {\n");
 
     char* return_type = construct_returntype(func);
 
@@ -2353,6 +2486,9 @@ void generate_body(void) {
         generate_prototype(stubsFile, current_function);
         fprintf(stubsFile, "\n");
         fprintf(stubsFile, "{\n");
+        printf("\t Generating CE registration in stubs... \n");
+        generate_ce_registration(stubsFile, current_function);
+        fflush(NULL);
         printf("\t Generating parameters' buffers in stubs... \n");
         fflush(NULL);
         generate_parameter_buffers(stubsFile, current_function);

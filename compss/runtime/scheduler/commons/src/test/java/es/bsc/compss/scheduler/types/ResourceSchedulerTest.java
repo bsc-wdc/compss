@@ -18,6 +18,7 @@ package es.bsc.compss.scheduler.types;
 
 import static org.junit.Assert.fail;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
@@ -76,17 +77,17 @@ public class ResourceSchedulerTest {
         cedA.setCeSignature("methodA");
         ImplementationDescription<?, ?> implDef = null;
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodA", false,
-            new MethodResourceDescription(), null, null, null, "ClassA", "methodA");
+            new MethodResourceDescription(), null, null, null, Lang.JAVA.name(), "ClassA", "methodA");
         cedA.addImplementation(implDef);
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassB.methodA", false,
-            new MethodResourceDescription(), null, null, null, "ClassB", "methodA");
+            new MethodResourceDescription(), null, null, null, Lang.JAVA.name(), "ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodB", false,
-            new MethodResourceDescription(), null, null, null, "ClassA", "methodB");
+            new MethodResourceDescription(), null, null, null, Lang.JAVA.name(), "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);
     }

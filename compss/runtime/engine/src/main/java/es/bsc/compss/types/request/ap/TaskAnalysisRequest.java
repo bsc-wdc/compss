@@ -96,8 +96,8 @@ public class TaskAnalysisRequest implements APRequest {
 
     private void processTask() {
         TaskDescription description = this.task.getTaskDescription();
-        LOGGER.info("New " + description.getType().toString().toLowerCase() + " task: Name:" + description.getName()
-            + "), ID = " + this.task.getId() + " APP = " + this.task.getApplication().getId());
+        LOGGER.info("New task: Name:" + description.getName() + "), ID = " + this.task.getId() + " APP = "
+            + this.task.getApplication().getId());
 
         task.register();
     }

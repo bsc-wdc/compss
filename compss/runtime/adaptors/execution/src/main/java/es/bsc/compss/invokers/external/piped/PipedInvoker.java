@@ -46,6 +46,7 @@ import es.bsc.compss.executor.types.ParameterResult.SingleResult;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -117,7 +118,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case EXECUTE_NESTED_TASK: {
                                 ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
                                 ExecuteNestedTaskPipeCommand.EntryPoint entryPoint = entpc.getEntryPoint();
-                                String onFailure = entpc.getOnFailure();
+                                OnFailure onFailure = OnFailure.valueOf(entpc.getOnFailure());
                                 int timeOut = entpc.getTimeOut();
                                 boolean isPrioritary = entpc.getPrioritary();
                                 boolean hasTarget = entpc.hasTarget();
@@ -132,21 +133,11 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 int reduceChunkSize = entpc.getReduceChunkSize();
                                 boolean isReplicated = entpc.isReplicated();
                                 boolean isDistributed = entpc.isDistributed();
-                                if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
-                                    String signature = entpc.getSignature();
+                                String signature = entpc.getSignature();
 
-                                    this.wf.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce,
-                                        reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns,
-                                        parameterCount, parameters);
-
-                                } else {
-                                    String methodClass = entpc.getMethodClass();
-                                    String methodName = entpc.getMethodName();
-                                    this.wf.executeTask(methodClass, onFailure, timeOut, methodName, isPrioritary,
-                                        numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget,
-                                        numReturns, parameterCount, parameters);
-                                }
-
+                                this.wf.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce,
+                                    reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
+                                    parameters);
                             }
                                 break;
                             case ACCESSED_FILE: {

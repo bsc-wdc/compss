@@ -158,9 +158,6 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
     @Override
     public void receivedNewTask(NIONode master, CommTask request) {
-        Lang lang;
-        lang = request.getLang();
-
         Implementation impl;
         impl = request.getMethodImplementation();
 
@@ -202,7 +199,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
         OnFailure onFail = request.getOnFailure();
         try {
-            long appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, onFail);
+            long appId = Agent.runTask(ced, ceiClass, arguments, target, results, monitor, onFail);
             LOGGER.info("External job " + request.getJobId() + " is app " + appId);
         } catch (AgentException ae) {
             monitor.onFailure();

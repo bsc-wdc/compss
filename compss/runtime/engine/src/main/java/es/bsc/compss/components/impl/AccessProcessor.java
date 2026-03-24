@@ -25,6 +25,7 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -65,6 +66,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
@@ -130,7 +132,6 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
      *
      * @param app Application.
      * @param monitor Task monitor.
-     * @param lang Application language.
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes.
@@ -145,23 +146,23 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
      * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
-    public int newTask(Application app, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary,
-        int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
-        boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+    public int newTask(Application app, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes,
+        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        int numReturns, List<Parameter> parameters, OnFailure onFailure, long timeOut) {
 
         Task currentTask;
 
         if (isReduce) {
             if (reduceChunkSize >= 2) {
-                currentTask = new ReduceTask(app, lang, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                currentTask = new ReduceTask(app, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
                     isReplicated, isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
             } else {
                 ErrorManager.warn("Requesting to create task with chunk_size smaller than 2. Executing as simple task");
-                currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReduce, isReplicated,
-                    isDistributed, hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+                currentTask = new Task(app, signature, isPrioritary, numNodes, isReduce, isReplicated, isDistributed,
+                    hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
             }
         } else {
-            currentTask = new Task(app, lang, signature, isPrioritary, numNodes, isReduce, isReplicated, isDistributed,
+            currentTask = new Task(app, signature, isPrioritary, numNodes, isReduce, isReplicated, isDistributed,
                 hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
         }
 
@@ -169,33 +170,6 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
 
         LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
         this.offerRequest(new TaskAnalysisRequest(currentTask), "new method task");
-        return currentTask.getId();
-    }
-
-    /**
-     * Application: new HTTP task.
-     *
-     * @param app Application.
-     * @param monitor Task monitor.
-     * @param priority Whether the task has priority or not.
-     * @param hasTarget Whether the task has a target object or not.
-     * @param numReturns Number of returns of the task.
-     * @param parameters Task parameters.
-     * @param onFailure OnFailure mechanisms.
-     * @param timeOut Time for a task timeOut.
-     * @return Task Id.
-     */
-    public int newTask(Application app, TaskMonitor monitor, String declareMethodFullyQualifiedName, boolean priority,
-        boolean isReduce, int reduceChunkSize, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        OnFailure onFailure, long timeOut) {
-
-        Task currentTask = new Task(app, declareMethodFullyQualifiedName, priority, hasTarget, numReturns, parameters,
-            monitor, onFailure, timeOut);
-
-        app.onTaskCreation(currentTask);
-
-        LOGGER.debug("Requesting analysis of new HTTP Task " + currentTask.getId());
-        this.offerRequest(new TaskAnalysisRequest(currentTask), "new HTTP task");
         return currentTask.getId();
     }
 

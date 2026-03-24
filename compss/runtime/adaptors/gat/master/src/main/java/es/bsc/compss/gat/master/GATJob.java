@@ -300,7 +300,8 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
         lArgs.add(String.valueOf(absImpl.getMethodType()));
         switch (absImpl.getMethodType()) {
             case METHOD:
-                Lang lang = getLang();
+                MethodDefinition methodImpl = (MethodDefinition) absImpl.getDefinition();
+                Lang lang = methodImpl.getLang();
                 lArgs.add(lang.toString().toLowerCase());
                 switch (lang) {
                     case JAVA:
@@ -321,7 +322,6 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
                         throw new LangNotDefinedException();
                 }
 
-                MethodDefinition methodImpl = (MethodDefinition) absImpl.getDefinition();
                 String methodName = methodImpl.getAlternativeMethodName();
                 if (methodName == null || methodName.isEmpty()) {
                     methodImpl.setAlternativeMethodName(taskParams.getName());

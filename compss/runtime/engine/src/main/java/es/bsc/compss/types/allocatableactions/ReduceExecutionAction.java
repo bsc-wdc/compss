@@ -402,9 +402,9 @@ public class ReduceExecutionAction extends ExecutionAction {
         t.setPartialInUsed(partialIn);
         taskP.add(result);
 
-        Task partialTask = new Task(this.task.getApplication(), td.getLang(), td.getName(), td.hasPriority(),
-            td.getNumNodes(), td.isReduction(), td.isReplicated(), td.isDistributed(), td.hasTargetObject(),
-            td.getNumReturns(), taskP, this.task.getTaskMonitor(), td.getOnFailure(), td.getTimeOut());
+        Task partialTask = new Task(this.task.getApplication(), td.getName(), td.hasPriority(), td.getNumNodes(),
+            td.isReduction(), td.isReplicated(), td.isDistributed(), td.hasTargetObject(), td.getNumReturns(), taskP,
+            this.task.getTaskMonitor(), td.getOnFailure(), td.getTimeOut());
         this.partialTaskIds.add(partialTask.getId());
         LOGGER.debug(LOG_PREFIX + "Task " + partialTask.getId() + " is a partial reduce task for Task "
             + this.task.getId() + ". Adding as predecessor");

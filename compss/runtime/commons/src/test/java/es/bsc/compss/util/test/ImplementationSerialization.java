@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.util.test;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
@@ -32,7 +33,7 @@ public class ImplementationSerialization {
 
     @Test
     public void testSerializeMethodImplementation() throws ClassNotFoundException, IOException {
-        MethodDefinition md = new MethodDefinition("class", "method");
+        MethodDefinition md = new MethodDefinition(COMPSsConstants.Lang.JAVA, "class", "method");
         MethodDefinition md2 = (MethodDefinition) Serializer.deserialize(Serializer.serialize(md));
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> id =
             new ImplementationDescription<>(md, "signature", false, new MethodResourceDescription(), null, null);

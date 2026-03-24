@@ -46,6 +46,7 @@ import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.io.IOException;
@@ -319,22 +320,11 @@ public class SocketServer extends Server {
          * @throws COMPSsException if the runtime reports a failure.
          */
         private void handleExecuteNestedTask(ExecuteNestedTaskPipeCommand cmd) throws COMPSsException {
-            switch (cmd.getEntryPoint()) {
-                case SIGNATURE:
-                    wf.executeTask(cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getPrioritary(),
-                        cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(),
-                        cmd.isDistributed(), cmd.hasTarget(), cmd.getNumReturns(), cmd.getParameterCount(),
-                        cmd.getParameters());
-                    break;
-                case CLASS_METHOD:
-                    wf.executeTask(cmd.getMethodClass(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getMethodName(),
-                        cmd.getPrioritary(), cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(),
-                        cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(), cmd.getNumReturns(),
-                        cmd.getParameterCount(), cmd.getParameters());
-                    break;
-                default:
-                    LOGGER.warn("Unsupported task entry point {}", cmd.getEntryPoint());
-            }
+            OnFailure onFailure = OnFailure.valueOf(cmd.getOnFailure());
+            wf.executeTask(cmd.getSignature(), onFailure, cmd.getTimeOut(), cmd.getPrioritary(), cmd.getNumNodes(),
+                cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(),
+                cmd.getNumReturns(), cmd.getParameterCount(), cmd.getParameters());
+
         }
 
         /**

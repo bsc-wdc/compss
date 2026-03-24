@@ -133,42 +133,16 @@ void PIPE_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
     debug_printf("[BINDING-COMMONS] - @PIPE_CloseTaskGroup - Task group %s closed.\n", groupName);
 }
 
-void PIPE_WF_executeTask(CompssWorkflow* self, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing task execution in bindings-common.\n");
-
-    // Creates message to send and no wait.
-    // MESSAGE EXECUTE_TASK METHOD_CLASS className onFailure timeout methodName priority numNodes reduce reduceChunkSize,
-    // replicated distributed hasTarget numReturns numParams params[with_format: see process_params]
-    // NO RETURN
-    write_command_in_pipe(build_execute_task_class_command(className,
-                                                           onFailure,
-                                                           timeout,
-                                                           methodName,
-                                                           priority,
-                                                           numNodes,
-                                                           reduce,
-                                                           reduceChunkSize,
-                                                           replicated,
-                                                           distributed,
-                                                           hasTarget,
-                                                           numReturns,
-                                                           numParams,
-                                                           params));
-
-    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTask - Task processed.\n");
-}
-
-void PIPE_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+void PIPE_WF_executeTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Processing task execution in bindings-common. \n");
+    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing task execution in bindings-common. \n");
 
     // Creates message to send no waits.
-    // EXECUTE_TASK SIGNATURE signature onFailure timeout priority numNodes replicated distributed
+    // EXECUTE_TASK signature onFailure timeout priority numNodes replicated distributed
     // hasTarget numReturns numParams params[with_format: see process_params]
     // NO RETURN
 
-    write_command_in_pipe(build_execute_task_signature_command(signature,
+    write_command_in_pipe(build_execute_task_command(signature,
                                                                onFailure,
                                                                timeout,
                                                                priority,
@@ -183,7 +157,7 @@ void PIPE_WF_executeTaskNew(CompssWorkflow* self, char* signature, char* onFailu
                                                                params));
 
 
-    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Task processed.\n");
+    debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTask - Task processed.\n");
 }
 
 void PIPE_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
@@ -439,7 +413,6 @@ CompssWorkflow* PIPE_RegisterWorkflow() {
     wf->openTaskGroup = PIPE_WF_openTaskGroup;
     wf->closeTaskGroup = PIPE_WF_closeTaskGroup;
     wf->executeTask = PIPE_WF_executeTask;
-    wf->executeTaskNew = PIPE_WF_executeTaskNew;
     wf->executeHttpTask = PIPE_WF_executeHttpTask;
     wf->cancelTaskGroup = PIPE_WF_cancelTaskGroup;
     wf->cancelApplicationTasks = PIPE_WF_cancelApplicationTasks;

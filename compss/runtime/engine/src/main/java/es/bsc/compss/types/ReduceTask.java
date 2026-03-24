@@ -82,7 +82,6 @@ public class ReduceTask extends Task {
      * Creates a new REDUCE task with the given parameters.
      *
      * @param app Application to which the task belongs.
-     * @param lang Application language.
      * @param signature Task signature.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of nodes used by the task.
@@ -97,12 +96,12 @@ public class ReduceTask extends Task {
      * @param onFailure On failure mechanisms.
      * @param timeOut Time for a task time out.
      */
-    public ReduceTask(Application app, Lang lang, String signature, boolean isPrioritary, int numNodes,
-        boolean isReduction, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+    public ReduceTask(Application app, String signature, boolean isPrioritary, int numNodes, boolean isReduction,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
+        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
 
-        super(app, lang, signature, isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget,
-            numReturns, parameters, monitor, onFailure, timeOut);
+        super(app, signature, isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns,
+            parameters, monitor, onFailure, timeOut);
         this.tasks = new LinkedList<>();
         this.chunkSize = reduceChunkSize;
         this.totalOperations = 0;

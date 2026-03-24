@@ -19,6 +19,7 @@ package es.bsc.compss.test.api.impl;
 import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -79,7 +80,8 @@ public class COMPSsRuntimeImplTest {
         String[] container = new String[] { "",
             "",
             "" };
-        String[] implTypeArgs = new String[] { "methodClass",
+        String[] implTypeArgs = new String[] { Lang.PYTHON.name(),
+            "methodClass",
             "methodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
             prolog, epilog, container, implTypeArgs);
@@ -188,7 +190,8 @@ public class COMPSsRuntimeImplTest {
         implType = "METHOD";
         implLocal = "False";
         implIO = "False";
-        implTypeArgs = new String[] { "anotherClass",
+        implTypeArgs = new String[] { Lang.PYTHON.name(),
+            "anotherClass",
             "anotherMethodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
             prolog, epilog, container, implTypeArgs);

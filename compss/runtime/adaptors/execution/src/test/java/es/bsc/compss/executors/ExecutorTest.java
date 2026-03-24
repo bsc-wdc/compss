@@ -79,8 +79,9 @@ public class ExecutorTest {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setLang(Lang.JAVA);
         invBr = invBr.setImpl(new AbstractMethodImplementation(0, 0,
-            new ImplementationDescription<>(new MethodDefinition(this.getClass().getCanonicalName(), "javaTest"), "",
-                false, new MethodResourceDescription(), null, null)));
+            new ImplementationDescription<>(
+                new MethodDefinition(Lang.JAVA, this.getClass().getCanonicalName(), "javaTest"), "", false,
+                new MethodResourceDescription(), null, null)));
         FakeInvocation invocation1 = invBr.build();
         ExecutorRequest exec = new InvocationExecutionRequest(invocation1, null);
         p.execute(exec);

@@ -35,14 +35,12 @@ import es.bsc.compss.types.request.td.PrintCurrentGraphRequest;
 import es.bsc.compss.types.request.td.PrintCurrentLoadRequest;
 import es.bsc.compss.types.request.td.ShutdownRequest;
 import es.bsc.compss.types.request.td.TaskSummaryRequest;
-import es.bsc.compss.types.request.td.UpdateLocalCEIRequest;
 import es.bsc.compss.types.request.td.WorkerRestartRequest;
 import es.bsc.compss.types.request.td.WorkerUpdateRequest;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
@@ -179,9 +177,6 @@ public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?
         // Load scheduler jars
         loadSchedulerJars();
 
-        // Parse interface
-        CEIParser.parse();
-
         // Load resources
         ResourceManager.load(this);
 
@@ -311,23 +306,6 @@ public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?
     public <T extends WorkerResourceDescription> void updatedResource(Worker<T> r, ResourceUpdate<T> modification) {
         WorkerUpdateRequest<T> request = new WorkerUpdateRequest<>(this, r, modification);
         request.offerWithPriority("update resource");
-    }
-
-    /**
-     * Adds a new request to add a new interface.
-     *
-     * @param forName Class name of the interface.
-     */
-    public void addInterface(Class<?> forName) {
-        if (DEBUG) {
-            LOGGER.debug("Updating CEI " + forName.getName());
-        }
-        UpdateLocalCEIRequest request = new UpdateLocalCEIRequest(this, forName);
-        request.offer("add interface");
-
-        if (DEBUG) {
-            LOGGER.debug("Updated CEI " + forName.getName());
-        }
     }
 
     /**

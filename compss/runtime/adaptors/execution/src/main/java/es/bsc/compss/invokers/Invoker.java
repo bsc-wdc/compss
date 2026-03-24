@@ -431,7 +431,7 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
             this.context.getThreadErrStream(), null, executable.isFailByExitValue());
     }
 
-    protected W becomesNestedApplication(String parallelismSource) {
+    protected W becomesNestedApplication(String parallelismSource) throws JobExecutionException {
         W wf = registerWorkflow(parallelismSource);
         LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + wf.getId());
         for (InvocationParam p : this.invocation.getParams()) {
@@ -444,7 +444,7 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
         return wf;
     }
 
-    public W registerWorkflow(String parallelismSource) {
+    public W registerWorkflow(String parallelismSource) throws JobExecutionException {
         return (W) this.context.getRuntimeAPI().registerWorkflow(parallelismSource, this);
     }
 

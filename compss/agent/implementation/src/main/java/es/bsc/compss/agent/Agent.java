@@ -177,19 +177,18 @@ public class Agent {
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang programming language of the method
      * @param ced Definition of the Core Element to execute
      * @param ceiClass Core Element interface to detect nested tasks in the code. If null, no nested parallelism will be
      *            detected
      * @param arguments parameter description of the task's arguments
-     * @param target paramter description of the task's callee
-     * @param results paramter description of the task's results
+     * @param target parameter description of the task's callee
+     * @param results parameter description of the task's results
      * @param monitor monitor to notify changes on the method execution
      * @param onFailure behaviour in case of task execution failure
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
-    public static long runTask(Lang lang, CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
+    public static long runTask(CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
         ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
         throws AgentException {
         if (Tracer.isActivated()) {
@@ -202,7 +201,7 @@ public class Agent {
         Workflow wf = RUNTIME.registerWorkflow(ceiClass, monitor);
         long appId = wf.getId();
         monitor.setWorkflow(wf);
-        LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
+        LOGGER.debug("New request to run as task " + ced.getCeSignature());
         LOGGER.debug("appId: " + appId);
         LOGGER.debug("Core Element Description: " + ced.toString());
         LOGGER.debug("Parallelizing application according to " + ceiClass);
@@ -248,7 +247,7 @@ public class Agent {
             onFailure = OnFailure.FAIL;
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
-            wf.executeTask(lang, true, null, null, ced.getCeSignature(), // Method to call
+            wf.executeTask(ced.getCeSignature(), // Method to call
                 onFailure, // On failure behavior
                 0, // Time out of the task
                 false, // isPriority

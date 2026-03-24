@@ -47,7 +47,6 @@ public class GATInvocation implements Invocation {
     private final boolean debug;
     private final int jobId;
     private final int taskId;
-    private final Lang lang;
     private final JobHistory history;
     private final long timeout;
 
@@ -74,7 +73,6 @@ public class GATInvocation implements Invocation {
         this.impl = impl;
         this.jobId = Integer.parseInt(args[appArgsIdx++]);
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
-        this.lang = Lang.JAVA;
         this.history = JobHistory.NEW;
         this.timeout = Long.parseLong(args[appArgsIdx++]);
 
@@ -359,11 +357,6 @@ public class GATInvocation implements Invocation {
     @Override
     public JobHistory getHistory() {
         return history;
-    }
-
-    @Override
-    public Lang getLang() {
-        return lang;
     }
 
     @Override

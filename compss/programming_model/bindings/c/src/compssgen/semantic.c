@@ -46,7 +46,8 @@ extern int line;
 static interface *main_interface = NULL;
 static function *current_function = NULL;
 static argument *current_argument = NULL;
-static constraint *current_constraint = NULL;
+static constraints *current_constraints = NULL;
+static char *current_implements = NULL;
 static int has_errors = 0;
 static int function_count = 0;
 static char *current_function_name = NULL;
@@ -155,10 +156,13 @@ void begin_function(char *fn_name) {
         main_interface->first_function = new_function;
     }
     current_function = new_function;
-    current_argument = NULL;
-    current_constraint = NULL;
-    function_count++;
     current_function_name = new_function->name;
+    current_function->constraints = current_constraints;
+    current_function->implements_name = current_implements;
+    current_constraints = NULL;
+    current_implements = NULL;
+    current_argument = NULL;
+    function_count++;
 }
 
 void add_static(int val) {
@@ -220,17 +224,188 @@ void add_return_type(enum datatype return_type, char *return_typename, char* ele
     }
 }
 
+
+char* build_signature(const char *method, const char *classname, const argument *args) {
+
+    if (!method) return NULL;
+
+    /* ---- First pass: compute required length ---- */
+    size_t len = strlen(method) + 2 + 1; // method + "(" + ")" + '\0'
+
+    const argument *arg = args;
+    int count = 0;
+
+    while (arg) {
+        if (arg->signature_type) {
+            len += strlen(arg->signature_type);
+            count++;
+        }
+        arg = arg->next_argument;
+    }
+
+    if (count > 1) {
+        len += (count - 1); // commas
+    }
+
+    if (classname) {
+        len += strlen(classname);
+    }
+
+    /* ---- Allocate ---- */
+    char *signature = malloc(len);
+    if (!signature) return NULL;
+
+    /* ---- Build string ---- */
+    size_t pos = 0;
+
+    pos += sprintf(signature + pos, "%s(", method);
+
+    arg = args;
+    int written = 0;
+
+    while (arg) {
+        if (arg->signature_type) {
+            if (written > 0) {
+                signature[pos++] = ',';
+            }
+
+            size_t tlen = strlen(arg->signature_type);
+            memcpy(signature + pos, arg->signature_type, tlen);
+            pos += tlen;
+
+            written++;
+        }
+        arg = arg->next_argument;
+    }
+
+    signature[pos++] = ')';
+
+    if (classname) {
+        size_t clen = strlen(classname);
+        memcpy(signature + pos, classname, clen);
+        pos += clen;
+    }
+
+    signature[pos] = '\0';
+
+    return signature;
+}
+
 void end_function() {
     debug_printf("End function\n");
     assert(current_function != NULL);
+    current_function->ce_signature = strdup(build_signature(current_function->implements_name ? current_function->implements_name : current_function->name, "", current_function->first_argument));
+    current_function->impl_signature = strdup(build_signature(current_function->name, current_function->classname, current_function->first_argument));
+
+    current_function->polymorphism_next = current_function;
+    function *polymorphism_target = main_interface->first_function;
+    while (polymorphism_target != current_function) {
+        if (strcmp(polymorphism_target->ce_signature, current_function->ce_signature) == 0) {
+            function *swap = polymorphism_target->polymorphism_next;
+            polymorphism_target->polymorphism_next = current_function;
+            current_function->polymorphism_next = swap;
+            break;
+        }
+        polymorphism_target = polymorphism_target->next_function;
+    }
     current_function_name = NULL;
 }
 
+void add_implements(char *function_name) {
+    debug_printf("Add implements %s\n", function_name);
+    current_implements = strdup(function_name);
+}
+
+
+void begin_constraints(){
+    printf("Parsing constraints \n");
+    current_constraints = (constraints *)malloc(sizeof(constraints));
+    current_constraints->first_processor = NULL;
+    current_constraints->current_processor = NULL;
+    current_constraints->first_property = NULL;
+    current_constraints->current_property = NULL;
+}
+
+void begin_processors(){
+    printf("Parsing processors \n");
+}
+
+void begin_processor() {
+    printf("Parsing processor \n");
+    processor *new_processor = (processor *)malloc(sizeof(processor));
+    new_processor->first_property = NULL;
+    new_processor->next_processor = NULL;
+    if (current_constraints->current_processor != NULL) {
+        current_constraints->current_processor->next_processor = new_processor;
+    } else {
+        current_constraints->first_processor = new_processor;
+    }
+    current_constraints->current_processor = new_processor;
+
+}
+
+void add_processor_param(char *key, char *value) {
+    printf("Adding processor param %s:%s \n", key, value);
+    property *new_property;
+    assert(current_constraints->current_processor != NULL);
+    new_property = (property *)malloc(sizeof(property));
+    new_property->name = strdup(key);
+    new_property->value = strdup(value);
+    new_property->next_property = NULL;
+    processor *current_processor = current_constraints->current_processor;
+    if (current_processor->current_property != NULL) {
+        current_processor->current_property->next_property = new_property;
+    } else {
+        current_processor->first_property = new_property;
+    }
+    current_processor->current_property = new_property;
+}
+
+void end_processor(){
+    printf("End processor \n");
+}
+
+void end_processors(){
+    printf("End processors \n");
+}
+
+void add_constraint(char *key, char *value){
+    printf("Adding constraint %s:%s \n", key, value);
+    property *new_property;
+
+    new_property = (property *)malloc(sizeof(property));
+    new_property->name=strdup(key);
+    new_property->value=strdup(value);
+    new_property->next_property = NULL;
+    if (current_constraints->current_property != NULL) {
+        current_constraints->current_property->next_property = new_property;
+    } else {
+        current_constraints->first_property = new_property;
+    }
+    current_constraints->current_property = new_property;
+}
+
+void end_constraints(){
+    printf("End constraints \n");
+}
 
 char const* get_current_function_name() {
     return current_function_name;
 }
 
+void argument_set_type(char* elements, enum datatype dt, char *classname, char *signature, enum datatype array_dt, argument *new_argument) {
+    if (elements !=NULL) {
+            new_argument->elements = strdup(elements);
+            new_argument->type = array_dt;
+            new_argument->classname = classname;
+            new_argument->signature_type = "BINDING_OBJECT_T";
+        } else {
+            new_argument->elements = "0";
+            new_argument->type = dt;
+            new_argument->signature_type = signature;
+        }
+        new_argument->classname = classname;
+}
 
 void add_argument(enum direction dir, enum datatype dt, char *classname, char *name, char* elements) {
     argument *new_argument;
@@ -253,85 +428,40 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
     switch (dt) {
     case char_dt:
     case wchar_dt:
-        if (elements !=NULL) {
-            new_argument->elements = strdup(elements);
-            new_argument->type = array_char_dt;
-            new_argument->classname = "char";
-        } else {
-            new_argument->elements = "0";
-            new_argument->type = dt;
-            new_argument->classname = "char";
-        }
+        argument_set_type(elements, dt, "char", "CHAR_T", array_char_dt, new_argument);
         break;
     case boolean_dt:
         new_argument->elements = "0";
         new_argument->type = dt;
         new_argument->classname = "int";
+        new_argument->signature_type = "BOOLEAN_T";
         break;
     case short_dt:
-        if (elements != NULL) {
-            new_argument->elements = strdup(elements);
-            new_argument->type = array_short_dt;
-            new_argument->classname = "short";
-        } else {
-            new_argument->elements = "0";
-            new_argument->type = dt;
-            new_argument->classname = "short";
-        }
+        argument_set_type(elements, dt, "short", "SHORT_T", array_short_dt, new_argument);
         break;
     case long_dt:
-        if (elements != NULL) {
-            new_argument->elements = strdup(elements);
-            new_argument->type = array_long_dt;
-            new_argument->classname = "long";
-        } else {
-            new_argument->elements = "0";
-            new_argument->type = dt;
-            new_argument->classname = "long";
-        }
+        argument_set_type(elements, dt, "long", "LONG_T", array_long_dt, new_argument);
         break;
     case longlong_dt:
         new_argument->elements = "0";
         new_argument->type = dt;
         new_argument->classname = "long long";
+        new_argument->signature_type = "FLOAT_T";
         break;
     case int_dt:
-        if (elements != NULL) {
-            new_argument->elements = strdup(elements);
-            new_argument->type = array_int_dt;
-            new_argument->classname = "int";
-        } else {
-            new_argument->elements = "0";
-            new_argument->type = dt;
-            new_argument->classname = "int";
-        }
+        argument_set_type(elements, dt, "int", "INT_T", array_int_dt, new_argument);
         break;
     case float_dt:
-        if (elements != NULL) {
-            new_argument->elements = strdup(elements);
-            new_argument->type = array_float_dt;
-            new_argument->classname = "float";
-        } else {
-            new_argument->elements = "0";
-            new_argument->type = dt;
-            new_argument->classname = "float";
-        }
+        argument_set_type(elements, dt, "float", "FLOAT_T", array_float_dt, new_argument);
         break;
     case double_dt:
-        if (elements!=NULL) {
-            new_argument->elements = strdup(elements);
-            new_argument->type = array_double_dt;
-            new_argument->classname = "double";
-        } else {
-            new_argument->elements = "0";
-            new_argument->type = dt;
-            new_argument->classname = "double";
-        }
+        argument_set_type(elements, dt, "double", "DOUBLE_T", array_double_dt, new_argument);
         break;
     case object_dt:
         new_argument->elements = "0";
         new_argument->type = dt;
         new_argument->classname = strdup(classname);
+        new_argument->signature_type = "BINDING_OBJECT_T";
         break;
     case string_dt:
     case string_64_dt:
@@ -339,20 +469,26 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
         new_argument->elements = "0";
         new_argument->type = dt;
         new_argument->classname = "string";
+        new_argument->signature_type = "STRING_T";
         break;
     case file_dt:
         new_argument->elements = "0";
         new_argument->classname = "File";
         new_argument->type = dt;
+        new_argument->signature_type = "FILE_T";
         break;
     case enum_dt:
         new_argument->elements = "0";
         new_argument->type = enum_dt;
         new_argument->classname = strdup(classname);
+        new_argument->signature_type = "ENUM_T";
         break;
+    case null_dt:
+        new_argument->elements = "0";
+        new_argument->type = dt;
+        new_argument->signature_type = "NULL_T";
     case void_dt:
     case any_dt:
-    case null_dt:
     default:
         new_argument->elements = "0";
         new_argument->type = dt;
@@ -409,26 +545,6 @@ int get_function_count() {
 
 void begin_arguments() {
     parsing_args = 1;
-}
-
-void begin_constraints() {
-    //printf("constraint:\n");
-}
-
-void add_constraint(char *constr) {
-    printf("add constraint %s to function %s \n", constr, current_function->name);
-    constraint *new_constraint;
-    assert(current_function != NULL);
-
-    new_constraint = (constraint *)malloc(sizeof(constraint));
-    new_constraint->name=strdup(constr);
-    new_constraint->next_constraint = NULL;
-    if(current_constraint != NULL) {
-        current_constraint->next_constraint = new_constraint;
-    } else {
-        current_function->first_constraint = new_constraint;
-    }
-    current_constraint = new_constraint;
 }
 
 

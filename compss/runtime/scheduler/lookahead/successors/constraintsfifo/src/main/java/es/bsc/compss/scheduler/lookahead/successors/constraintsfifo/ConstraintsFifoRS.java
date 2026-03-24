@@ -84,19 +84,18 @@ public class ConstraintsFifoRS<T extends WorkerResourceDescription> extends Look
     }
 
     protected long calculateConstraintScore(TaskDescription td) {
-
-        if (td.getType() == TaskType.METHOD) {
-            List<Implementation> implementations = td.getCoreElement().getImplementations();
-            if (implementations != null && !implementations.isEmpty()) {
-                MethodResourceDescription description =
-                    (MethodResourceDescription) implementations.get(0).getRequirements();
-                return description.getTotalCPUComputingUnits() * td.getNumNodes();
-            } else {
-                return 0;
+        long score = 0;
+        List<Implementation> implementations = td.getCoreElement().getImplementations();
+        for (Implementation impl : implementations) {
+            if (impl.getTaskType() == TaskType.METHOD) {
+                MethodResourceDescription description = (MethodResourceDescription) impl.getRequirements();
+                long implScore = (long) description.getTotalCPUComputingUnits() * td.getNumNodes();
+                if (score < implScore) {
+                    score = implScore;
+                }
             }
-        } else {
-            return 0;
         }
+        return score;
     }
 
     @SuppressWarnings("unchecked")

@@ -200,52 +200,21 @@ std::string build_get_master_working_dir_command() {
     return oss.str();
 }
 
-std::string build_execute_task_class_command(const char* className,
-                                             const char* onFailure,
-                                             int timeout,
-                                             const char* methodName,
-                                             int priority,
-                                             int numNodes,
-                                             int reduce,
-                                             int reduceChunkSize,
-                                             int replicated,
-                                             int distributed,
-                                             int hasTarget,
-                                             int numReturns,
-                                             int numParams,
-                                             void** params) {
+std::string build_execute_task_command(const char* signature,
+                                        const char* onFailure,
+                                        int timeout,
+                                        int priority,
+                                        int numNodes,
+                                        int reduce,
+                                        int reduceChunkSize,
+                                        int replicated,
+                                        int distributed,
+                                        int hasTarget,
+                                        int numReturns,
+                                        int numParams,
+                                        void** params) {
     std::ostringstream ss;
-    ss << "EXECUTE_NESTED_TASK CLASS_METHOD " << className << " " << onFailure << " " << timeout << " "
-       << methodName << " " << to_bool_literal(priority) << " " << numNodes << " " << to_bool_literal(reduce) << " "
-       << reduceChunkSize << " " << to_bool_literal(replicated) << " " << to_bool_literal(distributed) << " "
-       << to_bool_literal(hasTarget) << " " << numReturns << " " << numParams << " [ ";
-
-    if (numParams > 0) {
-        ss << build_param_fragment(params, 0);
-        for (int i = 1; i < numParams; ++i) {
-            ss << ", " << build_param_fragment(params, i);
-        }
-    }
-
-    ss << " ] " << std::endl;
-    return ss.str();
-}
-
-std::string build_execute_task_signature_command(const char* signature,
-                                                  const char* onFailure,
-                                                  int timeout,
-                                                  int priority,
-                                                  int numNodes,
-                                                  int reduce,
-                                                  int reduceChunkSize,
-                                                  int replicated,
-                                                  int distributed,
-                                                  int hasTarget,
-                                                  int numReturns,
-                                                  int numParams,
-                                                  void** params) {
-    std::ostringstream ss;
-    ss << "EXECUTE_NESTED_TASK SIGNATURE " << signature << " " << onFailure << " " << timeout << " "
+    ss << "EXECUTE_NESTED_TASK " << signature << " " << onFailure << " " << timeout << " "
        << to_bool_literal(priority) << " " << numNodes << " " << to_bool_literal(reduce) << " " << reduceChunkSize
        << " " << to_bool_literal(replicated) << " " << to_bool_literal(distributed) << " " << to_bool_literal(hasTarget)
        << " " << numReturns << " " << numParams << " [ ";

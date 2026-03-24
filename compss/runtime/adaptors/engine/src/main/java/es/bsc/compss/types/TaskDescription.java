@@ -28,8 +28,6 @@ import java.util.List;
 
 public class TaskDescription<P extends Parameter> {
 
-    private final TaskType type;
-    private final Lang lang;
     private final String signature;
     private final CoreElement coreElement;
 
@@ -50,8 +48,6 @@ public class TaskDescription<P extends Parameter> {
     /**
      * Task description constructor.
      *
-     * @param type Type of task.
-     * @param lang Method language.
      * @param signature Method signature.
      * @param coreElement Core Element to execute.
      * @param parallelismSource Identifier of the interface to use for detecting parallelism within the invocation.
@@ -66,13 +62,10 @@ public class TaskDescription<P extends Parameter> {
      * @param onFailure On failure mechanisms.
      * @param parameters Number of parameters.
      */
-    public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement,
-        String parallelismSource, boolean isPrioritary, int numNodes, boolean isReduction, boolean isReplicated,
-        boolean isDistributed, boolean hasTarget, int numReturns, OnFailure onFailure, long timeOut,
-        List<P> parameters) {
+    public TaskDescription(String signature, CoreElement coreElement, String parallelismSource, boolean isPrioritary,
+        int numNodes, boolean isReduction, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        int numReturns, OnFailure onFailure, long timeOut, List<P> parameters) {
 
-        this.type = type;
-        this.lang = lang;
         this.signature = signature;
         this.coreElement = coreElement;
         this.parallelismSource = parallelismSource;
@@ -102,15 +95,6 @@ public class TaskDescription<P extends Parameter> {
      */
     public CoreElement getCoreElement() {
         return this.coreElement;
-    }
-
-    /**
-     * Returns the task language.
-     *
-     * @return The task language.
-     */
-    public Lang getLang() {
-        return lang;
     }
 
     /**
@@ -217,15 +201,6 @@ public class TaskDescription<P extends Parameter> {
      */
     public int getNumReturns() {
         return this.numReturns;
-    }
-
-    /**
-     * Returns the task type.
-     *
-     * @return The task type.
-     */
-    public TaskType getType() {
-        return this.type;
     }
 
     /**

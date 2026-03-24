@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.JavaWorkflow;
@@ -23,25 +24,28 @@ import es.bsc.compss.loader.JavaWorkflow;
 
 public class WorkflowSupplier extends ThreadLocal<JavaWorkflow> {
 
-    private static COMPSsRuntime runtime = null;
+    private final COMPSsRuntime runtime;
+    private final String ceiName;
+    private final ApplicationRunner runner;
 
-
-    public static void setRuntime(COMPSsRuntime rt) {
-        runtime = rt;
-    }
-
-    protected JavaWorkflow initialValue() {
-        return registerWorkflow();
-    }
 
     /**
-     * Registers a new Java Workflow in the runtime.
-     *
-     * @return registered workflow.
+     * Constructs a new Workflow Supplier for each thread.
+     * 
+     * @param rt runtime that will support the workflows
+     * @param ceiName Name of the interface used to parallelize the workflow
+     * @param runner element running the workflow
      */
-    public static JavaWorkflow registerWorkflow() {
+    public WorkflowSupplier(COMPSsRuntime rt, String ceiName, ApplicationRunner runner) {
+        this.runtime = rt;
+        this.ceiName = ceiName;
+        this.runner = runner;
+    }
+
+    @Override
+    protected JavaWorkflow initialValue() {
         try {
-            return new JavaWorkflow(runtime);
+            return new JavaWorkflow(runtime, ceiName, runner);
         } catch (Exception e) {
             System.err.println("Cannot register workflow");
             e.printStackTrace(System.err);

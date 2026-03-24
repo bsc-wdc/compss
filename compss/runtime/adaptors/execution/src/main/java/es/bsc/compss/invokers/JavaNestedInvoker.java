@@ -22,7 +22,6 @@ import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.total.ITAppModifier;
-import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -30,12 +29,10 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
-import es.bsc.compss.util.parsers.ITFParser;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 
 
 public class JavaNestedInvoker extends JavaInvoker {
@@ -110,27 +107,6 @@ public class JavaNestedInvoker extends JavaInvoker {
             super.runMethod();
         } else {
             JavaWorkflow wf = becomesNestedApplication(this.ceiName);
-            // Register Core Elements on Runtime
-            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
-            for (CoreElementDefinition ced : ceds) {
-                this.runtimeAPI.registerCoreElement(ced);
-            }
-            Method setter;
-            try {
-                setter = this.methodClass.getDeclaredMethod("setCOMPSsVariables",
-                    new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                        Class.forName(LoaderConstants.CLASS_WORKFLOW) });
-            } catch (Exception e) {
-                throw new JobExecutionException("Class not properly instrumented. Method setCOMPSsVariables not found!",
-                    e);
-            }
-            try {
-                Object[] values = new Object[] { this.runtimeAPI,
-                    wf };
-                setter.invoke(null, values);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                throw new JobExecutionException("Error setting Nested COMPSs variables", e);
-            }
             try {
                 super.runMethod();
             } catch (Throwable e) {
@@ -142,8 +118,25 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    public JavaWorkflow registerWorkflow(String parallelismSource) {
-        return new JavaWorkflow(this.context.getRuntimeAPI(), parallelismSource, this);
+    public JavaWorkflow registerWorkflow(String parallelismSource) throws JobExecutionException {
+        Method setter;
+        JavaWorkflow wf = null;
+        try {
+            setter = this.methodClass.getDeclaredMethod("setupCOMPSs",
+                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
+                    Class.forName(LoaderConstants.CLASS_APP_RUNNER) });
+        } catch (Exception e) {
+            throw new JobExecutionException("Class not properly instrumented. Method setCOMPSsVariables not found!", e);
+        }
+        try {
+            Object[] values = new Object[] { this.runtimeAPI,
+                this };
+            wf = (JavaWorkflow) setter.invoke(null, values);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            throw new JobExecutionException("Error setting Nested COMPSs variables", e);
+        }
+
+        return wf;
     }
 
     @Override

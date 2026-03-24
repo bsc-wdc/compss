@@ -56,8 +56,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     public FakeAllocatableAction(ActionOrchestrator td, int id, CoreElement ce, Validator v) {
         super(new FakeSI(null), td);
         this.fakeId = id;
-        this.taskDescription = new TaskDescription(null, null, ce.getSignature(), ce, null, false, 1, false, false,
-            false, false, 0, null, 0, new LinkedList<>());
+        this.taskDescription = new TaskDescription(ce.getSignature(), ce, null, false, 1, false, false, false, false, 0,
+            null, 0, new LinkedList<>());
         this.validator = v;
     }
 

@@ -199,15 +199,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                     initialized = true;
                     LOGGER.debug("Ready to process tasks");
                 }
-            } else {
-                // Service
-                String className = Thread.currentThread().getStackTrace()[2].getClassName();
-                LOGGER.debug("Initializing " + className + "Itf");
-                try {
-                    td.addInterface(Class.forName(className + "Itf"));
-                } catch (ClassNotFoundException cnfe) {
-                    ErrorManager.fatal("Error adding interface " + className + "Itf", cnfe);
-                }
             }
 
             if (DP_ENABLED) {

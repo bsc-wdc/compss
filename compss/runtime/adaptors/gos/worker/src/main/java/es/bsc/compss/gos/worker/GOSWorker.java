@@ -87,7 +87,7 @@ public class GOSWorker implements InvocationContext {
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
     private static final int HOSTS_FLAGS_SIZE = 10;
     private static final int TRACING_FLAGS_SIZE = 7;
-    private static final int LANG_SIZE_FLAGS = 11;
+    private static final int LANG_SIZE_FLAGS = 9;
     private static final int EXTRA_FLAG_SIZE = 0;
     private static final int HOST_INX = 0;
     private static final int TRACING_INX = HOST_INX + HOSTS_FLAGS_SIZE;
@@ -107,7 +107,6 @@ public class GOSWorker implements InvocationContext {
     private final boolean debug;
     private final boolean tracing;
     private final int tracingSlot;
-    private final Lang lang;
     private String[] tracingParams;
     private final LanguageParams[] langParams;
     private String envScriptPath;
@@ -149,13 +148,12 @@ public class GOSWorker implements InvocationContext {
         final int tracingSlot = Integer.parseInt(args[TRACING_INX + 6]);
 
         /*
-         * langFlags=("${lang}" "${taskSandboxWorkingDir}" "${cp}" "${pythonpath}" "${pythonInterpreter}"
+         * langFlags=(${persistentWorker} "${taskSandboxWorkingDir}" "${cp}" "${pythonpath}" "${pythonInterpreter}"
          * "${pythonVersion}" "${pythonVirtualEnvironment}" "${pythonPropagateVirtualEnvironment}"
          * "${pythonExtraeFile}")
          */
         i = 0;
         boolean persistentC = Boolean.parseBoolean(args[LANG_INX + i++]);
-        final String lang = args[LANG_INX + i++];
         final String taskSandboxWorkingDir = args[LANG_INX + i++];
         final String classpath = args[LANG_INX + i++];
         final String pythonpath = args[LANG_INX + i++];
@@ -217,7 +215,7 @@ public class GOSWorker implements InvocationContext {
             }
         }
 
-        final GOSInvocation implDef = parseArguments(args, debug, Lang.valueOf(lang.toUpperCase()));
+        final GOSInvocation implDef = parseArguments(args, debug);
 
         String storageConf = (storageConfArg == null || storageConfArg.isEmpty()) ? "null" : storageConfArg;
 
@@ -234,7 +232,7 @@ public class GOSWorker implements InvocationContext {
         GOSWorker worker = new GOSWorker(workerName, workingDir, debug, installDir, appDir, storageConf, streamBackend,
             streamMasterName, streamMasterPort, implDef.getComputingUnits(), implDef.getCPUMap(),
             implDef.getGPUComputingUnits(), implDef.getGPUMAp(), implDef.getFPGAUnits(), implDef.getFPGAMap(), tracing,
-            tracingSlot, tracingParams, lang, langParams, envScriptPath);
+            tracingSlot, tracingParams, langParams, envScriptPath);
 
         // Run task
         boolean success = worker.runTask(implDef);
@@ -289,14 +287,13 @@ public class GOSWorker implements InvocationContext {
      * @param tracing the tracing
      * @param tracingSlot the tracing slot
      * @param tracingParams the tracing Params
-     * @param lang lang
      * @param langParams the lang params
      */
     public GOSWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir,
         String storageConf, StreamBackend streamBackend, String streamMasterName, int streamMasterPort,
         int computingUnitsCPU, String cpuMap, int computingUnitsGPU, String gpuMap, int computingUnitsFPGA,
-        String fpgaMap, boolean tracing, int tracingSlot, String[] tracingParams, String lang,
-        LanguageParams[] langParams, String envScriptPath) {
+        String fpgaMap, boolean tracing, int tracingSlot, String[] tracingParams, LanguageParams[] langParams,
+        String envScriptPath) {
 
         this.hostName = workerName;
         this.workingDir = workingDir;
@@ -310,7 +307,6 @@ public class GOSWorker implements InvocationContext {
         this.tracing = tracing;
         this.tracingParams = tracingParams;
         this.tracingSlot = tracingSlot;
-        this.lang = COMPSsConstants.Lang.valueOf(lang.toUpperCase());
 
         this.langParams = langParams;
 
@@ -331,43 +327,43 @@ public class GOSWorker implements InvocationContext {
 
     }
 
-    private static GOSInvocation parseArguments(String[] args, boolean debug, Lang lang) {
+    private static GOSInvocation parseArguments(String[] args, boolean debug) {
         // Default flags
         int argPosition = DEFAULT_FLAGS_SIZE;
         MethodType methodType = MethodType.valueOf(args[argPosition++]);
         switch (methodType) {
             case METHOD:
                 return genImplemenationDefinition(new MethodDefinition(args, argPosition), debug, args,
-                    argPosition + MethodDefinition.NUM_PARAMS, lang);
+                    argPosition + MethodDefinition.NUM_PARAMS);
             case BINARY:
                 return genImplemenationDefinition(new BinaryDefinition(args, argPosition, null), debug, args,
-                    argPosition + BinaryDefinition.NUM_PARAMS, lang);
+                    argPosition + BinaryDefinition.NUM_PARAMS);
             // why there is no MPMD MPI case?
             case MPI:
                 return genImplemenationDefinition(new MPIDefinition(args, argPosition), debug, args,
-                    argPosition + MPIDefinition.NUM_PARAMS, lang);
+                    argPosition + MPIDefinition.NUM_PARAMS);
             case COMPSs:
                 return genImplemenationDefinition(new COMPSsDefinition(args, argPosition), debug, args,
-                    argPosition + COMPSsDefinition.NUM_PARAMS, lang);
+                    argPosition + COMPSsDefinition.NUM_PARAMS);
             case DECAF:
                 return genImplemenationDefinition(new DecafDefinition(args, argPosition), debug, args,
-                    argPosition + DecafDefinition.NUM_PARAMS, lang);
+                    argPosition + DecafDefinition.NUM_PARAMS);
             case MULTI_NODE:
                 return genImplemenationDefinition(new MultiNodeDefinition(args, argPosition), debug, args,
-                    argPosition + MultiNodeDefinition.NUM_PARAMS, lang);
+                    argPosition + MultiNodeDefinition.NUM_PARAMS);
             case OMPSS:
                 return genImplemenationDefinition(new OmpSsDefinition(args, argPosition), debug, args,
-                    argPosition + OmpSsDefinition.NUM_PARAMS, lang);
+                    argPosition + OmpSsDefinition.NUM_PARAMS);
             case OPENCL:
                 return genImplemenationDefinition(new OpenCLDefinition(args, argPosition), debug, args,
-                    argPosition + OpenCLDefinition.NUM_PARAMS, lang);
+                    argPosition + OpenCLDefinition.NUM_PARAMS);
             case PYTHON_MPI:
                 PythonMPIDefinition pyMPIDef = new PythonMPIDefinition(args, argPosition);
                 return genImplemenationDefinition(pyMPIDef, debug, args,
-                    argPosition + PythonMPIDefinition.NUM_PARAMS + pyMPIDef.getCollectionLayouts().length * 4, lang);
+                    argPosition + PythonMPIDefinition.NUM_PARAMS + pyMPIDef.getCollectionLayouts().length * 4);
             case CONTAINER:
                 return genImplemenationDefinition(new ContainerDefinition(args, argPosition), debug, args,
-                    argPosition + ContainerDefinition.NUM_PARAMS, lang);
+                    argPosition + ContainerDefinition.NUM_PARAMS);
         }
         // If we reach this point means that the methodType was unrecognized
         ErrorManager.error(WARN_UNSUPPORTED_METHOD_TYPE + methodType);
@@ -375,12 +371,12 @@ public class GOSWorker implements InvocationContext {
     }
 
     private static GOSInvocation genImplemenationDefinition(AbstractMethodImplementationDefinition implDef,
-        boolean debug, String[] args, int argPosition, Lang lang) {
+        boolean debug, String[] args, int argPosition) {
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc =
             new ImplementationDescription<>(implDef, "", false, null, null, null);
         AbstractMethodImplementation impl = new AbstractMethodImplementation(0, 0, implDesc);
         System.out.println("Implementation:" + impl.toString());
-        return new GOSInvocation(debug, lang, impl, args, argPosition);
+        return new GOSInvocation(debug, impl, args, argPosition);
     }
 
     @Override

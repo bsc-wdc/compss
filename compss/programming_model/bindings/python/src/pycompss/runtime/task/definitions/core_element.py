@@ -27,6 +27,8 @@ from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.util.typing_helper import typing
 
 
+LANG = "PYTHON"
+
 class CE:  # pylint: disable=too-many-instance-attributes
     """Core Element class."""
 

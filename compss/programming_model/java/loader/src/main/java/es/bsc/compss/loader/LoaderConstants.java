@@ -17,10 +17,12 @@
 package es.bsc.compss.loader;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.total.ArrayAccessWatcher;
+import es.bsc.compss.loader.total.CEIParser;
 import es.bsc.compss.loader.total.COMPSsGroupLoader;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.loader.total.WorkflowSupplier;
@@ -49,6 +51,7 @@ public class LoaderConstants {
     // Classes
     public static final String CLASS_COMPSS_API = COMPSs.class.getCanonicalName();
     public static final String CLASS_COMPSSRUNTIME_API = COMPSsRuntime.class.getCanonicalName();
+    public static final String CLASS_APP_RUNNER = ApplicationRunner.class.getCanonicalName();
     public static final String CLASS_STREAM_REGISTRY = StreamRegistry.class.getCanonicalName();
     public static final String CLASS_ARRAY_ACCESS_WATCHER = ArrayAccessWatcher.class.getCanonicalName();
     public static final String CLASS_COMPSS_API_IMPL = "es.bsc.compss.api.impl.COMPSsRuntimeImpl";
@@ -57,6 +60,7 @@ public class LoaderConstants {
     public static final String CLASS_COMPSS_GROUP = COMPSsGroup.class.getCanonicalName();
     public static final String CLASS_WORKFLOW_SUPPLIER = WorkflowSupplier.class.getCanonicalName();
     public static final String CLASS_WORKFLOW = JavaWorkflow.class.getCanonicalName();
+    public static final String CLASS_CEI_PARSER = CEIParser.class.getCanonicalName();
 
     // Strings for Loader variables
     public static final String STR_COMPSS_API = "Api";

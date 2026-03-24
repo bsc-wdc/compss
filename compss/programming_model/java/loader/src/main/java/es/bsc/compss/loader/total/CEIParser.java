@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util.parsers;
+package es.bsc.compss.loader.total;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.Constants;
@@ -64,17 +65,17 @@ import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class ITFParser {
+public class CEIParser {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
@@ -82,13 +83,19 @@ public class ITFParser {
      * Loads the annotated class and initializes the data structures that contain the constraints. For each method found
      * in the annotated interface creates its signature and adds the constraints to the structures.
      *
-     * @param annotItfClass package and name of the Annotated Interface class
+     * @param ceiName package and name of the Annotated Interface class
      * @return
      */
-    public static List<CoreElementDefinition> parseITFMethods(Class<?> annotItfClass) {
-        List<CoreElementDefinition> updatedMethods = new LinkedList<>();
-
+    public static List<CoreElementDefinition> parseCoreElements(String ceiName) {
+        Class<?> annotItfClass;
+        try {
+            annotItfClass = Class.forName(ceiName);
+        } catch (Exception e) {
+            LOGGER.warn("Could not find class " + ceiName, e);
+            return new ArrayList<>();
+        }
         int coreCount = annotItfClass.getDeclaredMethods().length;
+        List<CoreElementDefinition> updatedMethods = new ArrayList<>(coreCount);
         if (DEBUG) {
             LOGGER.debug("Detected methods " + coreCount);
         }
@@ -509,7 +516,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(), methodSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, declaringClass, methodName);
+                    implProcessLocal, implConstraints, prolog, epilog, container, Lang.JAVA.name(), declaringClass,
+                    methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -528,15 +536,15 @@ public class ITFParser {
                     "Java HTTP " + methodName + " does not support stream annotations. SKIPPING stream annotation");
             }
 
-            calleeMethodSignature.insert(0, hAnno.declaringClass() + ".");
+            String declaringClass = hAnno.declaringClass();
+            String methodSignature = calleeMethodSignature.toString() + declaringClass;
 
             // Register HTTP implementation
             ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
-                    calleeMethodSignature.toString(), false, null, prolog, epilog, container, hAnno.serviceName(),
-                    hAnno.resource(), hAnno.request(), hAnno.payload(), hAnno.payloadType(), hAnno.produces(),
-                    hAnno.updates(), hAnno.defReturn());
+                implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(), methodSignature,
+                    false, null, prolog, epilog, container, hAnno.serviceName(), hAnno.resource(), hAnno.request(),
+                    hAnno.payload(), hAnno.payloadType(), hAnno.produces(), hAnno.updates(), hAnno.defReturn());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -839,8 +847,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(),
-                    methodSignature, implProcessLocal, implConstraints, prolog, epilog, container, declaringClass,
-                    methodName, multiNodeAnnot.processesPerNode());
+                    methodSignature, implProcessLocal, implConstraints, prolog, epilog, container, Lang.JAVA.name(),
+                    declaringClass, methodName, multiNodeAnnot.processesPerNode());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

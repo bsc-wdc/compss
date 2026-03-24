@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -26,14 +28,14 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 
-public class MultiNodeDefinition implements AbstractMethodImplementationDefinition {
+public class MultiNodeDefinition extends NativeDefinition {
 
     /**
      * Runtime Objects have serialization ID 1L.
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 3;
+    public static final int NUM_PARAMS = 4;
 
     private String declaringClass;
     private String methodName;
@@ -50,11 +52,12 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
     /**
      * Creates a new MultiNodeImplementation instance from the given parameters.
      *
+     * @param lang Language implementing the method
      * @param methodClass Class name.
      * @param methodName Method name.
      */
-    public MultiNodeDefinition(String methodClass, String methodName, int ppn) {
-
+    public MultiNodeDefinition(Lang lang, String methodClass, String methodName, int ppn) {
+        super(lang);
         this.declaringClass = methodClass;
         this.methodName = methodName;
         this.ppn = ppn;
@@ -67,15 +70,16 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
      * @param offset Element from the beginning of the string array.
      */
     public MultiNodeDefinition(String[] implTypeArgs, int offset) {
-        declaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
-        methodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        super(implTypeArgs, offset);
+        this.declaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.methodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
         if (declaringClass == null || declaringClass.isEmpty()) {
             throw new IllegalArgumentException("Empty declaringClass annotation for method ");
         }
         if (methodName == null || methodName.isEmpty()) {
             throw new IllegalArgumentException("Empty methodName annotation for method ");
         }
-        String ppnStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        String ppnStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         if (ppnStr == null || ppnStr.isEmpty()) {
             this.ppn = 1;
         } else {
@@ -85,6 +89,7 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
 
     @Override
     public void appendToArgs(List<String> lArgs, String auxParam) {
+        super.appendToArgs(lArgs, auxParam);
         lArgs.add(this.declaringClass);
         lArgs.add(this.methodName);
         lArgs.add(Integer.toString(this.ppn));
@@ -129,6 +134,7 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
     @Override
     public String toJSON() {
         StringBuilder sb = new StringBuilder("{\"type\":\"MULTI_NODE\",");
+        sb.append(super.toJSON()).append(",");
         sb.append("\"declaring_class\":\"").append(this.declaringClass).append("\",");
         sb.append("\"method_name\":\"").append(this.methodName).append("\",");
         sb.append("\"ppn\":").append(this.ppn).append("");
@@ -140,6 +146,7 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("MultiNode Implementation \n");
+        sb.append(super.toString()).append("\n");
         sb.append("\t Class: ").append(this.declaringClass).append("\n");
         sb.append("\t Name: ").append(this.methodName).append("\n");
         return sb.toString();
@@ -147,11 +154,13 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
 
     @Override
     public String toShortFormat() {
-        return " Multi-Node Method declared in class " + this.declaringClass + "." + methodName;
+        return " Multi-Node " + super.toShortFormat() + " method declared in class " + this.declaringClass + "."
+            + methodName;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in);
         this.declaringClass = (String) in.readObject();
         this.methodName = (String) in.readObject();
         this.ppn = in.readInt();
@@ -159,14 +168,10 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out);
         out.writeObject(this.declaringClass);
         out.writeObject(this.methodName);
         out.writeInt(this.ppn);
-    }
-
-    @Override
-    public TaskType getTaskType() {
-        return TaskType.METHOD;
     }
 
 }

@@ -151,270 +151,6 @@ TEST_P(GenericRuntimeTransportTest, PipeRegisterCE_WritesCommand) {
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_WritesCorrectCommand) {
-    long appId = 1L;
-    std::string className = "TestClass";
-    std::string onFailure = "RETRY";
-    int timeout = 1000;
-    std::string methodName = "testMethod";
-    int priority = 1;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = true;
-    bool distributed = false;
-    bool hasTarget = true;
-    int numReturns = 1;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "10",
-            .type = int_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "param1",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "/path/to/file.txt",
-            .type = file_dt,
-            .dir = inout_dir,
-            .ioStream = STD_IN,
-            .prefix = "FILE_PREFIX_",
-            .name = "fileParam",
-            .contType = "text/plain",
-            .weight = "2.5",
-            .keepRename = true
-        },
-        {
-            .value = "true",
-            .type = boolean_dt,
-            .dir = out_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "boolParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expectedCommand =
-        "EXECUTE_NESTED_TASK CLASS_METHOD TestClass RETRY 1000 testMethod true 1 false 0 true false true 1 3 [ "
-        " { \"Value\" : \"10\", \"DataType\" : 4, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"param1\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"/path/to/file.txt\", \"DataType\" : 10, \"Direction\" : 2, \"IOStream\" : 0, \"Prefix\" : \"FILE_PREFIX_\", \"Name\" : \"fileParam\", \"ContType\" : \"text/plain\", \"Weight\" : \"2.5\", \"KeepRename\" : true }, "
-        " { \"Value\" : \"true\", \"DataType\" : 0, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"boolParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expectedCommand);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_NoParameters_WritesCorrectCommand) {
-    long appId = 3L;
-    std::string className = "NoParamClass";
-    std::string onFailure = "RETRY";
-    int timeout = 1000;
-    std::string methodName = "noParamMethod";
-    int priority = 0;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = false;
-    bool hasTarget = false;
-    int numReturns = 0;
-    std::vector<Parameter> params = {}; // Empty parameter list
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expectedCommand =
-        "EXECUTE_NESTED_TASK CLASS_METHOD NoParamClass RETRY 1000 noParamMethod false 1 false 0 false false false 0 0 [  ] \n";
-
-    EXPECT_EQ(harness->commands(), expectedCommand);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_MoreDataTypes_WritesCorrectCommand) {
-    long appId = 4L;
-    std::string className = "MoreDataTypesClass";
-    std::string onFailure = "RETRY";
-    int timeout = 1000;
-    std::string methodName = "moreDataTypesMethod";
-    int priority = 0;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = false;
-    bool hasTarget = false;
-    int numReturns = 0;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "C",
-            .type = char_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "charParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "123",
-            .type = short_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "shortParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "3.1415901",
-            .type = float_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "floatParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "/path/to/dir",
-            .type = directory_dt,
-            .dir = inout_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "DIR_PREFIX_",
-            .name = "dirParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "hello world",
-            .type = string_dt,
-            .dir = out_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "stringParam",
-            .contType = "text/string",
-            .weight = "1.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expectedCommand =
-        "EXECUTE_NESTED_TASK CLASS_METHOD MoreDataTypesClass RETRY 1000 moreDataTypesMethod false 1 false 0 false false false 0 5 [ "
-        " {  { \"Value\" : \"C\", \"DataType\" : 1, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"charParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"123\", \"DataType\" : 3, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"shortParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"3.14159\", \"DataType\" : 6, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"floatParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"/path/to/dir\", \"DataType\" : 33, \"Direction\" : 2, \"IOStream\" : 3, \"Prefix\" : \"DIR_PREFIX_\", \"Name\" : \"dirParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"hello world\", \"DataType\" : 8, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"stringParam\", \"ContType\" : \"text/string\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expectedCommand);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_VoidAndAnyDataTypes_WritesCorrectCommand) {
-    long appId = 6L;
-    std::string className = "VoidAnyClass";
-    std::string onFailure = "RETRY";
-    int timeout = 1000;
-    std::string methodName = "voidAnyMethod";
-    int priority = 0;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = false;
-    bool hasTarget = false;
-    int numReturns = 0;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "",
-            .type = void_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "voidParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "",
-            .type = any_dt,
-            .dir = out_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "anyParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expectedCommand =
-        "EXECUTE_NESTED_TASK CLASS_METHOD VoidAnyClass RETRY 1000 voidAnyMethod false 1 false 0 false false false 0 2 [ "
-        " { \"Value\" : VOID , \"DataType\" : 18, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"voidParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : ANY , \"DataType\" : 19, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"anyParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expectedCommand);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_UnknownDataType_WritesErrorCommand) {
-    long appId = 5L;
-    std::string className = "UnknownDataTypeClass";
-    std::string onFailure = "RETRY";
-    int timeout = 1000;
-    std::string methodName = "unknownDataTypeMethod";
-    int priority = 0;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = false;
-    bool hasTarget = false;
-    int numReturns = 0;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "dummy_value",
-            .type = static_cast<enum datatype>(999), // Invalid datatype
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "unknownParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expectedCommand =
-        "EXECUTE_NESTED_TASK CLASS_METHOD UnknownDataTypeClass RETRY 1000 unknownDataTypeMethod false 1 false 0 false false false 0 1 [ ERROR \"DataType\" : 999, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"unknownParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expectedCommand);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTaskNew_WritesCorrectCommand) {
     long appId = 2L;
     std::string signature = "my.package.MyClass.anotherMethod(long)";
     std::string onFailure = "IGNORE";
@@ -453,11 +189,11 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTaskNew_WritesCorrectCommand) {
         }
     };
 
-    runtime->executeTaskNew(appId, signature, onFailure, timeout, priority, numNodes,
+    runtime->executeTask(appId, signature, onFailure, timeout, priority, numNodes,
                             reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
 
     std::string expectedCommand =
-        "EXECUTE_NESTED_TASK SIGNATURE my.package.MyClass.anotherMethod(long) IGNORE 5000 false 2 true 10 false true false 0 2 [ "
+        "EXECUTE_NESTED_TASK my.package.MyClass.anotherMethod(long) IGNORE 5000 false 2 true 10 false true false 0 2 [ "
         " { \"Value\" : \"9876543210\", \"DataType\" : 5, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"longParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
         " { \"Value\" : NULL , \"DataType\" : 32, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"nullResult\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
 
@@ -861,117 +597,6 @@ TEST_P(GenericRuntimeTransportTest, PipeOpenFile_WritesCommandAndParsesResult) {
     EXPECT_EQ(openedPath, "/compss/path/input_data.txt");
 }
 
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_DiverseTypesAndStreams_WritesCorrectCommand) {
-    long appId = 8L;
-    std::string className = "DiverseClass";
-    std::string onFailure = "RETRY";
-    int timeout = 2000;
-    std::string methodName = "diverse";
-    int priority = 0;
-    int numNodes = 2;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = true;
-    bool hasTarget = false;
-    int numReturns = 0;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "W",          // wchar/char value
-            .type = wchar_dt,
-            .dir = in_dir,
-            .ioStream = STD_OUT,    // IOStream 1
-            .prefix = "",
-            .name = "wcharParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "9223372036854775807",
-            .type = longlong_dt,
-            .dir = in_dir,
-            .ioStream = STD_ERR,    // IOStream 2
-            .prefix = "",
-            .name = "llParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "2.718281828459045",
-            .type = double_dt,
-            .dir = inout_dir,
-            .ioStream = UNSPECIFIED, // IOStream 3
-            .prefix = "",
-            .name = "doubleParam",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = true
-        },
-        {
-            .value = "/dev/stdin",
-            .type = external_stream_dt,
-            .dir = in_dir,
-            .ioStream = STD_IN,     // IOStream 0
-            .prefix = "STREAM_",
-            .name = "extStream",
-            .contType = "binary/stream",
-            .weight = "0.5",
-            .keepRename = false
-        },
-        {
-            .value = "bo:12345",
-            .type = binding_object_dt,
-            .dir = out_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "bindingObj",
-            .contType = "null",
-            .weight = "3.0",
-            .keepRename = false
-        },
-        {
-            .value = "[1,2,3]",
-            .type = collection_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "coll",
-            .contType = "application/json",
-            .weight = "1.2",
-            .keepRename = false
-        },
-        {
-            .value = "{k:v}",
-            .type = dict_collection_dt,
-            .dir = inout_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "dictColl",
-            .contType = "application/json",
-            .weight = "1.3",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expectedCommand =
-        "EXECUTE_NESTED_TASK CLASS_METHOD DiverseClass RETRY 2000 diverse false 2 false 0 false true false 0 7 [ "
-        " {  { \"Value\" : \"W\", \"DataType\" : 15, \"Direction\" : 0, \"IOStream\" : 1, \"Prefix\" : \"\", \"Name\" : \"wcharParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"9223372036854775807\", \"DataType\" : 17, \"Direction\" : 0, \"IOStream\" : 2, \"Prefix\" : \"\", \"Name\" : \"llParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"2.718281828459045091\", \"DataType\" : 7, \"Direction\" : 2, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"doubleParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : true }, "
-        " { \"Value\" : \"/dev/stdin\", \"DataType\" : 30, \"Direction\" : 0, \"IOStream\" : 0, \"Prefix\" : \"STREAM_\", \"Name\" : \"extStream\", \"ContType\" : \"binary/stream\", \"Weight\" : \"0.5\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"bo:12345\", \"DataType\" : 14, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"bindingObj\", \"ContType\" : \"null\", \"Weight\" : \"3.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"[1,2,3]\", \"DataType\" : 27, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"coll\", \"ContType\" : \"application/json\", \"Weight\" : \"1.2\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"{k:v}\", \"DataType\" : 28, \"Direction\" : 2, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"dictColl\", \"ContType\" : \"application/json\", \"Weight\" : \"1.3\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expectedCommand);
-}
-
 TEST_P(GenericRuntimeTransportTest, ReadCommand_AsyncPartialThenCompleteLine) {
     // Cover read loop and clearerr path by delaying final newline
     std::thread writer([&]{
@@ -1045,7 +670,7 @@ TEST_P(GenericRuntimeTransportTest, PipeRegisterCE_WithArgs_WritesCommand) {
     EXPECT_EQ(harness->commands(), expected);
 }
 
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTaskNew_NoParams_WritesCorrectCommand) {
+TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_NoParams_WritesCorrectCommand) {
     long appId = 9L;
     std::string signature = "pkg.Foo.bar()";
     std::string onFailure = "IGNORE";
@@ -1060,144 +685,15 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTaskNew_NoParams_WritesCorrectCom
     int numReturns = 0;
     std::vector<Parameter> params = {};
 
-    runtime->executeTaskNew(appId, signature, onFailure, timeout, priority, numNodes,
+    runtime->executeTask(appId, signature, onFailure, timeout, priority, numNodes,
                             reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
 
     std::string expected =
-        "EXECUTE_NESTED_TASK SIGNATURE pkg.Foo.bar() IGNORE 1 false 1 false 0 false false false 0 0 [  ] \n";
+        "EXECUTE_NESTED_TASK pkg.Foo.bar() IGNORE 1 false 1 false 0 false false false 0 0 [  ] \n";
     EXPECT_EQ(harness->commands(), expected);
 }
 
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_BooleanFalseParam_WritesCorrectCommand) {
-    long appId = 10L;
-    std::string className = "BoolClass";
-    std::string onFailure = "RETRY";
-    int timeout = 10;
-    std::string methodName = "boolFalse";
-    int priority = 0;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = false;
-    bool hasTarget = false;
-    int numReturns = 0;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "false",
-            .type = boolean_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "flag",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expected =
-        "EXECUTE_NESTED_TASK CLASS_METHOD BoolClass RETRY 10 boolFalse false 1 false 0 false false false 0 1 [  { \"Value\" : \"false\", \"DataType\" : 0, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"flag\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expected);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_String64AndExternalPsco_WritesCorrectCommand) {
-    long appId = 11L;
-    std::string className = "MixedTypes";
-    std::string onFailure = "RETRY";
-    int timeout = 50;
-    std::string methodName = "str64Psco";
-    int priority = 1;
-    int numNodes = 1;
-    bool reduce = false;
-    int reduceChunkSize = 0;
-    bool replicated = false;
-    bool distributed = false;
-    bool hasTarget = false;
-    int numReturns = 0;
-
-    std::vector<Parameter> params = {
-        {
-            .value = std::string(80, 'A'), // 80-char string
-            .type = string_64_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "s64",
-            .contType = "text/plain",
-            .weight = "1.0",
-            .keepRename = false
-        },
-        {
-            .value = "psco://object/abc123",
-            .type = external_psco_dt,
-            .dir = out_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "psco",
-            .contType = "null",
-            .weight = "2.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::ostringstream s64;
-    s64 << std::string(80, 'A');
-
-    std::string expected =
-        "EXECUTE_NESTED_TASK CLASS_METHOD MixedTypes RETRY 50 str64Psco true 1 false 0 false false false 0 2 [ "
-        " { \"Value\" : \"" + s64.str() + "\", \"DataType\" : 9, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"s64\", \"ContType\" : \"text/plain\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
-        " { \"Value\" : \"psco://object/abc123\", \"DataType\" : 13, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"psco\", \"ContType\" : \"null\", \"Weight\" : \"2.0\", \"KeepRename\" : false } ] \n";
-
-    EXPECT_EQ(harness->commands(), expected);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_ReduceReplicatedTargetPriority_WritesCorrectCommand) {
-    long appId = 12L;
-    std::string className = "ToggleClass";
-    std::string onFailure = "RETRY";
-    int timeout = 123;
-    std::string methodName = "toggle";
-    int priority = 5; // non-zero => true
-    int numNodes = 4;
-    bool reduce = true;
-    int reduceChunkSize = 8;
-    bool replicated = true;
-    bool distributed = false;
-    bool hasTarget = true;
-    int numReturns = 2;
-
-    std::vector<Parameter> params = {
-        {
-            .value = "42",
-            .type = int_dt,
-            .dir = in_dir,
-            .ioStream = UNSPECIFIED,
-            .prefix = "",
-            .name = "x",
-            .contType = "null",
-            .weight = "1.0",
-            .keepRename = false
-        }
-    };
-
-    runtime->executeTask(appId, className, onFailure, timeout, methodName, priority, numNodes,
-                         reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
-
-    std::string expected =
-        "EXECUTE_NESTED_TASK CLASS_METHOD ToggleClass RETRY 123 toggle true 4 true 8 true false true 2 1 [  { \"Value\" : \"42\", \"DataType\" : 4, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"x\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
-    EXPECT_EQ(harness->commands(), expected);
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeExecuteTaskNew_PriorityReduceReplicatedHasTarget_WritesCorrectCommand) {
+TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_PriorityReduceReplicatedHasTarget_WritesCorrectCommand) {
     long appId = 13L;
     std::string signature = "pkg.Toggle.sig(int)";
     std::string onFailure = "RETRY";
@@ -1225,11 +721,11 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTaskNew_PriorityReduceReplicatedH
         }
     };
 
-    runtime->executeTaskNew(appId, signature, onFailure, timeout, priority, numNodes,
+    runtime->executeTask(appId, signature, onFailure, timeout, priority, numNodes,
                             reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
 
     std::string expected =
-        "EXECUTE_NESTED_TASK SIGNATURE pkg.Toggle.sig(int) RETRY 321 true 2 true 5 true false true 1 1 [  { \"Value\" : \"7\", \"DataType\" : 4, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"y\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
+        "EXECUTE_NESTED_TASK pkg.Toggle.sig(int) RETRY 321 true 2 true 5 true false true 1 1 [  { \"Value\" : \"7\", \"DataType\" : 4, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"y\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
     EXPECT_EQ(harness->commands(), expected);
 }
 

@@ -117,20 +117,12 @@ void GS_CloseTaskGroup(char* groupName, long appId){
 	}
 }
 
-void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
-		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
-	if (workflow == NULL) {
-		registerWorkflow();
-    }
-	workflow->executeTask(workflow, className, onFailure, timeout, methodName, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
-}
-
 void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
                        int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 	if (workflow == NULL) {
 		registerWorkflow();
     }
-	workflow->executeTaskNew(workflow, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+	workflow->executeTask(workflow, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 }
 
 void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,

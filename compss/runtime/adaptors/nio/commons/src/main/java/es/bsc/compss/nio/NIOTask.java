@@ -38,7 +38,6 @@ import java.util.List;
  */
 public class NIOTask implements Externalizable, Invocation {
 
-    private Lang lang;
     private boolean workerDebug;
     private AbstractMethodImplementation impl;
     private String parallelismSource;
@@ -73,7 +72,6 @@ public class NIOTask implements Externalizable, Invocation {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param impl Implementation to execute.
      * @param parallelismSource Identifier of the object describing how the task should be parallelized
@@ -87,12 +85,11 @@ public class NIOTask implements Externalizable, Invocation {
      * @param transferGroupId Transfer group Id.
      * @param timeOut Task timeout.
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
-        boolean hasTarget, int numReturns, LinkedList<NIOParam> params, List<String> slaveWorkersNodeNames, int taskId,
-        int jobId, JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, List<Integer> predecessors,
+    public NIOTask(boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource, boolean hasTarget,
+        int numReturns, LinkedList<NIOParam> params, List<String> slaveWorkersNodeNames, int taskId, int jobId,
+        JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, List<Integer> predecessors,
         Integer numSuccessors) {
 
-        this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
         this.parallelismSource = parallelismSource;
@@ -131,7 +128,6 @@ public class NIOTask implements Externalizable, Invocation {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param impl Implementation to execute.
      * @param parallelismSource Identifier of the object describing how the task should be parallelized
@@ -145,12 +141,11 @@ public class NIOTask implements Externalizable, Invocation {
      * @param transferGroupId Transfer group Id.
      * @param timeOut Task deadline
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
+    public NIOTask(boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
         LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
         OnFailure onFailure, long timeOut) {
 
-        this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
         this.parallelismSource = parallelismSource;
@@ -168,11 +163,6 @@ public class NIOTask implements Externalizable, Invocation {
         this.transferGroupId = transferGroupId;
         this.numReturns = results.size();
         this.profile = new NIOTaskProfile();
-    }
-
-    @Override
-    public Lang getLang() {
-        return this.lang;
     }
 
     @Override
@@ -316,7 +306,6 @@ public class NIOTask implements Externalizable, Invocation {
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        this.lang = Lang.valueOf((String) in.readObject());
         this.workerDebug = in.readBoolean();
         this.impl = (AbstractMethodImplementation) in.readObject();
         boolean ceiDefined = in.readBoolean();
@@ -340,7 +329,6 @@ public class NIOTask implements Externalizable, Invocation {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(this.lang.toString());
         out.writeBoolean(this.workerDebug);
         out.writeObject(this.impl);
         boolean ceiDefined = this.parallelismSource != null && !this.parallelismSource.isEmpty();
@@ -364,7 +352,6 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     protected void dumpContent(StringBuilder sb) {
-        sb.append("\"lang\":\"").append(this.lang).append("\",");
         sb.append("\"task_id\":").append(this.taskId).append(",");
         sb.append("\"job_id\":").append(this.jobId).append(",");
         sb.append("\"history\":\"").append(this.history).append("\",");

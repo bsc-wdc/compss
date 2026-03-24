@@ -18,6 +18,7 @@ package es.bsc.compss.scheduler.types;
 
 import static org.junit.Assert.fail;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.scheduler.fullgraph.multiobjective.MOResourceScheduler;
 import es.bsc.compss.scheduler.fullgraph.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
@@ -26,7 +27,6 @@ import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
@@ -92,17 +92,17 @@ public class MOResourceSchedulerTest {
         ImplementationDescription<?, ?> implDef = null;
 
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodA", false,
-            new MethodResourceDescription(), null, null, null, "ClassA", "methodA");
+            new MethodResourceDescription(), null, null, null, Lang.JAVA.name(), "ClassA", "methodA");
         cedA.addImplementation(implDef);
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassB.methodA", false,
-            new MethodResourceDescription(), null, null, null, "ClassB", "methodA");
+            new MethodResourceDescription(), null, null, null, Lang.JAVA.name(), "ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodB", false,
-            new MethodResourceDescription(), null, null, null, "ClassA", "methodB");
+            new MethodResourceDescription(), null, null, null, Lang.JAVA.name(), "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);
     }

@@ -388,7 +388,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
         String ceSignature = methodName + "(" + paramsTypes + ")";
         String implSignature = methodName + "(" + paramsTypes + ")" + className;
-        String[] typeArgs = new String[] { className,
+        String[] typeArgs = new String[] { lang.name(),
+            className,
             methodName };
 
         MethodResourceDescription requirements = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS;
@@ -399,7 +400,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             implSignature, false, requirements, request.getProlog(), request.getEpilog(), null, typeArgs);
         ced.addImplementation(implDef);
         try {
-            appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);
+            appId = Agent.runTask(ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);
             LOGGER.info("External job - is app " + appId);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runTask : ", e);

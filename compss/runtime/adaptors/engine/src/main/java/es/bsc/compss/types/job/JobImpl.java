@@ -156,15 +156,6 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
-     * Returns the language of the task.
-     *
-     * @return language of the task
-     */
-    public Lang getLang() {
-        return this.taskParams.getLang();
-    }
-
-    /**
      * Returns the job id.
      *
      * @return

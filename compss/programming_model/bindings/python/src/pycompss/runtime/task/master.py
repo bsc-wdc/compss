@@ -172,6 +172,8 @@ ATTRIBUTES_TO_BE_REMOVED = {
     "returns",
     "multi_return",
 }
+# Defaults
+LANG = "PYTHON"
 
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
@@ -1354,19 +1356,22 @@ class TaskMaster:
                 # Specific for inheritance - not for @implements.
                 set_ce_signature(impl_signature)
                 set_impl_signature(impl_signature)
-                set_impl_type_args(impl_type_args)
             else:
                 # If we are here that means that we come from an implements
                 # decorator, which means that this core element has already
                 # a signature
                 set_impl_signature(impl_signature)
-                set_impl_type_args(impl_type_args)
+                set_impl_type_args([LANG] + impl_type_args)
             if not _impl_constraints:
                 set_impl_constraints(impl_constraints)
             if not _impl_type:
                 set_impl_type(impl_type)
             if not _impl_type_args:
-                set_impl_type_args(impl_type_args)
+                if _impl_type == IMPLEMENTATION_TYPES.method or _impl_type is None:
+                    impl_type_args_updated = [LANG] + impl_type_args
+                else:
+                    impl_type_args_updated = impl_type_args
+                set_impl_type_args(impl_type_args_updated)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
             if _impl_type == IMPLEMENTATION_TYPES.python_mpi:
@@ -1380,7 +1385,9 @@ class TaskMaster:
                     set_impl_type_args(impl_type_args)
             elif _impl_type == IMPLEMENTATION_TYPES.multi_node:
                 if _impl_type_args:
-                    set_impl_type_args(impl_type_args + _impl_type_args)
+                    set_impl_type_args([LANG] + impl_type_args + _impl_type_args)
+                else:
+                    set_impl_type_args([LANG] + impl_type_args)
             if not _impl_local:
                 set_impl_local(impl_local)
             if not _impl_io:
@@ -1395,7 +1402,7 @@ class TaskMaster:
                 impl_type,
                 impl_local,
                 impl_io,
-                impl_type_args=impl_type_args,
+                impl_type_args=[LANG] + impl_type_args,
             )
 
     def check_layout_params(self, impl_type_args: typing.List[str]) -> None:

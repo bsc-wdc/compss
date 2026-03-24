@@ -48,7 +48,6 @@ public class CommTask extends NIOTask {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param ceSignature Signature of the CE to execute.
      * @param impl Implementation to execute.
@@ -65,12 +64,12 @@ public class CommTask extends NIOTask {
      * @param timeOut Task Deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
+    public CommTask(boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
         String parallelismSource, boolean hasTarget, int numReturns, LinkedList<NIOParam> params,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
         OnFailure onFailure, long timeOut, CommResource orchestrator) {
-        super(lang, workerDebug, impl, parallelismSource, hasTarget, numReturns, params, slaveWorkersNodeNames, taskId,
-            jobId, hist, transferGroupId, onFailure, timeOut, null, null);
+        super(workerDebug, impl, parallelismSource, hasTarget, numReturns, params, slaveWorkersNodeNames, taskId, jobId,
+            hist, transferGroupId, onFailure, timeOut, null, null);
 
         this.orchestrator = orchestrator;
         this.ceSignature = ceSignature;
@@ -79,7 +78,6 @@ public class CommTask extends NIOTask {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang Task language.
      * @param workerDebug Worker debug level.
      * @param ceSignature Signature of the CE to execute.
      * @param impl Implementation to execute.
@@ -96,13 +94,13 @@ public class CommTask extends NIOTask {
      * @param timeOut Task deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
+    public CommTask(boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
         String parallelismSource, LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
         OnFailure onFailure, long timeOut, CommResource orchestrator) {
 
-        super(lang, workerDebug, impl, parallelismSource, arguments, target, results, slaveWorkersNodeNames, taskId,
-            jobId, hist, transferGroupId, onFailure, timeOut);
+        super(workerDebug, impl, parallelismSource, arguments, target, results, slaveWorkersNodeNames, taskId, jobId,
+            hist, transferGroupId, onFailure, timeOut);
 
         this.orchestrator = orchestrator;
         this.ceSignature = ceSignature;

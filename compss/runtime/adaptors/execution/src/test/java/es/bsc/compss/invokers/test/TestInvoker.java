@@ -19,6 +19,7 @@ package es.bsc.compss.invokers.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.objects.StorageTestObject;
 import es.bsc.compss.invokers.test.objects.TestObject;
@@ -70,8 +71,9 @@ public class TestInvoker {
 
     public AbstractMethodImplementation genDummy(String className, String methodName, Integer coreId, Integer implId,
         String signature, MethodResourceDescription mrd) {
-        return new AbstractMethodImplementation(coreId, implId, new ImplementationDescription<>(
-            new MethodDefinition(className, methodName), signature, false, mrd, null, null));
+        return new AbstractMethodImplementation(coreId, implId,
+            new ImplementationDescription<>(new MethodDefinition(COMPSsConstants.Lang.UNKNOWN, className, methodName),
+                signature, false, mrd, null, null));
     }
 
     @Test

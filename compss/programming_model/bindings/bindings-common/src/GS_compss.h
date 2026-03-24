@@ -46,20 +46,7 @@ extern "C" void GS_RegisterCE(char* ceSignature,
                               int numParams,
                               char** implTypeArgs
                              );
-extern "C" void GS_ExecuteTask(long appId,
-                               char* className,
-                               char* onFailure,
-                               int timeout,
-                               char* methodName,
-                               int priority,
-                               int numNodes,
-                               int reduce, int reduceChunkSize,
-                               int replicated, int distributed,
-                               int hasTarget,
-                               int numReturns,
-			                   int numParams,
-                               void** params
-                              );
+
 extern "C" void GS_ExecuteTaskNew(long appId,
                                   char* signature,
                                   char* onFailure,

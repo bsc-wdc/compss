@@ -34,6 +34,8 @@ import org.apache.logging.log4j.Logger;
 public class ITAppLoader {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    private static final long WALL_CLOCK_LIMIT =
+        Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
 
 
     /**
@@ -67,9 +69,18 @@ public class ITAppLoader {
             rt.startIT();
 
             System.setProperty(COMPSsConstants.APP_NAME, appName);
-            Method initializer = modAppClass.getDeclaredMethod("setCOMPSsVariables",
-                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API) });
-            initializer.invoke(null, rt);
+
+            Method initializer = modAppClass.getDeclaredMethod("setupCOMPSs",
+                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
+                    Class.forName(LoaderConstants.CLASS_APP_RUNNER) });
+            Object[] values = new Object[] { rt,
+                null };
+            JavaWorkflow wf = (JavaWorkflow) initializer.invoke(null, values);
+
+            if (WALL_CLOCK_LIMIT > 0) {
+                // Setting wall clock limit with runtime stop.
+                rt.setWallClockLimit(wf.getId(), WALL_CLOCK_LIMIT, true);
+            }
 
             try {
                 LOGGER.debug("Executing " + appName);

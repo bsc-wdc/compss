@@ -17,6 +17,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
@@ -51,9 +52,6 @@ public final class ITAppModifier {
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
         && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true");
-
-    private static final long WALL_CLOCK_LIMIT =
-        Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
 
     private static final Map<String, Map<String, byte[]>> CACHE = new ConcurrentHashMap<>();
 
@@ -150,57 +148,36 @@ public final class ITAppModifier {
         CtClass appClass = classPool.get(appName);
         appClass.defrost();
 
-        HashMap<String, CtField> getters = new HashMap<>();
-
         String varName = "COMPSs_";
 
         String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
         CtField apiField = buildField(classPool, appClass, LoaderConstants.CLASS_COMPSSRUNTIME_API, itApiVar);
         appClass.addField(apiField);
-        getters.put("getRuntime", apiField);
 
         String itWfVar = varName + LoaderConstants.STR_COMPSS_WORKFLOW;
         String instWf;
-        String setupWkSupplySrc;
         if (perThreadWf) {
             CtField field = buildField(classPool, appClass, LoaderConstants.CLASS_WORKFLOW_SUPPLIER, itWfVar);
-            String fieldInitSrc = "new " + LoaderConstants.CLASS_WORKFLOW_SUPPLIER + "();";
-            appClass.addField(field, CtField.Initializer.byExpr(fieldInitSrc));
+            appClass.addField(field);
             instWf = "((" + LoaderConstants.CLASS_WORKFLOW + ")" + itWfVar + ".get())";
-            setupWkSupplySrc = LoaderConstants.CLASS_WORKFLOW_SUPPLIER + ".setRuntime(" + itApiVar + ");";
         } else {
             appClass.addField(buildField(classPool, appClass, LoaderConstants.CLASS_WORKFLOW, itWfVar));
             instWf = itWfVar;
-            setupWkSupplySrc = ""; // No workflow supply exists. Do nothing
         }
 
         // Instrument class
-        instrumentClass(classPool, appClass, annotItf, itApiVar, instWf, isMainClass);
+        instrumentClass(classPool, appClass, annotItf, instWf, isMainClass);
 
-        addGetters(appClass, getters);
-        StringBuilder methodBody = new StringBuilder();
-        methodBody.append("public static ").append(LoaderConstants.CLASS_WORKFLOW).append(" getWorkflow() {");
-        methodBody.append("    return ").append(instWf).append(";");
-        methodBody.append("}");
-        CtMethod m = CtNewMethod.make(methodBody.toString(), appClass);
+        CtMethod m = CtNewMethod.getter("getRuntime", apiField);
         appClass.addMethod(m);
 
-        methodBody = new StringBuilder();
-        methodBody.append("private static void setupWorkflowSupplier() {");
-        methodBody.append("    ").append(setupWkSupplySrc);
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
+        String methodBody =
+            "public static " + LoaderConstants.CLASS_WORKFLOW + " getWorkflow() {" + "    return " + instWf + ";" + "}";
+        m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
 
-        addModifyVariablesMethods(appClass, itApiVar, itWfVar, perThreadWf);
+        addModifyVariablesMethods(appClass, annotItf, itApiVar, itWfVar, perThreadWf);
         return appClass;
-    }
-
-    private static void addGetters(CtClass appClass, HashMap<String, CtField> getters) throws CannotCompileException {
-        for (Map.Entry<String, CtField> entry : getters.entrySet()) {
-            CtMethod m = CtNewMethod.getter(entry.getKey(), entry.getValue());
-            appClass.addMethod(m);
-        }
     }
 
     /**
@@ -228,8 +205,8 @@ public final class ITAppModifier {
      * Create a Code Converter object and instrument each method based on whether it is the main method, an
      * orchestration method, or a web service method.
      */
-    private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
-        String itWfVar, boolean isMainClass) throws NotFoundException, CannotCompileException {
+    private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itWfVar,
+        boolean isMainClass) throws NotFoundException, CannotCompileException {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
 
@@ -252,7 +229,7 @@ public final class ITAppModifier {
         // Candidates to be instrumented if they are not remote
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itWfVar, appClass);
+        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itWfVar);
 
         for (CtMethod m : instrCandidates) {
             if (DEBUG) {
@@ -305,7 +282,7 @@ public final class ITAppModifier {
         }
     }
 
-    private static void addModifyVariablesMethods(CtClass appClass, String itApiVar, String itWfVar,
+    private static void addModifyVariablesMethods(CtClass appClass, Class<?> annotItf, String itApiVar, String itWfVar,
         boolean perThreadWf) throws CannotCompileException {
 
         String getWf;
@@ -328,43 +305,50 @@ public final class ITAppModifier {
         appClass.addMethod(m);
 
         /*
-         * Insert method to retrieve the runtime instead of instantiating a new one
+         * Inserts method to register the CoreElements
          */
         methodBody = new StringBuilder();
-        methodBody.append("public static void setCOMPSsVariables( ") //
-            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime, ")//
-            .append(LoaderConstants.CLASS_WORKFLOW).append(" wf") //
-            .append(") {") //
-            .append(itApiVar).append("= runtime;") //
-            .append("setupWorkflowSupplier();"); //
-        String wfSetInstr;
-        if (perThreadWf) {
-            wfSetInstr = itWfVar + ".set(wf)";
-        } else {
-            wfSetInstr = itWfVar + " = wf";
-        }
-        methodBody.append(wfSetInstr).append(";");
-        methodBody.append("}");
+        methodBody.append("public static void registerCoreElements() { ")//
+            .append("java.util.List ceds = ").append(LoaderConstants.CLASS_CEI_PARSER).append(".parseCoreElements(\"")//
+            .append(annotItf.getCanonicalName()).append("\");") //
+            .append("for (int i=0; i < ceds.size(); i++) {") //
+            .append(itApiVar).append(".registerCoreElement((es.bsc.compss.types.CoreElementDefinition)ceds.get(i));") //
+            .append("}") //
+            .append("}");
+
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
 
         /*
-         * Insert method to retrieve the runtime instead of instantiating a new one
+         * Insert method initialize the workflow (workflows if per-Thread Workflows is enabled).
          */
         methodBody = new StringBuilder();
-        methodBody.append("public static void setCOMPSsVariables( ") //
-            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime ") //
+        // public static JavaWorkflow setupCOMPSs(COMPSsRuntime runtime, ApplicationRunner runner)
+        methodBody.append("public static ").append(LoaderConstants.CLASS_WORKFLOW).append(" setupCOMPSs(") //
+            .append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(" runtime,") //
+            .append(LoaderConstants.CLASS_APP_RUNNER).append(" runner") //
             .append(") {") //
-            .append(itApiVar).append("= runtime;") //
-            .append("setupWorkflowSupplier();");
+            .append(itApiVar).append("= runtime;");//
 
-        if (WALL_CLOCK_LIMIT > 0) {
-            // Setting wall clock limit with runtime stop.
-            methodBody.append(itApiVar).append(".setWallClockLimit(").append(getWf).append(".getId(),")
-                .append(WALL_CLOCK_LIMIT).append("L, true);");
+        // wfSupplier <- new WorkflowSupplier(runtime, annotItf, runner);
+        methodBody.append(LoaderConstants.CLASS_WORKFLOW_SUPPLIER).append(" wfSupplier = new ")
+            .append(LoaderConstants.CLASS_WORKFLOW_SUPPLIER).append("(").append("runtime, \"")
+            .append(annotItf.getCanonicalName()).append("\",").append("runner").append(");");
+        // wf <- (JavaWorkflow)wfSupplier.get();
+        methodBody.append(LoaderConstants.CLASS_WORKFLOW).append(" wf").append("= (")
+            .append(LoaderConstants.CLASS_WORKFLOW).append(")wfSupplier.get();");
+
+        // Set itWfVar <- wfSupplier or Wf
+        if (perThreadWf) {
+            methodBody.append(itWfVar).append(" = wfSupplier;");
+        } else {
+            methodBody.append(itWfVar).append(" = wf;");
         }
+        methodBody.append("registerCoreElements();");
+        methodBody.append("return wf;");
         methodBody.append("}");
         m = CtNewMethod.make(methodBody.toString(), appClass);
         appClass.addMethod(m);
     }
+
 }

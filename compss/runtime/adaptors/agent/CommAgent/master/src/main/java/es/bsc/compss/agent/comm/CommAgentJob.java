@@ -117,10 +117,10 @@ class CommAgentJob extends NIOJob {
         int numParams = params.size() - taskParams.getNumReturns();
         CoreElement ce = CoreManager.getCore(impl.getCoreId());
         String ceSignature = ce.getSignature();
-        CommTask nt = new CommTask(this.getLang(), DEBUG, ceSignature, absMethodImpl,
-            this.taskParams.getParallelismSource(), this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(),
-            params, slaveWorkersNodeNames, this.taskId, this.jobId, this.history, this.transferId, this.getOnFailure(),
-            this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
+        CommTask nt = new CommTask(DEBUG, ceSignature, absMethodImpl, this.taskParams.getParallelismSource(),
+            this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, slaveWorkersNodeNames,
+            this.taskId, this.jobId, this.history, this.transferId, this.getOnFailure(), this.getTimeOut(),
+            CommAgentAdaptor.LOCAL_RESOURCE);
 
         return nt;
     }

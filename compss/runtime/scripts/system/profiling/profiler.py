@@ -65,7 +65,8 @@ def end_profiling(sig, frame):
         return  # Prevent multiple invocations
 
     profiling_active = False
-    print("PROVENANCE | PROFILING | Finishing profiling (signal received)...")
+    # TODO: Only the master node should print this message
+    # print("PROVENANCE | PROFILING | Finishing profiling (signal received)...")
     # All file I/O and cleanup is now handled in the main() function's
     # finally block and post-loop logic.
 
@@ -96,6 +97,66 @@ def get_cpu_top() -> list:
     return result
 
 
+def get_cpu_mapping(os_name):
+    physical_indices = []
+    virtual_indices = []
+
+    if os_name == 'linux':
+        seen_core_ids = set()
+        total_cpus = os.cpu_count() # Built-in Python! No psutil needed.
+        
+        if not total_cpus:
+            return [], []
+            
+        for cpu_index in range(total_cpus):
+            topology_path = f"/sys/devices/system/cpu/cpu{cpu_index}/topology/core_id"
+            try:
+                with open(topology_path, "r") as f:
+                    core_id = int(f.read().strip())
+                    
+                if core_id not in seen_core_ids:
+                    seen_core_ids.add(core_id)
+                    physical_indices.append(cpu_index)
+                else:
+                    virtual_indices.append(cpu_index)
+            except FileNotFoundError:
+                pass
+                
+        return physical_indices, virtual_indices
+
+    elif os_name == 'darwin':
+        # macOS logic remains exactly the same, as it only used subprocess sysctl
+        try:
+            physical = int(subprocess.check_output(['sysctl', '-n', 'hw.physicalcpu']).strip())
+            logical = int(subprocess.check_output(['sysctl', '-n', 'hw.logicalcpu']).strip())
+            
+            if physical == logical:
+                physical_indices = list(range(logical))
+            else:
+                physical_indices = list(range(0, logical, 2))
+                virtual_indices = list(range(1, logical, 2))
+        except Exception as e:
+            print(f"Error querying macOS sysctl: {e}")
+            
+        return physical_indices, virtual_indices
+
+    return [], []
+
+def calculation_cpu_usage_list(interval, machine):
+    pysical_list, virtual_list = get_cpu_mapping(machine)
+    cpu_list = psutil.cpu_percent(interval=interval, percpu=True)
+    physical_usage = sum(cpu_list[i] for i in pysical_list)
+    virtual_usage = sum(cpu_list[i] for i in virtual_list)
+    cpu = physical_usage + virtual_usage
+    return cpu
+
+def calculation_cpu_usage_mulitplication_factor(interval):
+    logical_processors = psutil.cpu_count(logical=True)
+    physical_cores = psutil.cpu_count(logical=False)
+    multiplication_factor = float(round(logical_processors / physical_cores, 2))
+    cpu = psutil.cpu_percent(interval=interval) * multiplication_factor
+    return cpu
+
 def profiling_function(
         byte_read: int,
         byte_write: int,
@@ -105,6 +166,7 @@ def profiling_function(
         prev_bytes_recv: int,
         config: str,
         interval: int,
+        machine: str
 ) -> tuple:
     """
     Function to profile and monitor system resource usage, including CPU, memory, and network I/O.
@@ -117,6 +179,7 @@ def profiling_function(
     :param prev_bytes_recv: The total number of bytes received before this profiling period.
     :param system_type: Type of the system where the application is executed
     :param interval: Interval to use between every measurement
+    :param machine: The type of machine (e.g., 'linux', 'darwin') to determine CPU mapping and profiling method.
 
     :return: A tuple containing three elements:
         - A formatted string with the following comma-separated values:
@@ -133,11 +196,7 @@ def profiling_function(
         - The updated total number of bytes received.
     """
     if config == LIST_PROFILER[0]: # psutil
-        logical_processors = psutil.cpu_count(logical=True)
-        physical_cores = psutil.cpu_count(logical=False)
-        multiplication_factor = float(round(logical_processors / physical_cores, 2))
-        cpu = psutil.cpu_percent(interval=interval) * multiplication_factor
-        cpu = cpu if cpu < 100 else 100
+        cpu = calculation_cpu_usage_mulitplication_factor(interval)
         mem = psutil.virtual_memory().percent
         net = psutil.net_io_counters()
         ref_byte_sent = net.bytes_sent
@@ -249,7 +308,7 @@ def main():
 
             # Get first measurement
             new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval
+                0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval, machine
             )
 
             output_file.write(to_write_header) # Write header
@@ -291,6 +350,7 @@ def main():
                     ref_byte_recv,
                     current_config,
                     profiling_interval,
+                    machine
                 )
 
                 output_file.write(new_entry)
@@ -428,18 +488,21 @@ def main():
 
     # --- Summary Writing ---
     # This logic is executed when the file is closed and loop is stopped.
-    if counter > 1:
-        print("PROVENANCE | PROFILING | Profiling completed.")
-    if log_dir and hostname:
-        try:
-            with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
-                summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                summary.write(f"Total measurements collected: {len(profiling_data)}\n")
-                summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
-            if __debug__:
-                print("PROVENANCE DEBUG | PROFILING | Summary file created successfully.")
-        except Exception as e:
-            print(f"PROVENANCE | PROFILING | Warning: Could not write summary file: {e}")
+    
+    # TODO: avoid writing summary if the node is the worker. Only the master node should do it.
+    # if counter > 1:
+    #     print("PROVENANCE | PROFILING | Profiling completed.")
+
+    # if log_dir and hostname:
+    #     try:
+    #         with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
+    #             summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    #             summary.write(f"Total measurements collected: {len(profiling_data)}\n")
+    #             summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
+    #         if __debug__:
+    #             print("PROVENANCE DEBUG | PROFILING | Summary file created successfully.")
+    #     except Exception as e:
+    #         print(f"PROVENANCE | PROFILING | Warning: Could not write summary file: {e}")
 
 
 if __name__ == "__main__":

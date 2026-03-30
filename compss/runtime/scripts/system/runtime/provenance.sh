@@ -6,9 +6,8 @@ run_provenance() {
   fi
 
   # Stop profiling process
-  if [ -n "${PROFILING_PID}" ]; then
-    kill -SIGUSR1 $PROFILING_PID
-  fi
+  stop_profiling
+  echo "PROVENANCE | PROFILING | Profiling stopped."
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
   find "${specific_log_dir}/workers/" -type f -name "*.log" -exec cp {} "${specific_log_dir}/stats/" \;

@@ -24,9 +24,21 @@
 
   load_parameters "$@"
 
-  # Trap to clean environment
+  # Trap to stop profiler and clean environment
+  worker_cleanup() {
+    local current_exit_value=$?
+    # checks whether a function with name "stop_profiling" is currently defined in the shell session
+    if declare -F stop_profiling >/dev/null 2>&1; then
+      stop_profiling
+    fi
+    # checks whether a function with name "clean_env" is currently defined in the shell session
+    if declare -F clean_env >/dev/null 2>&1; then
+      clean_env
+    fi
+    return ${current_exit_value}
+  }
 
-  trap clean_env EXIT
+  trap worker_cleanup EXIT
 
   # Normal start -----------------------------------------------------
   # Setup
@@ -65,6 +77,8 @@
   # Load profiling script
   # shellcheck disable=SC1090
   source "${COMPSS_HOME}/Runtime/scripts/system/runtime/profiler.sh"
+  # define a variable useful to track the profiler and kill it in the end
+  PROFILING_STOPPED=false
   start_profiling
 
   export LD_PRELOAD=${LD_PRELOAD}:${AFTER_EXTRAE_LD_PRELOAD}
@@ -77,13 +91,11 @@
   fi
 
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
+  exitValue=$?
 
   # Stop profiling process
-  if [ -n "${PROFILING_PID}" ]; then
-    kill -SIGUSR1 $PROFILING_PID
-  fi
-
-  exitValue=$?
+  stop_profiling
+  PROFILING_STOPPED=true
   if [ "$exitValue" != "0" ]; then
     echo "[WARNING][persistent_worker_starter.sh] Failed to start worker ${hostName}. Exit value: ${exitValue}"
   fi

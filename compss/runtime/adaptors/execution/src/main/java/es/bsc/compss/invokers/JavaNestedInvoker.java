@@ -27,7 +27,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -80,7 +80,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             method = super.findMethod();
         } else {
             if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEvent.INSTRUMENTING_CLASS);
+                Tracer.emitEvent(TaskExecutionEvent.INSTRUMENTING_CLASS);
             }
             try {
                 // Call class modifier
@@ -94,7 +94,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             } finally {
 
                 if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEvent.INSTRUMENTING_CLASS);
+                    Tracer.emitEventEnd(TaskExecutionEvent.INSTRUMENTING_CLASS);
                 }
             }
         }

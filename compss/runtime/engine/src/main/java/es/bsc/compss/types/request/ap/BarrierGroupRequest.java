@@ -17,7 +17,7 @@
 package es.bsc.compss.types.request.ap;
 
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 
 public class BarrierGroupRequest extends BarrierRequest {
@@ -37,8 +37,8 @@ public class BarrierGroupRequest extends BarrierRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.WAIT_FOR_ALL_TASKS;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.WAIT_FOR_ALL_TASKS;
     }
 
     public String getGroupName() {

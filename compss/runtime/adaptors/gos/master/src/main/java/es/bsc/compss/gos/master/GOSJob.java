@@ -52,7 +52,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.Tracer;
@@ -316,9 +316,9 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
 
         // Tracing flags
         jd.addArgument("tracing", Boolean.toString(Tracer.isExtraeActivated()));
-        jd.addArgument("tracer runtime type", String.valueOf(TraceEventType.RUNTIME.code));
-        jd.addArgument("sandbox creation id", String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId()));
-        jd.addArgument("sandbox removal id", String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId()));
+        jd.addArgument("tracer runtime type", String.valueOf(TaskExecutionEvent.type.getCode()));
+        jd.addArgument("sandbox creation id", String.valueOf(TaskExecutionEvent.CREATING_TASK_SANDBOX.getId()));
+        jd.addArgument("sandbox removal id", String.valueOf(TaskExecutionEvent.REMOVING_TASK_SANDBOX.getId()));
         jd.addArgument("event type", String.valueOf(TraceEventType.TASKS_FUNC.code));
         jd.addArgument("tracer task id", String.valueOf(this.taskId));
         int slot = Tracer.isActivated() ? acquireTracingSlot() : -1;

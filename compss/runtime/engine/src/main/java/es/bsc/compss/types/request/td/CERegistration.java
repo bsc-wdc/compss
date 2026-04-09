@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 
@@ -70,8 +70,8 @@ public class CERegistration extends TaskDispatcher.SynchTDRequest<Void> {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.CE_REGISTRATION;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.CE_REGISTRATION;
     }
 
 }

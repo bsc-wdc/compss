@@ -47,7 +47,7 @@ import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
@@ -432,12 +432,12 @@ public class GATWorker implements InvocationContext {
             case FILE_T:
                 String filepath = (String) np.getValue();
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
+                    Tracer.emitEvent(TaskExecutionEvent.CHECK_OUT_PARAM);
                 }
                 File f = new File(filepath);
                 boolean fExists = f.exists();
                 if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
+                    Tracer.emitEventEnd(TaskExecutionEvent.CHECK_OUT_PARAM);
                 }
                 if (!fExists) {
                     if (createifNonExistent) {

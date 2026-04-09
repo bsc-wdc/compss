@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -73,8 +73,8 @@ public class ActionUpdate extends TaskDispatcher.AsynchTDRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.ACTION_UPDATE;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.ACTION_UPDATE;
     }
 
     @Override

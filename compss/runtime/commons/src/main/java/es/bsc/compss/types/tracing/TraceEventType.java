@@ -28,10 +28,9 @@ public enum TraceEventType implements EventType {
     // Event codes
     // Core Element Id
     TASKS_FUNC(8_000_000, "Task", true),
-    // Runtime internal events
-    RUNTIME(8_001_002, "Runtime", true),
     // Identifies the thread as AP, TD, executor...
     THREAD_IDENTIFICATION(8_001_003, "Thread type identifier", true),
+
     // Marks the life and end of an executor thread
     EXECUTOR_COUNTS(8_001_004, "Executor threads count", true),
     // Marks the activity of an executor

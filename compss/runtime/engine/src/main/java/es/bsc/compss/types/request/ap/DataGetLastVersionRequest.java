@@ -22,7 +22,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.params.DataParams;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -71,8 +71,8 @@ public class DataGetLastVersionRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.AP_GET_LAST_DATA;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.AP_GET_LAST_DATA;
     }
 
 }

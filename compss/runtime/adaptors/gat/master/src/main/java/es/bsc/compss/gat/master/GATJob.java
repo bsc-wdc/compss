@@ -48,7 +48,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
@@ -285,9 +285,9 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
         // Tracing flags
         lArgs.add(Boolean.toString(Tracer.isExtraeActivated()));
         if (Tracer.isExtraeActivated()) {
-            lArgs.add(String.valueOf(TraceEventType.RUNTIME.code)); // Runtime event type
-            lArgs.add(String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
-            lArgs.add(String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
+            lArgs.add(String.valueOf(TaskExecutionEvent.type.getCode())); // Runtime event type
+            lArgs.add(String.valueOf(TaskExecutionEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
+            lArgs.add(String.valueOf(TaskExecutionEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
 
             lArgs.add(String.valueOf(TraceEventType.TASKS_FUNC.code)); // event type
             lArgs.add(String.valueOf(this.taskId));

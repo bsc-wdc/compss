@@ -77,8 +77,16 @@
   end_events_8000000=$(grep -c ':8000000:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
   start_events_8001001=$(grep -c ':8001001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
   end_events_8001001=$(grep -c ':8001001:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
-  start_events_8001002=$(grep -c ':8001002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
-  end_events_8001002=$(grep -c ':8001002:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  start_events_8002001=$(grep -c ':8002001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  end_events_8002001=$(grep -c ':8002001:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  start_events_8002002=$(grep -c ':8002002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  end_events_8002002=$(grep -c ':8002002:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  start_events_8004001=$(grep -c ':8004001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  end_events_8004001=$(grep -c ':8004001:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  start_events_8003001=$(grep -c ':8003001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  end_events_8003001=$(grep -c ':8003001:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  start_events_8002003=$(grep -c ':8002003:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
+  end_events_8002003=$(grep -c ':8002003:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
   start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
   end_events_8000002=$(grep -c ':8000002:0' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
   start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_test_compss*.prv)
@@ -93,9 +101,29 @@
     echo "[ERROR] Number of start and end emits is not equal for 8001001 type of events" | tee -a "${output_file}"
     exit 2
   fi
-  echo " Checking 8001002 events"
-  if [ "$start_events_8001002" != "$end_events_8001002" ] ; then
-    echo "[ERROR] Number of start and end emits is not equal for 8001002 type of events" | tee -a "${output_file}"
+  echo " Checking 8002001 events"
+  if [ "$start_events_8002001" != "$end_events_8002001" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8002001 type of events [$start_events_8002001/$end_events_8002001]" | tee -a "${output_file}"
+    exit 2
+  fi
+  echo " Checking 8002002 events"
+  if [ "$start_events_8002002" != "$end_events_8002002" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8002002 type of events [$start_events_8002002/$end_events_8002002]" | tee -a "${output_file}"
+    exit 2
+  fi
+  echo " Checking 8004001 events"
+  if [ "$start_events_8004001" != "$end_events_8004001" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8004001 type of events [$start_events_8004001/$end_events_8004001]" | tee -a "${output_file}"
+    exit 2
+  fi
+  echo " Checking 8003001 events"
+  if [ "$start_events_8003001" != "$end_events_8003001" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8003001 type of events [$start_events_8003001/$end_events_8003001]" | tee -a "${output_file}"
+    exit 2
+  fi
+  echo " Checking 8002003 events"
+  if [ "$start_events_8002003" != "$end_events_8002003" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8002003 type of events [$start_events_8002003/$end_events_8002003]" | tee -a "${output_file}"
     exit 2
   fi
   echo " Checking 8000002 events"

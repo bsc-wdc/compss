@@ -21,7 +21,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.params.DataParams;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -74,8 +74,8 @@ public class AlreadyAccessedRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.ALREADY_ACCESSED;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.ALREADY_ACCESSED;
     }
 
 }

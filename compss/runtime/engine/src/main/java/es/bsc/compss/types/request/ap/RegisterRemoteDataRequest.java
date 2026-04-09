@@ -24,7 +24,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.util.ErrorManager;
 
 
@@ -49,8 +49,8 @@ public class RegisterRemoteDataRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.REGISTER_REMOTE_DATA;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.REGISTER_REMOTE_DATA;
     }
 
     @Override

@@ -19,7 +19,7 @@ package es.bsc.compss.types.request.ap;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -48,7 +48,7 @@ public class ShutdownNotificationRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.CP_SHUTDOWN_NOTIFICATION;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.CP_SHUTDOWN_NOTIFICATION;
     }
 }

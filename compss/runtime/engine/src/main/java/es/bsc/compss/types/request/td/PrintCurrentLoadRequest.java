@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ResourceManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,8 +52,8 @@ public class PrintCurrentLoadRequest extends TaskDispatcher.AsynchTDRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.PRINT_CURRENT_GRAPH;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.PRINT_CURRENT_GRAPH;
     }
 
 }

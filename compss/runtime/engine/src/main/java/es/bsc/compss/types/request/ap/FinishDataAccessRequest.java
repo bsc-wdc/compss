@@ -24,7 +24,7 @@ import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 
 public class FinishDataAccessRequest implements APRequest {
@@ -45,8 +45,8 @@ public class FinishDataAccessRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.FINISH_DATA_ACCESS;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.FINISH_DATA_ACCESS;
     }
 
     @Override

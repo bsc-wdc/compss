@@ -17,7 +17,7 @@
 package es.bsc.compss.types.request.ap;
 
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 
 public class EndOfAppRequest extends BarrierRequest {
@@ -32,8 +32,8 @@ public class EndOfAppRequest extends BarrierRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.END_OF_APP;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.END_OF_APP;
     }
 
     @Override

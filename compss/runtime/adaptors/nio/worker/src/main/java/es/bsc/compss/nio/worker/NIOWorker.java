@@ -63,6 +63,7 @@ import es.bsc.compss.nio.listeners.FetchDataOperationListener;
 import es.bsc.compss.nio.listeners.TaskExecutionListener;
 import es.bsc.compss.nio.listeners.TaskFetchOperationsListener;
 import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.types.tracing.NIOWorkerEvent;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -77,7 +78,7 @@ import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
@@ -345,7 +346,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK);
+            NIOTracer.emitEvent(NIOWorkerEvent.WORKER_RECEIVED_NEW_TASK);
         }
 
         // Remove obsoletes
@@ -369,7 +370,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task, this);
         int paramIdx = 0;
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.FETCH_PARAM);
+            NIOTracer.emitEvent(NIOWorkerEvent.FETCH_PARAM);
         }
         for (NIOParam param : task.getParams()) {
             WORKER_LOGGER.info("Checking parameter " + param);
@@ -395,7 +396,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         }
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventEnd(TraceEvent.FETCH_PARAM);
+            NIOTracer.emitEventEnd(NIOWorkerEvent.FETCH_PARAM);
             // Request the transfers
             NIOTracer.emitEvent(TraceEventType.TASK_TRANSFERS, listener.getTask().getTaskId());
         }
@@ -417,7 +418,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         listener.enable();
 
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventEnd(TraceEvent.WORKER_RECEIVED_NEW_TASK);
+            NIOTracer.emitEventEnd(NIOWorkerEvent.WORKER_RECEIVED_NEW_TASK);
         }
     }
 
@@ -717,11 +718,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      */
     public void removeObsolete(List<String> obsolete) {
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.REMOVE_OBSOLETES);
+            NIOTracer.emitEvent(NIOWorkerEvent.REMOVE_OBSOLETES);
         }
         this.dataManager.removeObsoletes(obsolete);
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventEnd(TraceEvent.REMOVE_OBSOLETES);
+            NIOTracer.emitEventEnd(NIOWorkerEvent.REMOVE_OBSOLETES);
         }
     }
 
@@ -1094,14 +1095,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.dataManager.storeParam(param);
         if (param.getType() == DataType.FILE_T) {
             String filepath = (String) param.getValue();
-            // if (Tracer.isActivated()) {
-            // Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
-            // }
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TaskExecutionEvent.CHECK_OUT_PARAM);
+            }
             File f = new File(filepath);
             boolean fExists = f.exists();
-            // if (Tracer.isActivated()) {
-            // Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
-            // }
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TaskExecutionEvent.CHECK_OUT_PARAM);
+            }
             if (!fExists) {
                 if (createifNonExistent) {
                     System.out.println("Creating new blank file at " + filepath);

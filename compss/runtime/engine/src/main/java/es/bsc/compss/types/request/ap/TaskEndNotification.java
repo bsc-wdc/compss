@@ -19,7 +19,7 @@ package es.bsc.compss.types.request.ap;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.AbstractTask;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 
 public class TaskEndNotification implements APRequest {
@@ -61,8 +61,8 @@ public class TaskEndNotification implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.UPDATE_GRAPH;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.UPDATE_GRAPH;
     }
 
 }

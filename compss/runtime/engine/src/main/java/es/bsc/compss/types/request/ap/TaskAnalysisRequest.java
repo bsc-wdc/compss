@@ -26,7 +26,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskState;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,8 +103,8 @@ public class TaskAnalysisRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.ANALYSE_TASK;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.ANALYSE_TASK;
     }
 
 }

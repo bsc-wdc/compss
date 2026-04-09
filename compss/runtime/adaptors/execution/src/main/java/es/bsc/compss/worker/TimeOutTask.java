@@ -17,7 +17,7 @@
 package es.bsc.compss.worker;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.TimerTask;
@@ -40,11 +40,11 @@ public class TimeOutTask extends TimerTask {
     public void run() {
         LOGGER.info("Task " + this.taskId + " timed out");
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.TASK_TIMEOUT);
+            Tracer.emitEvent(TaskExecutionEvent.TASK_TIMEOUT);
         }
         COMPSsWorker.setCancelled(this.taskId, CancelReason.TIMEOUT);
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.TASK_TIMEOUT);
+            Tracer.emitEventEnd(TaskExecutionEvent.TASK_TIMEOUT);
         }
     }
 }

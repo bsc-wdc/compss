@@ -23,7 +23,7 @@ import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 import java.util.concurrent.Semaphore;
 
 
@@ -89,8 +89,8 @@ public class WaitForDataReadyToDeleteRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.DELETE_DATA;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.DELETE_DATA;
     }
 
 }

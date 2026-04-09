@@ -30,6 +30,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
@@ -114,8 +115,8 @@ public class GetResultFilesRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.BLOCK_AND_GET_RESULT_FILES;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.BLOCK_AND_GET_RESULT_FILES;
     }
 
     /**

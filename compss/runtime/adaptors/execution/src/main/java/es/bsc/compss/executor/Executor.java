@@ -77,7 +77,7 @@ import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -764,7 +764,7 @@ public class Executor implements Runnable, InvocationRunner {
         LOGGER.debug("Creating task sandbox for Job " + jobId);
 
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX);
+            Tracer.emitEvent(TaskExecutionEvent.CREATING_TASK_SANDBOX);
         }
         AbstractMethodImplementation impl = invocation.getMethodImplementation();
         ExecutionSandbox taskWD;
@@ -842,7 +842,7 @@ public class Executor implements Runnable, InvocationRunner {
             throw e;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.CREATING_TASK_SANDBOX);
+                Tracer.emitEventEnd(TaskExecutionEvent.CREATING_TASK_SANDBOX);
             }
         }
         return taskWD;
@@ -870,12 +870,12 @@ public class Executor implements Runnable, InvocationRunner {
         if (twd != null) {
             try {
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(TraceEvent.REMOVING_TASK_SANDBOX);
+                    Tracer.emitEvent(TaskExecutionEvent.REMOVING_TASK_SANDBOX);
                 }
                 twd.clean();
             } finally {
                 if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEvent.REMOVING_TASK_SANDBOX);
+                    Tracer.emitEventEnd(TaskExecutionEvent.REMOVING_TASK_SANDBOX);
                 }
             }
         }
@@ -948,7 +948,7 @@ public class Executor implements Runnable, InvocationRunner {
     private void bindOriginalFilenameToRenames(InvocationParam param, ExecutionSandbox sandbox) throws IOException {
 
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME);
+            Tracer.emitEvent(TaskExecutionEvent.BIND_ORIG_NAME);
         }
 
         if (param.isCollective()) {
@@ -985,7 +985,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
 
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.BIND_ORIG_NAME);
+            Tracer.emitEventEnd(TaskExecutionEvent.BIND_ORIG_NAME);
         }
     }
 
@@ -1102,7 +1102,7 @@ public class Executor implements Runnable, InvocationRunner {
     private void unbindOriginalFilenameToRename(InvocationParam param, ExecutionSandbox sandbox) {
         if (param.getType() == DataType.FILE_T && !param.isKeepRename()) {
             if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME);
+                Tracer.emitEvent(TaskExecutionEvent.UNBIND_ORIG_NAME);
             }
             try {
                 String inSandboxPath = param.getOriginalName();
@@ -1137,7 +1137,7 @@ public class Executor implements Runnable, InvocationRunner {
 
             } finally {
                 if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEvent.UNBIND_ORIG_NAME);
+                    Tracer.emitEventEnd(TaskExecutionEvent.UNBIND_ORIG_NAME);
                 }
             }
         }
@@ -1175,7 +1175,7 @@ public class Executor implements Runnable, InvocationRunner {
         Tracer.emitEvent(TraceEventType.DISK_BW, diskBW);
         int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
         Tracer.emitEvent(TraceEventType.TASKTYPE, taskType);
-        Tracer.emitEvent(TraceEvent.TASK_RUNNING);
+        Tracer.emitEvent(TaskExecutionEvent.TASK_RUNNING);
     }
 
     private void emitTaskEndEvents() {
@@ -1189,7 +1189,7 @@ public class Executor implements Runnable, InvocationRunner {
         Tracer.emitEventEnd(TraceEventType.MEMORY);
         Tracer.emitEventEnd(TraceEventType.DISK_BW);
         Tracer.emitEventEnd(TraceEventType.TASKTYPE);
-        Tracer.emitEventEnd(TraceEvent.TASK_RUNNING);
+        Tracer.emitEventEnd(TaskExecutionEvent.TASK_RUNNING);
     }
 
     private void emitAffinityChangeEvents() {

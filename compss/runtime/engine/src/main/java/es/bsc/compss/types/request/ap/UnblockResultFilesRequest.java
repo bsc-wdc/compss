@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.info.FileInfo;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 import java.util.List;
 
@@ -48,8 +48,8 @@ public class UnblockResultFilesRequest implements APRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.UNBLOCK_RESULT_FILES;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.UNBLOCK_RESULT_FILES;
     }
 
 }

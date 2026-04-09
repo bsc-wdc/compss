@@ -25,6 +25,7 @@ import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
+import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
@@ -149,8 +150,8 @@ public class RegisterDataAccessRequest<V, D extends DataParams, P extends Access
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.REGISTER_DATA_ACCESS;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.REGISTER_DATA_ACCESS;
     }
 
 }

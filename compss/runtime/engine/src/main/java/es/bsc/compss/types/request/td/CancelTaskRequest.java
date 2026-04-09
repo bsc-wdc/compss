@@ -22,7 +22,7 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.listener.RequestListener;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 
 
 /**
@@ -61,8 +61,8 @@ public class CancelTaskRequest extends TaskDispatcher.AsynchTDRequest {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.CANCEL_TASKS;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.CANCEL_TASKS;
     }
 
     @Override

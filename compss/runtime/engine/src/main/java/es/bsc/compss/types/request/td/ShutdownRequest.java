@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ResourceManager;
 
 import java.io.File;
@@ -85,15 +85,15 @@ public class ShutdownRequest extends TaskDispatcher.SynchTDRequest<Void> {
         }
 
         @Override
-        public TraceEvent getEvent() {
-            return TraceEvent.TD_SHUTDOWN;
+        public TDRequestEvent getEvent() {
+            return TDRequestEvent.TD_SHUTDOWN;
         }
     }
 
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.TD_SHUTDOWN;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.TD_SHUTDOWN;
     }
 
     private static void mergeCacheProfiles() {

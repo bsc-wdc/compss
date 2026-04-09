@@ -21,7 +21,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 import org.apache.logging.log4j.LogManager;

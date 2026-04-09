@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.APRequestEvent;
 
 
 public abstract class CheckpointerRequest implements APRequest {
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.AP_CHECKPOINT_REQUEST;
+    public APRequestEvent getEvent() {
+        return APRequestEvent.AP_CHECKPOINT_REQUEST;
     }
 
 }

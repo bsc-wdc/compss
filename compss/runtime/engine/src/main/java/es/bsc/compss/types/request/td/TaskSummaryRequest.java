@@ -19,7 +19,7 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 
 import org.apache.logging.log4j.Logger;
 
@@ -53,8 +53,8 @@ public class TaskSummaryRequest extends TaskDispatcher.SynchTDRequest<Void> {
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.MONITORING_DATA;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.MONITORING_DATA;
     }
 
 }

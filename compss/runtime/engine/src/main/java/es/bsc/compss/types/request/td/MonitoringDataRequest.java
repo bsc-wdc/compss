@@ -21,7 +21,7 @@ import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ResourceManager;
 
 
@@ -92,8 +92,8 @@ public class MonitoringDataRequest extends TaskDispatcher.SynchTDRequest<String>
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.MONITORING_DATA;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.MONITORING_DATA;
     }
 
 }

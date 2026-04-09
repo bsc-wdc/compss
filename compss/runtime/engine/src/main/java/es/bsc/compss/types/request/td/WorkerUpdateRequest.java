@@ -22,7 +22,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TDRequestEvent;
 
 
 /**
@@ -62,8 +62,8 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends Ta
     }
 
     @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.WORKER_UPDATE_REQUEST;
+    public TDRequestEvent getEvent() {
+        return TDRequestEvent.WORKER_UPDATE_REQUEST;
     }
 
 }

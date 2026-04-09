@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.request;
 
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.wdc.tracing.Event;
 
 
 public interface Request {
@@ -26,5 +26,5 @@ public interface Request {
      *
      * @return event to trace
      */
-    TraceEvent getEvent();
+    Event getEvent();
 }

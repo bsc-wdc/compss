@@ -17,6 +17,7 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.tracing.FileOpsEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.serializers.Serializer;
 
@@ -59,8 +60,8 @@ public class FileOpsManager {
                 if (Tracer.isActivated()) {
                     Tracer.disablePThreads(1);
                     Tracer.emitEvent(TraceEvent.LOW_FILE_SYS_THREAD_ID);
-                    Tracer.emitEvent(TraceEvent.INIT_FS);
-                    Tracer.emitEventEnd(TraceEvent.INIT_FS);
+                    Tracer.emitEvent(FileOpsEvent.INIT_FS);
+                    Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
                 }
 
                 return new Object();
@@ -75,8 +76,8 @@ public class FileOpsManager {
                 if (Tracer.isActivated()) {
                     Tracer.disablePThreads(1);
                     Tracer.emitEvent(TraceEvent.HIGH_FILE_SYS_THREAD_ID);
-                    Tracer.emitEvent(TraceEvent.INIT_FS);
-                    Tracer.emitEventEnd(TraceEvent.INIT_FS);
+                    Tracer.emitEvent(FileOpsEvent.INIT_FS);
+                    Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
                 }
                 return new Object();
             }
@@ -442,7 +443,7 @@ public class FileOpsManager {
             LOGGER.debug("Serializing object to " + target);
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_SERIALIZE);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_SERIALIZE);
         }
         try {
             Serializer.serialize(o, target);
@@ -450,7 +451,7 @@ public class FileOpsManager {
             throw ioe;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_SERIALIZE);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_SERIALIZE);
             }
         }
     }
@@ -460,7 +461,7 @@ public class FileOpsManager {
             LOGGER.debug("Serializing object to " + target);
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_SERIALIZE);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_SERIALIZE);
         }
         try {
             return Serializer.deserialize(target);
@@ -470,7 +471,7 @@ public class FileOpsManager {
             throw ex;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_SERIALIZE);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_SERIALIZE);
             }
         }
     }
@@ -480,7 +481,7 @@ public class FileOpsManager {
             LOGGER.debug("Copying file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_COPY);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_COPY);
         }
 
         try {
@@ -489,7 +490,7 @@ public class FileOpsManager {
             throw ioe;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_COPY);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_COPY);
             }
         }
     }
@@ -499,7 +500,7 @@ public class FileOpsManager {
             LOGGER.debug("Copying directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_COPY);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_COPY);
         }
         try {
             FileUtils.copyDirectory(source, target);
@@ -507,7 +508,7 @@ public class FileOpsManager {
             throw ioe;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_COPY);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_COPY);
             }
         }
     }
@@ -518,7 +519,7 @@ public class FileOpsManager {
             LOGGER.debug("Deleting file " + f.getAbsolutePath());
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_DELETE);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_DELETE);
         }
         try {
             FileOperations.deleteFile(f, LOGGER);
@@ -527,7 +528,7 @@ public class FileOpsManager {
             throw e;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_DELETE);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_DELETE);
             }
         }
     }
@@ -537,7 +538,7 @@ public class FileOpsManager {
             LOGGER.debug("Moving file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_MOVE);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_MOVE);
         }
 
         try {
@@ -549,7 +550,7 @@ public class FileOpsManager {
             throw ioe;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_MOVE);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_MOVE);
             }
         }
     }
@@ -559,7 +560,7 @@ public class FileOpsManager {
             LOGGER.debug("Moving directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_MOVE);
+            Tracer.emitEvent(FileOpsEvent.LOCAL_MOVE);
         }
 
         try {
@@ -571,7 +572,7 @@ public class FileOpsManager {
             throw ioe;
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.LOCAL_MOVE);
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_MOVE);
             }
         }
     }

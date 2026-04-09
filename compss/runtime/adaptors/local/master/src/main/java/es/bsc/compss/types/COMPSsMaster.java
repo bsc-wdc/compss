@@ -65,7 +65,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -1423,14 +1423,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         throws UnwritableValueException, NonExistentDataException {
         String filepath = (String) lp.getValue();
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
+            Tracer.emitEvent(TaskExecutionEvent.CHECK_OUT_PARAM);
         }
 
         SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + filepath);
         File f = new File(filepath);
         boolean fExists = f.exists();
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
+            Tracer.emitEventEnd(TaskExecutionEvent.CHECK_OUT_PARAM);
         }
         if (!fExists) {
             if (createIfNonExistent) {

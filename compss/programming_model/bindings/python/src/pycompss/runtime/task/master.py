@@ -1367,7 +1367,10 @@ class TaskMaster:
             if not _impl_type:
                 set_impl_type(impl_type)
             if not _impl_type_args:
-                if _impl_type == IMPLEMENTATION_TYPES.method or _impl_type is None:
+                if (
+                    _impl_type == IMPLEMENTATION_TYPES.method
+                    or _impl_type is None
+                ):
                     impl_type_args_updated = [LANG] + impl_type_args
                 else:
                     impl_type_args_updated = impl_type_args
@@ -1385,7 +1388,9 @@ class TaskMaster:
                     set_impl_type_args(impl_type_args)
             elif _impl_type == IMPLEMENTATION_TYPES.multi_node:
                 if _impl_type_args:
-                    set_impl_type_args([LANG] + impl_type_args + _impl_type_args)
+                    set_impl_type_args(
+                        [LANG] + impl_type_args + _impl_type_args
+                    )
                 else:
                     set_impl_type_args([LANG] + impl_type_args)
             if not _impl_local:

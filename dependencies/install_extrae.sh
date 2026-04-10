@@ -115,6 +115,21 @@
 
 
   #
+  # Sets binutils/BFD arguments for the Extrae installation command
+  #
+  # User ENV: EXTRAE_BINUTILS_PATH
+  # Global VARS: argBinutils
+  #
+  set_binutils_args() {
+    if [ -n "${EXTRAE_BINUTILS_PATH}" ]; then
+      argBinutils="--with-binutils=${EXTRAE_BINUTILS_PATH}"
+    else
+      argBinutils="--without-binutils"
+    fi
+  }
+
+
+  #
   # Sets PAPI arguments for the Extrae installation command
   #
   # User ENV: EXTRAE_PAPI_PATH, EXTRAE_PAPI_HEADERS, EXTRAE_PAPI_LIBS
@@ -210,11 +225,18 @@
 
     if [ "${is_cray}" == "false" ]; then
       # No Cray machine
+      # -Wno-implicit-function-declaration: GCC 14+ promotes this to an error in C99+
+      # mode (default gnu17). Extrae 3.8.3 is C89 code with implicit declarations.
+      # We suppress the warning rather than downgrading to -std=gnu89, which would
+      # break compilation of MPI wrapper code that includes OpenMPI headers using
+      # C99+ features such as `restrict` (OpenMPI 4.x / MPI-3).
+      # Preserve any caller-exported CFLAGS (e.g. site-specific -march flags).
       ./configure \
+        CFLAGS="${CFLAGS:+${CFLAGS} }-g -O2 -Wno-implicit-function-declaration" \
         --enable-gettimeofday-clock \
         --without-unwind \
         --without-dyninst \
-        --without-binutils \
+        "${argBinutils}" \
         "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
         "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
         --with-java-jdk="${JAVA_HOME}" \
@@ -236,7 +258,7 @@
         --enable-gettimeofday-clock \
         --without-unwind \
         --without-dyninst \
-        --without-binutils \
+        "${argBinutils}" \
         "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
         "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
         --with-java-jdk="${JAVA_HOME}" \
@@ -303,6 +325,12 @@
     echo " * ${argMpiHeaders}"
     echo " * ${argMpiLibs}"
 
+
+    # Build Extrae binutils/BFD args
+    set_binutils_args
+
+    echo "Extrae binutils args:"
+    echo " * ${argBinutils}"
 
     # Build Extrae PAPI args
     set_papi_args

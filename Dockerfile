@@ -2,23 +2,47 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG BASE=base22
 # TODO: define BASE_VERSION whenever a new release is done
 ARG BASE_VERSION=260305-135057
+# In CI, docker_build overrides this with the pre-built registry image so the
+# deps stage is bypassed entirely (no submodule init or compilation needed).
+ARG CI_DEPS_IMAGE=deps
 
-FROM compss/${BASE}_ci:${BASE_VERSION} AS ci
+# Stage: pre-install external dependencies (Extrae, DLB, Kafka, Tomcat, JaCoCo).
+# Built and pushed to the registry by the docker_build_deps CI job.
+# Clones submodules directly from their remotes (no .git needed in context).
+FROM compss/${BASE}_ci:${BASE_VERSION} AS deps
+
+ENV GRADLE_HOME=/opt/gradle
 
 COPY . /framework
 
-ENV GRADLE_HOME=/opt/gradle
+RUN cd /framework && \
+    git clone --depth=1 --branch master_compss https://github.com/bsc-wdc/extrae.git dependencies/extrae && \
+    git clone --depth=1 --branch v3.6.0 https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
+    git clone --depth=1 --branch master https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
+    git clone --depth=1 --branch next-release https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
+    /framework/builders/pre-install-deps --install-dir=/opt/COMPSs-deps
+
+# Stage: build and install COMPSs.
+# Starts FROM the pre-built deps registry image when CI_DEPS_IMAGE is set,
+# skipping the deps stage above entirely.
+FROM ${CI_DEPS_IMAGE} AS ci
+
+COPY . /framework
+
 ENV PATH=$PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils:/opt/gradle/bin
 ENV CLASSPATH=/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH=/opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs
 
-# Install COMPSs
-RUN cd /framework && \
-    ./submodules_get.sh && \
-    python3 -m pip --no-cache-dir install pip wheel setuptools kafka-python --upgrade && \
-    /framework/builders/buildlocal --skip-tests --no-pycompss-compile --no-python-style --rcompss /opt/COMPSs && \
-    mv /root/.m2 /home/jenkins && \
+# Install COMPSs (source the pre-installed deps env so buildlocal picks up
+# EXTRAE_HOME, DLB_HOME, KAFKA_HOME, TOMCAT_HOME, JACOCO_HOME).
+# The Maven cache mount persists /root/.m2 across builds on the same host so
+# Maven artifacts are not re-downloaded on every commit.
+RUN --mount=type=cache,target=/root/.m2 cd /framework && \
+    python3 -m pip --no-cache-dir install pip wheel setuptools kafka-python && \
+    . /opt/COMPSs-deps/compss-deps.env && \
+    /framework/builders/buildlocal --quiet --skip-tests --no-pycompss-compile --no-python-style --rcompss /opt/COMPSs && \
+    cp -r /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework /home/jenkins/
 
 # Expose SSH port and run SSHD

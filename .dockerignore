@@ -1,3 +1,16 @@
+# Git history - large and not needed; submodules are cloned inside the deps
+# stage and preserved in ci via the CI_DEPS_IMAGE base image.
+.git
+
+# Submodule source trees - large and not needed in the Docker build context.
+# extrae/dlb/threadpoolctl/RCOMPSs are cloned in the deps stage from their remotes.
+# kafka is downloaded as a binary release by pre-install-deps (not cloned).
+dependencies/extrae
+dependencies/dlb
+dependencies/kafka
+dependencies/threadpoolctl
+compss/programming_model/bindings/RCOMPSs
+
 # ignore and .cache folders
 .cache
 

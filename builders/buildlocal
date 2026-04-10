@@ -33,6 +33,8 @@ DEFAULT_MVN_TESTS=""
 MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
 DEFAULT_PYCOMPSS_COMPILATION=true
 DEFAULT_PYTHON_STYLE=true
+DEFAULT_DEPS_CACHE="${HOME}/.compss/deps-cache"
+DEFAULT_QUIET=false
 
 INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
@@ -124,6 +126,19 @@ show_opts() {
     --skip-tests                Disables MVN and Python unit tests
                                 Default: ${DEFAULT_TESTS}
 
+    --deps-cache=<path>         Directory for caching built dependencies.
+                                On re-install, a dependency is reused from
+                                cache when its version has not changed,
+                                skipping compilation or download entirely.
+                                Useful for HPC clusters and repeated builds.
+                                Default: ${DEFAULT_DEPS_CACHE}
+
+    --no-deps-cache             Disable dependency caching (always rebuild)
+
+    --quiet, -q                 Suppress informational output; only errors and
+                                warnings are printed. Also silences Maven output.
+                                Default: ${DEFAULT_QUIET}
+
 * Parameters:
     targetDir                   COMPSs installation directory
                                 Default: ${DEFAULT_TARGET_DIR}
@@ -161,10 +176,17 @@ display_error() {
   usage 1
 }
 
+# Prints an informational message; suppressed when --quiet is set
+log_info() {
+  if [ "${quiet}" != "true" ]; then
+    echo "$1"
+  fi
+}
+
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtRrTkKjJdDcCNxXsS-: flag; do
+  while getopts hvmMbBpPtRrTkKjJdDcCNxXsS-:q flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -404,10 +426,23 @@ get_args() {
             # Enables specific user mvn execution
             user_exec=${OPTARG//user-exec=/}
             ;;
+          deps-cache=*)
+            # Custom dependency cache directory
+            deps_cache=${OPTARG//deps-cache=/}
+            no_deps_cache=false
+            ;;
+          no-deps-cache)
+            # Disable dependency caching
+            deps_cache=""
+            no_deps_cache=true
+            ;;
           skip-tests)
             # Disable mvn and python unit tests
             unittests=false
             mvnTests=${MVN_SKIP_TESTS_OPT}
+            ;;
+          quiet)
+            quiet=true
             ;;
           *)
             # Flag didn't match any patern. End of COMPSs flags
@@ -415,6 +450,9 @@ get_args() {
             break
             ;;
         esac
+        ;;
+      q)
+        quiet=true
         ;;
       *)
         # Flag didn't match any patern. End of COMPSs flags
@@ -515,6 +553,12 @@ check_args() {
     display_warning "${NO_TARGET_DIR}"
     targetDir=${DEFAULT_TARGET_DIR}
   fi
+
+  if [ "${no_deps_cache}" != "true" ] && [ -z "${deps_cache}" ]; then
+    deps_cache="${DEFAULT_DEPS_CACHE}"
+  fi
+
+  quiet="${quiet:-${DEFAULT_QUIET}}"
 }
 
 warn_and_log_parameters() {
@@ -523,24 +567,25 @@ warn_and_log_parameters() {
   echo "          please run this script with root permissions"
   echo "    Example: sudo -E ./buildlocal [options] <targetDir>"
   echo "    !! Remember to export JAVA_HOME on root"
-  sleep 5
+  if [ "${quiet}" != "true" ]; then sleep 5; fi
 
-  echo "- Target DIR       = ${targetDir}"
-  echo "- Monitor          = ${monitor}"
-  echo "- Bindings         = ${bindings}"
-  echo "- PyCOMPSs         = ${pycompss}"
-  echo "- RCOMPSs          = ${rcompss}"
-  echo "- Tracing          = ${tracing}"
-  echo "- Stream Backend   = ${kafka}"
-  echo "- CLI              = ${cli}"
-  echo "- DLB              = ${dlb}"
-  echo "- Unit tests       = ${unittests}"
-  echo "- PyCOMPSs compile = ${pycompss_compile}"
-  echo "- Python style     = ${python_style}"
-  echo "- SCRIPT_DIR       = ${SCRIPT_DIR}"
-  echo "- SOURCES DIR      = ${SOURCES_DIR}"
-  echo "- TMP_DIR          = ${TMP_DIR}"
-  sleep 5
+  log_info "- Target DIR       = ${targetDir}"
+  log_info "- Monitor          = ${monitor}"
+  log_info "- Bindings         = ${bindings}"
+  log_info "- PyCOMPSs         = ${pycompss}"
+  log_info "- RCOMPSs          = ${rcompss}"
+  log_info "- Tracing          = ${tracing}"
+  log_info "- Stream Backend   = ${kafka}"
+  log_info "- CLI              = ${cli}"
+  log_info "- DLB              = ${dlb}"
+  log_info "- Unit tests       = ${unittests}"
+  log_info "- PyCOMPSs compile = ${pycompss_compile}"
+  log_info "- Python style     = ${python_style}"
+  log_info "- SCRIPT_DIR       = ${SCRIPT_DIR}"
+  log_info "- SOURCES DIR      = ${SOURCES_DIR}"
+  log_info "- TMP_DIR          = ${TMP_DIR}"
+  log_info "- Deps cache       = ${deps_cache:-(disabled)}"
+  if [ "${quiet}" != "true" ]; then sleep 5; fi
 }
 
 # INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR.
@@ -549,7 +594,7 @@ warn_and_log_parameters() {
 #  $2 PATH WHERE TO INSTALL THE ADAPTOR
 install_adaptor() {
     adaptor_name=$(basename "$1")
-    echo "------ Copying ${adaptor_name} adaptor"
+    log_info "------ Copying ${adaptor_name} adaptor"
     if [ -d "$1"/master/ ]; then
       mkdir "$2/${adaptor_name}"
       mkdir "$2/${adaptor_name}"/master
@@ -578,37 +623,86 @@ command_exists () {
     type "$1" &> /dev/null ;
 }
 
+# Returns the version stamp for a dependency.
+# Uses the git submodule commit hash when available (precise, invalidates on
+# submodule updates), otherwise falls back to the given version string.
+get_dep_version() {
+  local submodule_path="$1"
+  local fallback_version="$2"
+  local commit
+  commit=$(git -C "${SOURCES_DIR}" ls-files --stage -- "${submodule_path}" 2>/dev/null | awk '{print $2}')
+  if [ -n "${commit}" ]; then
+    echo "${commit}"
+  else
+    echo "${fallback_version}"
+  fi
+}
+
+# Returns 0 (true) if the cache directory exists and its stamp matches the
+# expected version, meaning the dependency can be reused without rebuilding.
+dep_cache_valid() {
+  local cache_dir="$1"
+  local expected_version="$2"
+  if [ ! -d "${cache_dir}" ]; then return 1; fi
+  local cached_version
+  cached_version=$(cat "${cache_dir}/.compss_dep_version" 2>/dev/null || echo "")
+  [ "${cached_version}" = "${expected_version}" ]
+}
+
+# Writes the version stamp into a cache directory so future builds can
+# detect whether the cached content is still valid.
+write_dep_version() {
+  local cache_dir="$1"
+  local version="$2"
+  echo "${version}" > "${cache_dir}/.compss_dep_version"
+}
+
 install_compss() {
+  # Set Maven quiet flag and make/binding quiet redirect
+  if [ "${quiet}" == "true" ]; then
+    mvnQuiet="-q"
+    export MAKEFLAGS="-s"
+    bindingOut="/dev/null"
+  else
+    mvnQuiet=""
+    bindingOut="/dev/stdout"
+  fi
+
   # COMPILE
-  echo "- Compile sources"
+  log_info "- Compile sources"
   cd "${SOURCES_DIR}"
   touch compss/runtime/config/xml/projects/project_schema.xsd
   touch compss/runtime/config/xml/resources/resources_schema.xsd
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
-    echo "   (as root)"
-    mvn -U clean install ${mvnTests}
+    log_info "   (as root)"
+    mvn ${mvnQuiet} -U clean install ${mvnTests}
   else
-    echo "   (as user ${user_exec})"
-    sudo -E -u "${user_exec}" mvn clean install ${mvnTests}
+    log_info "   (as user ${user_exec})"
+    sudo -E -u "${user_exec}" mvn ${mvnQuiet} clean install ${mvnTests}
   fi
   cd "${SCRIPT_DIR}"
 
   # COMPILE Storage
-  echo "- Compile storage implementations"
+  log_info "- Compile storage implementations"
   cd "${SOURCES_DIR}/utils/storage/redisPSCO"
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
-    echo "   (as root)"
-    ./make_bundle.sh
+    log_info "   (as root)"
+    ./make_bundle.sh > "${bindingOut}" 2>&1 && :
   else
-    echo "   (as user ${user_exec})"
-    sudo -E -u "${user_exec}" ./make_bundle.sh
+    log_info "   (as user ${user_exec})"
+    sudo -E -u "${user_exec}" ./make_bundle.sh > "${bindingOut}" 2>&1 && :
+  fi
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Failed to build storage bundle"
+    exit 1
   fi
   cd "${SCRIPT_DIR}"
 
   # CHECKING pycodestyle IN BINDING - only if 'pycodestyle' is available (MUST be in the test infrastructure)
   if [ "${pycompss}" == "true" ]; then
     if [ "${python_style}" == "true" ]; then
-      echo "- Checking pycodestyle in Python Binding"
+      log_info "- Checking pycodestyle in Python Binding"
       if command_exists "pycodestyle" ; then
         cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
         env $PATH=PATH ./check_code.sh
@@ -618,13 +712,13 @@ install_compss() {
           cd "${SCRIPT_DIR}"
           exit 1
         fi
-        echo "  - Python Binding format is OK."
+        log_info "  - Python Binding format is OK."
         cd "${SCRIPT_DIR}"
       else
         echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
         exit 1
       fi
-      echo "- Checking pydocstyle in Python Binding"
+      log_info "- Checking pydocstyle in Python Binding"
       if command_exists "pydocstyle" ; then
         cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
         env $PATH=PATH ./check_documentation.sh
@@ -634,13 +728,13 @@ install_compss() {
           cd "${SCRIPT_DIR}"
           exit 1
         fi
-        echo "  - Python Binding code documentation is OK."
+        log_info "  - Python Binding code documentation is OK."
         cd "${SCRIPT_DIR}"
       else
         echo "WARNING: Could not check pydocstyle format of Python Binding (pydocstyle not installed)."
         exit 1
       fi
-      echo "- Checking Black in Python Binding"
+      log_info "- Checking Black in Python Binding"
       if command_exists "black" ; then
         cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
         env $PATH=PATH ./check_black.sh
@@ -650,19 +744,19 @@ install_compss() {
           cd "${SCRIPT_DIR}"
           exit 1
         fi
-        echo "  - Python Binding Black format is OK."
+        log_info "  - Python Binding Black format is OK."
         cd "${SCRIPT_DIR}"
       else
         echo "WARNING: Could not check Black format of Python Binding (black not installed)."
         exit 1
       fi
     else
-      echo "SKIP: Skipping Python style check."
+      log_info "SKIP: Skipping Python style check."
     fi
 
     # Run unittests
     if [ "${unittests}" == "true" ]; then
-      echo " - Run Python Binding Unittests"
+      log_info " - Run Python Binding Unittests"
       # These tests do not need to be installed
       cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/test"
       env $PATH=PATH ./run_unittests.sh --no-integration-unittests --no-jupyter-unittests
@@ -672,14 +766,14 @@ install_compss() {
         cd "${SCRIPT_DIR}"
         exit 1
       fi
-      echo "  - Python Binding unittests is OK."
+      log_info "  - Python Binding unittests is OK."
       cd "${SCRIPT_DIR}"
     else
-      echo "SKIP: Skipping PyCOMPSs binding unittests."
+      log_info "SKIP: Skipping PyCOMPSs binding unittests."
     fi
 
     if [ "${pycompss_compile}" == "true" ]; then
-      echo "- Checking mypy in Python Binding"
+      log_info "- Checking mypy in Python Binding"
       specific_python_command="python3"
       specific_python_command_complete_version=$(${specific_python_command} -V 2>&1)
       specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | cut -d ' ' -f 2 | cut -d '.' -f 1,2 | sed -e 's/\.//g')
@@ -693,7 +787,7 @@ install_compss() {
             cd "${SCRIPT_DIR}"
             exit 1
           fi
-          echo "  - Python Binding typing is OK."
+          log_info "  - Python Binding typing is OK."
           cd "${SCRIPT_DIR}"
         else
           echo "WARNING: Could not check typing of Python Binding (mypy not installed)."
@@ -704,12 +798,12 @@ install_compss() {
         exit 1
       fi
     else
-      echo "SKIP: Skipping PyCOMPSs binding compilation with mypy."
+      log_info "SKIP: Skipping PyCOMPSs binding compilation with mypy."
     fi
   fi
 
   # COPY TRUNK
-  echo "- Copy trunk to tmpdir"
+  log_info "- Copy trunk to tmpdir"
   rm -rf "${TMP_DIR}"
   mkdir -p "${TMP_DIR}"
   cp "${SOURCES_DIR}/changelog" "${TMP_DIR}"
@@ -724,18 +818,18 @@ install_compss() {
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
   cp "${SOURCES_DIR}/README.md" "${TMP_DIR}"
   cp "${SOURCES_DIR}/RELEASE_NOTES" "${TMP_DIR}"
-  find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; | cat # Clean git files
+  find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; 2>/dev/null | cat > /dev/null # Clean git files
 
   # CLEAN TRUNK COMPILATION
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
-    echo "- Clean sources"
+    log_info "- Clean sources"
     cd "${SOURCES_DIR}"
-    mvn -U clean
+    mvn ${mvnQuiet} -U clean
     cd "${SCRIPT_DIR}"
   fi
 
   # CREATE TARGET FOLDER
-  echo "- Create target folder"
+  log_info "- Create target folder"
   rm -rf ${targetDir}
   mkdir -p ${targetDir}
   mkdir -p ${targetDir}/Doc
@@ -758,9 +852,9 @@ install_compss() {
   mkdir -p ${targetDir}/Bindings/bindings-common
 
   # RUNTIME DEPLOYMENT
-  echo "- Copy Runtime deployment files"
+  log_info "- Copy Runtime deployment files"
   # Doc
-  echo "--- Copy docs"
+  log_info "--- Copy docs"
   cp "${TMP_DIR}/changelog" ${targetDir}
   cp "${TMP_DIR}/LICENSE" ${targetDir}
   cp "${TMP_DIR}/NOTICE" ${targetDir}
@@ -768,67 +862,134 @@ install_compss() {
   cp "${TMP_DIR}/RELEASE_NOTES" ${targetDir}
 
   # DEPENDENCIES
-  echo "--- Copy dependencies"
+  log_info "--- Copy dependencies"
   # GAT
   cp -r "${TMP_DIR}/dependencies/JAVA_GAT" ${targetDir}/Dependencies/
   # Paraver CFGs
   cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
   # Extrae
   if [ "$tracing" == "true" ]; then
-    cd "${TMP_DIR}"/dependencies/
-    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae ${targetDir}/Dependencies/extrae true
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install extrae dependency"
-      exit 1
+    if [ -n "${EXTRAE_HOME}" ] && [ -d "${EXTRAE_HOME}" ]; then
+      log_info "--- Using pre-installed Extrae from ${EXTRAE_HOME}"
+      mkdir -p "${targetDir}/Dependencies/extrae"
+      cp -r "${EXTRAE_HOME}/." "${targetDir}/Dependencies/extrae/"
+    else
+      extrae_ver=$(get_dep_version "dependencies/extrae" "3.5.3")
+      extrae_cache="${deps_cache}/extrae"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${extrae_cache}" "${extrae_ver}"; then
+        log_info "--- Reusing cached Extrae (${extrae_ver})"
+        mkdir -p "${targetDir}/Dependencies/extrae"
+        cp -r "${extrae_cache}/." "${targetDir}/Dependencies/extrae/"
+      else
+        cd "${TMP_DIR}"/dependencies/
+        ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae ${targetDir}/Dependencies/extrae true > "${bindingOut}" 2>&1
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to install extrae dependency"
+          exit 1
+        fi
+        if [ -n "${deps_cache}" ]; then
+          log_info "--- Caching Extrae to ${extrae_cache}"
+          mkdir -p "${extrae_cache}"
+          cp -r "${targetDir}/Dependencies/extrae/." "${extrae_cache}/"
+          write_dep_version "${extrae_cache}" "${extrae_ver}"
+        fi
+      fi
+      cd "${SCRIPT_DIR}"
     fi
-    cd "${SCRIPT_DIR}"
   fi
   # DLB
   if [ "$dlb" == "true" ]; then
-    cd "${TMP_DIR}"/dependencies/
-    ./install_dlb.sh "${TMP_DIR}"/dependencies/dlb ${targetDir}/Dependencies/dlb # true
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install dlb dependency"
-      exit 1
+    if [ -n "${DLB_HOME}" ] && [ -d "${DLB_HOME}" ]; then
+      log_info "--- Using pre-installed DLB from ${DLB_HOME}"
+      mkdir -p "${targetDir}/Dependencies/dlb"
+      cp -r "${DLB_HOME}/." "${targetDir}/Dependencies/dlb/"
+    else
+      dlb_ver=$(get_dep_version "dependencies/dlb" "3.6.0")
+      dlb_cache="${deps_cache}/dlb"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${dlb_cache}" "${dlb_ver}"; then
+        log_info "--- Reusing cached DLB (${dlb_ver})"
+        mkdir -p "${targetDir}/Dependencies/dlb"
+        cp -r "${dlb_cache}/." "${targetDir}/Dependencies/dlb/"
+      else
+        cd "${TMP_DIR}"/dependencies/
+        ./install_dlb.sh "${TMP_DIR}"/dependencies/dlb ${targetDir}/Dependencies/dlb > "${bindingOut}" 2>&1 # true
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to install dlb dependency"
+          exit 1
+        fi
+        if [ -n "${deps_cache}" ]; then
+          log_info "--- Caching DLB to ${dlb_cache}"
+          mkdir -p "${dlb_cache}"
+          cp -r "${targetDir}/Dependencies/dlb/." "${dlb_cache}/"
+          write_dep_version "${dlb_cache}" "${dlb_ver}"
+        fi
+      fi
+      cd "${SCRIPT_DIR}"
     fi
     export DLB_HOME=${targetDir}/Dependencies/dlb
-    cd "${SCRIPT_DIR}"
   else
     unset DLB_HOME
   fi
   # Kafka
   if [ "${kafka}" = "true" ]; then
-    cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
-    #cp "${TMP_DIR}"/dependencies/gradle.properties ${targetDir}/Dependencies/kafka/.
-
-    cd "${targetDir}"/Dependencies/kafka
-    if which gradle; then
-      ./retry_zinc gradle
-      ev=$?
-    elif [ -n "${GRADLE_HOME}" ]; then
-      ./retry_zinc "${GRADLE_HOME}"/bin/gradle
-      ev=$?
+    if [ -n "${KAFKA_HOME}" ] && [ -d "${KAFKA_HOME}" ]; then
+      log_info "--- Using pre-installed Kafka from ${KAFKA_HOME}"
+      mkdir -p "${targetDir}/Dependencies/kafka"
+      cp -r "${KAFKA_HOME}/." "${targetDir}/Dependencies/kafka/"
     else
-      echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
-      exit 1
+      kafka_ver=$(get_dep_version "dependencies/kafka" "3.8.0")
+      kafka_cache="${deps_cache}/kafka"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${kafka_cache}" "${kafka_ver}"; then
+        log_info "--- Reusing cached Kafka (${kafka_ver})"
+        mkdir -p "${targetDir}/Dependencies/kafka"
+        cp -r "${kafka_cache}/." "${targetDir}/Dependencies/kafka/"
+      else
+        cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
+        #cp "${TMP_DIR}"/dependencies/gradle.properties ${targetDir}/Dependencies/kafka/.
+
+        cd "${targetDir}"/Dependencies/kafka
+        if which gradle; then
+          ./retry_zinc gradle > "${bindingOut}" 2>&1
+          ev=$?
+        elif [ -n "${GRADLE_HOME}" ]; then
+          ./retry_zinc "${GRADLE_HOME}"/bin/gradle > "${bindingOut}" 2>&1
+          ev=$?
+        else
+          echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
+          exit 1
+        fi
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to compile Kafka dependency"
+          exit 1
+        fi
+        ./retry_zinc ./gradlew jar > "${bindingOut}" 2>&1
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to build Kafka dependency"
+          exit 1
+        fi
+        if [ -n "${deps_cache}" ]; then
+          log_info "--- Caching Kafka to ${kafka_cache}"
+          rm -rf "${kafka_cache}"
+          mkdir -p "${kafka_cache}"
+          # Cache the JARs and bin/ scripts needed at runtime by streams.sh
+          find "${targetDir}/Dependencies/kafka" -path "*/build/libs/*.jar" \
+               ! -name "*-test*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+               -exec cp {} "${kafka_cache}/" \;
+          if [ -d "${targetDir}/Dependencies/kafka/bin" ]; then
+            cp -r "${targetDir}/Dependencies/kafka/bin" "${kafka_cache}/"
+          fi
+          write_dep_version "${kafka_cache}" "${kafka_ver}"
+        fi
+        cd "${SCRIPT_DIR}"
+      fi
     fi
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to compile Kafka dependency"
-      exit 1
-    fi
-    ./retry_zinc ./gradlew jar
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to build Kafka dependency"
-      exit 1
-    fi
-    cd "${SCRIPT_DIR}"
   fi
 
   # CONFIG
-  echo "--- Copy configuration"
+  log_info "--- Copy configuration"
   find "${TMP_DIR}"/compss/runtime/config -name src -type d -prune -exec rm -r "{}" \;
   find "${TMP_DIR}"/compss/runtime/config -name target -type d -prune -exec rm -r "{}" \;
   find "${TMP_DIR}"/compss/runtime/config -name pom.xml -delete
@@ -836,11 +997,11 @@ install_compss() {
   sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xml/projects/default_project.xml
 
   # Scripts
-  echo "--- Copy scripts"
+  log_info "--- Copy scripts"
   cp -r "${TMP_DIR}"/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
 
   # Adaptors
-  echo "--- Copy adaptors"
+  log_info "--- Copy adaptors"
   find "${TMP_DIR}/compss/runtime/adaptors" -name pom.xml -delete
   find "${TMP_DIR}/compss/runtime/adaptors" -name "*.iml" -delete
   rm -r "${TMP_DIR}/compss/runtime/adaptors/commons"
@@ -865,55 +1026,79 @@ install_compss() {
   done
 
   # Checkpointer
-  echo "--- Copy checkpointers policies"
+  log_info "--- Copy checkpointers policies"
   find "${TMP_DIR}/compss/runtime/checkpointer/" -name "*.jar" -exec cp {} ${targetDir}/Runtime/checkpointer/ \;
 
   # Schedulers
-  echo "--- Copy schedulers"
+  log_info "--- Copy schedulers"
   rm -r "${TMP_DIR}/compss/runtime/scheduler/commons"
   rm -r "${TMP_DIR}/compss/runtime/scheduler/test"
   find "${TMP_DIR}/compss/runtime/scheduler/" -name "*.jar" -exec cp {} ${targetDir}/Runtime/scheduler/ \;
 
   # Storage
-  echo "--- Copy storage implementations"
-  echo "------ Copying Redis Storage Implementation"
+  log_info "--- Copy storage implementations"
+  log_info "------ Copying Redis Storage Implementation"
   cp -r "${TMP_DIR}/utils/storage/redisPSCO/COMPSs-Redis-bundle" "${targetDir}/Tools/storage/redis"
 
    # Connectors
-  echo "--- Copy Runtime Connectors"
+  log_info "--- Copy Runtime Connectors"
   connectors=$(find "${TMP_DIR}/compss/runtime/resources/" -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
     cp "$conn" ${targetDir}/Runtime/connectors/
   done
-  echo "--- Copy CONN Connectors"
+  log_info "--- Copy CONN Connectors"
   connectors=$(find "${TMP_DIR}/compss/runtime/resources/" -name "*.jar" | grep "cloud-conn")
   for conn in $connectors; do
     cp "$conn" ${targetDir}/Runtime/cloud-conn/
   done
 
   # Engine
-  echo "--- Copy engine"
+  log_info "--- Copy engine"
   cp "${TMP_DIR}/compss/runtime/compss-engine.jar" "${targetDir}/Runtime/"
 
   # Agent
-  echo "--- Copy Agent"
+  log_info "--- Copy Agent"
   cp "${TMP_DIR}/compss/agent/compss-agent-impl.jar" "${targetDir}/Runtime/"
 
  # Trace operations
-  echo "--- Copy trace modifications"
+  log_info "--- Copy trace modifications"
   cp -r "${TMP_DIR}/compss/tools/tracing/target/compss-tracing.jar" "${targetDir}/Tools/tracing"
 
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then
-    echo "- Deploying Monitor at Tools"
-    cd "${TMP_DIR}"
+    log_info "- Deploying Monitor at Tools"
     TOMCAT_VER="8.5.23" #"7.0.65"
-    TOMCAT_PCK_NAME="apache-tomcat-${TOMCAT_VER}.tar.gz"
-    TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/${TOMCAT_PCK_NAME}"
-    wget $TOMCAT_URL
-    tar xzf ${TOMCAT_PCK_NAME}
-    cd "${SCRIPT_DIR}"
-    mv "${TMP_DIR}/apache-tomcat-$TOMCAT_VER" "${targetDir}/Tools/monitor/apache-tomcat/"
+    if [ -n "${TOMCAT_HOME}" ] && [ -d "${TOMCAT_HOME}" ]; then
+      log_info "--- Using pre-installed Tomcat from ${TOMCAT_HOME}"
+      mkdir -p "${targetDir}/Tools/monitor/apache-tomcat"
+      cp -r "${TOMCAT_HOME}/." "${targetDir}/Tools/monitor/apache-tomcat/"
+    else
+      tomcat_cache="${deps_cache}/tomcat"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${tomcat_cache}" "${TOMCAT_VER}"; then
+        log_info "--- Reusing cached Tomcat (${TOMCAT_VER})"
+        mkdir -p "${targetDir}/Tools/monitor/apache-tomcat"
+        cp -r "${tomcat_cache}/." "${targetDir}/Tools/monitor/apache-tomcat/"
+      else
+        cd "${TMP_DIR}"
+        TOMCAT_PCK_NAME="apache-tomcat-${TOMCAT_VER}.tar.gz"
+        TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/${TOMCAT_PCK_NAME}"
+        wget "${TOMCAT_URL}" > "${bindingOut}" 2>&1
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to download Tomcat from ${TOMCAT_URL}"
+          exit 1
+        fi
+        tar xzf "${TOMCAT_PCK_NAME}"
+        cd "${SCRIPT_DIR}"
+        mv "${TMP_DIR}/apache-tomcat-$TOMCAT_VER" "${targetDir}/Tools/monitor/apache-tomcat/"
+        if [ -n "${deps_cache}" ]; then
+          log_info "--- Caching Tomcat to ${tomcat_cache}"
+          mkdir -p "${tomcat_cache}"
+          cp -r "${targetDir}/Tools/monitor/apache-tomcat/." "${tomcat_cache}/"
+          write_dep_version "${tomcat_cache}" "${TOMCAT_VER}"
+        fi
+      fi
+    fi
     rm -rf "${targetDir}"/Tools/monitor/apache-tomcat/webapps/*
     rm -f "${targetDir}"/Tools/monitor/apache-tomcat/conf/server.xml
     cp -r "${TMP_DIR}"/compss/tools/monitor/target/*.war "${targetDir}/Tools/monitor/apache-tomcat/webapps/"
@@ -923,26 +1108,50 @@ install_compss() {
   fi
 
   if [ "$jacoco" == "true" ]; then
-    echo "- Deploying Jacoco at Tools"
-    cd "${TMP_DIR}"
+    log_info "- Deploying Jacoco at Tools"
     JACOCO_VER="0.8.5"
-    JACOCO_PCK_NAME="jacoco-${JACOCO_VER}.zip"
-    JACOCO_URL="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VER}/${JACOCO_PCK_NAME}"
-    wget $JACOCO_URL
-    unzip ${JACOCO_PCK_NAME} -d jacoco
-    cd "${SCRIPT_DIR}"
-    mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
+    if [ -n "${JACOCO_HOME}" ] && [ -d "${JACOCO_HOME}" ]; then
+      log_info "--- Using pre-installed JaCoCo from ${JACOCO_HOME}"
+      mkdir -p "${targetDir}/Tools/jacoco"
+      cp -r "${JACOCO_HOME}/." "${targetDir}/Tools/jacoco/"
+    else
+      jacoco_cache="${deps_cache}/jacoco"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${jacoco_cache}" "${JACOCO_VER}"; then
+        log_info "--- Reusing cached JaCoCo (${JACOCO_VER})"
+        mkdir -p "${targetDir}/Tools/jacoco"
+        cp -r "${jacoco_cache}/." "${targetDir}/Tools/jacoco/"
+      else
+        cd "${TMP_DIR}"
+        JACOCO_PCK_NAME="jacoco-${JACOCO_VER}.zip"
+        JACOCO_URL="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VER}/${JACOCO_PCK_NAME}"
+        wget "${JACOCO_URL}" > "${bindingOut}" 2>&1
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to download JaCoCo from ${JACOCO_URL}"
+          exit 1
+        fi
+        unzip "${JACOCO_PCK_NAME}" -d jacoco
+        cd "${SCRIPT_DIR}"
+        mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
+        if [ -n "${deps_cache}" ]; then
+          log_info "--- Caching JaCoCo to ${jacoco_cache}"
+          mkdir -p "${jacoco_cache}"
+          cp -r "${targetDir}/Tools/jacoco/." "${jacoco_cache}/"
+          write_dep_version "${jacoco_cache}" "${JACOCO_VER}"
+        fi
+      fi
+    fi
   fi
 
   # REPRODUCIBILITY SERVICE
-  echo "--- Deploying Reproducibility Service"
+  log_info "--- Deploying Reproducibility Service"
   cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/"
 
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ] || [ "${rcompss}" == "true" ]; then
-    echo "- Deploying bindings-common files"
+    log_info "- Deploying bindings-common files"
     cd "${TMP_DIR}/compss/programming_model/bindings/bindings-common"
-    ./install_common "${targetDir}/Bindings/bindings-common"
+    ./install_common "${targetDir}/Bindings/bindings-common" > "${bindingOut}" 2>&1 && :
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install bindings-common"
@@ -950,9 +1159,9 @@ install_compss() {
     fi
 
     if [ "${bindings}" == "true" ]; then
-      echo "- Deploying c-binding files"
+      log_info "- Deploying c-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/c"
-      ./install "${targetDir}/Bindings/c" "true"
+      ./install "${targetDir}/Bindings/c" "true" > "${bindingOut}" 2>&1 && :
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install C-binding"
@@ -965,11 +1174,11 @@ install_compss() {
     fi
 
     if [ "${pycompss}" == "true" ]; then
-      echo "- Deploying python-binding files"
+      log_info "- Deploying python-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
       if command_exists "python3" ; then
         # Install python binding only for python3
-        ./install.sh "${targetDir}/Bindings/python" true python3 && :
+        ./install.sh "${targetDir}/Bindings/python" true python3 > "${bindingOut}" 2>&1 && :
         ev=$?
       else
         # Error no python 3
@@ -984,9 +1193,9 @@ install_compss() {
     fi
 
     if [ "${rcompss}" == "true" ]; then
-      echo "- Deploying R-binding files"
+      log_info "- Deploying R-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/RCOMPSs"
-      ./install.sh "${targetDir}/Bindings/RCOMPSs" "${tracing}" && :
+      ./install.sh "${targetDir}/Bindings/RCOMPSs" "${tracing}" > "${bindingOut}" 2>&1 && :
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install R-binding"
@@ -997,14 +1206,19 @@ install_compss() {
   fi
 
   if [ "$cli" == "true" ]; then
-    echo "- Deploying CLI at Tools"
+    log_info "- Deploying CLI at Tools"
     cd "${TMP_DIR}/cli/PyCOMPSsCLIResources"
-    ./install.sh
+    ./install.sh > "${bindingOut}" 2>&1 && :
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to install CLI"
+      exit 1
+    fi
     cd "${SCRIPT_DIR}"
   fi
 
   # ADD RUNCOMPSS TO PROFILE
-  if [ "$(whoami)" == "root" ]; then
+  if [ "$EUID" -eq 0 ]; then
     # Script has been run as sudo
     # Insert to profile
     envFile=/etc/profile.d/compss.sh
@@ -1028,27 +1242,27 @@ install_compss() {
     echo "***************************************************************************"
   fi
 
-  echo "- Adding runcompss to profile..."
+  log_info "- Adding runcompss to profile..."
   build_date=$(date "+%Y-%m-%d %H:%M:%S")
   echo " " >> $envFile
   echo "# COMPSs environment variables ${build_date}" >> $envFile
   echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user:${targetDir}/Runtime/scripts/utils" >> $envFile
-  echo "- Runcompss added to user profile"
+  log_info "- Runcompss added to user profile"
   echo " "
-  echo "- Adding compss-engine.jar to profile..."
+  log_info "- Adding compss-engine.jar to profile..."
   echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> $envFile
-  echo "- compss-engine.jar added to user profile"
+  log_info "- compss-engine.jar added to user profile"
   echo " "
 
   if [ "$bindings" == "true" ]; then
-    echo "- Adding c-binaries to profile..."
+    log_info "- Adding c-binaries to profile..."
     echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> $envFile
-    echo "- c-binaries added to user profile"
+    log_info "- c-binaries added to user profile"
     echo " "
-    echo "- Adding binding-common to profile..."   # Needed for jupyter notebook
+    log_info "- Adding binding-common to profile..."   # Needed for jupyter notebook
     # Java paths changed since Java 11, from $JAVA_HOME/lib/amd64/server:$JAVA_HOME/jre/lib/amd64/server
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/server" >> $envFile
-    echo "- binding-common library added to user profile"
+    log_info "- binding-common library added to user profile"
     echo " "
     # Instead of importing it in the envFile, it is done with softlinks from site-packages in python3 (if available) on the installation
     # echo "- Adding PyCOMPSs to user profile..."
@@ -1063,27 +1277,29 @@ install_compss() {
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Dependencies/dlb/lib" >> $envFile
   fi
 
-  # ADD MONITOR SCRIPT TO ETC
-  if [ "$monitor" == "true" ] && [[ "$OSTYPE" != "darwin"* ]]; then
-    echo "- Add monitor script to init.d"
-    sudo cp "${TMP_DIR}/compss/tools/monitor/scripts/compss-monitor" /etc/init.d/compss-monitor
-    sudo chmod 755 /etc/init.d/compss-monitor
+  # ADD MONITOR SCRIPT TO ETC (only when running as root / system-wide install)
+  if [ "$monitor" == "true" ] && [[ "$OSTYPE" != "darwin"* ]] && [ "$EUID" -eq 0 ]; then
+    log_info "- Add monitor script to init.d"
+    cp "${TMP_DIR}/compss/tools/monitor/scripts/compss-monitor" /etc/init.d/compss-monitor
+    chmod 755 /etc/init.d/compss-monitor
 
     system=$(which chkconfig | cat)
     if [ "$system" != "" ]; then
       # Suse based distrs
-      sudo chkconfig --add compss-monitor
+      chkconfig --add compss-monitor
     else
       # Debian based distrs
-      sudo update-rc.d compss-monitor defaults
+      update-rc.d compss-monitor defaults
     fi
+  elif [ "$monitor" == "true" ] && [[ "$OSTYPE" != "darwin"* ]]; then
+    log_info "- Skipping init.d monitor registration (not running as root)"
   fi
 
   # MACOS NEEDED VARIABLES
   if [[ "$(uname)" == "Darwin" ]]; then
     # This is needed to be able to find util-linux tools at the worker (such as setsid)
     arch=$(uname -m)
-    echo "- Adding macOS environment variables for architecture $arch..."
+    log_info "- Adding macOS environment variables for architecture $arch..."
     echo " " >> $envFile
     echo "# COMPSs environment variables for macOS ${arch} ${build_date}" >> $envFile
     echo "export JAVA_HOME=${JAVA_HOME}" >> $envFile
@@ -1098,16 +1314,16 @@ install_compss() {
       echo "export PATH=/opt/homebrew/opt/util-linux/bin:\$PATH" >> $envFile
       echo "export PATH=/opt/homebrew/opt/util-linux/sbin:\$PATH" >> $envFile
     fi
-    echo "- macOS environment variables for architecture $arch added to user profile"
+    log_info "- macOS environment variables for architecture $arch added to user profile"
     echo " "
   fi
 
   # ERASE TMP FILES
-  echo "- Erase tmp files"
+  log_info "- Erase tmp files"
   rm -rf "${TMP_DIR}"
 
   # SET TARGETDIR PERMISSIONS
-  echo "- Set COMPSs permissions"
+  log_info "- Set COMPSs permissions"
   chmod -R 755 ${targetDir}
   chmod -R 777 ${targetDir}/Runtime/configuration/
 }
@@ -1122,7 +1338,5 @@ install_compss() {
   install_compss
 
   # END
-  echo "Congratulations!"
-  echo "COMPSs Runtime Successfully installed!"
-  echo " "
+  echo "Congratulations! COMPSs Runtime Successfully installed!"
   exit 0

@@ -1,0 +1,424 @@
+#!/bin/bash -e
+
+######################################################################
+# Name:         pre-install-deps
+# Description:  Installs COMPSs external dependencies (Extrae, DLB,
+#               Kafka, Tomcat, JaCoCo) into a local directory and
+#               writes a sourceable env file that sets the *_HOME
+#               variables expected by buildlocal.
+#
+# Usage:
+#   ./pre-install-deps [options]
+#
+# After running, add to your shell profile or source before building:
+#   source <install-dir>/compss-deps.env
+######################################################################
+
+#---------------------------------------------------
+# VERSIONS (must match buildlocal expectations)
+#---------------------------------------------------
+EXTRAE_VERSION="3.5.3"
+DLB_VERSION="3.6.0"
+KAFKA_VERSION="3.8.0"
+TOMCAT_VERSION="8.5.23"
+JACOCO_VERSION="0.8.5"
+
+#---------------------------------------------------
+# DEFAULTS
+#---------------------------------------------------
+DEFAULT_INSTALL_DIR="${HOME}/opt/COMPSs-deps"
+DEFAULT_MPI_HEADERS="/usr/include/x86_64-linux-gnu/mpi"
+#DEFAULT_BINUTILS_PATH="/usr"
+DEFAULT_INSTALL_EXTRAE=true
+DEFAULT_INSTALL_DLB=true
+DEFAULT_INSTALL_KAFKA=true
+DEFAULT_INSTALL_TOMCAT=true
+DEFAULT_INSTALL_JACOCO=true
+
+#---------------------------------------------------
+# SCRIPT VARIABLES
+#---------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCES_DIR="${SCRIPT_DIR}/.."
+
+#---------------------------------------------------
+# USAGE
+#---------------------------------------------------
+usage() {
+  cat <<EOT
+Usage: $0 [options]
+
+Installs COMPSs external dependencies into a local directory and writes
+a sourceable env file with the required *_HOME variables.
+
+Options:
+    --help, -h                  Print this help message
+
+    --install-dir=<path>        Directory where dependencies will be installed
+                                Default: ${DEFAULT_INSTALL_DIR}
+
+    --mpi-headers=<path>        Path to MPI headers for Extrae build (EXTRAE_MPI_HEADERS)
+                                Default: ${DEFAULT_MPI_HEADERS}
+
+    --binutils-path=<path>      Root path of binutils/BFD installation, enables address
+                                translation in the Extrae merger (EXTRAE_BINUTILS_PATH)
+                                Default: ${DEFAULT_BINUTILS_PATH}
+
+    --extrae                    Install Extrae ${EXTRAE_VERSION} (BSC fork)
+    --no-extrae                 Skip Extrae installation
+                                Default: ${DEFAULT_INSTALL_EXTRAE}
+
+    --dlb                       Install DLB ${DLB_VERSION}
+    --no-dlb                    Skip DLB installation
+                                Default: ${DEFAULT_INSTALL_DLB}
+
+    --kafka                     Install Kafka JARs ${KAFKA_VERSION}
+    --no-kafka                  Skip Kafka installation
+                                Default: ${DEFAULT_INSTALL_KAFKA}
+
+    --tomcat                    Install Apache Tomcat ${TOMCAT_VERSION}
+    --no-tomcat                 Skip Tomcat installation
+                                Default: ${DEFAULT_INSTALL_TOMCAT}
+
+    --jacoco                    Install JaCoCo ${JACOCO_VERSION}
+    --no-jacoco                 Skip JaCoCo installation
+                                Default: ${DEFAULT_INSTALL_JACOCO}
+
+    --force                     Re-install even if already present
+                                Default: false
+
+Output:
+    <install-dir>/compss-deps.env   Sourceable file with *_HOME variables
+
+EOT
+  exit "${1:-0}"
+}
+
+#---------------------------------------------------
+# ARGUMENT PARSING
+#---------------------------------------------------
+get_args() {
+  for arg in "$@"; do
+    case "${arg}" in
+      --help|-h)
+        usage 0
+        ;;
+      --install-dir=*)
+        install_dir="${arg#--install-dir=}"
+        ;;
+      --mpi-headers=*)
+        mpi_headers="${arg#--mpi-headers=}"
+        ;;
+      --binutils-path=*)
+        binutils_path="${arg#--binutils-path=}"
+        ;;
+      --extrae)
+        install_extrae=true
+        ;;
+      --no-extrae)
+        install_extrae=false
+        ;;
+      --dlb)
+        install_dlb=true
+        ;;
+      --no-dlb)
+        install_dlb=false
+        ;;
+      --kafka)
+        install_kafka=true
+        ;;
+      --no-kafka)
+        install_kafka=false
+        ;;
+      --tomcat)
+        install_tomcat=true
+        ;;
+      --no-tomcat)
+        install_tomcat=false
+        ;;
+      --jacoco)
+        install_jacoco=true
+        ;;
+      --no-jacoco)
+        install_jacoco=false
+        ;;
+      --force)
+        force=true
+        ;;
+      *)
+        echo "Error: Unknown option: ${arg}"
+        usage 1
+        ;;
+    esac
+  done
+}
+
+check_args() {
+  install_dir="${install_dir:-${DEFAULT_INSTALL_DIR}}"
+  mpi_headers="${mpi_headers:-${DEFAULT_MPI_HEADERS}}"
+  binutils_path="${binutils_path:-${DEFAULT_BINUTILS_PATH}}"
+  install_extrae="${install_extrae:-${DEFAULT_INSTALL_EXTRAE}}"
+  install_dlb="${install_dlb:-${DEFAULT_INSTALL_DLB}}"
+  install_kafka="${install_kafka:-${DEFAULT_INSTALL_KAFKA}}"
+  install_tomcat="${install_tomcat:-${DEFAULT_INSTALL_TOMCAT}}"
+  install_jacoco="${install_jacoco:-${DEFAULT_INSTALL_JACOCO}}"
+  force="${force:-false}"
+}
+
+#---------------------------------------------------
+# HELPERS
+#---------------------------------------------------
+already_installed() {
+  # Returns 0 (true) if marker file exists and --force is not set
+  local marker="$1"
+  if [ "${force}" == "true" ]; then
+    return 1
+  fi
+  [ -e "${marker}" ]
+}
+
+check_submodule() {
+  local submodule_path="$1"
+  local name="$2"
+  if [ ! -d "${submodule_path}" ] || [ -z "$(ls -A "${submodule_path}")" ]; then
+    echo "ERROR: Submodule '${submodule_path}' is not initialized."
+    echo "       Run: git submodule update --init ${submodule_path}"
+    exit 1
+  fi
+}
+
+#---------------------------------------------------
+# INSTALL FUNCTIONS
+#---------------------------------------------------
+
+install_extrae() {
+  local target="${install_dir}/extrae"
+  local marker="${target}/lib/libSEQtrace.so"
+  local src="${SOURCES_DIR}/dependencies/extrae"
+
+  if already_installed "${marker}"; then
+    echo "[extrae] Already installed at ${target}, skipping."
+    return
+  fi
+
+  check_submodule "${src}" "dependencies/extrae"
+
+  echo "[extrae] Building Extrae ${EXTRAE_VERSION} from submodule sources..."
+  mkdir -p "${target}"
+
+  export EXTRAE_MPI_HEADERS="${mpi_headers}"
+  export EXTRAE_BINUTILS_PATH="${binutils_path}"
+  cd "${SOURCES_DIR}/dependencies"
+  ./install_extrae.sh "${src}" "${target}" false || {
+    echo "ERROR: Extrae build failed."
+    exit 1
+  }
+
+  echo "[extrae] Installed at ${target}"
+  cd "${SCRIPT_DIR}"
+}
+
+install_dlb() {
+  local target="${install_dir}/dlb"
+  local marker="${target}/lib/libdlb.so"
+  local src="${SOURCES_DIR}/dependencies/dlb"
+
+  if already_installed "${marker}"; then
+    echo "[dlb] Already installed at ${target}, skipping."
+    return
+  fi
+
+  check_submodule "${src}" "dependencies/dlb"
+
+  echo "[dlb] Building DLB ${DLB_VERSION} from submodule sources..."
+  mkdir -p "${target}"
+
+  cd "${SOURCES_DIR}/dependencies"
+  ./install_dlb.sh "${src}" "${target}" || {
+    echo "ERROR: DLB build failed."
+    exit 1
+  }
+
+  echo "[dlb] Installed at ${target}"
+  cd "${SCRIPT_DIR}"
+}
+
+install_kafka() {
+  local target="${install_dir}/kafka"
+  local marker="${target}/bin/kafka-server-start.sh"
+
+  if already_installed "${marker}"; then
+    echo "[kafka] Already installed at ${target}, skipping."
+    return
+  fi
+
+  echo "[kafka] Downloading Apache Kafka ${KAFKA_VERSION} binary release..."
+  local pkg="kafka_2.13-${KAFKA_VERSION}.tgz"
+  local url="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${pkg}"
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap "rm -rf '${tmpdir}'" EXIT
+
+  cd "${tmpdir}"
+  wget -q "${url}" || {
+    echo "ERROR: Failed to download Kafka ${KAFKA_VERSION} from Apache archive."
+    exit 1
+  }
+
+  tar xzf "${pkg}"
+  mkdir -p "${install_dir}"
+  mv "kafka_2.13-${KAFKA_VERSION}" "${target}"
+
+  cd "${SCRIPT_DIR}"
+  rm -rf "${tmpdir}"
+  trap - EXIT
+
+  echo "[kafka] Installed at ${target}"
+}
+
+install_tomcat() {
+  local target="${install_dir}/tomcat"
+  local marker="${target}/bin/catalina.sh"
+
+  if already_installed "${marker}"; then
+    echo "[tomcat] Already installed at ${target}, skipping."
+    return
+  fi
+
+  echo "[tomcat] Downloading Apache Tomcat ${TOMCAT_VERSION}..."
+  local pkg="apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+  local url="http://compss.bsc.es/repo/apache-tomcat/${pkg}"
+  local fallback_url="https://archive.apache.org/dist/tomcat/tomcat-8/v${TOMCAT_VERSION}/bin/${pkg}"
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap "rm -rf '${tmpdir}'" EXIT
+
+  cd "${tmpdir}"
+  if ! wget -q "${url}"; then
+    echo "[tomcat] BSC mirror failed, trying Apache archive..."
+    wget -q "${fallback_url}" || {
+      echo "ERROR: Failed to download Tomcat from both mirrors."
+      exit 1
+    }
+  fi
+
+  tar xzf "${pkg}"
+  mkdir -p "${install_dir}"
+  mv "apache-tomcat-${TOMCAT_VERSION}" "${target}"
+
+  cd "${SCRIPT_DIR}"
+  rm -rf "${tmpdir}"
+  trap - EXIT
+
+  echo "[tomcat] Installed at ${target}"
+}
+
+install_jacoco() {
+  local target="${install_dir}/jacoco"
+  local marker="${target}/lib/jacocoagent.jar"
+
+  if already_installed "${marker}"; then
+    echo "[jacoco] Already installed at ${target}, skipping."
+    return
+  fi
+
+  echo "[jacoco] Downloading JaCoCo ${JACOCO_VERSION}..."
+  local pkg="jacoco-${JACOCO_VERSION}.zip"
+  local url="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VERSION}/${pkg}"
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap "rm -rf '${tmpdir}'" EXIT
+
+  cd "${tmpdir}"
+  wget -q "${url}" || {
+    echo "ERROR: Failed to download JaCoCo ${JACOCO_VERSION} from Maven Central."
+    exit 1
+  }
+
+  unzip -q "${pkg}" -d jacoco
+  mkdir -p "${install_dir}"
+  mv jacoco "${target}"
+
+  cd "${SCRIPT_DIR}"
+  rm -rf "${tmpdir}"
+  trap - EXIT
+
+  echo "[jacoco] Installed at ${target}"
+}
+
+#---------------------------------------------------
+# WRITE ENV FILE
+#---------------------------------------------------
+write_env_file() {
+  local env_file="${install_dir}/compss-deps.env"
+  mkdir -p "${install_dir}"
+
+  cat > "${env_file}" <<EOT
+# COMPSs external dependencies environment
+# Generated by pre-install-deps on $(date "+%Y-%m-%d %H:%M:%S")
+# Source this file before running buildlocal:
+#   source ${env_file}
+
+EOT
+
+  if [ "${install_extrae}" == "true" ]; then
+    echo "export EXTRAE_HOME=\"${install_dir}/extrae\"" >> "${env_file}"
+    echo "export EXTRAE_MPI_HEADERS=\"${mpi_headers}\"" >> "${env_file}"
+    echo "export EXTRAE_BINUTILS_PATH=\"${binutils_path}\"" >> "${env_file}"
+  fi
+  if [ "${install_dlb}" == "true" ]; then
+    echo "export DLB_HOME=\"${install_dir}/dlb\"" >> "${env_file}"
+  fi
+  if [ "${install_kafka}" == "true" ]; then
+    echo "export KAFKA_HOME=\"${install_dir}/kafka\"" >> "${env_file}"
+  fi
+  if [ "${install_tomcat}" == "true" ]; then
+    echo "export TOMCAT_HOME=\"${install_dir}/tomcat\"" >> "${env_file}"
+  fi
+  if [ "${install_jacoco}" == "true" ]; then
+    echo "export JACOCO_HOME=\"${install_dir}/jacoco\"" >> "${env_file}"
+  fi
+
+  echo ""
+  echo "================================================================"
+  echo " Dependencies installed to: ${install_dir}"
+  echo " Env file written to:       ${env_file}"
+  echo ""
+  echo " To use with buildlocal, run:"
+  echo "   source ${env_file}"
+  echo "   ./buildlocal [options] <targetDir>"
+  echo "================================================================"
+}
+
+#---------------------------------------------------
+# MAIN
+#---------------------------------------------------
+get_args "$@"
+check_args
+
+echo "Installing COMPSs dependencies to: ${install_dir}"
+echo ""
+
+if [ "${install_extrae}" == "true" ]; then
+  install_extrae
+fi
+
+if [ "${install_dlb}" == "true" ]; then
+  install_dlb
+fi
+
+if [ "${install_kafka}" == "true" ]; then
+  install_kafka
+fi
+
+if [ "${install_tomcat}" == "true" ]; then
+  install_tomcat
+fi
+
+if [ "${install_jacoco}" == "true" ]; then
+  install_jacoco
+fi
+
+write_env_file
+
+exit 0

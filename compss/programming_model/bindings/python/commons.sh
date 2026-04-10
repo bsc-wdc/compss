@@ -7,28 +7,36 @@
 get_packages_folder(){
    # Check the packages folder of a particular python interpreter
    # $1 -> python command
-   packages_folder=$( $1 -c "import site
+   packages_folder=$( $1 -c "import site, sys, os
+def _in_virtualenv():
+    return (hasattr(sys, 'real_prefix') or
+            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))
+
 if hasattr(site, 'getsitepackages'):
-    # Normal execution
-    import os
-    if os.getuid() == 0:
-        # Sudo installation
-        packages = site.getsitepackages()[0]
+    if _in_virtualenv() or os.getuid() == 0:
+        # Inside a virtualenv getsitepackages() returns the venv-local path;
+        # also use it for root installs to target system site-packages.
+        packages = site.getsitepackages()
         if isinstance(packages, list):
             print(packages[0])
         else:
             print(packages)
     else:
-        # User installation
+        # Non-root system Python: install into the user site-packages.
         packages = site.getusersitepackages()
         if isinstance(packages, list):
             print(packages[0])
         else:
             print(packages)
 else:
-    # Workaround for virtualenv
-    from distutils.sysconfig import get_python_lib
-    print([get_python_lib()][0])
+    # Workaround for very old virtualenv environments (pre-20.x).
+    # distutils was removed in Python 3.12, hence the fallback.
+    try:
+        from distutils.sysconfig import get_python_lib
+        print(get_python_lib())
+    except ImportError:
+        ver = '%d.%d' % sys.version_info[:2]
+        print(sys.prefix + '/lib/python' + ver + '/site-packages')
 " )
 }
 

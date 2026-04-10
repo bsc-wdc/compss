@@ -26,8 +26,8 @@ This file contains the Core Element class, needed for the task registration.
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.util.typing_helper import typing
 
-
 LANG = "PYTHON"
+
 
 class CE:  # pylint: disable=too-many-instance-attributes
     """Core Element class."""

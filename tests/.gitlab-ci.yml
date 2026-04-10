@@ -9,7 +9,6 @@ variables:
 stages:
   - rebase_verify
   - header_setup
-  - submodules
   - docker_build
   - tests
 
@@ -53,32 +52,56 @@ header_setup:
       when: never
     - if: $CI_COMMIT_BRANCH
 
-submodules:
-  stage: submodules
+
+# Builds and pushes the deps pre-image to the GitLab Container Registry.
+# Only runs when builders/pre-install-deps or the dependency submodule sources
+# change, so the slow Extrae/DLB/Kafka compilation is cached across pipelines.
+docker_build_deps:
+  stage: docker_build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_BUILDKIT: "1"
+    DEPS_IMAGE: $CI_REGISTRY_IMAGE/deps:latest
   script:
-    - rm -rf dependencies/autoparallel dependencies/pluto dependencies/kafka dependencies/extrae
-    - ./submodules_get.sh
-    - if [ -f "./submodules_path.sh" ]; then
-        ./submodules_patch.sh
-      fi
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --target deps -t "$DEPS_IMAGE" .
+    - docker push "$DEPS_IMAGE"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - Dockerfile
+        - builders/pre-install-deps
+        - dependencies/**/*
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
     - if: $CI_COMMIT_BRANCH
+      changes:
+        - Dockerfile
+        - builders/pre-install-deps
+        - dependencies/**/*
 
 docker_build:
   stage: docker_build
   image: docker:latest
   services:
     - docker:dind
+  needs:
+    - job: docker_build_deps
+      optional: true
+  variables:
+    DOCKER_BUILDKIT: "1"
+    DEPS_IMAGE: $CI_REGISTRY_IMAGE/deps:latest
   script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY" || true
     - docker rm -f compss_test || true
     - docker rmi compss || true
-    - if grep "FROM compss/\${BASE}_ci" Dockerfile; then
-        docker build --pull --target ci -t compss .
+    - |
+      if docker pull "$DEPS_IMAGE"; then
+        docker build --build-arg CI_DEPS_IMAGE="$DEPS_IMAGE" --target ci -t compss .
       else
-        docker build --pull -t compss .
+        docker build --target ci -t compss .
       fi
     - echo "Image successfully built"
   rules:

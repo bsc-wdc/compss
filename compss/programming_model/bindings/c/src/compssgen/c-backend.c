@@ -30,8 +30,12 @@
 
 #define BUFF_ELEMENTS 9
 #define ARGS_OFFSET 5
+#ifndef __cplusplus
+#  if __STDC_VERSION__ < 202311L
 typedef int bool;
 enum { false, true };
+#  endif
+#endif
 
 static FILE *stubsFile = NULL;
 static FILE *workerFile = NULL;

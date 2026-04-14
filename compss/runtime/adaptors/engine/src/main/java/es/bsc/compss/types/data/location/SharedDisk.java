@@ -87,8 +87,10 @@ public class SharedDisk {
      * @param path mountpoint within the host
      */
     public synchronized void addMountpoint(Resource host, String path) {
-        this.resources.add(host);
-        this.mountpoints.put(host, path);
+        synchronized (this.mountpoints) {
+            this.resources.add(host);
+            this.mountpoints.put(host, path);
+        }
     }
 
     /**
@@ -108,8 +110,10 @@ public class SharedDisk {
      * @return mountpoint of the disk in resource r.
      */
     public synchronized String removeMountpoint(Resource r) {
-        this.resources.remove(r);
-        return this.mountpoints.remove(r);
+        synchronized (this.mountpoints) {
+            this.resources.remove(r);
+            return this.mountpoints.remove(r);
+        }
     }
 
     /**

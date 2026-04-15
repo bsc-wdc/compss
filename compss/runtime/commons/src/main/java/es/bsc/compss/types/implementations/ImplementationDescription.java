@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.implementations;
 
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
@@ -37,14 +36,12 @@ import es.bsc.compss.types.resources.HTTPResourceDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.List;
-
 
 /**
  * Class that contains all the necessary information to generate the actual implementation object.

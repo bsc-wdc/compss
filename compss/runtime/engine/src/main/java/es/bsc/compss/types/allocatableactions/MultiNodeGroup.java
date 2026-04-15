@@ -18,7 +18,6 @@ package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,10 +26,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Represents a group of Execution Actions that allow the multi-node execution.

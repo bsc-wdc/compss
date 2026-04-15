@@ -21,7 +21,6 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 
-
 public interface Workflow {
 
     /**

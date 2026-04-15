@@ -17,10 +17,8 @@
 
 package es.bsc.compss.loader.total;
 
-import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.worker.COMPSsException;
-
 
 public final class APIHandler {
 

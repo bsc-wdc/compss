@@ -17,9 +17,7 @@
 package es.bsc.compss.types.resources.configuration;
 
 import es.bsc.compss.COMPSsConstants;
-
 import java.io.File;
-
 
 public class MethodConfiguration extends Configuration {
 

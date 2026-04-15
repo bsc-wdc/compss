@@ -37,15 +37,12 @@ import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.RequestQueue;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
-
 import org.junit.Assert;
 import org.junit.Test;
-
 
 public class ExecutorTest {
 

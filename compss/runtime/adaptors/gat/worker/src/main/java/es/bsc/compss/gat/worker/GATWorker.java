@@ -58,14 +58,11 @@ import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 import java.io.File;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.Semaphore;
-
 import storage.StorageException;
 import storage.StorageItf;
-
 
 /**
  * The worker class is executed on the remote resources in order to execute the tasks.

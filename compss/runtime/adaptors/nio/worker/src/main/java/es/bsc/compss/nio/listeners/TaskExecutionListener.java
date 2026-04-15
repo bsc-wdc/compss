@@ -22,7 +22,6 @@ import es.bsc.compss.types.execution.InvocationExecutionRequest.Listener;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.worker.COMPSsException;
 
-
 public class TaskExecutionListener implements Listener {
 
     private final NIOWorker nw;

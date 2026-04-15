@@ -43,7 +43,6 @@ import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -53,10 +52,8 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMonitor {
 

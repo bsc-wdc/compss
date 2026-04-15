@@ -19,7 +19,6 @@ package es.bsc.compss.types.data.operation;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.Transferable;
 
-
 public class FileTransferable implements Transferable {
 
     private Object source;

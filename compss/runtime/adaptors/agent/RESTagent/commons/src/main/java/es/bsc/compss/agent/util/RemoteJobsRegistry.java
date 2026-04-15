@@ -20,9 +20,7 @@ import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.types.job.JobEndStatus;
-
 import java.util.HashMap;
-
 
 /**
  * Register of jobs currently dispatched to local/remote resources.

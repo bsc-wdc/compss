@@ -18,17 +18,12 @@ package es.bsc.compss.gos.master;
 
 import es.bsc.compss.gos.master.sshutils.SSHHost;
 import es.bsc.compss.gos.master.utils.ForbiddenCharacters;
-
 import java.io.File;
 import java.io.IOException;
-
 import java.lang.Math;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
-
 import org.apache.commons.lang3.StringUtils;
-
 
 /**
  * The type Gos job description.

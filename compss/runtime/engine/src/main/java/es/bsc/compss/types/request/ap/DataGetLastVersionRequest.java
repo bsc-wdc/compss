@@ -23,9 +23,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.tracing.APRequestEvent;
-
 import java.util.concurrent.Semaphore;
-
 
 /**
  * The DataGetLastVersionRequest is a request for the last version of a file contained in a remote worker.

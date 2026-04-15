@@ -31,11 +31,9 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class FakeAllocatableAction extends AllocatableAction {
 

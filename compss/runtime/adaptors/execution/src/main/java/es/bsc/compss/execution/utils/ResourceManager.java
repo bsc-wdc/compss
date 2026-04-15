@@ -23,7 +23,6 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -31,10 +30,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ResourceManager {
 

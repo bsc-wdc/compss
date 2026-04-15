@@ -18,13 +18,10 @@
 package es.bsc.compss.components.impl.socketserver.ipc;
 
 import java.io.IOException;
-
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Coordinates the shared {@link NIOListener} instance and keeps track of the active servers and clients registered

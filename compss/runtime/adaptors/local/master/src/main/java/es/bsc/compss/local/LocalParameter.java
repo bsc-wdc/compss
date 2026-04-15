@@ -27,9 +27,7 @@ import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
-
 import java.util.List;
-
 
 public class LocalParameter implements InvocationParam {
 

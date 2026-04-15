@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -30,7 +29,6 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.Base64;
-
 
 /**
  * The serializer class is an utility to Serialize and deserialize objects passed as a parameter of a remote task.

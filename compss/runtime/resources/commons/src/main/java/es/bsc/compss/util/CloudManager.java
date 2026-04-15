@@ -22,19 +22,15 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * The CloudManager class is an utility to manage all the cloud interactions and hide the details of each provider.

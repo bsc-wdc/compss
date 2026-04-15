@@ -22,9 +22,7 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.concurrent.Semaphore;
-
 
 public class DoNothingApplicationMonitor implements ApplicationRunner {
 

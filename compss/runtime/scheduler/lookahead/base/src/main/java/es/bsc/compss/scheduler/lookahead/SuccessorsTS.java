@@ -25,10 +25,8 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import java.util.List;
 import java.util.PriorityQueue;
-
 
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode + data locality.

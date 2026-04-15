@@ -38,16 +38,13 @@ import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.ResourceOptimizer;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 
 public class MOResourceOptimizer extends ResourceOptimizer {
 

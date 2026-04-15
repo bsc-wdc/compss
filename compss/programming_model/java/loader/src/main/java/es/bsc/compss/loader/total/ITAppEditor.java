@@ -21,14 +21,12 @@ import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.Direction;
-
 import java.io.File;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -38,10 +36,8 @@ import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 import javassist.expr.MethodCall;
 import javassist.expr.NewExpr;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ITAppEditor extends ExprEditor {
 

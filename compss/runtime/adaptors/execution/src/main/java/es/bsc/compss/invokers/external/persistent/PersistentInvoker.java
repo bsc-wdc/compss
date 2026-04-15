@@ -32,7 +32,6 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import java.util.Collection;
 import java.util.Iterator;
 
-
 public abstract class PersistentInvoker extends ExternalInvoker {
 
     static {

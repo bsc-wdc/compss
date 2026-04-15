@@ -19,16 +19,13 @@ package es.bsc.compss.connectors.conn.util;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.connectors.ConnectorException;
-
 import es.bsc.conn.Connector;
 import es.bsc.conn.exceptions.ConnException;
 import es.bsc.conn.types.HardwareDescription;
 import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.StarterCommand;
 import es.bsc.conn.types.VirtualResource;
-
 import java.util.Map;
-
 
 public class ConnectorProxy {
 

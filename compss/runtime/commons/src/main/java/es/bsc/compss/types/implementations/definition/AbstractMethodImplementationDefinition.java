@@ -18,9 +18,7 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-
 import java.util.List;
-
 
 public interface AbstractMethodImplementationDefinition extends ImplementationDefinition {
 

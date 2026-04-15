@@ -20,10 +20,8 @@ import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.exceptions.NIOException;
 import es.bsc.comm.nio.exceptions.NIOException.SpecificErrorType;
 import es.bsc.compss.log.Loggers;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class NIOBindingObjectReceiver implements Runnable {
 

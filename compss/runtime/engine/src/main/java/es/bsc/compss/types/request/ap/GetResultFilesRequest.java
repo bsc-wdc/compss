@@ -33,15 +33,12 @@ import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
-
 import java.io.File;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
-
 import storage.StorageException;
 import storage.StorageItf;
-
 
 public class GetResultFilesRequest implements APRequest {
 

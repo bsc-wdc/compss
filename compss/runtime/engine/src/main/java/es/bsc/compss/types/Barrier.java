@@ -18,7 +18,6 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.worker.COMPSsException;
 
-
 public interface Barrier {
 
     public void setException(COMPSsException exception);

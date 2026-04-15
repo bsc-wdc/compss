@@ -18,13 +18,10 @@ package es.bsc.compss.nio.commands.workerfiles;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
-
 import es.bsc.compss.nio.commands.Command;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class CommandGenerateDebugFiles implements Command {
 

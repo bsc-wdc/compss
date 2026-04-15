@@ -22,7 +22,6 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.tracing.APRequestEvent;
 import java.util.concurrent.Semaphore;
 
-
 /**
  * The TasksStateRequests class represents a request to obtain the progress of all the applications that are running.
  */

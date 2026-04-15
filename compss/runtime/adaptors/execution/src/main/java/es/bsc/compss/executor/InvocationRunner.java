@@ -18,7 +18,6 @@ package es.bsc.compss.executor;
 
 import java.util.concurrent.Semaphore;
 
-
 public interface InvocationRunner {
 
     public void stalledCodeExecution();

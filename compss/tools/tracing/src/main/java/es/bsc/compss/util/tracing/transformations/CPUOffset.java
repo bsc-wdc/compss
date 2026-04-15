@@ -22,7 +22,6 @@ import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.util.tracing.TraceTransformation;
 
-
 public class CPUOffset implements TraceTransformation {
 
     private final int offset;

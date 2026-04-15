@@ -33,7 +33,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.List;
 import java.util.Set;
 
-
 public class DataLocality extends SchedulingInformation {
 
     /**

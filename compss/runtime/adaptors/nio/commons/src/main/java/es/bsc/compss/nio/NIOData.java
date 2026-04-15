@@ -17,12 +17,10 @@
 package es.bsc.compss.nio;
 
 import es.bsc.compss.data.Data;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class NIOData extends Data<NIOUri> implements Externalizable {
 

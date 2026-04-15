@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.AddExecutorExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 
-
 public class AddExecutorPipeCommand extends AddExecutorExternalCommand implements PipeCommand {
 
     private final int executorId;

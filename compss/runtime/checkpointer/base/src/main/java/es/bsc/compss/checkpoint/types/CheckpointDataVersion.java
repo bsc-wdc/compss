@@ -16,16 +16,10 @@
  */
 package es.bsc.compss.checkpoint.types;
 
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.info.DataVersion;
-
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 public class CheckpointDataVersion {
 

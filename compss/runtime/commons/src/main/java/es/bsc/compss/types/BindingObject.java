@@ -18,7 +18,6 @@ package es.bsc.compss.types;
 
 import java.io.File;
 
-
 public class BindingObject {
 
     private String id;

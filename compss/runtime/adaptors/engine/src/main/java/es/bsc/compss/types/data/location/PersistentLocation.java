@@ -22,13 +22,10 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-
 import java.util.LinkedList;
 import java.util.List;
-
 import storage.StorageException;
 import storage.StorageItf;
-
 
 public class PersistentLocation extends DataLocation {
 

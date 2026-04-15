@@ -24,7 +24,6 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.worker.COMPSsException;
 
-
 public class CheckpointerDataCopyEndedRequest extends CheckpointerRequestImpl {
 
     private final CheckpointDataVersion dataVersion;

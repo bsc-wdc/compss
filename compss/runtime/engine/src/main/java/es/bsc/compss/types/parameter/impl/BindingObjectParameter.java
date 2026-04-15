@@ -25,7 +25,6 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.params.BindingObjectData;
 
-
 public class BindingObjectParameter
     extends ObjectParameter<BindingObject, BindingObjectAccessParams, BindingObjectData> {
 

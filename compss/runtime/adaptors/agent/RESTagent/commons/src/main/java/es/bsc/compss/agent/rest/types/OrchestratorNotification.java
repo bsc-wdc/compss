@@ -18,7 +18,6 @@ package es.bsc.compss.agent.rest.types;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-
 /**
  * Class describing an endpoint and operation to invoke.
  */

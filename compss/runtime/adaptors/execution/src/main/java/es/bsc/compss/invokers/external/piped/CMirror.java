@@ -21,11 +21,9 @@ import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.types.execution.InvocationContext;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class CMirror extends PipedMirror {
 

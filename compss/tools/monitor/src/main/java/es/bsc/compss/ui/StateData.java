@@ -17,9 +17,7 @@
 package es.bsc.compss.ui;
 
 import java.security.SecureRandom;
-import java.util.Random;
 import java.util.Vector;
-
 
 public class StateData {
 

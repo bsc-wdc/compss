@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.NewBarrierExternalCommand;
 
-
 public class NewBarrierPipeCommand extends NewBarrierExternalCommand implements PipeCommand {
 
     public NewBarrierPipeCommand(String[] command) {

@@ -20,7 +20,6 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 
-
 public class CheckpointCopy {
 
     private final LogicalData data;

@@ -27,15 +27,11 @@ import es.bsc.compss.types.data.info.CollectionInfo;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
-
 import java.io.BufferedWriter;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-
 
 public class DotGraph implements GraphHandler {
 

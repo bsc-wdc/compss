@@ -19,7 +19,6 @@ package es.bsc.compss.types.tracing.paraver;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.Thread;
 
-
 public class PRVTask extends ApplicationComposition<Thread> {
 
     private PRVNode node;

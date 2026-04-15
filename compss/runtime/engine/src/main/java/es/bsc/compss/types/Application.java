@@ -29,7 +29,6 @@ import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.data.params.DataOwner;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
-
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,10 +40,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class Application implements ApplicationTaskMonitor, DataOwner {
 

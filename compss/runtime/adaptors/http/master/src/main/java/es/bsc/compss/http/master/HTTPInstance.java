@@ -42,7 +42,6 @@ import es.bsc.compss.util.ErrorManager;
 import java.util.List;
 import java.util.Set;
 
-
 public class HTTPInstance extends COMPSsWorker {
 
     private final String httpWorkerName;

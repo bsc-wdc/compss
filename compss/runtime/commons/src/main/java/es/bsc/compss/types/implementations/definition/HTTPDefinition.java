@@ -18,11 +18,9 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class HTTPDefinition implements ImplementationDefinition {
 

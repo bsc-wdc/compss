@@ -18,7 +18,6 @@ package es.bsc.compss.agent.rest.types;
 
 import es.bsc.compss.types.job.JobEndStatus;
 
-
 /**
  * Interface to handle the notification of a job end.
  */

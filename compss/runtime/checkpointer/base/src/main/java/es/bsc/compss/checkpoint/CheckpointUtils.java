@@ -19,7 +19,6 @@ package es.bsc.compss.checkpoint;
 import es.bsc.compss.checkpoint.types.CheckpointGroupImpl;
 import es.bsc.compss.types.Task;
 
-
 public interface CheckpointUtils {
 
     /**

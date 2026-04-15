@@ -21,7 +21,6 @@ import es.bsc.compss.types.data.accessid.EngineDataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.DataVersion;
 
-
 public class WAccessId extends EngineDataAccessId implements WritingDataAccessId {
 
     /**

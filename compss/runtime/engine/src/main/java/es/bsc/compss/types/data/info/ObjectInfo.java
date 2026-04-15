@@ -20,7 +20,6 @@ import es.bsc.compss.types.data.params.DataOwner;
 import es.bsc.compss.types.data.params.ObjectData;
 import java.util.concurrent.Semaphore;
 
-
 public class ObjectInfo extends StandardDataInfo<ObjectData> {
 
     /**

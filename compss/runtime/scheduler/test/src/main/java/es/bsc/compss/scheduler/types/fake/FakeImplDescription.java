@@ -19,7 +19,6 @@ package es.bsc.compss.scheduler.types.fake;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 
-
 public class FakeImplDescription extends ImplementationDescription<FakeResourceDescription, FakeImplDefinition> {
 
     public FakeImplDescription(FakeImplDefinition def, String signature, boolean localProc,

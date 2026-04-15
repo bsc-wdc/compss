@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.predefined;
 
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 
-
 public class PredefinedSchedulingInformation extends SchedulingInformation {
 
     private int pendingPredecessors = 0;

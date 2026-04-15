@@ -18,7 +18,6 @@ package es.bsc.compss.gos.master.monitoring;
 
 import java.util.concurrent.TimeUnit;
 
-
 public class GOSMonitoringThread extends Thread {
 
     private final GOSMonitoring gosMonitoring;

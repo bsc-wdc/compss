@@ -44,20 +44,15 @@ import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
-
 import java.util.List;
 import java.util.Set;
-
 import org.glassfish.jersey.client.ClientConfig;
-
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
-
 
 /**
  * Class containing the handling of the interactions with a Remote REST agent.

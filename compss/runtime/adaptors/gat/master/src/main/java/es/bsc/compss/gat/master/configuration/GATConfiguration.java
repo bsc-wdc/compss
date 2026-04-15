@@ -19,11 +19,8 @@ package es.bsc.compss.gat.master.configuration;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.GATAdaptor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-
 import java.util.Map.Entry;
-
 import org.gridlab.gat.GATContext;
-
 
 public class GATConfiguration extends MethodConfiguration {
 

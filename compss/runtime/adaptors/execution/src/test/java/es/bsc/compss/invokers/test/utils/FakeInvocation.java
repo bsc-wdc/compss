@@ -28,7 +28,6 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class FakeInvocation implements Invocation {
 
     private final int jobId;

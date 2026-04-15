@@ -23,11 +23,8 @@ import es.bsc.compss.types.implementations.definition.AbstractMethodImplementati
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.serializers.Serializer;
-
 import java.io.IOException;
-
 import org.junit.Test;
-
 
 public class ImplementationSerialization {
 

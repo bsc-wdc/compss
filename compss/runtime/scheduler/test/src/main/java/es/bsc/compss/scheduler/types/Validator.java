@@ -22,15 +22,12 @@ import es.bsc.compss.scheduler.types.fake.FakeAllocatableAction;
 import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.Assert;
-
 
 public abstract class Validator {
 

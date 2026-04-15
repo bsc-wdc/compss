@@ -18,7 +18,6 @@ package es.bsc.compss.types.data;
 
 import java.io.Serializable;
 
-
 public interface DataAccessId extends Serializable {
 
     /**

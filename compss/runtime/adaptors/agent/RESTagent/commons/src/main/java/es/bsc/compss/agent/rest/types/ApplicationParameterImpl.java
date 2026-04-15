@@ -25,7 +25,6 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
 
-
 /**
  * This class contains all the necessary information to transfer a parameter through the REST Agent interface.
  */

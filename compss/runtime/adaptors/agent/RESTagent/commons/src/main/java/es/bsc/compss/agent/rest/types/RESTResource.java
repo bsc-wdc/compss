@@ -19,7 +19,6 @@ package es.bsc.compss.agent.rest.types;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
-
 /**
  * Class describing the resources available on a node and the necessary configuration (Adaptor name, project's and
  * resource's configuration values.

@@ -19,7 +19,6 @@ package es.bsc.compss.agent.rest.types;
 
 import java.util.List;
 
-
 /**
  * Interface to to interact with the Agent hosting the Agent Request.
  */

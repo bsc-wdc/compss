@@ -24,12 +24,10 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.components.Processor.ProcessorType;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class CExecutionCommandGenerator {
 

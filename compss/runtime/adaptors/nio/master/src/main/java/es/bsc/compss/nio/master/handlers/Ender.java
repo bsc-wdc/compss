@@ -16,9 +16,7 @@
  */
 package es.bsc.compss.nio.master.handlers;
 
-import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.nio.master.WorkerStarter;
-
 
 public class Ender extends Thread {
 

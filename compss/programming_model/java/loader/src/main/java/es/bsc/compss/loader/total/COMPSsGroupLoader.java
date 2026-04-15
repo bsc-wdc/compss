@@ -17,9 +17,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.COMPSsGroup;
-import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
-
 
 public class COMPSsGroupLoader extends COMPSsGroup {
 

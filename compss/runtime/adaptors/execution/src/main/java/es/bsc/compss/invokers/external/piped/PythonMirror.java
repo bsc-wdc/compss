@@ -24,16 +24,13 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class PythonMirror extends PipedMirror {
 

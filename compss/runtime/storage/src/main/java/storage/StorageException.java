@@ -18,7 +18,6 @@ package storage;
 
 import java.io.Serializable;
 
-
 /**
  * Exception representation for errors when calling the Storage ITF. TODO: complete javadoc
  */

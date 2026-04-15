@@ -20,12 +20,9 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.access.MainAccess;
-import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
-import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.APRequestEvent;
-
 
 public class FinishDataAccessRequest implements APRequest {
 

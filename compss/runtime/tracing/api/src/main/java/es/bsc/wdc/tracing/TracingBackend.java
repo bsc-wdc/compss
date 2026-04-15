@@ -19,7 +19,6 @@ package es.bsc.wdc.tracing;
 
 import java.util.Map;
 
-
 public interface TracingBackend {
 
     /**

@@ -21,7 +21,6 @@ import es.bsc.compss.types.Task;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class CheckpointTask {
 
     // Task being checkpointed

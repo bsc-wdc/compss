@@ -19,7 +19,6 @@ package es.bsc.compss.connectors;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
-
 /**
  * Representation of a VM.
  */

@@ -23,10 +23,8 @@ import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.conn.types.StarterCommand;
-
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Abstract definition of a Communication Adaptor for the Runtime.

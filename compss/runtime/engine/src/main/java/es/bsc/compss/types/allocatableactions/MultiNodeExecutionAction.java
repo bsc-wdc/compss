@@ -23,11 +23,9 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Representation of a multi-node execution action.

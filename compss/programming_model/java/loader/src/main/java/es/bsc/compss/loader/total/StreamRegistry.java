@@ -56,7 +56,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class StreamRegistry {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);

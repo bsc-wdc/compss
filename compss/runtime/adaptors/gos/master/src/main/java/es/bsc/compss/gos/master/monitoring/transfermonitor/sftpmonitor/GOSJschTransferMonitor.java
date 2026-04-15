@@ -18,7 +18,6 @@ package es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor;
 
 import com.jcraft.jsch.SftpProgressMonitor;
 
-
 public class GOSJschTransferMonitor implements SftpProgressMonitor {
 
     public boolean finished = false;

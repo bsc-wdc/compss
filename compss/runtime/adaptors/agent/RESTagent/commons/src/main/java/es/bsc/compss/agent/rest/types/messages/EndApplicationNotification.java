@@ -21,7 +21,6 @@ import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.types.job.JobEndStatus;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-
 /**
  * Class containing all the information required to notify the end of an application.
  */

@@ -19,9 +19,6 @@ package es.bsc.compss.types.data;
 import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
-import java.io.File;
-
-
 public class ResultFile {
 
     private final FileInfo fi;

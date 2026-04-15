@@ -20,10 +20,8 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class Dispatcher extends RequestDispatcher<DataOperation> {
 

@@ -34,11 +34,9 @@ import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.util.ErrorManager;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public abstract class StandardDataInfo<T extends DataParams> extends DataInfo<T> {
 

@@ -34,9 +34,6 @@ header_setup:
   stage: header_setup
   script:
     - ./utils/scripts/header_setup/replace_all.sh
-    - cd "${CI_PROJECT_DIR}/maven-plugins" || exit 1
-    - mvn clean install
-    - cd "${CI_PROJECT_DIR}" || exit 1
     - mvn -U clean validate
     - git add -u
     - if git commit -m "Add headers and format code"; then

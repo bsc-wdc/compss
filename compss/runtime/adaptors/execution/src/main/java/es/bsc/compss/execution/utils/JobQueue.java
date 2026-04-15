@@ -18,15 +18,12 @@ package es.bsc.compss.execution.utils;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ExecutorRequest;
-
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * The JobQueue class is an utility to enqueue job execution requests.

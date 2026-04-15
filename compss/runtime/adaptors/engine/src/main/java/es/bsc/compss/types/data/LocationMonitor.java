@@ -17,9 +17,7 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.types.resources.Resource;
-
 import java.util.List;
-
 
 /**
  * Interface that an object implements to be notified about data location updates.

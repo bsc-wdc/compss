@@ -26,13 +26,9 @@ import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.conn.types.StarterCommand;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.logging.log4j.core.script.Script;
-
 
 public class Adaptor implements CommAdaptor {
 

@@ -18,7 +18,6 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.types.resources.ResourceDescription;
 
-
 public interface NodeMonitor {
 
     /**

@@ -18,7 +18,6 @@ package es.bsc.compss.agent.rest.types;
 
 import jakarta.xml.bind.annotation.XmlTransient;
 
-
 /**
  * Interface used by agent's requests to encapsulate what to do after they are processed.
  */

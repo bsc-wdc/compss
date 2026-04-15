@@ -19,9 +19,7 @@ package es.bsc.compss.nio.types.tracing;
 import es.bsc.compss.util.Tracer;
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
-
 import java.util.Arrays;
-
 
 public enum NIOWorkerEvent implements Event {
 

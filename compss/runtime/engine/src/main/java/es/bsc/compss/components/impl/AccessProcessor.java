@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.components.impl;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointBuilder;
 import es.bsc.compss.checkpoint.CheckpointManager;
@@ -25,7 +24,6 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -66,15 +64,11 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Component to handle the tasks accesses to files and object.

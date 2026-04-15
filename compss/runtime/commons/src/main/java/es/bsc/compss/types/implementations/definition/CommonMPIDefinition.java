@@ -19,7 +19,6 @@ package es.bsc.compss.types.implementations.definition;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.log.Loggers;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,10 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class CommonMPIDefinition {
 

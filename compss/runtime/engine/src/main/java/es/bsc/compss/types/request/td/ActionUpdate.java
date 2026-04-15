@@ -23,7 +23,6 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.worker.COMPSsException;
 
-
 /**
  * The ActionUpdate class represents the notification of an update on the state of an allocatable action.
  */

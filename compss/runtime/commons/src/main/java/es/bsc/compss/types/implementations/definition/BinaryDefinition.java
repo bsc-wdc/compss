@@ -21,12 +21,10 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
-
 
 /**
  * Class containing all the necessary information to generate a Binary implementation of a CE.

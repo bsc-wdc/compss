@@ -19,7 +19,6 @@ package es.bsc.compss.types.tracing.paraver;
 import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.MalformedException;
 import es.bsc.compss.types.tracing.TraceEventType;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -35,7 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-
 
 public class PcfFile implements EventsDefinition {
 

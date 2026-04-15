@@ -35,7 +35,6 @@ import es.bsc.distrostreamlib.api.files.FileDistroStream;
 import es.bsc.distrostreamlib.api.objects.ObjectDistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.CloseStreamRequest;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,9 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
-
 
 public class BinaryRunner {
 

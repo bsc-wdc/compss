@@ -19,10 +19,8 @@ package es.bsc.compss.util;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobImpl;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class JobDispatcher {
 

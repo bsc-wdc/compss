@@ -22,10 +22,8 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.worker.COMPSsException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * The TPRequest class represents any interaction with the TaskProcessor component.

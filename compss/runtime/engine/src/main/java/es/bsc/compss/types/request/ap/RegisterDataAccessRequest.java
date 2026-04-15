@@ -26,10 +26,7 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.APRequestEvent;
-import es.bsc.compss.types.tracing.TraceEvent;
-
 import java.util.concurrent.Semaphore;
-
 
 public class RegisterDataAccessRequest<V, D extends DataParams, P extends AccessParams<D>>
     implements APRequest, TaskListener {

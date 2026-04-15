@@ -19,7 +19,6 @@ package es.bsc.compss.types.tracing.paraver;
 import es.bsc.compss.types.tracing.CPU;
 import es.bsc.compss.types.tracing.SystemComposition;
 
-
 public class PRVNode extends SystemComposition<CPU> {
 
     private int nodeId;

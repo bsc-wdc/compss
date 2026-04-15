@@ -20,7 +20,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.FileOpsEvent;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.serializers.Serializer;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -29,12 +28,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class FileOpsManager {
 

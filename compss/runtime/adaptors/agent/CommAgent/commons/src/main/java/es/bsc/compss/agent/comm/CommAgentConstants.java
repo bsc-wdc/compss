@@ -18,7 +18,6 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.compss.agent.AgentConstants;
 
-
 public class CommAgentConstants extends AgentConstants {
 
     public static final String COMPSS_AGENT_PORT = "compss.agent.nio.port";

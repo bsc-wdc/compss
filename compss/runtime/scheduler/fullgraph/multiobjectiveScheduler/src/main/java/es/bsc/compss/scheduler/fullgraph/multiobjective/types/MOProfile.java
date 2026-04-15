@@ -23,7 +23,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 public class MOProfile extends Profile {
 
     protected static final double DEFAULT_PRICE = 0;

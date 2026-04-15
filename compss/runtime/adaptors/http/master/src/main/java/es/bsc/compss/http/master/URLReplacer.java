@@ -18,7 +18,6 @@ package es.bsc.compss.http.master;
 
 import java.util.Map;
 
-
 public class URLReplacer {
 
     /**

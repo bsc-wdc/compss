@@ -21,7 +21,6 @@ import es.bsc.compss.types.implementations.definition.AbstractMethodImplementati
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
-
 public class AbstractMethodImplementation extends Implementation {
 
     /**

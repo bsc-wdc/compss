@@ -19,7 +19,6 @@ package es.bsc.compss.agent.types;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
-
 public interface ApplicationParameter {
 
     /**

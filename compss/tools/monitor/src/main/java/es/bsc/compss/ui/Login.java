@@ -16,14 +16,11 @@
  */
 package es.bsc.compss.ui;
 
-import es.bsc.compss.ui.Constants;
 import es.bsc.compss.ui.auth.AuthenticationService;
-
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zk.ui.Executions;
-
 
 public class Login {
 

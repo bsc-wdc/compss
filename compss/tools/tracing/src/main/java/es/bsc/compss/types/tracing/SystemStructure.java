@@ -17,9 +17,6 @@
 
 package es.bsc.compss.types.tracing;
 
-import java.util.List;
-
-
 public interface SystemStructure {
 
     public int getNumberOfDirectSubcomponents();

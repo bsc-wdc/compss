@@ -20,7 +20,6 @@ import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
-
 public interface Connector {
 
     /**

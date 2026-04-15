@@ -17,9 +17,6 @@
 
 package es.bsc.compss.data;
 
-import es.bsc.compss.data.FetchDataListener;
-
-
 /**
  * This class handles the execution of several data fetching operations.
  */

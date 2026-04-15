@@ -18,10 +18,8 @@ package es.bsc.compss.types.data.location;
 
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class PrivateLocation extends DataLocation {
 

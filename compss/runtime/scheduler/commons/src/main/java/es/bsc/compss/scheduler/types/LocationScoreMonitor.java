@@ -20,7 +20,6 @@ import es.bsc.compss.types.data.LocationMonitor;
 import es.bsc.compss.types.resources.Resource;
 import java.util.List;
 
-
 public class LocationScoreMonitor implements LocationMonitor {
 
     private final double score;

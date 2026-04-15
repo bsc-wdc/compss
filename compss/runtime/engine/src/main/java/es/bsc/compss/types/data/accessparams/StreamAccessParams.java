@@ -26,7 +26,6 @@ import es.bsc.distrostreamlib.api.DistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
-
 public class StreamAccessParams<T extends Object, D extends StreamData> extends ObjectAccessParams<T, D> {
 
     /**

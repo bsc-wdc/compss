@@ -34,16 +34,13 @@ import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.gridlab.gat.GATInvocationException;
 import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.URI;
 import org.gridlab.gat.io.FileInterface;
-
 
 public class GATCopy extends ImmediateCopy {
 

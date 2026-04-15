@@ -49,7 +49,6 @@ import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,15 +56,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class PipePair implements ExternalExecutor<PipeCommand> {
 

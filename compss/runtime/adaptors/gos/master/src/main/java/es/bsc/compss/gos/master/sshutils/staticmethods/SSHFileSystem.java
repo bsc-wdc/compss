@@ -31,7 +31,6 @@ import es.bsc.compss.gos.master.sshutils.SSHGlobalHostCollection;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -40,10 +39,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class SSHFileSystem {
 

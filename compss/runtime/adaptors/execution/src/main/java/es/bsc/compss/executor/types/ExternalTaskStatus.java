@@ -22,13 +22,10 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Stores the task status information for bindings.

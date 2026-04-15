@@ -29,20 +29,16 @@ import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
-
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
 import es.bsc.conn.types.StarterCommand;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class GOSAdaptor implements CommAdaptor {
 

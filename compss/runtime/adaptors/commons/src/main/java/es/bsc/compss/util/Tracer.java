@@ -24,13 +24,11 @@ import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.tracing.CustomTraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.tracing.TraceScript;
-
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
 import es.bsc.wdc.tracing.TracingBackend;
 import es.bsc.wdc.tracing.extrae.ExtraeTracer;
 import es.bsc.wdc.tracing.monitor.MonitorTracer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,10 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class Tracer {
 

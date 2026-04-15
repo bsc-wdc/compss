@@ -25,11 +25,8 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
-
 import java.util.Iterator;
-
 import java.util.List;
-
 
 /**
  * The internal Collection representation. A Collection is a COMPSs Parameter objects which may contain other COMPSs

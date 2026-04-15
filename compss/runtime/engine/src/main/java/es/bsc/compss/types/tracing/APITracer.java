@@ -18,9 +18,7 @@ package es.bsc.compss.types.tracing;
 
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.function.Supplier;
-
 
 public class APITracer {
 

@@ -19,10 +19,8 @@ package es.bsc.compss.ui;
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.monitoringparsers.MonitorXmlParser;
 import es.bsc.compss.ui.auth.UserCredential;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.GlobalCommand;
@@ -33,7 +31,6 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Messagebox;
-
 
 public class ViewModel {
 

@@ -18,7 +18,6 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.compss.agent.AgentInterfaceConfig;
 
-
 /**
  * Class containing the description of the configuration of an agent when starting the Comm interface.
  */

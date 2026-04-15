@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.worker.COMPSsException;
 
-
 /**
  * Listener interface for receiving lifecycle notifications about the execution of an {@link AllocatableAction}.
  * Implementations of this interface are notified by the runtime system when an action transitions through its execution

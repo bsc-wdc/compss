@@ -23,13 +23,11 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.SftpProgressMonitor;
-
 import es.bsc.compss.connectors.utils.KeyManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.ApplicationPackage;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +36,8 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class AbstractSSHConnector extends AbstractConnector {
 

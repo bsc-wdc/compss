@@ -19,7 +19,6 @@ package es.bsc.compss.util.tracing;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 
-
 public interface ThreadTranslator<T extends ThreadIdentifier> {
 
     /**

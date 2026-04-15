@@ -24,7 +24,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ResourceManager;
 
-
 /**
  * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run.
  */

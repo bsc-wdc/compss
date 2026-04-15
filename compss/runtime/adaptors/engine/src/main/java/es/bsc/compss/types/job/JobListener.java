@@ -19,7 +19,6 @@ package es.bsc.compss.types.job;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.worker.COMPSsException;
 
-
 /**
  * Abstract Representation of a listener for the job execution.
  */

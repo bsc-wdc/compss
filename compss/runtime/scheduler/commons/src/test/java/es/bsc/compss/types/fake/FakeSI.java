@@ -20,9 +20,7 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.LinkedList;
-
 
 public class FakeSI extends SchedulingInformation {
 

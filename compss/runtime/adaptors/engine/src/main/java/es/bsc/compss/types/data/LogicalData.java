@@ -37,7 +37,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -49,13 +48,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import storage.StorageException;
 import storage.StorageItf;
-
 
 public class LogicalData {
 

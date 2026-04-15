@@ -18,10 +18,8 @@ package es.bsc.compss.gos.master.sshutils;
 
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-
 import java.util.Collection;
 import java.util.HashSet;
-
 
 public class SSHSession {
 

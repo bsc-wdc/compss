@@ -24,7 +24,6 @@ import es.bsc.compss.types.data.accessid.EngineDataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.params.ExternalPSCObjectData;
 
-
 /**
  * Handling of an access from the main code to an external PSC object.
  */

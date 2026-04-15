@@ -21,7 +21,6 @@ import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 
-
 public class DeferredCopy extends Copy {
 
     /**

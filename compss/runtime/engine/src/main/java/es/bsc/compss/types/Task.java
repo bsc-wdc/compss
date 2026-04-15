@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointGroup;
 import es.bsc.compss.types.annotations.Constants;
@@ -31,13 +29,11 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.SignatureBuilder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 
 /**
  * Representation of a Task.

@@ -23,7 +23,6 @@ import es.bsc.compss.types.tracing.Trace;
 import es.bsc.compss.types.tracing.Trace.RecordAppender;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,7 +33,6 @@ import java.util.HashSet;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class TraceMerger {
 

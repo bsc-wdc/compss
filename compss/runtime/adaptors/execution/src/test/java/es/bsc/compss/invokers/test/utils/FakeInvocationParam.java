@@ -20,10 +20,8 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class FakeInvocationParam implements InvocationParam {
 

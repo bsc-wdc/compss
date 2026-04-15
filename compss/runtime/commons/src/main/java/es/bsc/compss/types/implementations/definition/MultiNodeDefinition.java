@@ -16,17 +16,13 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
-
 
 public class MultiNodeDefinition extends NativeDefinition {
 

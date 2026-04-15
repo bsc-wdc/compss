@@ -21,7 +21,6 @@ import es.bsc.compss.types.data.accessid.EngineDataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.DataVersion;
 
-
 public class RAccessId extends EngineDataAccessId implements ReadingDataAccessId {
 
     /**

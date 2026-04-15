@@ -18,14 +18,11 @@ package es.bsc.wdc.tracing.monitor;
 
 import es.bsc.wdc.tracing.Loggers;
 import es.bsc.wdc.tracing.monitor.events.MonitoredEvent;
-
 import java.net.HttpURLConnection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Asynchronous queue to submitting events through POST to /events (events-api). The format of the body is a JSON array

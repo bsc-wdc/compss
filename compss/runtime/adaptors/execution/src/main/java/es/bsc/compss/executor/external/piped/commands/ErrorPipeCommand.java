@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.ErrorExternalCommand;
 
-
 public class ErrorPipeCommand extends ErrorExternalCommand implements PipeCommand {
 
     private final PipeCommand expected;

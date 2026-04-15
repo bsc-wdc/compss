@@ -19,7 +19,6 @@ package es.bsc.compss.checkpoint.types;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.parameter.impl.Parameter;
 
-
 public class CheckpointData {
 
     // Last data version and last data producer

@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.orderstrict.fifo.types;
 
 import es.bsc.compss.scheduler.types.Score;
 
-
 public class FIFOScore extends Score {
 
     private final long actionId;

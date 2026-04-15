@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.RemovedExecutorExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 
-
 public class RemovedExecutorPipeCommand extends RemovedExecutorExternalCommand implements PipeCommand {
 
     private final String inPipe;

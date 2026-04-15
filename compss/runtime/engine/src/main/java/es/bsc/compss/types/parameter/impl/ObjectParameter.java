@@ -26,7 +26,6 @@ import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.params.ObjectData;
 import storage.StubItf;
 
-
 public class ObjectParameter<V extends Object, A extends ObjectAccessParams<V, D>, D extends ObjectData>
     extends DependencyParameter<A> {
 

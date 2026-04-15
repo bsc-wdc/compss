@@ -22,14 +22,11 @@ import es.bsc.wdc.tracing.EventType;
 import es.bsc.wdc.tracing.Loggers;
 import es.bsc.wdc.tracing.TracingBackend;
 import es.bsc.wdc.tracing.monitor.events.MonitoredEvent;
-
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class MonitorTracer implements TracingBackend {
 

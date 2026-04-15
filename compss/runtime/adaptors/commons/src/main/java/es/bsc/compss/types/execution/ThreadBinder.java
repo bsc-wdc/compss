@@ -18,7 +18,6 @@ package es.bsc.compss.types.execution;
 
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 
-
 public interface ThreadBinder {
 
     public static final String BINDER_DISABLED = "disabled";

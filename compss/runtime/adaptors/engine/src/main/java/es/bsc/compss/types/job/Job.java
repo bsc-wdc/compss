@@ -18,7 +18,6 @@ package es.bsc.compss.types.job;
 
 import es.bsc.compss.types.COMPSsWorker;
 
-
 /**
  * Abstract representation of a job.
  *

@@ -19,7 +19,6 @@ package es.bsc.compss.loader.total;
 
 import es.bsc.compss.loader.LoaderConstants;
 
-
 public class CallGenerator {
 
     // JavaWorkflow methods

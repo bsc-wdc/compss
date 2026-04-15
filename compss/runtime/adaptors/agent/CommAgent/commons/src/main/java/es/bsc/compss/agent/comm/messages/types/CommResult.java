@@ -17,20 +17,15 @@
 package es.bsc.compss.agent.comm.messages.types;
 
 import es.bsc.compss.agent.types.ApplicationResult;
-import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOUri;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-
 
 public class CommResult extends NIOResult implements ApplicationResult {
 

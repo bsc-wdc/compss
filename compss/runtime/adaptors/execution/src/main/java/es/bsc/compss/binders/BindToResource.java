@@ -20,7 +20,6 @@ package es.bsc.compss.binders;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 
-
 /**
  * Class to bind the threads to the resource (which is supposed to have as many cores as the given computing Units of
  * the resource).

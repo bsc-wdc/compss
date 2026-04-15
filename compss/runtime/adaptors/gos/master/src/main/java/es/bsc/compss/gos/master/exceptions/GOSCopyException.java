@@ -18,7 +18,6 @@ package es.bsc.compss.gos.master.exceptions;
 
 import es.bsc.compss.exceptions.CopyException;
 
-
 public class GOSCopyException extends CopyException {
 
     /**

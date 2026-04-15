@@ -18,7 +18,6 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 
-
 public class SchedulingOptimizer<T extends TaskScheduler> extends Thread {
 
     private static final String SCHEDULING_OPTIMIZER_THREAD_NAME = "Task Optimizer";

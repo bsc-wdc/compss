@@ -19,18 +19,15 @@ package es.bsc.compss.util;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.COMPSsPaths;
-
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.BuilderParameters;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.io.FileHandler;
-
 
 /**
  * Loads the runtime configuration.

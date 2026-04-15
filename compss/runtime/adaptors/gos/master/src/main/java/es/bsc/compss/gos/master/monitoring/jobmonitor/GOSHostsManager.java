@@ -18,7 +18,6 @@ package es.bsc.compss.gos.master.monitoring.jobmonitor;
 
 import es.bsc.compss.gos.master.GOSJob;
 
-
 public interface GOSHostsManager {
 
     void addJobMonitor(GOSJob job);

@@ -19,11 +19,9 @@ package es.bsc.compss.components.impl.socketserver.ipc;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.newsclub.net.unix.AFUNIXSelectorProvider;
 import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.newsclub.net.unix.AFUNIXSocketChannel;
-
 
 /**
  * Base class for socket clients that connect to the runtime UNIX-domain socket server. Concrete implementations only

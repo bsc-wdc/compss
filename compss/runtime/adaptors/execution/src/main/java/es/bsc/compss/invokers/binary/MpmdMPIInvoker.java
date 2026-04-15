@@ -35,11 +35,9 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-
 
 public class MpmdMPIInvoker extends Invoker<Workflow> {
 

@@ -18,12 +18,10 @@ package es.bsc.compss.types.data.location;
 
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 
 public class SharedLocation extends DataLocation {
 

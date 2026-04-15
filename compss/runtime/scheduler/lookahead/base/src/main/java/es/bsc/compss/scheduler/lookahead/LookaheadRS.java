@@ -25,7 +25,6 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
 
-
 public abstract class LookaheadRS<T extends WorkerResourceDescription> extends ResourceScheduler<T> {
 
     /**

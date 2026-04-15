@@ -34,10 +34,8 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 

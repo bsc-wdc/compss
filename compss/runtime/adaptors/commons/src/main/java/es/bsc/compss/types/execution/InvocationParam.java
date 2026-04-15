@@ -20,7 +20,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import java.util.List;
 
-
 public interface InvocationParam {
 
     public void setType(DataType type);

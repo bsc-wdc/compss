@@ -18,10 +18,8 @@ package es.bsc.compss.gat.master.utils;
 
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
-
 import java.io.IOException;
 import java.util.HashSet;
-
 
 /**
  * Supporting class to manage SSH connections.

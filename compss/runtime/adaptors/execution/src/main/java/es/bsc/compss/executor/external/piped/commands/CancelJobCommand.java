@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.CancelJobExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 
-
 public class CancelJobCommand extends CancelJobExternalCommand implements PipeCommand {
 
     public PipePair pipe;

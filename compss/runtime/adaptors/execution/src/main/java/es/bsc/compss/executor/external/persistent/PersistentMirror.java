@@ -24,7 +24,6 @@ import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
 
-
 public class PersistentMirror implements ExecutionPlatformMirror<Void> {
 
     private InvocationContext context;

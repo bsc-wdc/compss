@@ -19,15 +19,12 @@ package es.bsc.compss.ui.auth;
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.Application;
 import es.bsc.compss.ui.Constants;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class UserCredential {
 

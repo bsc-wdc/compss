@@ -18,14 +18,11 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.ErrorHandler;
-
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Manages warnings, errors and fatal errors. Stops the COMPSs Runtime and does a System.exit(1) in errors and fatal

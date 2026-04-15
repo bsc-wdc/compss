@@ -21,7 +21,6 @@ import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
-
 public class FakeImplementation extends Implementation {
 
     public FakeImplementation(int coreId, int implId, ImplementationDescription description) {

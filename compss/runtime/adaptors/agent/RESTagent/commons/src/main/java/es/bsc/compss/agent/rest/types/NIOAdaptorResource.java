@@ -23,7 +23,6 @@ import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 
-
 @XmlRootElement(name = "nioResource")
 @XmlSeeAlso({ NIOAdaptorProperties.class,
     ResourcesNIOAdaptorProperties.class })

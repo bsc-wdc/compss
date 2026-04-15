@@ -19,7 +19,6 @@ package es.bsc.compss.types.request.listener;
 
 import java.util.concurrent.Semaphore;
 
-
 /**
  * The StaticMultioperationSemaphore implements a RequestListener that releases a semaphore as soons as a fixed number
  * of requests have been performed. If more the listener receives more notifications of requests performances then the

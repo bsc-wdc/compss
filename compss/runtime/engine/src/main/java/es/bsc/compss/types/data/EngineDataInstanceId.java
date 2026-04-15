@@ -18,7 +18,6 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.types.data.info.DataVersion;
 
-
 public class EngineDataInstanceId extends DataInstanceId {
 
     private final DataVersion version;

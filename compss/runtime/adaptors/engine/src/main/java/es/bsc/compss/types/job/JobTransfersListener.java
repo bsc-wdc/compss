@@ -19,10 +19,8 @@ package es.bsc.compss.types.job;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.operation.DataOperation;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class JobTransfersListener extends EventListener {
 

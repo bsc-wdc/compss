@@ -27,7 +27,6 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.util.ErrorManager;
 
-
 public class RegisterRemoteDataRequest implements APRequest {
 
     private final Application app;

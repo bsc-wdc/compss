@@ -24,7 +24,6 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
-
 public class CPersistentInvoker extends PersistentInvoker {
 
     public CPersistentInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,

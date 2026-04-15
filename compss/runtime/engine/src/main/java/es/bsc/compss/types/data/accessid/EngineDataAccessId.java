@@ -17,11 +17,9 @@
 package es.bsc.compss.types.data.accessid;
 
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.DataVersion;
-
 
 public abstract class EngineDataAccessId implements DataAccessId {
 

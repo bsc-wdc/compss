@@ -19,11 +19,9 @@ package es.bsc.compss.types.uri;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.Resource;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map.Entry;
-
 
 /**
  * Represents the different URIs associated to the same path in the same host.

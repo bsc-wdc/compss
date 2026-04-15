@@ -18,7 +18,6 @@ package es.bsc.compss.types.resources;
 
 import java.util.Map;
 
-
 public interface MasterResource extends Resource {
 
     public String getWorkingDirectory();

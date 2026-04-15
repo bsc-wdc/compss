@@ -18,9 +18,7 @@ package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
-
 import java.io.Externalizable;
-
 
 public interface Command extends Externalizable {
 

@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class CheckpointCopiesHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CP_COMP);

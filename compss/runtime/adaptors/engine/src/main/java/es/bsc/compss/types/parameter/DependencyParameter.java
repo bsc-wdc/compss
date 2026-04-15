@@ -19,7 +19,6 @@ package es.bsc.compss.types.parameter;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
 
-
 public interface DependencyParameter extends Parameter, Transferable {
 
     public static final String NO_NAME = "NO_NAME";

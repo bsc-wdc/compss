@@ -21,14 +21,9 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
-import java.util.List;
-
 import org.json.JSONObject;
-
 
 /**
  * Implementation for the FIFODataResourceScheduler.

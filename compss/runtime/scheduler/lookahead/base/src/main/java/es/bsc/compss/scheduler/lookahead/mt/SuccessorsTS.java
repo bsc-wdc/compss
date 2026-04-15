@@ -23,10 +23,8 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.List;
 import java.util.PriorityQueue;
-
 
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode + data locality.

@@ -29,15 +29,12 @@ import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.CanceledTask;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
-
 import storage.StubItf;
-
 
 public class JavaInvoker extends Invoker<JavaWorkflow> {
 

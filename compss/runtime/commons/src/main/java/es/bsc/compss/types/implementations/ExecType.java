@@ -17,12 +17,10 @@
 package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.types.annotations.Constants;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 /**
  * Prolog or Epilog executables.

@@ -18,7 +18,6 @@ package es.bsc.compss.types.request.exceptions;
 
 import java.util.concurrent.Semaphore;
 
-
 public class ShutdownException extends Exception {
 
     /**

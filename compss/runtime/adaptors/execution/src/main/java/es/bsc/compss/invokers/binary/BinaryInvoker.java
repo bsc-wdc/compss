@@ -37,10 +37,8 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
-
 
 public class BinaryInvoker extends Invoker<Workflow> {
 

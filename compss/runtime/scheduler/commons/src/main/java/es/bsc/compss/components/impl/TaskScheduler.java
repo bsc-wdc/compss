@@ -62,7 +62,6 @@ import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -74,11 +73,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-
 
 /**
  * Basic Task scheduler implementation that only takes care of data dependencies.

@@ -62,18 +62,15 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
 import storage.StorageItf;
-
 
 public class GOSWorker implements InvocationContext {
 

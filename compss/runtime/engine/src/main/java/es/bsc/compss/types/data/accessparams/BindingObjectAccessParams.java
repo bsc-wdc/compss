@@ -24,7 +24,6 @@ import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.params.BindingObjectData;
 
-
 public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject, BindingObjectData> {
 
     /**

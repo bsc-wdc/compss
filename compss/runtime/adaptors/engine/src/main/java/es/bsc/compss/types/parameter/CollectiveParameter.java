@@ -18,7 +18,6 @@ package es.bsc.compss.types.parameter;
 
 import java.util.List;
 
-
 /**
  * The internal Collection representation. A Collection is a COMPSs Parameter objects which may contain other COMPSs
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones

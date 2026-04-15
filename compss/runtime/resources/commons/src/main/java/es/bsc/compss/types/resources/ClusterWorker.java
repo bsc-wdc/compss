@@ -23,7 +23,6 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class ClusterWorker extends Worker<MethodResourceDescription> {
 
     // Available resource capabilities

@@ -73,10 +73,13 @@
 
         <!-- Code format -->
         <code-format.version>2.12.2</code-format.version>
+        <bsc.wdc.formatter.version>1.0.0</bsc.wdc.formatter.version>
+        <impsort.version>1.9.0</impsort.version>
 
         <!-- Checkstyle -->
         <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
         <puppycrawl-tools-checkstyle.version>8.18</puppycrawl-tools-checkstyle.version>
+        <bsc.wdc.checkstyle.version>1.0.0</bsc.wdc.checkstyle.version>
 
         <!-- Maven Plugins -->
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
@@ -146,6 +149,17 @@
             <name>Central Repository</name>
             <url>https://repo.maven.apache.org/maven2/</url>
         </pluginRepository>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>compss-repo</id>
+            <name>BSC Workflows and Distributed Computing group</name>
+            <url>https://compss.bsc.es/artifactory/libs-release</url>
+        </pluginRepository>        
     </pluginRepositories>
 
     <!-- DEPENDENCIES -->
@@ -217,7 +231,6 @@
 
     <!-- SUB-MODULES -->
     <modules>
-        <module>maven-plugins</module>
         <module>compss</module>
         <module>tests/sources/local</module>
         <module>tests/sources/sc</module>

@@ -33,10 +33,8 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
-
 
 public class OmpSsInvoker extends Invoker<Workflow> {
 

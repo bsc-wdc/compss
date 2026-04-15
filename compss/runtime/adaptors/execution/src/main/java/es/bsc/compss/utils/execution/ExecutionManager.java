@@ -27,10 +27,8 @@ import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.util.ErrorManager;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ExecutionManager {
 

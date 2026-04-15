@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-
 /**
  * Utility to redirect one single PrintStream to different files according to the thread.
  */

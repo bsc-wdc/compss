@@ -19,12 +19,9 @@ package es.bsc.compss.connectors.utils;
 import es.bsc.compss.connectors.AbstractConnector;
 import es.bsc.compss.connectors.VM;
 import es.bsc.compss.log.Loggers;
-
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Deadline thread for VM timeout.

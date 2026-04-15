@@ -33,7 +33,6 @@ import es.bsc.compss.types.data.params.BindingObjectData;
 import es.bsc.compss.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 
-
 /**
  * Handling of an access from the main code to a binding object.
  */

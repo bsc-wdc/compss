@@ -25,17 +25,14 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
-
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class LocalOptimizationState {
 

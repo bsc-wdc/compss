@@ -19,11 +19,9 @@ package es.bsc.compss.util;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class ActionSet {
 

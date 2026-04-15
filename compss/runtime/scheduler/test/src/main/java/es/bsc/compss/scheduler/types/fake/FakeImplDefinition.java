@@ -19,11 +19,9 @@ package es.bsc.compss.scheduler.types.fake;
 
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class FakeImplDefinition implements ImplementationDefinition {
 

@@ -18,7 +18,6 @@ package es.bsc.compss.types.request.ap;
 
 import es.bsc.compss.types.tracing.APRequestEvent;
 
-
 public abstract class CheckpointerRequest implements APRequest {
 
     @Override

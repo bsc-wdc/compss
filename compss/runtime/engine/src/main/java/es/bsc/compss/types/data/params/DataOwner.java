@@ -21,7 +21,6 @@ import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
-
 public interface DataOwner {
 
     /**

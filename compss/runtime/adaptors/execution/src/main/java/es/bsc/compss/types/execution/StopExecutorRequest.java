@@ -18,7 +18,6 @@ package es.bsc.compss.types.execution;
 
 import es.bsc.compss.executor.Executor;
 
-
 public class StopExecutorRequest extends ExecutorRequest {
 
     public StopExecutorRequest() {

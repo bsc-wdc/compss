@@ -25,11 +25,8 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.List;
-
 import org.json.JSONObject;
-
 
 /**
  * Implementation for the FIFODataResourceScheduler.

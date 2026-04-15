@@ -18,9 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
-
 import java.io.Serializable;
-
 
 /**
  * A File Instance is identified by its file and version identifiers.

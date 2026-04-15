@@ -17,11 +17,8 @@
 package es.bsc.compss.worker;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.worker.COMPSsWorker;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class CanceledTask {
 

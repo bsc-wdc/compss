@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-
 public class NIOTaskProfile implements Externalizable {
 
     private long arrivalTS;

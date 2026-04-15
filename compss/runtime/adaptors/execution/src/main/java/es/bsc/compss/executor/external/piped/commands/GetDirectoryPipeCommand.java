@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.GetDirectoryExternalCommand;
 
-
 public class GetDirectoryPipeCommand extends GetDirectoryExternalCommand implements PipeCommand {
 
     /**

@@ -18,13 +18,11 @@ package es.bsc.compss.ui;
 
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.auth.UserCredential;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.BindingParam;
@@ -33,7 +31,6 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.ListModelList;
-
 
 public class ApplicationsViewModel {
 

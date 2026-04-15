@@ -19,12 +19,9 @@ package es.bsc.compss.types.data.operation;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.util.ErrorManager;
-
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ResultListener extends EventListener {
 

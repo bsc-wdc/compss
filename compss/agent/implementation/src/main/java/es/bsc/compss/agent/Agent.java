@@ -16,10 +16,6 @@
  */
 package es.bsc.compss.agent;
 
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.COMPSsDefaults;
-import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
@@ -33,8 +29,6 @@ import es.bsc.compss.api.impl.WorkflowImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
-import es.bsc.compss.loader.ObjectRegistry;
-import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
@@ -56,10 +50,8 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -67,15 +59,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import storage.StorageException;
 import storage.StorageItf;
-
 
 public class Agent {
 

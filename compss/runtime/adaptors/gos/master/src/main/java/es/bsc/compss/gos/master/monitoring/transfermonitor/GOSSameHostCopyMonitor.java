@@ -20,10 +20,8 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 import es.bsc.compss.gos.master.GOSCopy;
 import es.bsc.compss.gos.master.sshutils.SSHChannel;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-
 
 public class GOSSameHostCopyMonitor implements GOSTransferMonitor {
 

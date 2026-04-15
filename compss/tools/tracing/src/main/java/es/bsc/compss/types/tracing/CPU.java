@@ -17,10 +17,6 @@
 
 package es.bsc.compss.types.tracing;
 
-import java.util.LinkedList;
-import java.util.List;
-
-
 public class CPU implements SystemStructure {
 
     private String label;

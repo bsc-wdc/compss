@@ -20,7 +20,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,10 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * The CloudImageManager is an utility to manage the different images that can be used for a certain Cloud Provider.

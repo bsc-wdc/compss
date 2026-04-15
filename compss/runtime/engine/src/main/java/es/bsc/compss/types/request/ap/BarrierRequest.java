@@ -22,9 +22,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Barrier;
 import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.concurrent.Semaphore;
-
 
 public class BarrierRequest implements APRequest, Barrier {
 

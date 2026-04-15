@@ -19,11 +19,9 @@ package es.bsc.compss.nio.commands;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.nio.NIOAgent;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class CommandCancelTask extends RetriableCommand {
 

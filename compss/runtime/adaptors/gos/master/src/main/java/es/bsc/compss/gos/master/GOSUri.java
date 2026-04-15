@@ -20,7 +20,6 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.Resource;
 
-
 public class GOSUri {
 
     private final String user;

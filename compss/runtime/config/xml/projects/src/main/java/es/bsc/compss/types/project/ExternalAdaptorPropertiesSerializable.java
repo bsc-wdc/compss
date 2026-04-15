@@ -17,9 +17,7 @@
 package es.bsc.compss.types.project;
 
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
-
 import java.io.Serializable;
-
 
 /**
  * This class exists only to make ExternalAdaptorProperties Serializable.

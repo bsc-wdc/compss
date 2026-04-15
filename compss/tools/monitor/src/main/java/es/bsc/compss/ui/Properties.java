@@ -18,7 +18,6 @@ package es.bsc.compss.ui;
 
 import es.bsc.compss.exceptions.NonInstantiableException;
 
-
 public class Properties {
 
     private static final String DEFAULT_BASE_PATH = "";

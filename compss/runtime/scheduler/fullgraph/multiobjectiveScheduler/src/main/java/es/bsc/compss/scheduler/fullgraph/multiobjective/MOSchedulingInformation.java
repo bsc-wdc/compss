@@ -20,15 +20,12 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.fullgraph.multiobjective.types.Gap;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-
 
 public class MOSchedulingInformation extends SchedulingInformation {
 

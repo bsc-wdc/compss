@@ -21,21 +21,17 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.tracing.TraceScript;
-
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import java.util.stream.Stream;
-
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.URI;
 import org.gridlab.gat.resources.Job;
 import org.gridlab.gat.resources.JobDescription;
 import org.gridlab.gat.resources.ResourceBroker;
 import org.gridlab.gat.resources.SoftwareDescription;
-
 
 public class GATTracer extends Tracer {
 

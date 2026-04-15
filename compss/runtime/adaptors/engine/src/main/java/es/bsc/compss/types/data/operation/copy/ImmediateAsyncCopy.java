@@ -25,9 +25,7 @@ import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-
 import java.util.LinkedList;
-
 
 public abstract class ImmediateAsyncCopy extends Copy {
 

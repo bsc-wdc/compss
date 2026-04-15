@@ -20,7 +20,6 @@ import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import java.util.HashMap;
 
-
 public class ExtendedCloudMethodWorker extends CloudMethodWorker {
 
     private boolean terminated;

@@ -35,7 +35,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 
-
 /**
  * Handling of an access from the main code to an object.
  */

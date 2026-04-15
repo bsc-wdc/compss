@@ -23,7 +23,6 @@ import es.bsc.compss.types.job.JobEndStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class GOSSingleJobManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);

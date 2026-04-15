@@ -20,7 +20,6 @@ package es.bsc.compss.types.tracing;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class Thread<I extends ThreadIdentifier> implements ApplicationStructure {
 
     private I identifier;

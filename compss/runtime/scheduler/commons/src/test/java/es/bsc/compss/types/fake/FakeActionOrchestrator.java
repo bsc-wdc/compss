@@ -21,7 +21,6 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.worker.COMPSsException;
 
-
 public class FakeActionOrchestrator implements ActionOrchestrator {
 
     private final TaskScheduler ts;

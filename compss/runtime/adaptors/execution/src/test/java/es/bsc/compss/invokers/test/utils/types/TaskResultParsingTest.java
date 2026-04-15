@@ -22,9 +22,7 @@ import static org.junit.Assert.fail;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
 import es.bsc.compss.executor.types.ParameterResult;
 import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
-
 import org.junit.Test;
-
 
 public class TaskResultParsingTest {
 

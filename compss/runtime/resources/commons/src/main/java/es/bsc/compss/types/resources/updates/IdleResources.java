@@ -18,7 +18,6 @@ package es.bsc.compss.types.resources.updates;
 
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
-
 public class IdleResources<T extends WorkerResourceDescription> extends ResourceUpdate<T> {
 
     public IdleResources(T idle) {

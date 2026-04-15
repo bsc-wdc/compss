@@ -22,7 +22,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
 import java.util.List;
 
-
 public class CloudInstanceTypeDescription {
 
     private final String instanceTypeName;

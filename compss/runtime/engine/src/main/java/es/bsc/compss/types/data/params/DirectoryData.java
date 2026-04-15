@@ -18,7 +18,6 @@ package es.bsc.compss.types.data.params;
 
 import es.bsc.compss.types.data.location.DataLocation;
 
-
 public class DirectoryData extends FileData {
 
     /**

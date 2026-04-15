@@ -22,19 +22,15 @@ import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.serializers.Serializer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StorageObject;
-
 
 public class DataRegister {
 

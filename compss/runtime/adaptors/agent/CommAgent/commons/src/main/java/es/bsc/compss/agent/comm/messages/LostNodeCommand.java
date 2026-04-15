@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-
 /**
  * Command to add remove all the resources associated to one node.
  */

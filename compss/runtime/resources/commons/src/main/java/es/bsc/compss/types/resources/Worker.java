@@ -24,14 +24,11 @@ import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.util.CoreManager;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class Worker<T extends WorkerResourceDescription> extends ResourceImpl {
 

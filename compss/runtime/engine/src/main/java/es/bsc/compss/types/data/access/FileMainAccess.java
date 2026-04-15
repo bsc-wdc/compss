@@ -33,7 +33,6 @@ import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.uri.SimpleURI;
 import java.util.concurrent.Semaphore;
 
-
 /**
  * Handling of an access from the main code to a file.
  */

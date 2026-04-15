@@ -21,7 +21,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.tracing.APRequestEvent;
 
-
 public class CloseTaskGroupRequest implements APRequest {
 
     private Application app;

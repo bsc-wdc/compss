@@ -19,13 +19,10 @@ package es.bsc.compss.types.data.operation;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
-
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class DataOperation {
 

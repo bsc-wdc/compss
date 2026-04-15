@@ -48,14 +48,11 @@ import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * UNIX-domain socket server that exposes COMPSs runtime services to external workers. It receives pipe-based commands,

@@ -28,7 +28,6 @@ import es.bsc.compss.worker.COMPSsException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-
 public class CancelTaskGroupRequest implements APRequest {
 
     private final Application app;

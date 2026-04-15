@@ -18,7 +18,6 @@ package storage;
 
 import java.util.List;
 
-
 /**
  * Representation of the Storage ITF. TODO: complete javadoc
  */

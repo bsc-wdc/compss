@@ -21,9 +21,7 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.concurrent.Semaphore;
-
 
 public class FakeActionOrchestrator implements ActionOrchestrator {
 

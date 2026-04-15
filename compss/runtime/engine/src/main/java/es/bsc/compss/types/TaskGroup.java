@@ -20,13 +20,10 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
-
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class TaskGroup implements AutoCloseable {
 

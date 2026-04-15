@@ -22,10 +22,8 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.uri.MultiURI;
-
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class MasterResourceImpl extends DynamicMethodWorker implements MasterResource {
 

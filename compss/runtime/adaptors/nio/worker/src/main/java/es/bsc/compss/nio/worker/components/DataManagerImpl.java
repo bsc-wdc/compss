@@ -26,7 +26,6 @@ import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
-import es.bsc.compss.nio.listeners.DictCollectionFetchOperationsListener;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -39,7 +38,6 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -50,15 +48,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import storage.StorageException;
 import storage.StorageItf;
-
 
 public class DataManagerImpl implements DataManager {
 

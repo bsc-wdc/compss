@@ -25,12 +25,8 @@ import es.bsc.compss.types.data.info.CollectionInfo;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
-
 import java.io.BufferedWriter;
-import java.util.Collection;
 import java.util.Map;
-import java.util.TreeMap;
-
 
 /**
  * Interface to handle additions to the monitoring graph.

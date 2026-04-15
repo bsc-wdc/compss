@@ -24,7 +24,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 
-
 /**
  * To restart a failed worker.
  */

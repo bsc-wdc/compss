@@ -18,7 +18,6 @@ package es.bsc.compss.invokers.test.objects;
 
 import storage.StubItf;
 
-
 public class StorageTestObject extends TestObject implements StubItf {
 
     private String id = null;

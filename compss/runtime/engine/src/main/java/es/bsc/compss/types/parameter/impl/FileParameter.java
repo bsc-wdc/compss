@@ -25,7 +25,6 @@ import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.FileData;
 
-
 public class FileParameter<D extends FileData, A extends FileAccessParams<D>> extends DependencyParameter<A> {
 
     /**

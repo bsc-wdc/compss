@@ -18,7 +18,6 @@ package es.bsc.compss;
 
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 
-
 public class COMPSsConstants {
 
     /**

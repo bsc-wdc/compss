@@ -21,7 +21,6 @@ import es.bsc.compss.executor.external.piped.PipePair;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * Reply of an Executor PID command sent through a pipe.
  */

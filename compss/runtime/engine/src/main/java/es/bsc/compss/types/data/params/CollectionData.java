@@ -20,7 +20,6 @@ import es.bsc.compss.types.data.info.CollectionInfo;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
-
 public class CollectionData extends DataParams {
 
     private final String collectionId;

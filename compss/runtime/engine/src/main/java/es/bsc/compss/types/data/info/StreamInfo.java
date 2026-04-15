@@ -30,11 +30,9 @@ import es.bsc.compss.types.data.params.StreamData;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.util.ErrorManager;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 
 public class StreamInfo extends DataInfo<StreamData> {
 

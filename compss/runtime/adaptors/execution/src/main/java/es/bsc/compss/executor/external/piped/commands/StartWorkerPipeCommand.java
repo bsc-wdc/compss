@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.StartWorkerExternalCommand;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 
-
 public class StartWorkerPipeCommand extends StartWorkerExternalCommand implements PipeCommand {
 
     private final ControlPipePair pipe;

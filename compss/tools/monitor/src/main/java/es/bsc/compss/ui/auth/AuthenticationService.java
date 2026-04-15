@@ -17,12 +17,10 @@
 package es.bsc.compss.ui.auth;
 
 import es.bsc.compss.commons.Loggers;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
-
 
 public class AuthenticationService {
 

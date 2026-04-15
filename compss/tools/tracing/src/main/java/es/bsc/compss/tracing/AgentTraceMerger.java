@@ -18,7 +18,6 @@
 package es.bsc.compss.tracing;
 
 import es.bsc.compss.types.tracing.ApplicationComposition;
-import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.SystemStructure;
@@ -37,13 +36,10 @@ import es.bsc.compss.util.tracing.TraceTransformation;
 import es.bsc.compss.util.tracing.transformations.CETranslation;
 import es.bsc.compss.util.tracing.transformations.CPUOffset;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class AgentTraceMerger extends TraceMerger {
 

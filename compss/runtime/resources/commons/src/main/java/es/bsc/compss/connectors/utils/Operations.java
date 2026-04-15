@@ -22,7 +22,6 @@ import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
-
 public interface Operations {
 
     public static final Object KNOWN_HOSTS = new Object();

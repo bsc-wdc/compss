@@ -34,10 +34,8 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.BusyResources;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
-
 
 public class BusyWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
 

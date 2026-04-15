@@ -20,7 +20,6 @@ import es.bsc.compss.gos.master.GOSCopy;
 import es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor.GOSJschTransferMonitor;
 import es.bsc.compss.gos.master.sshutils.SSHChannel;
 
-
 public class GOSOneWayTransferMonitor implements GOSTransferMonitor {
 
     private final GOSJschTransferMonitor transferMonitor;

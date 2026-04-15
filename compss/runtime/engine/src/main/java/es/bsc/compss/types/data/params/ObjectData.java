@@ -20,7 +20,6 @@ import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.ObjectInfo;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
-
 public class ObjectData extends DataParams {
 
     protected final int code;

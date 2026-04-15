@@ -18,14 +18,12 @@ package es.bsc.compss.types.resources;
 
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.List;
-
 
 /**
  * This class exists only to make ResourcesExternalAdaptorProperties Serializable.

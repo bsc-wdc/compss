@@ -25,10 +25,8 @@ import es.bsc.compss.types.data.info.CollectionInfo;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
-
 import java.io.BufferedWriter;
 import java.util.Map;
-
 
 public class NoGraph implements GraphHandler {
 

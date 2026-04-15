@@ -23,11 +23,9 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 import es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor.GOSJschTransferMonitor;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 
 public class SSHChannel {
 

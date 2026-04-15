@@ -24,7 +24,6 @@ import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.params.CollectionData;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
-
 public class CollectionAccessParams extends AccessParams<CollectionData> {
 
     /**

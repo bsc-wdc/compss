@@ -18,7 +18,6 @@ package es.bsc.compss.types.tracing.paraver;
 
 import es.bsc.compss.types.tracing.ApplicationComposition;
 
-
 public class PRVApplication extends ApplicationComposition<PRVTask> {
 
 }

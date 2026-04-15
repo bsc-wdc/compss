@@ -18,12 +18,10 @@ package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public abstract class Implementation implements Externalizable {
 

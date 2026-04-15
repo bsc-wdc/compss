@@ -19,14 +19,12 @@ package es.bsc.compss.types.resources.description;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 
 public class CloudMethodResourceDescription extends MethodResourceDescription {
 

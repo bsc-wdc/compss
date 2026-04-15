@@ -18,7 +18,6 @@ package es.bsc.compss.agent.types;
 
 import java.util.List;
 
-
 /**
  * Extension of the ApplicationParameter class to handle collection types. Basically, a ApplicationParameter plus a list
  * of ApplicationParameter representing the contents of the collection.

@@ -276,15 +276,6 @@ class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
         """
         return self.compss.get_master_working_path()
 
-    def set_wall_clock(self, app_id: float, wcl: float) -> None:
-        """Call to set_wall_clock.
-
-        :param app_id: Application identifier.
-        :param wcl: Wall Clock limit in seconds.
-        :return: None.
-        """
-        self.compss.set_wall_clock(app_id, wcl)
-
     def register_core_element(  # pylint: disable=too-many-arguments
         self,
         ce_signature: str,

@@ -67,8 +67,7 @@ public enum APIEvent implements Event {
     CLOSE_FILE(88, "Close files"),
 
     // CHECKPOINTING
-    SNAPSHOT_API(80, "Snapshot request"), //
-    SET_WALLCLOCK(110, "Set walclock limit"); //
+    SNAPSHOT_API(80, "Snapshot request"); //
 
 
     public static final EventType type;

@@ -128,10 +128,12 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public void deregister() {
+    public void deregister(boolean deleteData) {
         APITracer.traced(APIEvent.DEREGISTER_APP, (Runnable) () -> {
+            if (deleteData) {
+                AP.deleteAllApplicationDataRequest(this);
+            }
             super.deregister();
-            AP.deleteAllApplicationDataRequest(this);
         });
     }
 
@@ -588,7 +590,6 @@ public class WorkflowImpl extends Application implements Workflow {
         // Wait until all tasks have finished
         AP.noMoreTasks(this);
 
-        this.cancelTimerTask();
         // Retrieve result files
         LOGGER.debug("Getting Result Files for app" + this.getId());
         AP.getResultFiles(this);

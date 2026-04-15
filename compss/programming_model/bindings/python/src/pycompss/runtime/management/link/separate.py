@@ -301,9 +301,6 @@ def c_extension_link(  # pylint: disable=too-many-locals
             elif command == LINK_MESSAGES.read_command:
                 compss.read_command(*parameters)
                 out_queue.put(command_done)
-            elif command == LINK_MESSAGES.set_wall_clock:
-                compss.set_wall_clock(*parameters)
-                out_queue.put(command_done)
             else:
                 raise PyCOMPSsException("Unknown link command")
 
@@ -536,16 +533,6 @@ class _COMPSs:
         self.in_queue.put([LINK_MESSAGES.get_master_working_path])
         master_working_path = self.out_queue.get(block=True)
         return master_working_path
-
-    def set_wall_clock(self, app_id: int, wcl: int) -> None:
-        """Call to set_wall_clock.
-
-        :param app_id: Application identifier.
-        :param wcl: Wall Clock limit in seconds.
-        :return: None.
-        """
-        self.in_queue.put((LINK_MESSAGES.set_wall_clock, app_id, wcl))
-        _ = self.out_queue.get(block=True)
 
     def register_core_element(
         self,

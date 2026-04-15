@@ -33,8 +33,10 @@ public interface Workflow {
 
     /**
      * Deregisters the workflow from the runtime.
+     *
+     * @param deleteData {@literal true} to indicate that all the data related to the workflow should be removed.
      */
-    void deregister();
+    void deregister(boolean deleteData);
 
     /*
      * ************************************************************************************************************

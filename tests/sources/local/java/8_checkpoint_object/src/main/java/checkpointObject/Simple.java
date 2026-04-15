@@ -30,7 +30,7 @@ public class Simple {
         SimpObj initialValue1 = SimpleImpl.increment(initialValue);
         SimpObj initialValue2 = SimpleImpl.increment(initialValue1);
         if (exception == 1) {
-            throw new Exception("Incorrect number of writers ");
+            throw new Exception("Raising Exception for testing purposes");
         }
         SimpObj initialValue3 = SimpleImpl.increment(initialValue2);
 

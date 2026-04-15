@@ -236,10 +236,6 @@ struct RuntimeApi {
         out = buffer ? std::string(buffer) : std::string();
     }
 
-    virtual void setWallClock(long appId, long wallClock, bool stopRT) {
-        GS_Set_wall_clock(appId, wallClock, stopRT ? 1 : 0);
-    }
-
 protected:
     static std::vector<void*> prepareParams(const std::vector<Parameter>& params,
                                             std::vector<void*>& allocations) {

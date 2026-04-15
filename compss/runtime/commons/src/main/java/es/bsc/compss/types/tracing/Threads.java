@@ -25,7 +25,7 @@ public enum Threads {
     FSL(4, "RUNTIME FS L", "File system thread", ExtraeTaskType.RUNTIME), //
     FSH(5, "RUNTIME FS H", "File system thread", ExtraeTaskType.RUNTIME), //
     TIMER(6, "RUNTIME TIMER", "Timer thread", ExtraeTaskType.RUNTIME), //
-    WC(7, "RUNTIME WALLCLOCK", "WallClock thread", ExtraeTaskType.RUNTIME), //
+    WC(7, "RUNTIME WALLCLOCK", "WallClock thread", ExtraeTaskType.RUNTIME), // Deprecated
     EXEC(8, "EXECUTOR", "Executor thread", ExtraeTaskType.EXECUTOR), //
     PYTHON_WORKER(9, "PYTHON WORKER", "Python worker", ExtraeTaskType.RUNTIME), //
     CACHE(10, "PYTHON OBJECT CACHE", "Python Cache manager", ExtraeTaskType.RUNTIME);

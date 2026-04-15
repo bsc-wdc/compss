@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 
@@ -55,7 +54,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
 
     private static final Map<Long, Application> APPLICATIONS = new HashMap<>();
     private static final ApplicationRunner DEFAULT_RUNNER = new DoNothingApplicationMonitor();
-    private static final Application NO_APPLICATION = new Application(null, null, DEFAULT_RUNNER);
 
     private static GraphHandler GH;
     private static CheckpointManager CP;
@@ -81,8 +79,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     private final Long id;
     // Parallelism source
     private final String parallelismSource;
-
-    private TimerTask wallClockKiller;
 
     /*
      * Element running the main code of the application
@@ -154,76 +150,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     }
 
     /**
-     * Registers an application with Id @code{appId}. If the application has already been registered, it returns the
-     * previous instance. Otherwise, it creates a new application instance.
-     *
-     * @param appId Id of the application to be registered
-     * @return Application instance registered for that appId.
-     */
-    public static Application registerApplication(Long appId) {
-        return registerApplication(appId, null, null);
-    }
-
-    /**
-     * Registers a new application with a non-currently-used appId.
-     *
-     * @param parallelismSource element identifying the inner tasks
-     * @param runner element running the main code of the application
-     * @return Application instance registered.
-     */
-    public static Application registerApplication(String parallelismSource, ApplicationRunner runner) {
-        Long appId = getUniqueId();
-        return registerApplication(appId, parallelismSource, runner);
-    }
-
-    /**
-     * Registers an application with Id @code{appId}. If the application has already been registered, it returns the
-     * previous instance. Otherwise, it creates a new application instance.
-     *
-     * @param appId Id of the application to be registered
-     * @param parallelismSource element identifying the inner tasks
-     * @param runner element running the main code of the application
-     * @return Application instance registered for that appId.
-     */
-    private static Application registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
-        Application app;
-        if (appId == null) {
-            LOGGER.error("No application id", new Exception("Application id is null"));
-            app = NO_APPLICATION;
-        } else {
-            synchronized (APPLICATIONS) {
-                app = APPLICATIONS.get(appId);
-                if (app == null) {
-                    app = new Application(appId, parallelismSource, runner);
-                }
-            }
-        }
-        return app;
-    }
-
-    /**
-     * Deregisters the application.
-     */
-    public void deregister() {
-        deregisterApplication(this.getId());
-    }
-
-    /**
-     * Deregisters the application with Id @code{appId}.
-     *
-     * @param appId Id of the application to be remove
-     * @return Application instance registered for that appId. Returns @literal{null}, if there was no application
-     *         registered with that id.
-     */
-    public static Application deregisterApplication(Long appId) {
-        Application app;
-        synchronized (APPLICATIONS) {
-            app = APPLICATIONS.remove(appId);
-        }
-        return app;
-    }
-
-    /**
      * Get all the registered applications.
      *
      * @return array with registered applications.
@@ -255,6 +181,15 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
         this.collectionToData = new TreeMap<>();
         synchronized (APPLICATIONS) {
             APPLICATIONS.put(appId, this);
+        }
+    }
+
+    /**
+     * Deregisters the application.
+     */
+    public void deregister() {
+        synchronized (APPLICATIONS) {
+            APPLICATIONS.remove(this.getId());
         }
     }
 
@@ -566,20 +501,6 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
             }
         }
         return wfiles;
-    }
-
-    public void setTimerTask(WallClockTimerTask wcTimerTask) {
-        this.wallClockKiller = wcTimerTask;
-    }
-
-    /**
-     * Cancel the wall clock time timer task.
-     */
-    public void cancelTimerTask() {
-        if (this.wallClockKiller != null) {
-            wallClockKiller.cancel();
-            wallClockKiller = null;
-        }
     }
 
     public TaskMonitor getTaskMonitor() {

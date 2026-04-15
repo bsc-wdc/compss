@@ -110,7 +110,7 @@ long PIPE_WF_getId(CompssWorkflow* self) {
     return 0;
 }
 
-void PIPE_WF_deregister(CompssWorkflow* self) {
+void PIPE_WF_deregister(CompssWorkflow* self, bool deleteData) {
 }
 
 void PIPE_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool implicitBarrier) {
@@ -544,10 +544,6 @@ void PIPE_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @PIPE_EmitEvent - Event emitted\n");
 }
 
-void PIPE_set_wall_clock(long appId, long wcl, int stopRT){
-	debug_printf("[BINDING-COMMONS] - @PIPE_set_wall_clock NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
-}
-
 CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
 	init_env_vars();
 	command_pipe = strdup(comPipe);
@@ -566,8 +562,6 @@ CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
     iface.registerWorkflow = PIPE_RegisterWorkflow;
     
     iface.EmitEvent = PIPE_EmitEvent;
-
-    iface.Set_wall_clock = PIPE_set_wall_clock;
 
     return iface;
 }

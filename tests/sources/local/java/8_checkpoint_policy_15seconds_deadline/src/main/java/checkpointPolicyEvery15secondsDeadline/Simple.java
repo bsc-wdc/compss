@@ -39,7 +39,7 @@ public class Simple {
 
         if (exception == 1) {
             Thread.sleep(10000);
-            throw new Exception("Incorrect number of writers ");
+            throw new Exception("Raising Exception for testing purposes");
         }
 
         SimpleImpl.increment(fileName);

@@ -97,13 +97,6 @@ void GS_EmitEvent(int type, long id) {
 	runtime.EmitEvent(type, id);
 }
 
-void GS_Set_wall_clock(long appId, long wcl, int stopRT){
-	if (workflow == NULL) {
-		registerWorkflow();
-    }
-	runtime.Set_wall_clock(wf_appId, wcl, stopRT);
-}
-
 void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){
 	if (workflow == NULL) {
 		registerWorkflow();

@@ -101,7 +101,10 @@ DEFAULT_WALL_CLOCK_LIMIT=0
 # ERROR MESSAGES
 #----------------------------------------------
 AGENT_ERROR="Error running the agent"
+APP_FINISHED_SUCCESSFULLY="Application finished successfully"
+APP_TIMED_OUT="Application timed out"
 RUNTIME_ERROR="Error running application"
+
 TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
 LD_LIBRARY_PATH_NOT_SET_WARN="LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
 EXEC_DIR_CREATION_ERROR="Could not create execution folder"
@@ -511,20 +514,6 @@ EOT
 
 }
 
-append_wall_clock_jvm_options_to_file() {
-  # Add Application-specific options
-  if [ "${lang}" == "python" ]; then
-    cat >> "${jvm_options_file}" << EOT
--Dcompss.wcl=0
-EOT
-  else
-    cat >> "${jvm_options_file}" << EOT
--Dcompss.wcl=${wall_clock_limit}
-EOT
-  fi
-
-}
-
 #----------------------------------------------
 # APPEND PROPERTIES TO FILE - Specific for the agent
 #----------------------------------------------
@@ -587,12 +576,22 @@ start_compss_app() {
   prepare_runtime_environment
 
   append_app_jvm_options_to_file "${jvm_options_file}"
-
-  append_wall_clock_jvm_options_to_file "${jvm_options_file}"
+  
   #echo "Options file: ${jvm_options_file}"
   #cat ${jvm_options_file}
 
   run_app_with_compss
+}
+
+handle_app_end() {
+  local end_code=$1
+  if [[ "${end_code}" == "0" ]]; then
+    display_success "${APP_FINISHED_SUCCESSFULLY}"
+  elif [[ "${end_code}" == "122" ]]; then
+    fatal_error "${APP_TIMED_OUT}" ${end_code}
+  else
+    fatal_error "${RUNTIME_ERROR}" ${end_code}
+  fi
 }
 
 run_app_with_compss() {
@@ -608,10 +607,12 @@ run_app_with_compss() {
   elif [ "${lang}" == "r" ]; then
     exec_r
   fi
+  # Handle application exit value to print in log
+  handle_app_end "${COMPSS_EXIT_CODE}"
 
   # End
   echo
-  echo ------------------------------------------------------------
+  echo "------------------------------------------------------------"
 }
 
 exec_java() {
@@ -620,7 +621,7 @@ exec_java() {
   local JAVACMD
   java_opts=$(tr "\\n" " " < "${jvm_options_file}")
   # JAVACMD=$JAVA" -Xdebug -Xrunjdwp:transport=dt_socket,address=8998,server=y  -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
-  JAVACMD=$JAVA" -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
+  JAVACMD=$JAVA" -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar -Dcompss.wcl=${wall_clock_limit} ${java_opts}"
 
   # Launch application
   start_tracing
@@ -628,9 +629,7 @@ exec_java() {
   $JAVACMD "${RUNTIME_LOADER}" "total" "$fullAppPath" ${application_args}
   endCode=$?
   stop_tracing
-  if [ $endCode -ne 0 ]; then
-    fatal_error "${RUNTIME_ERROR}" ${endCode}
-  fi
+  export COMPSS_EXIT_CODE=${endCode}
 }
 
 
@@ -643,25 +642,18 @@ exec_c() {
     export CPP_PATH=${cp}
   fi
 
-  cat >> "${jvm_options_file}" << EOT
--Dcompss.constraints.file=$fullAppPath.idl
-EOT
-
-  # Launch application
   echo "JVM_OPTIONS_FILE: ${JVM_OPTIONS_FILE}"
   echo "COMPSS_HOME: ${COMPSS_HOME}"
   echo "Args: ${application_args}"
   echo " "
 
+  # Launch application
   start_tracing
   # shellcheck disable=SC2086
   $fullAppPath ${application_args}
   endCode=$?
   stop_tracing
-
-  if [ $endCode -ne 0 ]; then
-    fatal_error "${RUNTIME_ERROR}" ${endCode}
-  fi
+  export COMPSS_EXIT_CODE=${endCode}
 }
 
 exec_python() {
@@ -697,29 +689,24 @@ exec_python() {
 
   endCode=$?
   stop_tracing
-
-  export COMPSS_EXIT_CODE=$endCode
-
-  if [ $endCode -ne 0 ]; then
-    fatal_error "${RUNTIME_ERROR}" ${endCode}
-  fi
+  export COMPSS_EXIT_CODE=${endCode}
 }
 
 exec_r(){
   # Launch application
   start_tracing
+
   # Even though tracing is enabled, fails with Rscript due to R
   # interprets the Extrae's welcome message as input.
   # So, we unset the LD_PRELOAD here and rely in the start_runtime
+
+  # shellcheck disable=SC2086
   unset LD_PRELOAD
   Rscript "${fullAppPath}" ${application_args}
+
   endCode=$?
   stop_tracing
-
-  if [ $endCode -ne 0 ]; then
-    fatal_error "${RUNTIME_ERROR}" ${endCode}
-  fi
-
+  export COMPSS_EXIT_CODE=${endCode}
 }
 
 #----------------------------------------------

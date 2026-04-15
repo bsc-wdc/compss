@@ -37,7 +37,7 @@ It implements the:
     - get number of resources
     - request resources creation
     - request resources destruction
-    - set wall clock
+    - set wall clock limit
     - add logger
     - TaskGroup (class)
 functions.

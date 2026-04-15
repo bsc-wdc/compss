@@ -25,26 +25,21 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.socketserver.SocketServer;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
-import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ErrorHandler;
-import es.bsc.compss.types.WallClockTimerTask;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
-import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
-import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
 
@@ -52,8 +47,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,9 +73,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
 
     // Monitor
     private static RuntimeMonitor runtimeMonitor;
-
-    // Application Timer
-    private static Timer timer = null;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
@@ -217,17 +207,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                     Tracer.emitEvent(APIEvent.STOP);
                 }
 
-                LOGGER.debug("Stopping Wall Clock limit Timer");
-                if (timer != null) {
-                    timer.cancel();
-                }
-
                 LOGGER.debug("Cancelling all remaining tasks...");
                 // In some case, when runtime is stop because an error the java process is not stopped
                 // because some threads are blocked at barriers waiting for the end of tasks
                 for (Application app : Application.getApplications()) {
+                    LOGGER.debug("Cancelling all remaining tasks for workflow " + app.getId());
                     ap.cancelApplicationTasks(app);
-                    // ap.barrier(app);
                 }
                 // Add task summary
                 boolean taskSummaryEnabled = System.getProperty(COMPSsConstants.TASK_SUMMARY) != null
@@ -458,7 +443,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
         // Wait until all tasks have finished
         ap.noMoreTasks(app);
         if (!stopped) {
-            app.cancelTimerTask();
             // Retrieve result files
             LOGGER.debug("Getting Result Files for app" + app.getId());
             ap.getResultFiles(app);
@@ -501,50 +485,5 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
             }
         }.start();
         return true;
-    }
-
-    /*
-     * ************************************************************************************************************ Wall
-     * Clock Manager
-     * ************************************************************************************************************
-     */
-
-    private void createWallClockReaper() {
-        // Enable thread detection on tracing
-        if (Tracer.isActivated()) {
-            Tracer.enablePThreads(1);
-        }
-        // Create Timer
-        timer = new Timer("Application wall clock limit timer");
-
-        if (Tracer.isActivated()) {
-            // Register new timerTask to be executed immediately. It emits threadID event and disables thread detection.
-            timer.schedule(new TimerTask() {
-
-                @Override
-                public void run() {
-                    Tracer.disablePThreads(1);
-                    Tracer.emitEvent(TraceEvent.WALLCLOCK_THREAD_ID);
-
-                }
-            }, 0);
-        }
-    }
-
-    @Override
-    public void setWallClockLimit(Long appId, long wcl, boolean stopRT) {
-        APITracer.traced(APIEvent.SET_WALLCLOCK, (Runnable) () -> {
-            if (wcl > 0) {
-                if (timer == null) {
-                    createWallClockReaper();
-                }
-                LOGGER.info("Setting wall clock limit for app " + appId + " of " + wcl + " seconds.");
-                Application app = Application.registerApplication(appId);
-                WallClockTimerTask wcTask = new WallClockTimerTask(app, ap, (stopRT ? this : null));
-                app.setTimerTask(wcTask);
-                // One second is added to allow possible stop from the binding
-                timer.schedule(wcTask, (wcl + 1) * 1000);
-            }
-        });
     }
 }

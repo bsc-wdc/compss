@@ -493,7 +493,7 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
         }
 
         // Removing internal application
-        wf.deregister();
+        wf.deregister(true);
     }
 
     private void handleOutputValue(W wf, InvocationParam p) {

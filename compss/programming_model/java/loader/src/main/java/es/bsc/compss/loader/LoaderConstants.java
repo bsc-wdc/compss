@@ -90,6 +90,8 @@ public class LoaderConstants {
     public static final String LOADER_INTERNAL_PREFIX = "es.bsc.compss.";
     public static final String LOADER_IO_PREFIX = "java.io.";
 
+    public static final String WALL_CLOCK_LIMIT = "compss.wcl";
+
 
     /**
      * Get the supported File streams.

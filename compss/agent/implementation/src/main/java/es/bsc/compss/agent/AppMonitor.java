@@ -165,7 +165,7 @@ public abstract class AppMonitor implements ApplicationRunner {
 
             @Override
             public void run() {
-                wf.deregister();
+                wf.deregister(true);
                 specificOnCompletion();
             }
         }.start();
@@ -179,7 +179,7 @@ public abstract class AppMonitor implements ApplicationRunner {
 
             @Override
             public void run() {
-                wf.deregister();
+                wf.deregister(true);
                 specificOnFailure();
             }
         }.start();

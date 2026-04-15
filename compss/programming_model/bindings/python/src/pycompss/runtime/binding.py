@@ -37,7 +37,7 @@ from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.runtime.task.definitions.arguments import TaskArguments
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.exceptions import PyCOMPSsException, WallClockException
 from pycompss.util.logger.helpers import add_new_logger
 
 # Tracing imports
@@ -520,15 +520,11 @@ def set_wall_clock(wall_clock_limit: int) -> None:
     :return: None.
     """
     with EventMaster(TRACING_MASTER.wall_clock_limit_event):
-        app_id = 0
         if __debug__:
             LOGGER.debug("Set a wall clock limit of %s", str(wall_clock_limit))
         # Activate wall clock limit alarm
         signal.signal(signal.SIGALRM, _wall_clock_exceed)
         signal.alarm(wall_clock_limit)
-        # Call the Runtime to set a timer in case wall clock is
-        # reached in a synch
-        COMPSs.set_wall_clock(app_id, wall_clock_limit)
 
 
 def register_ce(core_element: CE) -> None:
@@ -1009,4 +1005,4 @@ def _wall_clock_exceed(signum: int, frame: typing.Any) -> None:
     :return: None.
     :raises: PyCOMPSsException exception.
     """
-    raise PyCOMPSsException("Application has reached its wall clock limit")
+    raise WallClockException()

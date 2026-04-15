@@ -19,32 +19,6 @@ import time
 import socket
 from datetime import datetime
 import signal
-from pathlib import Path
-import json
-
-try:
-    import psutil
-
-    psutil_imported = True
-except ImportError:
-    print(
-        "PROVENANCE | PROFILING | ERROR: psutil is not installed. Install it, if you want to monitor all the resources status during the execution."
-    )
-    psutil_imported = False
-
-from utils import (
-    find_root_cgroup_paths,
-    get_total_cpu_count,
-    get_total_memory_kb,
-    read_cgroup_file,
-    get_cgroup_io_stats
-)
-
-LIST_PROFILER = [
-    "psutil",
-    "top",
-    "cgroup"
-]
 
 # Flag to control the profiling loop
 profiling_active = True
@@ -53,6 +27,16 @@ profiling_data = []
 output_file = None
 log_dir = None
 hostname = None
+
+# import psutil only on macOS
+machine_os = sys.platform
+if machine_os == "darwin":
+    try:
+        import psutil
+    except ImportError:
+        print("PROVENANCE | PROFILING | ERROR: psutil is required on macOS for CPU/memory profiling. Please install it and try again.")
+        sys.exit(1)
+
 
 def end_profiling(sig, frame):
     """
@@ -65,8 +49,7 @@ def end_profiling(sig, frame):
         return  # Prevent multiple invocations
 
     profiling_active = False
-    # TODO: Only the master node should print this message
-    # print("PROVENANCE | PROFILING | Finishing profiling (signal received)...")
+    print("PROVENANCE | PROFILING | Finishing profiling (signal received)...")
     # All file I/O and cleanup is now handled in the main() function's
     # finally block and post-loop logic.
 
@@ -85,77 +68,213 @@ def setup_signal_handlers():
         signal.signal(sig, end_profiling)
 
 
-def get_cpu_top() -> list:
+def _get_multiplication_factor() -> float:
+    """ 
+    Reads /proc/cpuinfo to determine the number of physical cores and logical processors,
+    and computes a multiplication factor to adjust CPU percentages accordingly.
+
+    :return: multiplication factor (logical cores / physical cores) as float
+    """ 
+    unique_cores = set()
+    current_phys_id = ""
+    current_core_id = ""
+    logical_cores = 0 
+
+    with open("/proc/cpuinfo", "r") as f:
+        for line in f:
+            line = line.strip()
+    
+            if line.startswith("physical id"):
+                current_phys_id = line.split(":")[1].strip()
+            elif line.startswith("core id"):
+                current_core_id = line.split(":")[1].strip()
+            elif line == "": 
+                # A blank line indicates the end of a processor block in cpuinfo.
+                # If we found both IDs, add them as a unique pair to our set.
+                if current_phys_id and current_core_id:
+                    logical_cores += 1
+                    unique_cores.add(f"{current_phys_id}:{current_core_id}")
+    
+                # Reset for the next processor block
+                current_phys_id = ""
+                current_core_id = ""
+
+    # Fallback: some older or virtualized systems don't list 'core id'. 
+    # If the set is empty, we assume at least 1 physical core.
+    physical_cores = len(unique_cores) if unique_cores else 1
+    return logical_cores / physical_cores if physical_cores > 0 else 1.0
+
+
+def _read_proc_stat_raw() -> tuple:
     """
-    Execute the command to get the values of cpu and memory usage, by calling a bash command
+    Read raw CPU tick counters from /proc/stat.
+    The first line aggregates all CPUs: cpu <user> <nice> <system> <idle> <iowait> ...
 
-    :return: list containing the as first value the cpu percentage and second value the memory percentage
+    :return: (idle_ticks, total_ticks) as integers
     """
-    COMMAND = "export LC_NUMERIC=C && top -b -n 1 | awk '/^%Cpu/ { cpu_usage = 100 - $8; cpu_usage = cpu_usage * 2; cpu_usage = (cpu_usage > 100) ? 100.0 : cpu_usage } /^MiB Mem/ { mem_usage = ($8 / $4) * 100 } END { printf \"%.2f,%.2f,\", cpu_usage, mem_usage }'"
+    with open("/proc/stat", "r") as f:
+        line = f.readline()  # First line is always the aggregate "cpu  ..."
+    
+    fields = list(map(int, line.split()[1:]))
+    
+    # idle = idle (3) + iowait (4)
+    idle = fields[3] + fields[4]
+    
+    # Sum only the first 8 fields to avoid double-counting 
+    # guest (8) and guest_nice (9), which are already included in user and nice.
+    total = sum(fields[:8])
+    
+    return idle, total
 
-    result = subprocess.check_output(COMMAND, shell=True, text=True).strip().split(",")
-    return result
+
+def _read_proc_meminfo() -> float:
+    """
+    Read memory stats from /proc/meminfo.
+    Uses MemAvailable (accounts for reclaimable caches) rather than MemFree
+    to compute a realistic used-memory percentage, consistent with how
+    psutil.virtual_memory().percent works.
+
+    :return: memory used percentage (0.0 - 100.0)
+    """
+    stats = {}
+    with open("/proc/meminfo", "r") as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) >= 2:
+                stats[parts[0].rstrip(":")] = int(parts[1])  # values are in kB
+    total = stats.get("MemTotal", 0)
+    available = stats.get("MemAvailable", 0)
+    if total == 0:
+        return 0.0
+    used = total - available
+    return (used / total) * 100.0
 
 
-def get_cpu_mapping(os_name):
-    physical_indices = []
-    virtual_indices = []
+def _get_cpu_mem_proc_linux(interval: int) -> tuple:
+    """
+    Measures system-wide CPU usage by computing a delta between two readings
+    of /proc/stat separated by `interval` seconds, and reads memory usage
+    from /proc/meminfo.
 
-    if os_name == 'linux':
-        seen_core_ids = set()
-        total_cpus = os.cpu_count() # Built-in Python! No psutil needed.
-        
-        if not total_cpus:
-            return [], []
+    This is a zero-dependency fallback equivalent to:
+        psutil.cpu_percent(interval=N) and psutil.virtual_memory().percent
+
+    Both /proc/stat and /proc/meminfo are kernel-wide files, unaffected by
+    cgroup boundaries, so this works correctly even inside SLURM job steps.
+
+    :param interval: seconds to wait between the two /proc/stat readings
+    :return: (cpu_percent, mem_percent) as floats
+    """
+    idle_start, total_start = _read_proc_stat_raw()
+    time.sleep(interval)
+    idle_current, total_current = _read_proc_stat_raw()
+    delta_idle = idle_current - idle_start
+    delta_total = total_current - total_start
+
+    if delta_total == 0:
+        cpu_pct = 0.0
+    else:
+        cpu_pct = (1.0 - delta_idle / delta_total) * 100.0
+    
+    cpu_pct *= _get_multiplication_factor()  # Adjust for hyperthreading
+    mem_pct = _read_proc_meminfo()
+    return round(cpu_pct, 2), round(mem_pct, 2)
+
+
+def _get_cpu_mem_proc_darwin(interval: int) -> tuple:
+    """
+    Measures system-wide CPU and memory usage on macOS using psutil.
+    """
+    # psutil blocks for 'interval' seconds to calculate the accurate delta
+    cpu_pct = psutil.cpu_percent(interval=interval)
+    mem_pct = psutil.virtual_memory().percent
+    return round(cpu_pct, 2), round(mem_pct, 2)
+
+
+def get_cpu_mem_proc(interval: int, machine_os: str) -> tuple:
+    if machine_os == "linux":
+        return _get_cpu_mem_proc_linux(interval)
+    elif machine_os == "darwin":
+        return _get_cpu_mem_proc_darwin(interval)
+    else:
+        # Stop profiling if we don't know how to read CPU/mem stats on this platform
+        raise ValueError(f"Unsupported platform for CPU/memory profiling: {machine_os}")
+
+
+def _get_infiniband_traffic() -> tuple:
+    """
+    Reads hardware performance counters for InfiniBand devices to capture 
+    all traffic, including RDMA kernel-bypass traffic.
+    
+    :return: (total_rx_bytes, total_tx_bytes)
+    """
+    total_rx_bytes = 0
+    total_tx_bytes = 0
+    ib_base_path = "/sys/class/infiniband"
+    
+    # If the system doesn't have the infiniband class, it has no IB hardware
+    if not os.path.exists(ib_base_path):
+        return 0, 0
+
+    # Iterate through all InfiniBand devices (e.g., mlx5_0, mlx5_1)
+    for hca in os.listdir(ib_base_path):
+        ports_path = os.path.join(ib_base_path, hca, "ports")
+        if not os.path.exists(ports_path):
+            continue
             
-        for cpu_index in range(total_cpus):
-            topology_path = f"/sys/devices/system/cpu/cpu{cpu_index}/topology/core_id"
+        # A single card might have multiple ports (e.g., port 1, port 2)
+        for port in os.listdir(ports_path):
+            counters_path = os.path.join(ports_path, port, "counters")
+            
             try:
-                with open(topology_path, "r") as f:
-                    core_id = int(f.read().strip())
+                # Read Received Data
+                with open(os.path.join(counters_path, "port_rcv_data"), "r") as f:
+                    # Multiply by 4 to convert DWords to Bytes
+                    total_rx_bytes += int(f.read().strip()) * 4
                     
-                if core_id not in seen_core_ids:
-                    seen_core_ids.add(core_id)
-                    physical_indices.append(cpu_index)
-                else:
-                    virtual_indices.append(cpu_index)
-            except FileNotFoundError:
-                pass
-                
-        return physical_indices, virtual_indices
+                # Read Transmitted Data
+                with open(os.path.join(counters_path, "port_xmit_data"), "r") as f:
+                    # Multiply by 4 to convert DWords to Bytes
+                    total_tx_bytes += int(f.read().strip()) * 4
+                    
+            except (FileNotFoundError, ValueError):
+                # Safely ignore if a specific counter file is missing or unreadable
+                continue
 
-    elif os_name == 'darwin':
-        # macOS logic remains exactly the same, as it only used subprocess sysctl
-        try:
-            physical = int(subprocess.check_output(['sysctl', '-n', 'hw.physicalcpu']).strip())
-            logical = int(subprocess.check_output(['sysctl', '-n', 'hw.logicalcpu']).strip())
-            
-            if physical == logical:
-                physical_indices = list(range(logical))
-            else:
-                physical_indices = list(range(0, logical, 2))
-                virtual_indices = list(range(1, logical, 2))
-        except Exception as e:
-            print(f"Error querying macOS sysctl: {e}")
-            
-        return physical_indices, virtual_indices
+    return total_rx_bytes, total_tx_bytes
 
-    return [], []
 
-def calculation_cpu_usage_list(interval, machine):
-    pysical_list, virtual_list = get_cpu_mapping(machine)
-    cpu_list = psutil.cpu_percent(interval=interval, percpu=True)
-    physical_usage = sum(cpu_list[i] for i in pysical_list)
-    virtual_usage = sum(cpu_list[i] for i in virtual_list)
-    cpu = physical_usage + virtual_usage
-    return cpu
+def read_net_bytes_proc() -> tuple[int, int]:
+    """
+    Read total RX/TX bytes across all non-loopback interfaces
+    from /proc/net/dev.
 
-def calculation_cpu_usage_mulitplication_factor(interval):
-    logical_processors = psutil.cpu_count(logical=True)
-    physical_cores = psutil.cpu_count(logical=False)
-    multiplication_factor = float(round(logical_processors / physical_cores, 2))
-    cpu = psutil.cpu_percent(interval=interval) * multiplication_factor
-    return cpu
+    Returns (total_tx_bytes, total_rx_bytes).
+    """
+    total_rx, total_tx = _get_infiniband_traffic()
+
+    with open("/proc/net/dev", "r") as f:
+        lines = f.readlines()
+
+    # skip the first 2 header lines
+    for line in lines[2:]:
+        if ":" not in line:
+            continue
+        iface, data = line.split(":", 1)
+        iface = iface.strip()
+        # skip loopback; optionally skip docker/veth, etc.
+        if iface == "lo" or iface.startswith("docker") or iface.startswith("veth"):
+            continue
+
+        fields = data.split()
+        rx_bytes = int(fields[0])   # receive bytes column[web:94]
+        tx_bytes = int(fields[8])   # transmit bytes column[web:94]
+
+        total_rx += rx_bytes
+        total_tx += tx_bytes
+
+    return total_tx, total_rx
+
 
 def profiling_function(
         byte_read: int,
@@ -164,9 +283,8 @@ def profiling_function(
         time_write: int,
         prev_bytes_sent: int,
         prev_bytes_recv: int,
-        config: str,
         interval: int,
-        machine: str
+        machine_os: str,
 ) -> tuple:
     """
     Function to profile and monitor system resource usage, including CPU, memory, and network I/O.
@@ -177,9 +295,8 @@ def profiling_function(
     :param time_write: The time taken (in seconds) for write operations.
     :param prev_bytes_sent: The total number of bytes sent before this profiling period.
     :param prev_bytes_recv: The total number of bytes received before this profiling period.
-    :param system_type: Type of the system where the application is executed
     :param interval: Interval to use between every measurement
-    :param machine: The type of machine (e.g., 'linux', 'darwin') to determine CPU mapping and profiling method.
+    :param machine_os: The machine_os name (e.g., "linux", "darwin") to determine which profiling method to use for CPU/memory stats.
 
     :return: A tuple containing three elements:
         - A formatted string with the following comma-separated values:
@@ -195,279 +312,88 @@ def profiling_function(
         - The updated total number of bytes sent.
         - The updated total number of bytes received.
     """
-    if config == LIST_PROFILER[0]: # psutil
-        cpu = calculation_cpu_usage_mulitplication_factor(interval)
-        mem = psutil.virtual_memory().percent
-        net = psutil.net_io_counters()
-        ref_byte_sent = net.bytes_sent
-        ref_byte_recv = net.bytes_recv
-        byte_sent = ref_byte_sent - prev_bytes_sent
-        byte_recv = ref_byte_recv - prev_bytes_recv
-    else: # top
-        cpu_mem = get_cpu_top()
-        cpu = cpu_mem[0]
-        mem = cpu_mem[1]
-        ref_byte_sent = 0
-        ref_byte_recv = 0
-        byte_sent = None
-        byte_recv = None
+    cpu, mem = get_cpu_mem_proc(interval, machine_os)
+    tx_now, rx_now = read_net_bytes_proc() if machine_os == "linux" else (0, 0)  # Network profiling only implemented for Linux
+    ref_byte_sent = tx_now
+    ref_byte_recv = rx_now
+    byte_sent = tx_now - prev_bytes_sent if prev_bytes_sent is not None else 0
+    byte_recv = rx_now - prev_bytes_recv if prev_bytes_recv is not None else 0
 
-    new_entry = f"{cpu},{mem},{byte_sent},{byte_recv},{byte_read},{byte_write},{time_read},{time_write},{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+
+    new_entry = (
+        f"{cpu},{mem},{byte_sent},{byte_recv},"
+        f"{byte_read},{byte_write},{time_read},{time_write},"
+        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    )
     return new_entry, ref_byte_sent, ref_byte_recv
 
 
-def get_config(machine, config_file_path):
-    try:
-        with Path(config_file_path).open("r") as f:
-            config_data = json.load(f)
-    except FileNotFoundError:
-        print(f"PROVENANCE | PROFILING | ERROR: Config file not found at {config_file_path}")
-        return None
-    except json.JSONDecodeError:
-        print(f"PROVENANCE | PROFILING | ERROR: Config file is not valid JSON: {config_file_path}")
-        return None
-    except Exception as e:
-        print(f"PROVENANCE | PROFILING | ERROR: Could not read config file: {e}")
-        return None
-
-    profiler_tool = None
-    if psutil_imported:
-        if machine in config_data.get('psutil', []):
-            profiler_tool = LIST_PROFILER[0]  # psutil
-        elif machine in config_data.get('top', []):
-            profiler_tool = LIST_PROFILER[1]  # top
-        elif machine in config_data.get('cgroup', []):
-            profiler_tool = LIST_PROFILER[2]  # cgroup
-    else:
-        # Fallback if psutil is not imported
-        if machine in config_data.get('top', []):
-            profiler_tool = LIST_PROFILER[1]  # top
-        elif machine in config_data.get('cgroup', []):
-            profiler_tool = LIST_PROFILER[2]  # cgroup
-
-    return profiler_tool
-
 def main():
-    global profiling_active, profiling_data, output_file, log_dir, hostname
+    global profiling_active, profiling_data, output_file, log_dir, hostname, machine_os
 
     # Setup signal handlers first
     setup_signal_handlers()
 
     try:
-        config_file_path = sys.argv[1]
-        log_dir = sys.argv[2]
+        log_dir = sys.argv[1]
+        is_master = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else False
     except IndexError:
         print("PROVENANCE | PROFILING | ERROR: Missing arguments.")
-        print("Usage: python profiler.py [config_file_path] [log_dir]")
+        print("Usage: python profiler.py [log_dir] [is_master]")
         sys.exit(1)
-
 
     try:
         profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL", "5")) # Default to 5s
     except ValueError:
+        # if variable is set but not an integer
         print("PROVENANCE | PROFILING | Warning: Invalid COMPSS_PROFILING_INTERVAL. Defaulting to 5s.")
         profiling_interval = 5
 
-    machine = os.getenv("BSC_MACHINE", subprocess.check_output("uname -s", shell=True, text=True).strip()).lower()
-    current_config = get_config(machine, config_file_path)
-    # print(f"DEBUG: VALUE OF CURRENT CONFIG {current_config}")
-
-    if current_config is None:
-        print(f"PROVENANCE | PROFILING | ERROR: No valid profiler config found for machine '{machine}'.")
-        if not psutil_imported:
-            print("PROVENANCE | PROFILING | INFO: 'psutil' is not installed, which limits options.")
-        print("PROVENANCE | PROFILING | ERROR: it is not possible to monitor the resources on this system")
-        exit(1)
-
+    # check if it is a local machine_os or a cluster node
     is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
     hostname = "localhost" if is_local else socket.gethostname()
 
-    # This is the 9-column header for psutil, top, and cgroup (with 0s)
     to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
     counter = 0
 
     try:
-        if current_config == LIST_PROFILER[0] or current_config == LIST_PROFILER[1]:
-            # --- psutil / top branch ---
-            output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
+        # open the output file for writing; this will be closed in the finally block
+        output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
 
-            if current_config == LIST_PROFILER[0]: # psutil
-                io_initial = psutil.disk_io_counters()
-                ref_read, ref_write, ref_time_read, ref_time_write = (
-                    io_initial.read_bytes,
-                    io_initial.write_bytes,
-                    io_initial.read_time,
-                    io_initial.write_time,
-                )
-                net = psutil.net_io_counters()
-                ref_byte_sent, ref_byte_recv = net.bytes_sent, net.bytes_recv
-            else: # top
-                ref_read, ref_write, ref_time_read, ref_time_write = (0, 0, 0, 0) # Init for first call
-                ref_byte_sent = 0
-                ref_byte_recv = 0
+        # top and proc: no disk I/O tracking, no network tracking
+        ref_read, ref_write, ref_time_read, ref_time_write = (0, 0, 0, 0)
+        ref_byte_sent = 0
+        ref_byte_recv = 0
 
-            # Get first measurement
+        # Get first measurement
+        new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
+            0, 0, 0, 0, ref_byte_sent, ref_byte_recv, profiling_interval, machine_os
+        )
+
+        output_file.write(to_write_header)  # Write header
+        output_file.write(new_entry)        # Write first entry
+        output_file.flush()
+        profiling_data.append(new_entry.strip())
+
+        while profiling_active:
+            # top and proc: disk I/O not tracked
+            byte_read = byte_write = time_read = time_write = None
+
             new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                0, 0, 0, 0, ref_byte_sent, ref_byte_recv, current_config, profiling_interval, machine
+                byte_read,
+                byte_write,
+                time_read,
+                time_write,
+                ref_byte_sent,
+                ref_byte_recv,
+                profiling_interval,
+                machine_os
             )
 
-            output_file.write(to_write_header) # Write header
-            output_file.write(new_entry) # Write first entry
+            output_file.write(new_entry)
             output_file.flush()
-            profiling_data.append(new_entry.strip())  # Store data for summary
-
-            while profiling_active:  # Loop until flag is set by signal
-                if current_config != LIST_PROFILER[0]:
-                    # 'top' mode needs manual sleep, 'psutil' interval handles it
-                    time.sleep(profiling_interval)
-
-                # Check if we should still be profiling after sleep
-                if not profiling_active:
-                    break
-
-                if current_config == LIST_PROFILER[0]: # psutil
-                    io_current = psutil.disk_io_counters()
-                    byte_read = io_current.read_bytes - ref_read
-                    byte_write = io_current.write_bytes - ref_write
-                    time_read = io_current.read_time - ref_time_read
-                    time_write = io_current.write_time - ref_time_write
-
-                    ref_read, ref_write, ref_time_read, ref_time_write = (
-                        io_current.read_bytes,
-                        io_current.write_bytes,
-                        io_current.read_time,
-                        io_current.write_time,
-                    )
-                else: # top
-                    byte_read = byte_write = time_read = time_write = None
-
-                new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                    byte_read,
-                    byte_write,
-                    time_read,
-                    time_write,
-                    ref_byte_sent,
-                    ref_byte_recv,
-                    current_config,
-                    profiling_interval,
-                    machine
-                )
-
-                output_file.write(new_entry)
-                output_file.flush()
-                profiling_data.append(new_entry.strip())  # Store data for summary
-                counter += 1
-
-        else:
-            # --- cgroup branch ---
-            total_mem_kb = get_total_memory_kb()
-            total_node_cpus = get_total_cpu_count()
-            cgroup_paths = find_root_cgroup_paths()
-
-            # Check for the NEW 'blkio' path.
-            # You must update find_root_cgroup_paths in utils.py to return this!
-            if not all(k in cgroup_paths for k in ['cpu', 'memory', 'blkio']):
-                print("PROVENANCE | PROFILING | ERROR: Failed to find cgroup paths (cpu, memory, or blkio).")
-                print("PROVENANCE | PROFILING | INFO: Make sure 'find_root_cgroup_paths' in utils.py finds the 'blkio' controller path.")
-                sys.exit(1)
-
-            if not total_mem_kb or not total_node_cpus:
-                print("PROVENANCE | PROFILING | ERROR: Failed to get required system info. Exiting.")
-                sys.exit(1)
-
-            # These files represent the *total* usage for the *entire node*
-            cpu_usage_file = cgroup_paths['cpu'] / 'cpuacct.usage'
-            mem_usage_file = cgroup_paths['memory'] / 'memory.usage_in_bytes'
-            blkio_path = cgroup_paths['blkio'] # Path to blkio directory
-
-            try:
-                output_file = open(f"{log_dir}/resource_profiling_{hostname}.csv", "w")
-                output_file.write(to_write_header) # Write 9-column header
-
-                # Get initial CPU stats
-                last_cpu_ns_str = read_cgroup_file(cpu_usage_file)
-                if last_cpu_ns_str is None:
-                    print(f"PROVENANCE | PROFILING | ERROR: Could not read initial CPU usage from {cpu_usage_file}.")
-                    sys.exit(1) # Exit before loop
-
-                last_cpu_ns = int(last_cpu_ns_str)
-                last_read_time = time.monotonic()
-
-                # Get initial Disk I/O stats
-                last_io_stats = get_cgroup_io_stats(blkio_path)
-
-                # Write first entry as 0s before loop
-                first_entry = f"0.00,0.00,0,0,0,0,0,0,{datetime.now().isoformat()}\n"
-                output_file.write(first_entry)
-                output_file.flush()
-                profiling_data.append(first_entry.strip())
-
-            except Exception as e:
-                print(f"PROVENANCE | PROFILING | ERROR: Could not open output file .csv: {e}")
-                sys.exit(1)
-
-            while profiling_active:
-                time.sleep(profiling_interval)
-
-                # Check flag immediately after waking up
-                if not profiling_active:
-                    break
-
-                timestamp = datetime.now().isoformat()
-
-                # --- Memory ---
-                mem_bytes_str = read_cgroup_file(mem_usage_file)
-                if mem_bytes_str is None:
-                    print("PROVENANCE | PROFILING | Lost cgroup memory file. Stopping.")
-                    break
-                mem_used_kb = int(mem_bytes_str) / 1024.0
-                mem_percent = (mem_used_kb / total_mem_kb) * 100
-
-                # --- CPU ---
-                current_cpu_ns_str = read_cgroup_file(cpu_usage_file)
-                current_read_time = time.monotonic()
-                if current_cpu_ns_str is None:
-                    print("PROVENANCE | PROFILING | Lost cgroup CPU file. Stopping.")
-                    break
-                current_cpu_ns = int(current_cpu_ns_str)
-                time_delta_ns = (current_read_time - last_read_time) * 1e9
-                cpu_delta_ns = current_cpu_ns - last_cpu_ns
-
-                cpu_cores_used = 0.0
-                if time_delta_ns > 0:
-                    cpu_cores_used = cpu_delta_ns / time_delta_ns
-                cpu_percent = (cpu_cores_used / total_node_cpus) * 100
-
-                last_cpu_ns = current_cpu_ns
-                last_read_time = current_read_time
-
-                # --- Disk I/O ---
-                current_io_stats = get_cgroup_io_stats(blkio_path)
-
-                byte_read_delta = current_io_stats['read_bytes'] - last_io_stats['read_bytes']
-                byte_write_delta = current_io_stats['write_bytes'] - last_io_stats['write_bytes']
-                time_read_delta_ms = current_io_stats['read_time_ms'] - last_io_stats['read_time_ms']
-                time_write_delta_ms = current_io_stats['write_time_ms'] - last_io_stats['write_time_ms']
-
-                last_io_stats = current_io_stats
-
-                # --- Format Entry ---
-                # This entry now includes Disk I/O stats
-                new_entry = (
-                    f"{cpu_percent:.2f},"
-                    f"{mem_percent:.2f},"
-                    f"0,0,"  # Network: BYTE_SENT, BYTE_RECV
-                    f"{byte_read_delta},"
-                    f"{byte_write_delta},"
-                    f"{time_read_delta_ms},"
-                    f"{time_write_delta_ms},"
-                    f"{timestamp}\n"
-                )
-
-                output_file.write(new_entry)
-                output_file.flush()
-                profiling_data.append(new_entry.strip())
-                counter += 1
+            profiling_data.append(new_entry.strip())
+            counter += 1
 
     except KeyboardInterrupt:
         print("PROVENANCE | PROFILING | Profiling interrupted by user.")
@@ -488,21 +414,19 @@ def main():
 
     # --- Summary Writing ---
     # This logic is executed when the file is closed and loop is stopped.
-    
-    # TODO: avoid writing summary if the node is the worker. Only the master node should do it.
-    # if counter > 1:
-    #     print("PROVENANCE | PROFILING | Profiling completed.")
-
-    # if log_dir and hostname:
-    #     try:
-    #         with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
-    #             summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    #             summary.write(f"Total measurements collected: {len(profiling_data)}\n")
-    #             summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
-    #         if __debug__:
-    #             print("PROVENANCE DEBUG | PROFILING | Summary file created successfully.")
-    #     except Exception as e:
-    #         print(f"PROVENANCE | PROFILING | Warning: Could not write summary file: {e}")
+    if is_master:
+        if counter > 1:
+            print("PROVENANCE | PROFILING | Profiling completed.")
+        if log_dir and hostname:
+            try:
+                with open(f"{log_dir}/profiling_summary_{hostname}.log", "w") as summary:
+                    summary.write(f"Profiling completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    summary.write(f"Total measurements collected: {len(profiling_data)}\n")
+                    summary.write(f"Profiling duration: {len(profiling_data)} intervals\n")
+                if __debug__:
+                    print("PROVENANCE DEBUG | PROFILING | Summary file created successfully.")
+            except Exception as e:
+                print(f"PROVENANCE | PROFILING | Warning: Could not write summary file: {e}")
 
 
 if __name__ == "__main__":

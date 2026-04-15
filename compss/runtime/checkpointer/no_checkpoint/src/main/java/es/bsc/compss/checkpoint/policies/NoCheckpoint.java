@@ -21,9 +21,7 @@ import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
-
 import java.util.HashMap;
-
 
 public class NoCheckpoint implements CheckpointManager {
 

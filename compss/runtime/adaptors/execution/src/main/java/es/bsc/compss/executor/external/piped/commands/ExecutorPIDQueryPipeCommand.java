@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.ExecutorPIDQueryExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 
-
 public class ExecutorPIDQueryPipeCommand extends ExecutorPIDQueryExternalCommand implements PipeCommand {
 
     private final PipePair[] pipes;

@@ -24,7 +24,6 @@ import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.List;
 
-
 /**
  * Extension of the NIOResult class to handle collection types. Basically, a NIOResult plus a list of NIOResult
  * representing the contents of the collection.

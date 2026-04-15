@@ -21,12 +21,9 @@ import es.bsc.compss.connectors.VM;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Support thread for VM destruction.

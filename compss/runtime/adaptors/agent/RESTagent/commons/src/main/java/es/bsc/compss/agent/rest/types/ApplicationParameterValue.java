@@ -25,7 +25,6 @@ import java.lang.reflect.Array;
 import storage.StorageException;
 import storage.StorageItf;
 
-
 /**
  * This class contains all the information to pass a parameter value through the REST Agent interface in XML format.
  */

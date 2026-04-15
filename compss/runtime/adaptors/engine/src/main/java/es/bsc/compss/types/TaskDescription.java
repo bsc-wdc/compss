@@ -16,15 +16,11 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.ErrorManager;
-
 import java.util.List;
-
 
 public class TaskDescription<P extends Parameter> {
 

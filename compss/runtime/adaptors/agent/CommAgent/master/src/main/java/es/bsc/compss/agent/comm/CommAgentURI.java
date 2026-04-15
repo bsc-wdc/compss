@@ -23,7 +23,6 @@ import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.data.location.ProtocolType;
 
-
 /**
  * Class to represent internal URIs in Comm Agents.
  */

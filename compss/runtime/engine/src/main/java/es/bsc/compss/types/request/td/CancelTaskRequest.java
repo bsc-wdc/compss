@@ -24,7 +24,6 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.listener.RequestListener;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 
-
 /**
  * The CancelTaskRequest class represents the request to cancel a task's executions.
  */

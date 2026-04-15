@@ -17,9 +17,7 @@
 package es.bsc.compss.types.resources.updates;
 
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.concurrent.Semaphore;
-
 
 public class BusyResources<T extends WorkerResourceDescription> extends ResourceUpdate<T> {
 

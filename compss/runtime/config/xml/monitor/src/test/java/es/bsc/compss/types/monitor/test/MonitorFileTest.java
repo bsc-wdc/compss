@@ -20,23 +20,19 @@ import static org.junit.Assert.assertNotNull;
 
 import es.bsc.compss.types.monitor.jaxb.COMPSsStateType;
 import es.bsc.compss.types.monitor.jaxb.ObjectFactory;
-
-import java.io.File;
-import java.io.StringWriter;
-import java.net.URISyntaxException;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
-
+import java.io.File;
+import java.io.StringWriter;
+import java.net.URISyntaxException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 public class MonitorFileTest {
 

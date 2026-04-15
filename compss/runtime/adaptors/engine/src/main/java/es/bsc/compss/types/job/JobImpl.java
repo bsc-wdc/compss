@@ -17,7 +17,6 @@
 package es.bsc.compss.types.job;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
@@ -41,13 +40,10 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.File;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Abstract representation of a job.

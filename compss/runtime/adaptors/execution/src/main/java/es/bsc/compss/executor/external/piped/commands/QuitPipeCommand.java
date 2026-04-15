@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.QuitExternalCommand;
 
-
 public class QuitPipeCommand extends QuitExternalCommand implements PipeCommand {
 
     public QuitPipeCommand() {

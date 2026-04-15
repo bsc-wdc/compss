@@ -18,22 +18,18 @@
 package es.bsc.wdc.tracing.extrae;
 
 import es.bsc.cepbatools.extrae.Wrapper;
-
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
 import es.bsc.wdc.tracing.Loggers;
 import es.bsc.wdc.tracing.TracingBackend;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ExtraeTracer implements TracingBackend {
 

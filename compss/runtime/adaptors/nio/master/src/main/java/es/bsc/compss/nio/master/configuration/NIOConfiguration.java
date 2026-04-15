@@ -17,10 +17,8 @@
 package es.bsc.compss.nio.master.configuration;
 
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-
 import java.util.Arrays;
 import java.util.List;
-
 
 public class NIOConfiguration extends MethodConfiguration {
 

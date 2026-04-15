@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
@@ -42,16 +41,13 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class HTTPJob extends JobImpl<HTTPInstance> {
 

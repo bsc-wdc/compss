@@ -19,12 +19,10 @@ package es.bsc.compss.gos.master.sshutils;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 public class SSHSessionManager {
 

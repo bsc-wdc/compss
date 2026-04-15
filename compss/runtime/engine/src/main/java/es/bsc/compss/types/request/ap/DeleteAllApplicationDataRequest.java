@@ -22,10 +22,8 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.APRequestEvent;
-
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 
 public class DeleteAllApplicationDataRequest implements APRequest {
 

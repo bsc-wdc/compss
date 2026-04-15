@@ -24,9 +24,7 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import org.json.JSONObject;
-
 
 public abstract class OrderStrictRS<T extends WorkerResourceDescription> extends ResourceScheduler<T> {
 

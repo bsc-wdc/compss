@@ -28,9 +28,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-
 import java.util.List;
-
 
 public class PythonInvoker extends PipedInvoker {
 

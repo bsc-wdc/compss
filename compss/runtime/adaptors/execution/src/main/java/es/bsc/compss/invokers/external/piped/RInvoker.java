@@ -27,7 +27,6 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
-
 public class RInvoker extends PipedInvoker {
 
     public RInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,

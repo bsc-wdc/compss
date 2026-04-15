@@ -23,7 +23,6 @@ import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 
-
 @XmlRootElement(name = "externalResource")
 @XmlSeeAlso({ ExternalAdaptorProperties.class,
     ResourcesExternalAdaptorProperties.class })

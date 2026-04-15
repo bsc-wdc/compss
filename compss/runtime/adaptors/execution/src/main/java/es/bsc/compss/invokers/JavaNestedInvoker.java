@@ -30,10 +30,8 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 
 public class JavaNestedInvoker extends JavaInvoker {
 

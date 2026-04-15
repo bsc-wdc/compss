@@ -19,12 +19,9 @@ package es.bsc.compss.types.resources;
 import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.types.resources.components.Processor;
-
 import org.junit.Rule;
 import org.junit.Test;
-
 import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
-
 
 public class MethodResourceDescriptionTest {
 

@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.orderstrict.fifo;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.scheduler.orderstrict.OrderStrictRS;
-
 import es.bsc.compss.scheduler.orderstrict.fifo.types.FIFOScore;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
@@ -27,7 +26,6 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import org.json.JSONObject;
-
 
 /**
  * Implementation for the FifoRS.

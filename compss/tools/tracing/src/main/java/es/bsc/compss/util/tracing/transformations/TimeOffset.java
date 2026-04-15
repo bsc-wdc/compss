@@ -23,7 +23,6 @@ import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.util.tracing.TraceTransformation;
 
-
 public class TimeOffset implements TraceTransformation {
 
     private final long offset;

@@ -18,7 +18,6 @@ package es.bsc.compss.types.resources;
 
 import java.util.concurrent.Semaphore;
 
-
 public class ExecutorShutdownListener {
 
     private int operation = 0;

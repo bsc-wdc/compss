@@ -19,7 +19,6 @@ package es.bsc.compss.nio.listeners;
 import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.data.MultiOperationFetchListener;
 
-
 public class DictCollectionFetchOperationsListener extends MultiOperationFetchListener {
 
     private final String dictCollectionDataId;

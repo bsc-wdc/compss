@@ -17,12 +17,10 @@
 package es.bsc.compss.agent.types;
 
 import es.bsc.compss.types.resources.MethodResourceDescription;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 /**
  * Description of a resource to be used by the agent.

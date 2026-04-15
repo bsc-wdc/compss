@@ -28,7 +28,6 @@ import java.util.Vector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class RuntimeLogParser {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RUNTIME_LOG_PARSER);

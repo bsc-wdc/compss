@@ -17,10 +17,8 @@
 package es.bsc.compss;
 
 import es.bsc.compss.types.exceptions.NonInstantiableException;
-
 import java.io.File;
 import java.util.UUID;
-
 
 /**
  * COMPSS Runtime Default values.

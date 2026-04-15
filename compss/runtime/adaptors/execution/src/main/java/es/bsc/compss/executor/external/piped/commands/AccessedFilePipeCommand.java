@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.AccessedFileExternalCommand;
 
-
 public class AccessedFilePipeCommand extends AccessedFileExternalCommand implements PipeCommand {
 
     /**

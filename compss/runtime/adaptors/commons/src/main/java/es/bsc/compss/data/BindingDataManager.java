@@ -18,7 +18,6 @@ package es.bsc.compss.data;
 
 import java.nio.ByteBuffer;
 
-
 public class BindingDataManager {
 
     public static native boolean isInBinding(String id);

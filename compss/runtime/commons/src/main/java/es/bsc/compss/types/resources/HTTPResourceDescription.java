@@ -18,15 +18,12 @@ package es.bsc.compss.types.resources;
 
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.components.Processor;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class HTTPResourceDescription extends WorkerResourceDescription {
 

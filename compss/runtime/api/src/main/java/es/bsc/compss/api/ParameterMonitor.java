@@ -18,7 +18,6 @@ package es.bsc.compss.api;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 
-
 public interface ParameterMonitor {
 
     /**

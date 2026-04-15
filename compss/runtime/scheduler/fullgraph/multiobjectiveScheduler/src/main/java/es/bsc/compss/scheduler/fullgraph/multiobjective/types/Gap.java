@@ -19,7 +19,6 @@ package es.bsc.compss.scheduler.fullgraph.multiobjective.types;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.ResourceDescription;
 
-
 public class Gap {
 
     private final long initialTime;

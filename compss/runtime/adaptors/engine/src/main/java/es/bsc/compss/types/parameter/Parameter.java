@@ -20,9 +20,7 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
 import java.io.Serializable;
-
 
 public interface Parameter extends Serializable {
 

@@ -18,7 +18,6 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 
-
 public interface Transferable {
 
     /**

@@ -19,15 +19,12 @@ package es.bsc.compss.scheduler.fullgraph.multiobjective.config;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
-
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class MOConfiguration {
 

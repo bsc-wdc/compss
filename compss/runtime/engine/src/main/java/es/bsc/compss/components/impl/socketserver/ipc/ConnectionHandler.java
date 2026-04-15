@@ -39,7 +39,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.LinkedBlockingDeque;
 
-
 /**
  * Base contract for message-oriented handlers that operate on non-blocking socket connections managed by the
  * {@link NIOListener}. Implementations receive lifecycle callbacks as the underlying channel connects, receives data,

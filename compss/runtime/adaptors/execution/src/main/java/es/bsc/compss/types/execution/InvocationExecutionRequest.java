@@ -19,7 +19,6 @@ package es.bsc.compss.types.execution;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.worker.COMPSsException;
 
-
 public class InvocationExecutionRequest extends ExecutorRequest {
 
     private final Invocation invocation;

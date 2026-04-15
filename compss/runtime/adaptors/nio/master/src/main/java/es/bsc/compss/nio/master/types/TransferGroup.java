@@ -21,7 +21,6 @@ import es.bsc.compss.types.data.operation.copy.Copy;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class TransferGroup {
 
     private final int id;

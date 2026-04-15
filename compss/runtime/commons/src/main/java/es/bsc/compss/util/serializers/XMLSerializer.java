@@ -17,7 +17,6 @@
 package es.bsc.compss.util.serializers;
 
 import es.bsc.compss.types.exceptions.NonInstantiableException;
-
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.BufferedInputStream;
@@ -27,7 +26,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 
 /**
  * The serializer class is an utility to Serialize and deserialize objects passed as a parameter of a remote task.

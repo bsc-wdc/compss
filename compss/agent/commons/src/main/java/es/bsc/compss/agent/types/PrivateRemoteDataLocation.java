@@ -16,11 +16,9 @@
  */
 package es.bsc.compss.agent.types;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 /**
  * Data value location on an Agent.

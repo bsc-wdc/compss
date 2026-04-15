@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.ChannelCreatedExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 
-
 public class ChannelCreatedPipeCommand extends ChannelCreatedExternalCommand implements PipeCommand {
 
     private final String pipeIn;

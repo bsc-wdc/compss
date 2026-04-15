@@ -19,7 +19,6 @@ package es.bsc.compss.nio.listeners;
 import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.data.MultiOperationFetchListener;
 
-
 public class CollectionFetchOperationsListener extends MultiOperationFetchListener {
 
     private final String collectionDataId;

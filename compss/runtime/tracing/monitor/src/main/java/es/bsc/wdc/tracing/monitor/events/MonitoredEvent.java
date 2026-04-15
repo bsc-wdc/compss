@@ -17,9 +17,7 @@
 package es.bsc.wdc.tracing.monitor.events;
 
 import es.bsc.wdc.tracing.monitor.Constants;
-
 import java.time.Instant;
-
 
 public class MonitoredEvent {
 

@@ -19,7 +19,6 @@ package es.bsc.compss.scheduler.types;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 /**
  * Class used to register the characteristics of the execution of one execution or generate a statistic summary of a set
  * of executions.

@@ -38,7 +38,6 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition.ContainerExecutionType;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
-
 import java.io.File;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -46,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-
 
 public class ContainerInvoker extends Invoker<Workflow> {
 

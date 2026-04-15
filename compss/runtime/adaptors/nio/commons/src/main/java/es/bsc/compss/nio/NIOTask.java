@@ -16,14 +16,12 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -31,7 +29,6 @@ import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Representation of a Task.

@@ -24,7 +24,6 @@ import es.bsc.compss.gos.master.configuration.GOSConfiguration;
 import es.bsc.compss.gos.master.exceptions.GOSWarningException;
 import es.bsc.compss.gos.master.monitoring.GOSMonitoring;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
-
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
@@ -43,14 +42,12 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 
 /**
  * Representation of a GAT Worker node for the Runtime.

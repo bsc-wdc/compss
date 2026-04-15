@@ -29,7 +29,6 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CloudImageManager;
 import es.bsc.compss.util.CloudTypeManager;
 import es.bsc.compss.util.CoreManager;
-
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,10 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class CloudProvider {
 

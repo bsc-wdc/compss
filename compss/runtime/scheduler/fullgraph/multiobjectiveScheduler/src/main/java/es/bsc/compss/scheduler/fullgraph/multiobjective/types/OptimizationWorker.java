@@ -22,7 +22,6 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.PriorityQueue;
 
-
 public class OptimizationWorker {
 
     private MOResourceScheduler<WorkerResourceDescription> resource;

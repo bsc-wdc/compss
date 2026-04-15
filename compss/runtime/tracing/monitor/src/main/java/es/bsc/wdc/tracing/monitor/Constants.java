@@ -18,7 +18,6 @@ package es.bsc.wdc.tracing.monitor;
 
 import java.time.Duration;
 
-
 public class Constants {
 
     // Environment variables

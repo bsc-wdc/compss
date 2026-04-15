@@ -23,19 +23,14 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.Classpath;
-
 import es.bsc.conn.Connector;
 import es.bsc.conn.types.VirtualResource;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Default SSH Connector implementation to use specific SSH connectors' interface.

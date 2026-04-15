@@ -64,15 +64,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
 import org.apache.logging.log4j.Logger;
 import org.xml.sax.SAXException;
-
 
 public class ResourcesFile {
 

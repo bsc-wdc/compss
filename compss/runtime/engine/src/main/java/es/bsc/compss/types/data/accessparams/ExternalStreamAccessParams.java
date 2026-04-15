@@ -30,7 +30,6 @@ import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
-
 public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation, ExternalStreamData> {
 
     /**

@@ -22,9 +22,7 @@ import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.util.FileOpsManager;
-
 import java.io.File;
-
 
 public class FileData extends DataParams {
 

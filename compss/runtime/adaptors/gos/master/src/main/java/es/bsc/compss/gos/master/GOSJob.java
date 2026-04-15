@@ -29,7 +29,6 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -56,15 +55,11 @@ import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.Tracer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Representation of a Job execution for COMPSs with GOS Adaptor.

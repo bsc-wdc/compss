@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.CloseFileExternalCommand;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
-
 public class CloseFilePipeCommand extends CloseFileExternalCommand implements PipeCommand {
 
     /**

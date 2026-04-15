@@ -20,12 +20,9 @@ import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.exceptions.BindingObjectTypeException;
-
 import java.nio.ByteBuffer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class NIOBindingObjectStream {
 

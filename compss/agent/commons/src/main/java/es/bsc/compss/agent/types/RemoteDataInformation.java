@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-
 /**
  * Container for all the required information for an Agent to use a remote data value.
  */

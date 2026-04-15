@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.loader;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsGroup;
@@ -30,7 +29,6 @@ import es.bsc.compss.types.annotations.Orchestration;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-
 
 public class LoaderConstants {
 

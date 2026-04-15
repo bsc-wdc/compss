@@ -18,11 +18,8 @@ package es.bsc.compss.nio;
 
 import static java.lang.Math.abs;
 
-import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
-import java.util.Map;
-
 
 public class NIOTracer extends Tracer {
 

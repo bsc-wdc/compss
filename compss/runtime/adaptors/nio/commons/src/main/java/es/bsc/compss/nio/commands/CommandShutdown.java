@@ -17,15 +17,12 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
-
 
 public class CommandShutdown implements Command {
 

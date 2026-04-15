@@ -18,7 +18,6 @@ package es.bsc.compss.agent.rest.types.messages;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-
 @XmlRootElement(name = "removeNode")
 public class RemoveNodeRequest {
 

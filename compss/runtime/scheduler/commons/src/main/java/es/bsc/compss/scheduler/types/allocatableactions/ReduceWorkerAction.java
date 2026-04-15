@@ -36,10 +36,8 @@ import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
-
 
 public class ReduceWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
 

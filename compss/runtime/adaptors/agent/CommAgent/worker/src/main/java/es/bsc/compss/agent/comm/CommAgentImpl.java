@@ -19,7 +19,6 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
 import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
@@ -40,11 +39,9 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-
 
 public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent {
 

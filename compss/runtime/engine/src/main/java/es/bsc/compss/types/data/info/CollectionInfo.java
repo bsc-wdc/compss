@@ -18,9 +18,7 @@ package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.types.data.params.CollectionData;
 import es.bsc.compss.types.data.params.DataOwner;
-
 import java.util.concurrent.Semaphore;
-
 
 /**
  * Information about a collection and its versions.

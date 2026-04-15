@@ -17,13 +17,10 @@
 package es.bsc.compss.ui.auth;
 
 import es.bsc.compss.ui.Constants;
-
 import java.util.Map;
-
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Page;
 import org.zkoss.zk.ui.util.Initiator;
-
 
 public class AuthenticationInit implements Initiator {
 

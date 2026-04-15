@@ -18,7 +18,6 @@ package es.bsc.compss.types.resources.configuration;
 
 import java.util.List;
 
-
 public class HTTPConfiguration extends Configuration {
 
     private String baseUrl;

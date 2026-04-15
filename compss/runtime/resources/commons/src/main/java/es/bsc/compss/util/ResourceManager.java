@@ -17,11 +17,9 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
-import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
@@ -32,7 +30,6 @@ import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourceType;
-import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
@@ -45,26 +42,12 @@ import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
 
 /**
  * The ResourceManager class is an utility to manage all the resources available for the cores execution. It keeps

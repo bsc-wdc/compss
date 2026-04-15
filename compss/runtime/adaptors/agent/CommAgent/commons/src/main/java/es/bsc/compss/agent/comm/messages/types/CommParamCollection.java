@@ -18,14 +18,12 @@ package es.bsc.compss.agent.comm.messages.types;
 
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.nio.NIOParam;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class CommParamCollection extends CommParam
     implements ApplicationParameterCollection<CommParam>, Externalizable {

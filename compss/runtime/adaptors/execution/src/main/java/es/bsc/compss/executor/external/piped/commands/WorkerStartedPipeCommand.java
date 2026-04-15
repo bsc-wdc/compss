@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.WorkerStartedExternalCommand;
 
-
 public class WorkerStartedPipeCommand extends WorkerStartedExternalCommand implements PipeCommand {
 
     private int pid;

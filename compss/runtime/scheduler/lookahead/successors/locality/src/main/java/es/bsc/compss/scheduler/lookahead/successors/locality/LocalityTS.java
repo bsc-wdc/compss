@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.lookahead.successors.locality;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.lookahead.SuccessorsTS;
-
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
@@ -27,11 +26,8 @@ import es.bsc.compss.scheduler.types.schedulinginformation.DataLocality;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.List;
-
 import org.json.JSONObject;
-
 
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in data locality.

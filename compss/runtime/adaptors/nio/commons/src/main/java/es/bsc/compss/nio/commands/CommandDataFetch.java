@@ -18,13 +18,10 @@ package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
-
 import es.bsc.compss.nio.NIOParam;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class CommandDataFetch implements Command {
 

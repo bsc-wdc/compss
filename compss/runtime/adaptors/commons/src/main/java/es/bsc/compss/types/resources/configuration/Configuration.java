@@ -17,14 +17,11 @@
 package es.bsc.compss.types.resources.configuration;
 
 import es.bsc.compss.log.Loggers;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Basic worker resource configuration.

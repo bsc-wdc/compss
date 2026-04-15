@@ -18,7 +18,6 @@ package es.bsc.compss.agent.types;
 
 import java.util.Collection;
 
-
 public interface ApplicationResult {
 
     /**

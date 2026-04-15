@@ -18,7 +18,6 @@ package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.agent.AgentInterfaceConfig;
 
-
 public class RESTAgentConf extends AgentInterfaceConfig {
 
     private final int port;

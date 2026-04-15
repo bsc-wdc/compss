@@ -23,7 +23,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 
-
 public abstract class Data<T extends InvocationParamURI> implements Externalizable {
 
     // Name of the data to send

@@ -18,9 +18,7 @@ package es.bsc.compss.nio.utils;
 
 import es.bsc.comm.stage.Transfer;
 import es.bsc.compss.nio.NIOAgent;
-
 import java.util.concurrent.Semaphore;
-
 
 public class NIOBindingObjectTransferListener {
 

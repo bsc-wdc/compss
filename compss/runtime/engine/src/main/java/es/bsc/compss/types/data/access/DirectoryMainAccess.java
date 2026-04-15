@@ -24,7 +24,6 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.params.DirectoryData;
 
-
 /**
  * Handling of an access from the main code to a directory.
  */

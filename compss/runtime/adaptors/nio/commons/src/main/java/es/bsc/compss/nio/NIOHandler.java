@@ -23,13 +23,10 @@ import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.exceptions.NIOException;
 import es.bsc.comm.stage.Transfer;
-
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class NIOHandler implements ServerHandler, ConnectionListener {
 

@@ -19,12 +19,9 @@ package es.bsc.compss.util.test;
 import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.util.EnvironmentLoader;
-
 import org.junit.Rule;
 import org.junit.Test;
-
 import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
-
 
 /**
  * Tests the different possibilities of loading a environment variable.

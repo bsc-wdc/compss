@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.util.CoreManager;
 
-
 public class WorkloadState {
 
     // Core Information

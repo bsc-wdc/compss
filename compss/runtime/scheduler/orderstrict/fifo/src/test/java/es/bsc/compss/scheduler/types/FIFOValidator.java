@@ -22,13 +22,11 @@ import es.bsc.compss.scheduler.types.fake.FakeAllocatableAction;
 import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import org.junit.Assert;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-
+import org.junit.Assert;
 
 public class FIFOValidator extends Validator {
 

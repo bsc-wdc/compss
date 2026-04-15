@@ -32,12 +32,10 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-
 
 public class PythonMPIInvoker extends ExternalInvoker {
 

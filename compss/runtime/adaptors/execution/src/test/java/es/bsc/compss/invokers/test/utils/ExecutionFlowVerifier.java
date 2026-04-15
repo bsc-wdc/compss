@@ -29,13 +29,10 @@ import es.bsc.compss.invokers.test.utils.types.InvocationParameterAction;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAssertion;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import storage.StubItf;
-
 
 public class ExecutionFlowVerifier implements InvocationContextListener, InvokerListener {
 

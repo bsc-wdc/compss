@@ -21,17 +21,14 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ITAppLoader {
 

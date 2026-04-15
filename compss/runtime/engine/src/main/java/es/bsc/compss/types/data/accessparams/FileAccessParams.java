@@ -26,7 +26,6 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
-
 public class FileAccessParams<D extends FileData> extends AccessParams<D> {
 
     /**

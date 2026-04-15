@@ -29,11 +29,8 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
-
 import java.util.List;
-
 import org.json.JSONObject;
-
 
 public class MOScheduler extends TaskScheduler {
 

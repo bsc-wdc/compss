@@ -19,10 +19,8 @@ package es.bsc.compss.types.fake;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-
 import java.util.LinkedList;
 import org.json.JSONObject;
-
 
 public class FakeResourceScheduler extends ResourceScheduler<MethodResourceDescription> {
 

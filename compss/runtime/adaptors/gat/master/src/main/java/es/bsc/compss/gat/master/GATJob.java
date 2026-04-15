@@ -53,7 +53,6 @@ import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -62,7 +61,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATContext;
 import org.gridlab.gat.GATInvocationException;
@@ -79,7 +77,6 @@ import org.gridlab.gat.resources.JobDescription;
 import org.gridlab.gat.resources.ResourceBroker;
 import org.gridlab.gat.resources.ResourceDescription;
 import org.gridlab.gat.resources.SoftwareDescription;
-
 
 /**
  * Representation of a Job execution for COMPSs with GAT Adaptor.

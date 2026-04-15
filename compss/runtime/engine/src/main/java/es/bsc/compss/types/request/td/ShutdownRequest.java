@@ -22,7 +22,6 @@ import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ResourceManager;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -30,11 +29,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
 
 /**
  * This class represents a notification to end the execution.

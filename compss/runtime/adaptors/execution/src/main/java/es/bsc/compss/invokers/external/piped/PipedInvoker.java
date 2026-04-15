@@ -56,7 +56,6 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.Iterator;
 
-
 public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;

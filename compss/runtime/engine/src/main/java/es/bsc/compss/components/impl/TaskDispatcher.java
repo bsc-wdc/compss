@@ -45,14 +45,11 @@ import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task

@@ -25,7 +25,6 @@ import es.bsc.compss.util.ResourceManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
  * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all
  * the worker nodes of the resource pool.

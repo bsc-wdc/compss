@@ -18,10 +18,8 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
-
 import java.util.ArrayList;
 import java.util.List;
-
 
 /**
  * Class describing a Core Element.

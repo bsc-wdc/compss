@@ -76,7 +76,6 @@ import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -87,11 +86,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
-
 
 /**
  * Representation of the COMPSs Master Node Only 1 instance per execution.

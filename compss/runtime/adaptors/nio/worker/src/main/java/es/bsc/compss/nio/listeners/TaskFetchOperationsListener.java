@@ -20,10 +20,8 @@ import es.bsc.compss.data.MultiOperationFetchListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.worker.NIOWorker;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class TaskFetchOperationsListener extends MultiOperationFetchListener {
 

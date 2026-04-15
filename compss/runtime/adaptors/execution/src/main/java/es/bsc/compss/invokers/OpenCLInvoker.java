@@ -24,7 +24,6 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 
-
 public class OpenCLInvoker extends Invoker<Workflow> {
 
     private final String kernel;

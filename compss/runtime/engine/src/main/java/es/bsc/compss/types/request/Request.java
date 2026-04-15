@@ -18,7 +18,6 @@ package es.bsc.compss.types.request;
 
 import es.bsc.wdc.tracing.Event;
 
-
 public interface Request {
 
     /**

@@ -19,9 +19,7 @@ package es.bsc.compss.checkpoint.policies;
 import es.bsc.compss.checkpoint.CheckpointManagerImpl;
 import es.bsc.compss.checkpoint.types.CheckpointGroupImpl;
 import es.bsc.compss.types.Task;
-
 import java.util.HashMap;
-
 
 public class CheckpointPolicyInstantiatedGroup extends CheckpointManagerImpl {
 

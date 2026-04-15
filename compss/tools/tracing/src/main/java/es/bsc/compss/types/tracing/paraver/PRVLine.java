@@ -21,13 +21,10 @@ import es.bsc.compss.types.tracing.SynchEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.tracing.EventTranslator;
 import es.bsc.compss.util.tracing.ThreadTranslator;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class PRVLine {
 

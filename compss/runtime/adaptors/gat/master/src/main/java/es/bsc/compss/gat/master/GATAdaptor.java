@@ -31,17 +31,14 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
 import es.bsc.conn.types.StarterCommand;
-
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATContext;
-
 
 public class GATAdaptor implements CommAdaptor {
 

@@ -19,7 +19,6 @@ package es.bsc.compss.agent.rest.master;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 
-
 public class AgentConfiguration extends MethodConfiguration {
 
     private MethodResourceDescription description;

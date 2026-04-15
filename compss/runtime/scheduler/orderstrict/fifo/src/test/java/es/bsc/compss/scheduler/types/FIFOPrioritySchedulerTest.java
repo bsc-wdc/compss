@@ -27,7 +27,6 @@ import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
-
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
@@ -35,14 +34,12 @@ import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
+import java.util.Iterator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.Iterator;
-
 
 public class FIFOPrioritySchedulerTest {
 

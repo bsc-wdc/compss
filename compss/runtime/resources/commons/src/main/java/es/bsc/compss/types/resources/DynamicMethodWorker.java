@@ -20,12 +20,10 @@ import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.util.ResourceManager;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 
 public class DynamicMethodWorker extends MethodWorker {
 

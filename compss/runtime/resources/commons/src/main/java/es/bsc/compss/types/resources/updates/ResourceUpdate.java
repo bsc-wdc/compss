@@ -18,7 +18,6 @@ package es.bsc.compss.types.resources.updates;
 
 import es.bsc.compss.types.resources.ResourceDescription;
 
-
 public abstract class ResourceUpdate<T extends ResourceDescription> {
 
     public static enum Type {

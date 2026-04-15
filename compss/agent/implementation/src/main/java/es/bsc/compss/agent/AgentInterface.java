@@ -18,7 +18,6 @@ package es.bsc.compss.agent;
 
 import org.json.JSONObject;
 
-
 /**
  * Interface that any external component might call to invoke the agent.
  *

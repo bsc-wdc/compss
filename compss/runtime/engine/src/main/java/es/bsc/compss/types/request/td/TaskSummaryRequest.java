@@ -20,9 +20,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TDRequestEvent;
-
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run.

@@ -63,10 +63,8 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
-
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,14 +72,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.xml.namespace.QName;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.xml.sax.SAXException;
-
 
 public class ResourceLoader {
 

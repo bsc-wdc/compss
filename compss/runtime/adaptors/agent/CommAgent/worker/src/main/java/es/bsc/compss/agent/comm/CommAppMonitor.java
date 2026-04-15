@@ -32,14 +32,11 @@ import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Monitor to detect changes on a task state and notify the orchestrator that commanded its execution.

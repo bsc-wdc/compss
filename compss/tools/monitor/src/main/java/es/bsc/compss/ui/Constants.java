@@ -18,7 +18,6 @@ package es.bsc.compss.ui;
 
 import java.io.File;
 
-
 public class Constants {
 
     // ZUL Files structure

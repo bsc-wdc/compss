@@ -27,7 +27,6 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ResourceManager;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collection;
@@ -38,7 +37,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-
 
 /**
  * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all

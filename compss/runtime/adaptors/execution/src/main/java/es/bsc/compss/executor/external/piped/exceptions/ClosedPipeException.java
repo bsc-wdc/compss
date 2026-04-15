@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.exceptions;
 
 import es.bsc.compss.executor.external.ExternalExecutorException;
 
-
 public class ClosedPipeException extends ExternalExecutorException {
 
     /**

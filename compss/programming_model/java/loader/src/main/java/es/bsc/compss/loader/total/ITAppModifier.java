@@ -17,18 +17,14 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.loader.LoaderConstants;
-import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CodeConverter;
@@ -41,7 +37,6 @@ import javassist.Modifier;
 import javassist.NotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public final class ITAppModifier {
 

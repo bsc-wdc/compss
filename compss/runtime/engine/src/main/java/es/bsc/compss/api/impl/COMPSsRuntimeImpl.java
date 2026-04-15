@@ -42,15 +42,12 @@ import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Properties;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
 

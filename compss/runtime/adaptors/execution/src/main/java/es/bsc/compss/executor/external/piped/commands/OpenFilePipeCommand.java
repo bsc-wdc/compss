@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.OpenFileExternalCommand;
 import es.bsc.compss.types.annotations.parameter.Direction;
 
-
 public class OpenFilePipeCommand extends OpenFileExternalCommand implements PipeCommand {
 
     /**

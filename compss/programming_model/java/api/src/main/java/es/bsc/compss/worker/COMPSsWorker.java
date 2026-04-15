@@ -19,7 +19,6 @@ package es.bsc.compss.worker;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class COMPSsWorker {
 
     public static final String COMPSS_TASK_ID = "COMPSS_TASK_ID";

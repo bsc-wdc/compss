@@ -29,16 +29,13 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-
 import org.json.JSONObject;
-
 
 /**
  * Representation of a Scheduler that considers only ready tasks.

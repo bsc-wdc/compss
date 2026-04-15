@@ -810,7 +810,6 @@ install_compss() {
   cp -r "${SOURCES_DIR}/compss" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/dependencies" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
-  cp -r "${SOURCES_DIR}/maven-plugins" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/utils" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/builders/specs/cli" "${TMP_DIR}"
   cp "${SOURCES_DIR}/LICENSE" "${TMP_DIR}"

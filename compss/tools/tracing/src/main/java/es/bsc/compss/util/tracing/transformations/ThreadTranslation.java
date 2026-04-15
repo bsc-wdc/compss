@@ -23,7 +23,6 @@ import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.util.tracing.ThreadTranslator;
 import es.bsc.compss.util.tracing.TraceTransformation;
 
-
 public class ThreadTranslation implements TraceTransformation {
 
     private final ThreadTranslator translator;

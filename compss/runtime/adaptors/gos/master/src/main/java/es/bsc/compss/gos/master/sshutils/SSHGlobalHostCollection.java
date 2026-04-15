@@ -19,7 +19,6 @@ package es.bsc.compss.gos.master.sshutils;
 import java.util.Collection;
 import java.util.HashMap;
 
-
 public class SSHGlobalHostCollection {
 
     private final HashMap<String, SSHHost> hosts = new HashMap<>();

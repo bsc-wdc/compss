@@ -23,9 +23,7 @@ import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
-
 import java.util.LinkedList;
-
 
 public class CERegistration extends TaskDispatcher.SynchTDRequest<Void> {
 

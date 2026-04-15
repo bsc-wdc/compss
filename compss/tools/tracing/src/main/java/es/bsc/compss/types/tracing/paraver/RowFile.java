@@ -20,7 +20,6 @@ import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.CPU;
 import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.Thread;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class RowFile {
 

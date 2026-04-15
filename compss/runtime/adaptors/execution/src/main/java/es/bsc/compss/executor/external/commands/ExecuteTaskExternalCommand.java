@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.commands;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * Command to describe an external task execution.
  */

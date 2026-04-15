@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.PingExternalCommand;
 
-
 public class PingPipeCommand extends PingExternalCommand implements PipeCommand {
 
     @Override

@@ -20,9 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.binders.BindToMap;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-
 import org.junit.Test;
-
 
 public class MapTest {
 

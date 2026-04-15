@@ -21,10 +21,8 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.conn.types.StarterCommand;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class WorkerStarterCommand implements StarterCommand {
 

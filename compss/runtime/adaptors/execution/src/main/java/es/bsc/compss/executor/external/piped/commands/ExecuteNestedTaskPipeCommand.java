@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.ExecuteNestedTaskExternalCommand;
 
-
 /**
  * Description of a task execution command to be sent through a pipe.
  */

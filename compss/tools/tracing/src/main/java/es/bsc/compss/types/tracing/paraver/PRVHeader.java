@@ -18,22 +18,18 @@ package es.bsc.compss.types.tracing.paraver;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
-import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.CPU;
 import es.bsc.compss.types.tracing.MalformedException;
 import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.SystemStructure;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class PRVHeader {
 

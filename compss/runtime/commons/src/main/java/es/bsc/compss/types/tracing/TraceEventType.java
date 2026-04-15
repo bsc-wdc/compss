@@ -18,10 +18,8 @@ package es.bsc.compss.types.tracing;
 
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 public enum TraceEventType implements EventType {
 

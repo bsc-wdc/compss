@@ -19,7 +19,6 @@ package es.bsc.compss.nio.requests;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
-
 public abstract class DataRequest {
 
     private final DataType type;

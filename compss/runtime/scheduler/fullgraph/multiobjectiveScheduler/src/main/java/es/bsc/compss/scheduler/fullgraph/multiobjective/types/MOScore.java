@@ -20,9 +20,7 @@ import es.bsc.compss.scheduler.fullgraph.multiobjective.MOSchedulingInformation;
 import es.bsc.compss.scheduler.fullgraph.multiobjective.config.MOConfiguration;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
-
 import java.util.List;
-
 
 public class MOScore extends Score {
 

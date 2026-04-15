@@ -20,7 +20,6 @@ package es.bsc.compss.types.tracing;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class SystemComposition<T extends SystemStructure> implements SystemStructure {
 
     private final List<T> components;

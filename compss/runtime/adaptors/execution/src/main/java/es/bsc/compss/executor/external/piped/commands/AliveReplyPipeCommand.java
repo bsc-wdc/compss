@@ -20,7 +20,6 @@ import es.bsc.compss.executor.external.commands.AliveReplyExternalCommand;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * Alive notification command send through a pipe.
  */

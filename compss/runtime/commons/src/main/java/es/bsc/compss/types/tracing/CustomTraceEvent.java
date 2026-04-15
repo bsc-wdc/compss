@@ -18,7 +18,6 @@ package es.bsc.compss.types.tracing;
 
 import es.bsc.wdc.tracing.Event;
 
-
 /**
  * Representation of a tracing event.
  */

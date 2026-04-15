@@ -23,7 +23,6 @@ import es.bsc.compss.ui.Properties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 
 public class MonitorXmlParser {
 

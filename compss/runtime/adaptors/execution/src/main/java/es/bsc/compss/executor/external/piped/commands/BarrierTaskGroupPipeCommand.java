@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.BarrierTaskGroupExternalCommand;
 
-
 public class BarrierTaskGroupPipeCommand extends BarrierTaskGroupExternalCommand implements PipeCommand {
 
     public BarrierTaskGroupPipeCommand(String[] command) {

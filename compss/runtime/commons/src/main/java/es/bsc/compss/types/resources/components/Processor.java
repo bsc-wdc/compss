@@ -17,9 +17,7 @@
 package es.bsc.compss.types.resources.components;
 
 import es.bsc.compss.types.resources.MethodResourceDescription;
-
 import java.io.Serializable;
-
 
 public class Processor implements Serializable {
 

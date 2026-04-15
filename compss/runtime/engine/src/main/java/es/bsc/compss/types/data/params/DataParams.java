@@ -22,7 +22,6 @@ import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public abstract class DataParams {
 
     // Component logger

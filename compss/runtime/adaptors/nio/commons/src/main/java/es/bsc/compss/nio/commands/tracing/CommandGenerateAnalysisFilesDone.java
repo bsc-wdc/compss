@@ -24,7 +24,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Set;
 
-
 public class CommandGenerateAnalysisFilesDone implements Command {
 
     Set<String> tracingFilesPaths;

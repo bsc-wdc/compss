@@ -33,10 +33,8 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-
 import java.util.List;
 import java.util.Set;
-
 
 public class FakeNode extends COMPSsNode {
 

@@ -27,17 +27,14 @@ import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.util.Tracer;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class CheckpointManagerImpl extends CheckpointRecord implements CheckpointManager, CheckpointUtils {
 

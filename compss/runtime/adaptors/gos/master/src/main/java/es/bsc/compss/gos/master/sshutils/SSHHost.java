@@ -18,7 +18,6 @@ package es.bsc.compss.gos.master.sshutils;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
-
 import com.jcraft.jsch.SftpException;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.gos.master.GOSAdaptor;
@@ -31,9 +30,7 @@ import es.bsc.compss.gos.master.sshutils.staticmethods.SSHCommand;
 import es.bsc.compss.gos.master.sshutils.staticmethods.SSHFileSystem;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.BufferedReader;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -41,10 +38,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class SSHHost {
 

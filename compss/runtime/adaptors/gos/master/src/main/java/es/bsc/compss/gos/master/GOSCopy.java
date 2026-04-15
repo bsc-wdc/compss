@@ -36,15 +36,12 @@ import es.bsc.compss.types.data.operation.copy.ImmediateAsyncCopy;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class GOSCopy extends ImmediateAsyncCopy {
 

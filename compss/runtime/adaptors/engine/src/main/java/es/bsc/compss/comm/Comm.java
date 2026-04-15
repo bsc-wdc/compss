@@ -31,20 +31,17 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.resources.MasterResource;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.configuration.Configuration;
-import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.JobDispatcher;
-import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.DistroStreamServer;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -56,14 +53,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
-
 
 /**
  * Representation of the Communication interface of the Runtime.

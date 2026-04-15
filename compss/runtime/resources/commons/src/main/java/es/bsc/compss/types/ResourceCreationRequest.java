@@ -20,9 +20,7 @@ import es.bsc.compss.types.listeners.ResourceCreationListener;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
-
 import org.apache.logging.log4j.Logger;
-
 
 public class ResourceCreationRequest {
 

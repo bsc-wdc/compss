@@ -25,11 +25,9 @@ import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.util.CoreManager;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 
 public class COMPSsRuntimeImplTest {
 

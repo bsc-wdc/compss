@@ -39,7 +39,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 import java.util.List;
 import java.util.Set;
 
-
 public class FakeNode extends COMPSsWorker {
 
     private final String name;

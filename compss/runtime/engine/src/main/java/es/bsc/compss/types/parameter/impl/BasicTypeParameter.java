@@ -24,7 +24,6 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
 
-
 public class BasicTypeParameter extends Parameter implements es.bsc.compss.types.parameter.BasicTypeParameter {
 
     /*

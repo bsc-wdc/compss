@@ -17,13 +17,11 @@
 package es.bsc.compss.nio;
 
 import es.bsc.compss.types.execution.InvocationParamCollection;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Extension of the NIOParam class to handle collection types. Basically, a NIOParam plus a list of NIOParams

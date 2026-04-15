@@ -18,7 +18,6 @@ package es.bsc.compss.api;
 
 import es.bsc.compss.worker.COMPSsException;
 
-
 public interface TaskMonitor extends ParameterCollectionMonitor {
 
     /**

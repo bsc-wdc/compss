@@ -17,12 +17,9 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.types.implementations.ImplementationDescription;
-import es.bsc.compss.types.resources.components.Processor;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class CoreElementDefinition implements Comparable<CoreElementDefinition> {
 

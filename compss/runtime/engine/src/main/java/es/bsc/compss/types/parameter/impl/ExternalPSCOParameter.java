@@ -24,7 +24,6 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.params.ExternalPSCObjectData;
 
-
 public class ExternalPSCOParameter
     extends ObjectParameter<String, ExternalPSCObjectAccessParams, ExternalPSCObjectData> {
 

@@ -18,10 +18,8 @@ package es.bsc.compss.local;
 
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.parameter.Parameter;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Extension of the LocalParameter class to handle collection types. Basically, a LocalParameter plus a list of

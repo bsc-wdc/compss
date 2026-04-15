@@ -18,7 +18,6 @@ package es.bsc.compss.types.data.location;
 
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.resources.Resource;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 
 /**
  * Class representing a shared disk.

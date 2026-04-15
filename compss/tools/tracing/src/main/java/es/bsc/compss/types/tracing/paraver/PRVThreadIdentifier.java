@@ -19,7 +19,6 @@ package es.bsc.compss.types.tracing.paraver;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import java.util.Objects;
 
-
 public class PRVThreadIdentifier implements ThreadIdentifier {
 
     private String app;

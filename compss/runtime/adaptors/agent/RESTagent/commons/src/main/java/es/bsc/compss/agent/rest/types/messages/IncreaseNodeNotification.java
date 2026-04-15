@@ -25,7 +25,6 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-
 /**
  * This class contains all the information required to add new resources to the REST Agent. interface.
  */

@@ -21,9 +21,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.util.List;
-
 
 public interface DataManager {
 

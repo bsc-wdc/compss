@@ -22,11 +22,8 @@ import es.bsc.compss.gos.master.monitoring.jobmonitor.GOSGlobalJobMonitor;
 import es.bsc.compss.gos.master.monitoring.transfermonitor.GOSGlobalTransferMonitor;
 import es.bsc.compss.gos.master.monitoring.transfermonitor.GOSTransferMonitor;
 import es.bsc.compss.log.Loggers;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class GOSMonitoring {
 

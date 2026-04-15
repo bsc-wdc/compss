@@ -17,14 +17,11 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class CommandResourcesReduce implements Command {
 

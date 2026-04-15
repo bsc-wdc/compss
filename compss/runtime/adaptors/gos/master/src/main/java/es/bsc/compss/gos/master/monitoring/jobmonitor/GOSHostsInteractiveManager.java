@@ -17,10 +17,8 @@
 package es.bsc.compss.gos.master.monitoring.jobmonitor;
 
 import es.bsc.compss.gos.master.GOSJob;
-
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 public class GOSHostsInteractiveManager implements GOSHostsManager {
 

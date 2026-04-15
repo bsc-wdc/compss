@@ -22,7 +22,6 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.scheduler.types.ActionListener;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElement;
@@ -39,13 +38,10 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.tracing.TDRequestEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * The ExecuteTasksRequest class represents the request to execute a task.

@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.CompssExceptionExternalCommand;
 
-
 public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand implements PipeCommand {
 
     public final Integer jobId;

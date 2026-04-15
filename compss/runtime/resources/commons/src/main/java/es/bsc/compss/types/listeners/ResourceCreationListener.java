@@ -18,7 +18,6 @@ package es.bsc.compss.types.listeners;
 
 import es.bsc.compss.types.resources.ResourceDescription;
 
-
 public interface ResourceCreationListener {
 
     /**

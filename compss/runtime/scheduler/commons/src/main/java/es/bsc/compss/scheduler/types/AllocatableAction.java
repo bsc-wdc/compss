@@ -30,7 +30,6 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -38,10 +37,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Abstract representation of an Allocatable Action (task execution, task transfer, etc.).

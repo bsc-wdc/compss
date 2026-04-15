@@ -21,7 +21,6 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.Resource;
 
-
 /**
  * Operations offered by the Comm Agent.
  */

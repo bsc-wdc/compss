@@ -18,9 +18,7 @@ package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.types.implementations.definition.HTTPDefinition;
 import es.bsc.compss.types.resources.HTTPResourceDescription;
-
 import java.util.ArrayList;
-
 
 public class HTTPImplementation extends Implementation {
 

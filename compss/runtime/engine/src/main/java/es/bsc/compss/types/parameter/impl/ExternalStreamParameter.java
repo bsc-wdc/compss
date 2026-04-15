@@ -25,7 +25,6 @@ import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.ExternalStreamData;
 
-
 public class ExternalStreamParameter
     extends StreamParameter<DataLocation, ExternalStreamAccessParams, ExternalStreamData> {
 

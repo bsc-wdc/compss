@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.CancelTaskGroupExternalCommand;
 
-
 public class CancelTaskGroupPipeCommand extends CancelTaskGroupExternalCommand implements PipeCommand {
 
     public CancelTaskGroupPipeCommand(String[] command) {

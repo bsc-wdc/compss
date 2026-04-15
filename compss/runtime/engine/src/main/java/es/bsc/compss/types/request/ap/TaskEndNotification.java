@@ -21,7 +21,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.tracing.APRequestEvent;
 
-
 public class TaskEndNotification implements APRequest {
 
     private AbstractTask task;

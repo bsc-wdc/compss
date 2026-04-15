@@ -26,7 +26,6 @@ import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.APRequestEvent;
 import java.util.concurrent.Semaphore;
 
-
 public class WaitForDataReadyToDeleteRequest implements APRequest {
 
     private final Application app;

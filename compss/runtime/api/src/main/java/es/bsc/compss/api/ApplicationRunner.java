@@ -17,9 +17,7 @@
 package es.bsc.compss.api;
 
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.concurrent.Semaphore;
-
 
 public interface ApplicationRunner {
 

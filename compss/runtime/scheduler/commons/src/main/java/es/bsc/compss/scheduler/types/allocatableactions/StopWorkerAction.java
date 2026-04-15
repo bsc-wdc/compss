@@ -39,11 +39,9 @@ import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
-
 
 public class StopWorkerAction extends AllocatableAction {
 

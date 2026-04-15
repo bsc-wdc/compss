@@ -24,11 +24,9 @@ import es.bsc.compss.types.ExtendedCloudMethodWorker;
 import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 
 public class FakeConnector implements Connector, Cost {
 

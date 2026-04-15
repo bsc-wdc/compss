@@ -18,10 +18,8 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.nio.NIOData;
-
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class CommData extends NIOData {
 

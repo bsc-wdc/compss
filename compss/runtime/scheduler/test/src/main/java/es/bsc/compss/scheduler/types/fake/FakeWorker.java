@@ -21,7 +21,6 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceType;
 import es.bsc.compss.types.resources.Worker;
 
-
 public class FakeWorker extends Worker<FakeResourceDescription> {
 
     private final FakeResourceDescription available;

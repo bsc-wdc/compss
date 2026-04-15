@@ -19,13 +19,11 @@ package es.bsc.compss.scheduler.types;
 import static org.junit.Assert.fail;
 
 import org.json.JSONObject;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 public class ProfileTest {
 

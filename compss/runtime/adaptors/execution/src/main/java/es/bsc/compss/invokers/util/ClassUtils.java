@@ -20,7 +20,6 @@ import es.bsc.compss.types.execution.InvocationParam;
 import java.lang.reflect.Method;
 import java.util.List;
 
-
 public class ClassUtils {
 
     /**

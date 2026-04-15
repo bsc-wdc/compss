@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.invokers;
 
-import es.bsc.compss.api.Workflow;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -25,21 +24,17 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
-
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.Descriptor;
-
 import storage.CallbackEvent;
 import storage.CallbackHandler;
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
-
 
 public class StorageInvoker extends JavaInvoker {
 

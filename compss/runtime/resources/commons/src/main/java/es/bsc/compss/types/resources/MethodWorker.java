@@ -21,9 +21,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.util.ResourceManager;
-
 import java.util.Map;
-
 
 public class MethodWorker extends Worker<MethodResourceDescription> {
 

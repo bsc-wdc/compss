@@ -18,7 +18,6 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.exceptions.AnnounceException;
 
-
 /**
  * Abstract definition of a COMPSs Worker.
  */

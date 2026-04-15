@@ -21,8 +21,6 @@ import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.MalformedException;
 import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
-import java.util.ArrayList;
-
 
 public interface TraceTransformation {
 

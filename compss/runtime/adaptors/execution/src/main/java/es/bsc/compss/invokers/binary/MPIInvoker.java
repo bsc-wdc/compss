@@ -37,12 +37,9 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Objects;
-
 
 public class MPIInvoker extends Invoker<Workflow> {
 

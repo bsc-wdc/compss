@@ -17,9 +17,7 @@
 package es.bsc.compss.types.data.listener;
 
 import es.bsc.compss.types.data.operation.DataOperation;
-
 import java.util.concurrent.Semaphore;
-
 
 public class SafeCopyListener extends EventListener {
 

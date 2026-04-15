@@ -17,9 +17,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.api.Workflow;
-
 import java.io.File;
-
 
 public class COMPSsFile extends File {
 

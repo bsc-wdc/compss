@@ -31,15 +31,12 @@ import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 // Information about a datum and its versions
 public abstract class DataInfo<T extends DataParams> {

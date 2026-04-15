@@ -22,9 +22,7 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import org.json.JSONObject;
-
 
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in FIFO mode.

@@ -22,15 +22,10 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.logging.log4j.Logger;
-
 
 public abstract class RequestDispatcher<T extends Request> implements Runnable {
 

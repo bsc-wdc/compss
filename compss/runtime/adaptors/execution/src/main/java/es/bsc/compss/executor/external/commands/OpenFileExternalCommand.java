@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.commands;
 
 import es.bsc.compss.types.annotations.parameter.Direction;
 
-
 public class OpenFileExternalCommand implements ExternalCommand {
 
     protected String file;

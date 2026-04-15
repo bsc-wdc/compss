@@ -26,18 +26,15 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.util.ErrorManager;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class GOSHostBatchMonitor implements GOSHostsManager {
 

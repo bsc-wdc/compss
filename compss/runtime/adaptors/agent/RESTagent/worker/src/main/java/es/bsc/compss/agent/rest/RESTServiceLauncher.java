@@ -18,11 +18,9 @@
 package es.bsc.compss.agent.rest;
 
 import java.util.concurrent.Semaphore;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-
 
 /**
  * Handler for the REST Service Boot process.

@@ -18,12 +18,9 @@ package es.bsc.compss.gos.master.monitoring.jobmonitor;
 
 import es.bsc.compss.gos.master.GOSJob;
 import es.bsc.compss.log.Loggers;
-
 import java.util.HashMap;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class GOSGlobalJobMonitor {
 

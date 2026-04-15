@@ -18,7 +18,6 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.RegisterCEExternalCommand;
 
-
 /**
  * Command to request the registration of a new CE.
  */

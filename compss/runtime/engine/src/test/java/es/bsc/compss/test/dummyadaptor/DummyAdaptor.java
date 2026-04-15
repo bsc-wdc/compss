@@ -23,10 +23,8 @@ import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.conn.types.StarterCommand;
-
 import java.util.LinkedList;
 import java.util.Map;
-
 
 /**
  * Dummy Adaptor for testing purposes. Defined in main package because it is used in integration tests

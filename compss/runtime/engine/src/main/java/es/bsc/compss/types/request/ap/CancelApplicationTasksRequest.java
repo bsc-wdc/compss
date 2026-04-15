@@ -24,7 +24,6 @@ import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
-
 public class CancelApplicationTasksRequest extends CancelTaskGroupRequest {
 
     /**

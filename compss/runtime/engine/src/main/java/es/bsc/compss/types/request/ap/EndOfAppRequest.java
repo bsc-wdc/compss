@@ -19,7 +19,6 @@ package es.bsc.compss.types.request.ap;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.tracing.APRequestEvent;
 
-
 public class EndOfAppRequest extends BarrierRequest {
 
     /**

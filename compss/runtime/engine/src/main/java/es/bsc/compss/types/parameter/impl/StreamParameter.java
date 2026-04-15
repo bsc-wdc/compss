@@ -24,7 +24,6 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 import es.bsc.compss.types.data.params.StreamData;
 
-
 public class StreamParameter<V extends Object, A extends StreamAccessParams<V, D>, D extends StreamData>
     extends ObjectParameter<V, A, D> {
 

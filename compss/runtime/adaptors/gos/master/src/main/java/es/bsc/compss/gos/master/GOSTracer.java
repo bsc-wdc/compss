@@ -19,18 +19,13 @@ package es.bsc.compss.gos.master;
 import com.jcraft.jsch.JSchException;
 import es.bsc.compss.gos.master.sshutils.SSHChannel;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.tracing.TraceScript;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
-
 
 public class GOSTracer extends Tracer {
 

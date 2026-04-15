@@ -17,20 +17,16 @@
 
 package es.bsc.compss.agent.comm.messages.types;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobHistory;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * This class is a container describing a task that is submitted to a CommAgent.

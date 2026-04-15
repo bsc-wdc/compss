@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-
 public class KeyManager {
 
     private static String KEY_PAIR = null;

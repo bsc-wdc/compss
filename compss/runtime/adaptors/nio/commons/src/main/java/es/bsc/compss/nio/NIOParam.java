@@ -19,13 +19,11 @@ package es.bsc.compss.nio;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.InvocationParam;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
-
 
 /**
  * Representation of a data parameter for the NIO Adaptor.

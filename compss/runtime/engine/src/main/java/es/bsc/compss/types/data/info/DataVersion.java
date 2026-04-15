@@ -17,11 +17,9 @@
 package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.types.data.EngineDataInstanceId;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
 
 public class DataVersion {
 

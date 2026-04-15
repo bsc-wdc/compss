@@ -18,7 +18,6 @@ package es.bsc.compss.invokers.types;
 
 import es.bsc.compss.types.execution.LanguageParams;
 
-
 /**
  * Python related variables.
  */

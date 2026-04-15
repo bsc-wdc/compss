@@ -17,11 +17,9 @@
 package es.bsc.compss.types.resources;
 
 import es.bsc.compss.types.implementations.Implementation;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 /**
  * Data Node representation.

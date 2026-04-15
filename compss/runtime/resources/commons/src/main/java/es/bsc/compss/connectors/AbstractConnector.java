@@ -26,17 +26,14 @@ import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Abstract representation of a Runtime Cloud Connector.

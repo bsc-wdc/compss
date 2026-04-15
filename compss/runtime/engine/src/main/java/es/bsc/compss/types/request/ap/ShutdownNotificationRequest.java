@@ -20,9 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.APRequestEvent;
-
 import java.util.concurrent.Semaphore;
-
 
 public class ShutdownNotificationRequest implements APRequest {
 

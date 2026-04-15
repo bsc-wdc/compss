@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.fullgraph.multiobjective.types;
 
 import es.bsc.compss.scheduler.types.ProfileBuilder;
 
-
 public class MOProfileBuilder extends ProfileBuilder {
 
     private double power = MOProfile.DEFAULT_POWER;

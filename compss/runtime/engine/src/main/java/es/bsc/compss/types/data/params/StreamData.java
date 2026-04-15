@@ -19,7 +19,6 @@ package es.bsc.compss.types.data.params;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.StreamInfo;
 
-
 public class StreamData extends ObjectData {
 
     /**

@@ -40,17 +40,13 @@ import es.bsc.compss.types.parameter.impl.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class TransferValueAction<T extends WorkerResourceDescription> extends AllocatableAction {
 

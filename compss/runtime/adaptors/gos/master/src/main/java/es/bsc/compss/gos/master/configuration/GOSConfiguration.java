@@ -17,13 +17,10 @@
 package es.bsc.compss.gos.master.configuration;
 
 import es.bsc.compss.gos.master.GOSAdaptor;
-import es.bsc.compss.gos.master.exceptions.GOSException;
 import es.bsc.compss.gos.master.monitoring.GOSMonitoring;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class GOSConfiguration extends MethodConfiguration {
 

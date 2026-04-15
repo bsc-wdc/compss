@@ -20,7 +20,6 @@ import es.bsc.compss.executor.external.commands.AliveGetExternalCommand;
 import es.bsc.compss.executor.external.piped.PipeElementInfo;
 import java.util.List;
 
-
 public class AliveGetPipeCommand extends AliveGetExternalCommand implements PipeCommand {
 
     private final List<PipeElementInfo> elements;

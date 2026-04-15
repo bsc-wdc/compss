@@ -18,7 +18,6 @@ package es.bsc.compss.util;
 
 import java.io.File;
 
-
 /**
  * Support class to load environment variables.
  */

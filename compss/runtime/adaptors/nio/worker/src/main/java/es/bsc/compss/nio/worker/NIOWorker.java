@@ -86,7 +86,6 @@ import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -101,13 +100,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import storage.StubItf;
-
 
 public class NIOWorker extends NIOAgent implements InvocationContext, DataProvider {
 

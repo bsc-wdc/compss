@@ -32,7 +32,6 @@ import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
-
 /**
  * This class contains all the information required to start an execution on a remote agent through the REST Agent
  * interface.

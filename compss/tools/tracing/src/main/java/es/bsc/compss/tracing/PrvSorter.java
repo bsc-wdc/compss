@@ -34,7 +34,6 @@ import es.bsc.compss.util.tracing.TraceTransformation;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -44,10 +43,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 /**
  * Stores the threads information with addThread and creates the maps needed to translateThreads the threads in both the

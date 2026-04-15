@@ -19,7 +19,6 @@ package es.bsc.compss.utils.execution;
 
 import java.util.Properties;
 
-
 /**
  * Utility to allow different properties for each thread.
  */

@@ -36,10 +36,8 @@ import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-
 import java.util.List;
 import java.util.Set;
-
 
 /**
  * Dummy Worker Node for integration tests.

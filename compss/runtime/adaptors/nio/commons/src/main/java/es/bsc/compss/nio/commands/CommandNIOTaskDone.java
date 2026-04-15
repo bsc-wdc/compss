@@ -21,11 +21,9 @@ import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
 
 public class CommandNIOTaskDone extends RetriableCommand {
 

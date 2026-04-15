@@ -25,7 +25,6 @@ import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
-
 public abstract class CheckpointerRequestImpl extends CheckpointerRequest {
 
     private final CheckpointRecord cp;

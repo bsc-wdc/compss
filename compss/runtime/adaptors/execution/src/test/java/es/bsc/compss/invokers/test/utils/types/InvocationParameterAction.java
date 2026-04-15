@@ -21,7 +21,6 @@ import static org.junit.Assert.fail;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 
-
 public class InvocationParameterAction {
 
     public static enum Field {

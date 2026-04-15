@@ -20,7 +20,6 @@ package es.bsc.compss.types.tracing;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class ApplicationComposition<T extends ApplicationStructure> implements ApplicationStructure {
 
     private final List<T> components;

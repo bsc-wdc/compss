@@ -18,12 +18,10 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.implementations.TaskType;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
-
 
 public abstract class NativeDefinition implements AbstractMethodImplementationDefinition {
 

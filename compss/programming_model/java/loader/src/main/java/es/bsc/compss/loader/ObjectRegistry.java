@@ -18,13 +18,10 @@ package es.bsc.compss.loader;
 
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.log.Loggers;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class ObjectRegistry {
 

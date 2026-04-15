@@ -21,7 +21,6 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.loader.JavaWorkflow;
 
-
 public class WorkflowSupplier extends ThreadLocal<JavaWorkflow> {
 
     private final COMPSsRuntime runtime;

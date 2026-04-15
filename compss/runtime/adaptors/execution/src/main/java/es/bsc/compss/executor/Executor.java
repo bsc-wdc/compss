@@ -84,7 +84,6 @@ import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.TimeOutInvokerTask;
 import es.bsc.compss.worker.TimeOutTask;
 import es.bsc.wdc.affinity.ThreadAffinity;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -94,11 +93,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class Executor implements Runnable, InvocationRunner {
 

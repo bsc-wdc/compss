@@ -21,7 +21,6 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ResourceManager;
 
-
 /**
  * Listener to acknowledge the creation of resources through API calls.
  */

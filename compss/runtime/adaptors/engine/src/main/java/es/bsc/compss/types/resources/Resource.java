@@ -31,10 +31,8 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-
 import java.util.List;
 import java.util.Set;
-
 
 public interface Resource extends Comparable<Resource> {
 

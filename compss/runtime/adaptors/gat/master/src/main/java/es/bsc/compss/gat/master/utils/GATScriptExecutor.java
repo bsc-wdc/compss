@@ -23,16 +23,13 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.URI;
 import org.gridlab.gat.resources.Job;
@@ -40,7 +37,6 @@ import org.gridlab.gat.resources.Job.JobState;
 import org.gridlab.gat.resources.JobDescription;
 import org.gridlab.gat.resources.ResourceBroker;
 import org.gridlab.gat.resources.SoftwareDescription;
-
 
 /**
  * The cleaner class is an utility to execute the cleaning script on the remote workers.

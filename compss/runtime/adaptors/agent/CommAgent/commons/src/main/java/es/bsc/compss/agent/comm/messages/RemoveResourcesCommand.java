@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-
 /**
  * Command to add new resources into the resource pool of the agent.
  */

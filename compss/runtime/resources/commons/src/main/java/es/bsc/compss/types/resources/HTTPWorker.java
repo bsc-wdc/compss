@@ -20,7 +20,6 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.configuration.HTTPConfiguration;
 
-
 public class HTTPWorker extends Worker<HTTPResourceDescription> {
 
     public HTTPWorker(String httpWorker, HTTPResourceDescription description, HTTPConfiguration config) {

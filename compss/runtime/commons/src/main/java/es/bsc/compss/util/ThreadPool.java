@@ -18,7 +18,6 @@ package es.bsc.compss.util;
 
 import java.util.concurrent.Semaphore;
 
-
 /**
  * The threadpool is an utility to manage a set of threads.
  */

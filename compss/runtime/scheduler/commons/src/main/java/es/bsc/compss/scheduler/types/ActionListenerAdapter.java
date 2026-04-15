@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.worker.COMPSsException;
 
-
 /**
  * Convenience base implementation of {@link ActionListener}. All methods are empty, so subclasses can override only the
  * events they care about.

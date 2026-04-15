@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.EndTaskExternalCommand;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
 
-
 public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCommand {
 
     public final Integer jobId;

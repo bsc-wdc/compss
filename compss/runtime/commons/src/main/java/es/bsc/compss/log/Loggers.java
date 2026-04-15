@@ -18,7 +18,6 @@ package es.bsc.compss.log;
 
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 
-
 public final class Loggers {
 
     // COMPSs

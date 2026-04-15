@@ -21,14 +21,12 @@ import es.bsc.compss.connectors.AbstractSSHConnector;
 import es.bsc.compss.types.ApplicationPackage;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 
 public class CloudImageDescription {
 

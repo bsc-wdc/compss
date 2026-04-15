@@ -25,7 +25,6 @@ import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.DirectoryData;
 
-
 public class DirectoryParameter extends FileParameter<DirectoryData, DirectoryAccessParams> {
 
     /**

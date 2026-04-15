@@ -19,13 +19,11 @@ package es.bsc.compss.checkpoint.types;
 import es.bsc.compss.checkpoint.CheckpointGroup;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.info.DataVersion;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 
 public class CheckpointGroupImpl implements CheckpointGroup {
 

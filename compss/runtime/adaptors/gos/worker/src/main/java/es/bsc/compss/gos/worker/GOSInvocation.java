@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.gos.worker;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -31,12 +30,10 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 public class GOSInvocation implements Invocation {
 

@@ -18,7 +18,6 @@ package es.bsc.compss.agent.types;
 
 import java.util.List;
 
-
 /**
  * Extension of the ApplicationResult class to handle collection types. Basically, an ApplicationResult plus a list of
  * ApplicationResults representing the contents of the collection.

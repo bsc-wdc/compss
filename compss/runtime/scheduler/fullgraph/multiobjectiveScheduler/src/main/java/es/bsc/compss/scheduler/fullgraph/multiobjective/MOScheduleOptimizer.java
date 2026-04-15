@@ -29,7 +29,6 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.SchedulingOptimizer;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
@@ -38,10 +37,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
 

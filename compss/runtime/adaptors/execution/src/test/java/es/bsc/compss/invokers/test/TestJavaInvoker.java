@@ -40,7 +40,6 @@ import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,7 +47,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.junit.Test;
-
 
 public class TestJavaInvoker extends TestObject {
 

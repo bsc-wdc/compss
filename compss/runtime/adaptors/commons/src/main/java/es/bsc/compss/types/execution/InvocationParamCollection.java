@@ -18,7 +18,6 @@ package es.bsc.compss.types.execution;
 
 import java.util.List;
 
-
 public interface InvocationParamCollection<T extends InvocationParam> extends InvocationParam {
 
     /**

@@ -27,11 +27,9 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
-
 import java.io.PrintStream;
 import storage.StorageException;
 import storage.StubItf;
-
 
 public class FakeInvocationContext implements InvocationContext {
 

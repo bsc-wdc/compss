@@ -19,7 +19,6 @@ package es.bsc.compss.util.tracing;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class EventTranslator<T> {
 
     private final Map<T, T> finalMap;

@@ -23,12 +23,10 @@ import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-
 
 public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 

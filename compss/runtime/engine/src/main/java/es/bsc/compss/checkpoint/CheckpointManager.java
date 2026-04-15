@@ -19,9 +19,7 @@ package es.bsc.compss.checkpoint;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
-import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.CheckpointerRequest;
-
 
 /**
  * Class to manage application checkpointing.

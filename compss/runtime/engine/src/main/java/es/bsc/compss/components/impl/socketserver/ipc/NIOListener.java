@@ -33,9 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import org.newsclub.net.unix.AFUNIXSelectorProvider;
-
 
 /**
  * Single-threaded selector loop that multiplexes non-blocking UNIX-domain sockets for both servers and clients. It

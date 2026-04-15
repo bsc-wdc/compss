@@ -32,9 +32,7 @@ import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
-
 
 public class MethodResourceDescription extends WorkerResourceDescription {
 

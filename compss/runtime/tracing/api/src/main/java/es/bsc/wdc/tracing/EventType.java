@@ -18,7 +18,6 @@ package es.bsc.wdc.tracing;
 
 import java.util.List;
 
-
 public interface EventType {
 
     /**

@@ -19,7 +19,6 @@ package es.bsc.compss.util;
 import java.util.LinkedList;
 import java.util.List;
 
-
 /**
  * The RequestQueue class is an utility to enqueue requests from a certain type. Any component can add a Request to the
  * queue at the end or prioritize the treatment of that request by adding it to the head of the queue. At any point of

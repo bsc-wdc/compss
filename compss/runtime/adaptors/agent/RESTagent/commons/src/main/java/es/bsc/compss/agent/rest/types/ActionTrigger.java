@@ -19,9 +19,7 @@ package es.bsc.compss.agent.rest.types;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
-
 import java.util.List;
-
 
 /**
  * Class describing an action to do after a request is done.

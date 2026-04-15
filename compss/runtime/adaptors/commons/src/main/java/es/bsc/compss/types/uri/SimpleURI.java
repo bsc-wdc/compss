@@ -18,7 +18,6 @@ package es.bsc.compss.types.uri;
 
 import java.io.PrintStream;
 
-
 public class SimpleURI {
 
     private static final String SCHEMA_SEPARATOR = "://";

@@ -19,7 +19,6 @@ package es.bsc.compss.scheduler.types;
 import java.util.HashSet;
 import java.util.Set;
 
-
 public class ActionGroup {
 
     private final Set<AllocatableAction> actions;

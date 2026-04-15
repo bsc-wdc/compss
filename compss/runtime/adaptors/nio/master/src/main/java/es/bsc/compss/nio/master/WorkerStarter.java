@@ -28,18 +28,14 @@ import es.bsc.compss.nio.master.handlers.Ender;
 import es.bsc.compss.nio.master.handlers.ProcessOut;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.util.Tracer;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class WorkerStarter {
 

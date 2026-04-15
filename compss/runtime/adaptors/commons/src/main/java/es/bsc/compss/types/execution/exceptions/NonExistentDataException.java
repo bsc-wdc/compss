@@ -19,7 +19,6 @@ package es.bsc.compss.types.execution.exceptions;
 import java.util.LinkedList;
 import java.util.List;
 
-
 public class NonExistentDataException extends Exception {
 
     /**

@@ -26,12 +26,10 @@ import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
-import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.NIOJob;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
@@ -42,7 +40,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
@@ -54,12 +51,10 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.CoreManager;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Class containing all the handling to submitJob a task execution on a CommAgentWorker.

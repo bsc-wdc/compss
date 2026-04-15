@@ -28,17 +28,14 @@ import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
-
 
 public class PredefinedRS<T extends WorkerResourceDescription> extends ResourceScheduler<T> {
 

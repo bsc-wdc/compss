@@ -17,7 +17,6 @@
 package es.bsc.compss.nio;
 
 import es.bsc.compss.types.data.location.ProtocolType;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -25,7 +24,6 @@ import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-
 
 /**
  * Representation of the result of a data parameter for the NIO Adaptor.

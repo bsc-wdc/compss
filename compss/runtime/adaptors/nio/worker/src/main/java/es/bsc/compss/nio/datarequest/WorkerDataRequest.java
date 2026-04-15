@@ -21,7 +21,6 @@ import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
-
 public class WorkerDataRequest extends DataRequest {
 
     private final FetchDataListener listener;

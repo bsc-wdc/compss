@@ -30,15 +30,12 @@ import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 public class FileInfo extends StandardDataInfo<FileData> {
 

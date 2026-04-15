@@ -20,9 +20,7 @@ import com.jcraft.jsch.SftpException;
 import es.bsc.compss.gos.master.GOSCopy;
 import es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor.GOSJschTransferMonitor;
 import es.bsc.compss.gos.master.sshutils.SSHChannel;
-
 import java.io.File;
-
 
 public class GOSDifferentHostsTransfer implements GOSTransferMonitor {
 

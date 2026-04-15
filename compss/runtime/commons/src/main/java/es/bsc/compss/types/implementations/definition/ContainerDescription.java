@@ -19,7 +19,6 @@ package es.bsc.compss.types.implementations.definition;
 
 import java.io.Serializable;
 
-
 /**
  * Container representation.
  */

@@ -853,22 +853,6 @@ static PyObject* get_master_working_path(PyObject* self, PyObject* args) {
 }
 
 /*
-  Requests the runtime to decrease a given number of resources.
-*/
-static PyObject* set_wall_clock(PyObject* self, PyObject* args) {
-    debug("Setting wall clock limit\n");
-
-    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    long wcl = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-
-    debug("- App id: %ld\n", (app_id));
-    debug("- Number of resources: %ld\n", (wcl));
-
-    GS_Set_wall_clock(app_id, wcl, 0);
-    Py_RETURN_NONE;
-}
-
-/*
   Registers a new core element
 */
 static PyObject* register_core_element(PyObject* self, PyObject* args) {
@@ -967,7 +951,6 @@ static PyMethodDef CompssMethods[] = {
     { "set_socket_endpoint", set_socket_endpoint, METH_VARARGS, "Set compss module to socket communication mode." },
     { "set_JNI_runtime", set_JNI_runtime, METH_NOARGS, "Enable JNI runtime support." },
     { "read_command", read_command, METH_VARARGS, "Reads a command obtained from comunication mode." },
-	{ "set_wall_clock" , set_wall_clock, METH_VARARGS, "Set the application wall clock limit."},
     { NULL, NULL } /* sentinel */
 };
 

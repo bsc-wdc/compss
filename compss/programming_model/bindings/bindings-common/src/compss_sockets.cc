@@ -282,7 +282,7 @@ long SOCKET_WF_getId(CompssWorkflow* self) {
     return 0;
 }
 
-void SOCKET_WF_deregister(CompssWorkflow* self) {
+void SOCKET_WF_deregister(CompssWorkflow* self, bool deleteData) {
 }
 
 void SOCKET_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool implicitBarrier) {
@@ -607,12 +607,6 @@ void SOCKET_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @SOCKET_EmitEvent - Event emitted\n");
 }
 
-
-void SOCKET_set_wall_clock(long appId, long wcl, int stopRT) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_set_wall_clock - Setting wall clock for APP id: %ld\n", appId);
-    debug_printf("[BINDING-COMMONS] - @SOCKET_set_wall_clock NOT CURRENTLY IMPLEMENTED FOR SOCKETS\n");
-}
-
 CompssInterface setup_SOCKET_runtime(char* endpoint){
     SOCKET_set_endpoint(endpoint);
 
@@ -629,6 +623,5 @@ CompssInterface setup_SOCKET_runtime(char* endpoint){
 
     iface.EmitEvent = SOCKET_EmitEvent;
 
-    iface.Set_wall_clock = SOCKET_set_wall_clock;
     return iface;
 }

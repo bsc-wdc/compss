@@ -155,7 +155,6 @@ public enum TraceEvent implements Event {
     LOW_FILE_SYS_THREAD_ID(Threads.FSL.id, TraceEventType.THREAD_IDENTIFICATION, Threads.FSL.description), //
     HIGH_FILE_SYS_THREAD_ID(Threads.FSH.id, TraceEventType.THREAD_IDENTIFICATION, Threads.FSH.description), //
     TIMER_THREAD_ID(Threads.TIMER.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TIMER.description), //
-    WALLCLOCK_THREAD_ID(Threads.WC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.WC.description), //
     EXECUTOR_THREAD_ID(Threads.EXEC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.EXEC.description), //
     PYTHON_WORKER_THREAD_ID(Threads.PYTHON_WORKER.id, TraceEventType.THREAD_IDENTIFICATION,
         Threads.PYTHON_WORKER.description), //

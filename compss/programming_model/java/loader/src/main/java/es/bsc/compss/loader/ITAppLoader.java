@@ -26,6 +26,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,78 +36,139 @@ import org.apache.logging.log4j.Logger;
 public class ITAppLoader {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    // Wall clock limit definition
     private static final long WALL_CLOCK_LIMIT =
-        Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
+        Long.parseLong(System.getProperty(LoaderConstants.WALL_CLOCK_LIMIT, "0"));
 
 
     /**
      * Factored out loading function so that subclasses of ITAppLoader can re-use this code.
      */
-    protected static void load(String appName, String[] appArgs) throws Exception {
-        /*
-         * We will have two class loaders: - Custom loader: to load our javassist version classes and the classes that
-         * use them. - System loader: parent of the custom loader, it will load the rest of the classes (including the
-         * one of the application, once it has been modified).
-         */
-        CustomLoader myLoader = null;
+    protected static void load(String appName, String[] appArgs) throws Throwable {
+        try (CustomLoader myLoader = new CustomLoader(new URL[] {})) {
+            instrumentAndRun(appName, appArgs);
+        }
+    }
 
+    protected static void instrumentAndRun(String appName, String[] appArgs) throws Throwable {
+        // instrumenting class according the CEI named appName + Itf
+        Class<?> annotItf = getCEI(appName);
+        Class<?> modAppClass = instrumentAppClass(appName, annotItf);
+
+        System.setProperty(COMPSsConstants.APP_NAME, appName);
+
+        // Start runtime and run workflow
+        COMPSsRuntime rt = instantiateCOMPSsRuntime();
+        LOGGER.debug("Starting runtime");
+        rt.startIT();
         try {
-            myLoader = new CustomLoader(new URL[] {});
+            runWorkflow(rt, appName, modAppClass, appArgs);
+        } finally {
+            rt.stopIT(true);
+        }
+    }
 
-            LOGGER.debug("Modifying application " + appName);
-
+    private static Class<?> getCEI(String appName) throws ClassNotFoundException {
+        String ceiClass = appName + LoaderConstants.ITF_SUFFIX;
+        try {
             // Get annotated interface and run main modify method
-            Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
-            Class<?> modAppClass;
+            return Class.forName(ceiClass);
+        } catch (ClassNotFoundException cnfe) {
+            LOGGER.error("Could not find CEI class: " + appName);
+            throw cnfe;
+        }
+    }
+
+    private static Class<?> instrumentAppClass(String appName, Class<?> annotItf) throws Exception {
+        Class<?> modAppClass;
+        try {
+            LOGGER.debug("Modifying application " + appName);
             modAppClass = ITAppModifier.modifyToMemory(appName, annotItf, true, true);
             LOGGER.debug("Application " + appName + " instrumented, executing...");
+        } catch (Exception e) {
+            LOGGER.error("Could not instrument application class: " + appName);
+            throw e;
+        }
+        return modAppClass;
+    }
 
+    private static COMPSsRuntime instantiateCOMPSsRuntime() throws Exception {
+        try {
             // Start runtime
             LOGGER.debug("Creating runtime");
-            COMPSsRuntime rt;
-            rt = createRuntime();
-
-            LOGGER.debug("Starting runtime");
-            rt.startIT();
-
-            System.setProperty(COMPSsConstants.APP_NAME, appName);
-
-            Method initializer = modAppClass.getDeclaredMethod("setupCOMPSs",
-                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                    Class.forName(LoaderConstants.CLASS_APP_RUNNER) });
-            Object[] values = new Object[] { rt,
-                null };
-            JavaWorkflow wf = (JavaWorkflow) initializer.invoke(null, values);
-
-            if (WALL_CLOCK_LIMIT > 0) {
-                // Setting wall clock limit with runtime stop.
-                rt.setWallClockLimit(wf.getId(), WALL_CLOCK_LIMIT, true);
-            }
-
-            try {
-                LOGGER.debug("Executing " + appName);
-                // Start main
-                Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
-                main.invoke(null, new Object[] { appArgs });
-            } finally {
-                // Stop the runtime whether the execution raises an exception or not
-                rt.stopIT(true);
-            }
+            Class<?> schedClass = Class.forName(LoaderConstants.CLASS_COMPSS_API_IMPL);
+            Constructor<?> rtConstructor = schedClass.getDeclaredConstructor();
+            return (COMPSsRuntime) rtConstructor.newInstance();
         } catch (Exception e) {
+            LOGGER.error("Could not instantiate COMPSs runtime.");
             throw e;
+        }
+    }
+
+    private static void runWorkflow(COMPSsRuntime rt, String appName, Class<?> appClass, String[] appArgs)
+        throws Throwable {
+        JavaWorkflow wf = createWorkflow(rt, appClass);
+        Timer timer = null;
+        TimerTask wcTask = null;
+
+        if (WALL_CLOCK_LIMIT > 0) {
+            timer = new Timer("Application wall clock limit timer");
+            wcTask = new TimerTask() {
+
+                @Override
+                public void run() {
+                    System.err
+                        .println("WARNING: Wall clock limit reached for app " + wf.getId() + "! Cancelling tasks...");
+                    synchronized (wf) { // When wall clock hits, main app should not be able to continue
+                        wf.cancelApplicationTasks();
+                        wf.noMoreTasks();
+                        wf.deregister(false);
+                        rt.stopIT(true);
+                        System.exit(122);
+                    }
+                }
+            };
+            LOGGER.info("Setting up wall clock limit after " + WALL_CLOCK_LIMIT + " seconds");
+            timer.schedule(wcTask, WALL_CLOCK_LIMIT * 1000);
+        }
+
+        try {
+            executeAsWorkflow(wf, appName, appClass, appArgs);
         } finally {
-            // Close loader if needed
-            if (myLoader != null) {
-                myLoader.close();
+            if (wcTask != null) {
+                wcTask.cancel();
+                timer.cancel();
+            }
+            synchronized (wf) {
+                wf.deregister(false);
             }
         }
     }
 
-    private static COMPSsRuntime createRuntime() throws ClassNotFoundException, NoSuchMethodException,
-        InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> schedClass = Class.forName(LoaderConstants.CLASS_COMPSS_API_IMPL);
-        Constructor<?> rtConstructor = schedClass.getDeclaredConstructor();
-        return (COMPSsRuntime) rtConstructor.newInstance();
+    private static void executeAsWorkflow(JavaWorkflow wf, String appName, Class<?> appClass, String[] appArgs)
+        throws Throwable {
+        LOGGER.debug("Executing " + appName);
+        // Start main
+        Method main = appClass.getDeclaredMethod("main", new Class[] { String[].class });
+        try {
+            main.invoke(null, new Object[] { appArgs });
+        } catch (InvocationTargetException e) {
+            wf.cancelApplicationTasks();
+            throw e.getCause();
+        } finally {
+            wf.noMoreTasks();
+        }
+
+    }
+
+    private static JavaWorkflow createWorkflow(COMPSsRuntime rt, Class<?> modAppClass)
+        throws ReflectiveOperationException {
+        Method initializer = modAppClass.getDeclaredMethod("setupCOMPSs",
+            new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
+                Class.forName(LoaderConstants.CLASS_APP_RUNNER) });
+        Object[] values = new Object[] { rt,
+            null };
+        return (JavaWorkflow) initializer.invoke(null, values);
     }
 
     /**
@@ -124,7 +187,7 @@ public class ITAppLoader {
         // Load the application
         try {
             load(args[1], appArgs);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.fatal("There was an error when loading or executing your application.", e);
             System.exit(1);
         }

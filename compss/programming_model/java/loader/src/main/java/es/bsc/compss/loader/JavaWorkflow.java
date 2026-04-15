@@ -42,8 +42,8 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
-    public void deregister() {
-        workflow.deregister();
+    public void deregister(boolean deleteData) {
+        workflow.deregister(deleteData);
     }
 
     @Override

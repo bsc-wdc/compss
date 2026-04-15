@@ -55,15 +55,6 @@ public interface COMPSsRuntime {
      */
     String getTempDir();
 
-    /**
-     * Set the COMPSs application Wall Clock Limit.
-     *
-     * @appId Application ID.
-     * @wcl Wall Clock limit in seconds.
-     * @stopRT Flag to indicate if runtime must be stopped when limit exceed
-     */
-    void setWallClockLimit(Long appId, long wcl, boolean stopRT);
-
     /*
      * *****************************************************************************************************************
      * Workflow METHODS

@@ -235,30 +235,6 @@ public final class ITAppModifier {
             if (DEBUG) {
                 LOGGER.debug("Instrumenting method " + m.getName());
             }
-            StringBuilder toInsertAfter = new StringBuilder();
-
-            boolean isMainMethod = LoaderUtils.isMainMethod(m);
-            boolean isOrchestration = LoaderUtils.isOrchestration(m);
-
-            if ((isMainMethod && isMainClass) || (isOrchestration && IS_WS_CLASS)) {
-                LOGGER.debug("Inserting call noMoreTasks at the end of main");
-                toInsertAfter.insert(0, itWfVar + ".noMoreTasks();");
-
-                // Do insertions
-                if (IS_WS_CLASS) {
-                    m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
-                } else { // Main program
-                    m.insertAfter(toInsertAfter.toString(), true); // no matter what
-                }
-            } else {
-                if (IS_WS_CLASS) {
-                    // If we're instrumenting a service class, only instrument private methods, public might be
-                    // non-OE operations
-                    if (!Modifier.isPrivate(m.getModifiers())) {
-                        continue;
-                    }
-                }
-            }
 
             /*
              * Instrumenting first the array accesses makes each array access become a call to a black box method of

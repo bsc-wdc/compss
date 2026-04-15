@@ -64,12 +64,7 @@ public class COMPSsConstants {
     /*
      * Component names
      */
-    public static final String TA = "Task Analyser";
     public static final String TS = "Task Scheduler";
-    public static final String JM = "Job Manager";
-    public static final String DM = "Data Manager";
-    public static final String DIP = "Data Information Provider";
-    public static final String FTM = "File Transfer Manager";
 
     /*
      * Dynamic system properties
@@ -100,7 +95,6 @@ public class COMPSsConstants {
     public static final String CHECKPOINT_PARAMS = "compss.checkpoint.params";
     public static final String CHECKPOINT_FOLDER_PATH = "compss.checkpoint.folder";
 
-    public static final String CONSTR_FILE = "compss.constraints.file";
     public static final String SCHEDULER = "compss.scheduler";
     public static final String SCHEDULER_CONFIG_FILE = "compss.scheduler.config";
     public static final String PRESCHED = "compss.presched";
@@ -185,9 +179,6 @@ public class COMPSsConstants {
     public static final String COMPSS_CONFIG = "compss.properties";
     public static final String COMPSS_CONFIG_LOCATION = "compss.properties.location";
     public static final String COMPSS_CONTEXT = "compss.context";
-
-    // Wall clock limit definition
-    public static final String COMPSS_WALL_CLOCK_LIMIT = "compss.wcl";
 
     // LOG 4J
     public static final String LOG4J = "log4j.configurationFile";

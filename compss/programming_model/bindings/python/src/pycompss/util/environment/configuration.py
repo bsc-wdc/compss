@@ -829,9 +829,6 @@ def create_init_config_file(
                 "-Dcompss.trace.label=" + str(trace_label) + "\n"
             )
 
-        # WALLCLOCK LIMIT
-        jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
-
         # EAR
         if ear:
             jvm_options_file.write("-Dcompss.ear=true\n")

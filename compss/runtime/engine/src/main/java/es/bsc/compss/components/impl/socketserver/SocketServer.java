@@ -149,7 +149,7 @@ public class SocketServer extends Server {
             } catch (Exception e) {
                 LOGGER.warn("Barrier failed while closing connection", e);
             } finally {
-                this.wf.deregister();
+                this.wf.deregister(false);
             }
         }
 

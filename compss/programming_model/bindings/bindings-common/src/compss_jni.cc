@@ -81,8 +81,6 @@ jmethodID mid_wf_getDirectory;
 jmethodID mid_wf_getBindingObject;
 jmethodID mid_wf_deleteBindingObject;
 
-jmethodID midSetWallClockLimit;			/* ID of the setWallClockLimit method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
 jclass clsOnFailure;
 jmethodID midOnFailureCon;
 
@@ -452,11 +450,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midStopIT = status->localJniEnv->GetMethodID(clsITimpl, "stopIT", "(Z)V");
     check_exception(status, "Cannot find stopIT method.");
 
-    // Load setWallClockLimit
-    midSetWallClockLimit = status->localJniEnv->GetMethodID(clsITimpl, "setWallClockLimit", "(Ljava/lang/Long;JZ)V");
-    check_exception(status, "Cannot find setWallClockLimit");
-
-
     debug_printf ("[BINDING-COMMONS] - @Init JNI Methods DONE\n");
 
     // Task OnFailure behaviour
@@ -789,16 +782,17 @@ long JNI_WF_getId(CompssWorkflow* self) {
 }
 
 
-void JNI_WF_deregister(CompssWorkflow* self) {
+void JNI_WF_deregister(CompssWorkflow* self, bool deleteData) {
     debug_printf("[BINDING-COMMONS] - @JNI_WF_Deregister\n");
     JNIWorkflow* wf = (JNIWorkflow*) self;
+    jboolean _deleteData     = deleteData     ? JNI_TRUE : JNI_FALSE;
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
     
     JNIEnv* env = status->localJniEnv;
 
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_deregister);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_deregister, _deleteData);
     check_exception(status, "Workflow.deregister failed");
     env->DeleteGlobalRef(wf->jWorkflow);
 
@@ -811,11 +805,13 @@ void JNI_WF_openTaskGroup(CompssWorkflow* self, const char* groupName, bool impl
     JNIWorkflow* wf = (JNIWorkflow*) self;
     debug_printf("[BINDING-COMMONS] - @JNI_WF_openTaskGroup\n");
 
+    jboolean _implicitBarrier     = implicitBarrier     ? JNI_TRUE : JNI_FALSE;
+
     ThreadStatus* status = access_request();
     JNIEnv* env = status->localJniEnv;
 
     jstring jGroup = env->NewStringUTF(groupName);
-    env->CallVoidMethod(wf->jWorkflow, mid_wf_openTaskGroup, jGroup, implicitBarrier);
+    env->CallVoidMethod(wf->jWorkflow, mid_wf_openTaskGroup, jGroup, _implicitBarrier);
     check_exception(status, "Workflow.openTaskGroup failed");
     env->DeleteLocalRef(jGroup);
 
@@ -1356,7 +1352,7 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find the Workflow.barrierGroup method");
         mid_wf_snapshot = env->GetMethodID(clsWorkflow, "snapshot", "()V");
         check_exception(status, "Cannot find the Workflow.snapshot method");
-        mid_wf_deregister = env->GetMethodID(clsWorkflow, "deregister", "()V");
+        mid_wf_deregister = env->GetMethodID(clsWorkflow, "deregister", "(Z)V");
         check_exception(status, "Cannot find the Workflow.deregister  method");
 
         // Data operations
@@ -1670,23 +1666,6 @@ void JNI_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @JNI_EmitEvent - Event emitted\n");
 }
 
-void JNI_set_wall_clock(long appId, long wcl, int stopRT){
-	debug_printf("[BINDING-COMMONS] - @JNI_set_wall_clock - Setting wall clock limit for APP id:%lu of %lu seconds\n", appId, wcl);
-	// Request thread access to JVM
-	ThreadStatus* status = access_request();
-	bool _stop = false;
-	if (stopRT != 0) _stop = true;
-	// Perform operation
-
-	status->localJniEnv->CallVoidMethod(globalRuntime, midSetWallClockLimit,
-			status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
-			wcl, _stop);
-	check_exception(status, "Exception received when calling setWallClockLimit");
-
-	// Revoke thread access to JVM
-	access_revoke(status);
-}
-
 CompssInterface setup_JNI_runtime(){
     CompssInterface iface{};
     iface.On = JNI_On;
@@ -1700,8 +1679,6 @@ CompssInterface setup_JNI_runtime(){
     iface.RegisterCE = JNI_RegisterCE;
 
     iface.EmitEvent = JNI_EmitEvent;
-
-    iface.Set_wall_clock = JNI_set_wall_clock;
 
     return iface;
 }

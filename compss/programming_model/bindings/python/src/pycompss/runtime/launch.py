@@ -60,6 +60,7 @@ from pycompss.util.environment.configuration import (
 )
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.exceptions import SerializerException
+from pycompss.util.exceptions import WallClockException
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.utils import parameters_to_dict
@@ -365,6 +366,9 @@ def compss_main() -> None:
             if app_path in line:
                 print("[ ERROR ]: In: %s", line)
         exit_code = 1
+    except WallClockException as wall_clock_exception:
+        print("[ ERROR ]: %s", str(wall_clock_exception))
+        exit_code = 122
     except COMPSsException as compss_exception:
         # Any other exception occurred
         print(

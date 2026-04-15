@@ -27,7 +27,8 @@ struct CompssWorkflow {
     );
 
     void (*deregister)(
-        struct CompssWorkflow* self
+        struct CompssWorkflow* self,
+        bool deleteData
     );
 
     void (*openTaskGroup)(
@@ -198,12 +199,6 @@ struct CompssInterface {
     void (*EmitEvent)(
         int type,
         long id
-    );
-
-    void (*Set_wall_clock)(
-        long appId,
-        long wcl,
-        int stopRT
     );
 
 };

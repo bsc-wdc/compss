@@ -6,26 +6,28 @@
 start_profiling_local() {
   if [ -z "${logDir}" ]; then
     # Master node
-    echo "PROVENANCE | PROFILING | Profiling interval set to ${COMPSS_PROFILING_INTERVAL} second(s)"
     master_working_dir="$(dirname "${wdir_in_master}")/stats"
+    is_master="true"
     mkdir -p "${master_working_dir}"
     if [ -z "${worker_in_master_cpus}" ] || [ "${worker_in_master_cpus}" -eq 0 ]; then
-      launch_profiling_script "${master_working_dir}"
+      launch_profiling_script "${master_working_dir}" "${is_master}"
     fi
   else
     # Worker node
-    launch_profiling_script "${logDir}"
+    is_master="false"
+    launch_profiling_script "${logDir}" "${is_master}"
   fi
 }
 
 launch_profiling_script() {
   local working_dir="$1"
+  local is_master="$2"
 
   # Launch the profiling script
   if [ ! -z "${COMPSS_PROV_DEBUG}" ]; then
-    python3 "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler_config.json" "${working_dir}" &
+    python3 "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${working_dir}" "${is_master}" &
   else
-    python3 -O "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler_config.json" "${working_dir}" &
+    python3 -O "${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py" "${working_dir}" "${is_master}" &
   fi
   PROFILING_PID=$!
 }
@@ -75,17 +77,19 @@ start_profiling_slurm() {
 
   if [ -z "${logDir}" ]; then
     # Master node
+    is_master="true"
     master_working_dir="$(dirname ${wdir_in_master})/stats"
     mkdir -p "${master_working_dir}"
 
     if [ -z "${worker_in_master_cpus}" ] || [ "${worker_in_master_cpus}" -eq 0 ]; then
-      launch_profiling_srun "${COMPSS_MASTER_NODE}" "${master_working_dir}"
+      launch_profiling_srun "${COMPSS_MASTER_NODE}" "${master_working_dir}" "${is_master}"
       PROFILING_PID=$!
       echo "PROVENANCE | PROFILING | Profiler started."
     fi
   else
     # Worker node
-    launch_profiling_srun "${slurm_node}" "${logDir}"
+    is_master="false"
+    launch_profiling_srun "${slurm_node}" "${logDir}" "${is_master}"
     PROFILING_PID=$!
   fi
 }
@@ -93,6 +97,7 @@ start_profiling_slurm() {
 launch_profiling_srun() {
   local node="$1"
   local working_directory="$2"
+  local is_master="$3"
   # local output_csv="$3"
 
   srun --overlap \
@@ -105,8 +110,7 @@ launch_profiling_srun() {
        --chdir="${working_directory}" \
        --export=ALL \
        bash -c "python3 -O ${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler.py \
-            ${COMPSS_HOME}/Runtime/scripts/system/profiling/profiler_config.json \
-            ${working_directory}" &
+            ${working_directory} ${is_master}" &
 }
 
 stop_profiling_slurm() {
@@ -134,6 +138,8 @@ start_profiling() {
     if [ -z "${COMPSS_PROFILING_INTERVAL}" ]; then
       export COMPSS_PROFILING_INTERVAL=5
     fi
+    # write the message in every case
+    echo "PROVENANCE | PROFILING | Profiling interval set to ${COMPSS_PROFILING_INTERVAL} second(s)"
 
     if [[ -z "${ENQUEUE_COMPSS_ARGS}" ]]; then
       # LOCAL LAUNCH

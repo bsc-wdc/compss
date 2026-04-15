@@ -149,12 +149,24 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
                 if entry_name in profiling_stats:
                     id_stat = e.id.replace("#", "").split(".")
                     node_to_compare = id_stat[0].split("-", -1)[0] if "MASTER" in id_stat[0] else id_stat[0]
-                    node_list = final_dict.keys()
+                    
+                    # Convert to list to avoid 'dictionary changed size during iteration' error
+                    node_list = list(final_dict.keys())
+                    matched = False
+                    
                     for n in node_list:
-                        if n in node_to_compare:
-                            if n not in final_dict:
-                                final_dict[n] = {}
+                        # Only match if the key's value is already a dictionary (a node) 
+                        # and n is a substring of node_to_compare
+                        if isinstance(final_dict[n], dict) and n in node_to_compare:
                             final_dict[n][id_stat[1]] = e.get("value")
+                            matched = True
+                            break # Found the node, no need to keep looping
+                            
+                    # If we didn't find a matching node, create a new one
+                    if not matched:
+                        if node_to_compare not in final_dict:
+                            final_dict[node_to_compare] = {}
+                        final_dict[node_to_compare][id_stat[1]] = e.get("value")
 
                 elif entry_name in execution_stats:
                     id_stat = e.id.replace("#", "").split(".")

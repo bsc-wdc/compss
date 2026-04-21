@@ -74,10 +74,14 @@ def get_description_plot(metric, node_name="unknown node"):
     description_plots = {
         "cpu": f"Plot of {node_name} showing the percentage of CPU used during the execution",
         "mem": f"Plot of {node_name} showing the amount of memory used during the execution",
+        "gpu": f"Plot of {node_name} showing the percentage of GPU used during the execution",
+        "gpu_mem": f"Plot of {node_name} showing the amount of GPU memory used during the execution",
         "disk_usage": f"Plot of {node_name} showing the cumulative amount of data read and written on the disk during the execution",
         "network_usage": f"Plot of {node_name} showing the cumulative amount of data sent and received during the execution",
         "cpu_nodes": "Plot of the percentage of CPU used during the execution of all nodes used",
         "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
+        "gpu_nodes": "Plot of the percentage of GPU used during the execution of all nodes used",
+        "gpu_mem_nodes": "Plot of the percentage of GPU memory used during the execution of all nodes used",
         # The following plots represent bursts over time and are currently unused
         "bytes_read": "Plot of the amount of data read from the disk during the execution",
         "bytes_written": "Plot of the amount of data written from the disk during the execution",
@@ -368,6 +372,19 @@ def get_resource_information(resource_file: Path) -> dict:
         "byteSent": byte_sent_sum,
         "byteRecv": byte_recv_sum,
     }
+
+    if "GPU_USAGE" in resource_df.columns:
+        gpu_avg = round(sum(resource_df["GPU_USAGE"]) / len(resource_df), 2)
+        gpu_max = max(resource_df["GPU_USAGE"])
+        resource_properties["gpuAvg"] = gpu_avg
+        resource_properties["gpuMax"] = gpu_max
+        gpu_mem_avg = round(sum(resource_df["GPU_MEM"]) / len(resource_df), 2)
+        gpu_mem_max = max(resource_df["GPU_MEM"])
+        gpu_mem_min = min(resource_df["GPU_MEM"])
+        resource_properties["gpuMemAvg"] = gpu_mem_avg
+        resource_properties["gpuMemMax"] = gpu_mem_max
+        resource_properties["gpuMemMin"] = gpu_mem_min
+
     return resource_properties
 
 

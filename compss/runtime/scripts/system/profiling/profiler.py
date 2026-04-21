@@ -19,6 +19,8 @@ import time
 import socket
 from datetime import datetime
 import signal
+import shutil
+import platform
 
 # Flag to control the profiling loop
 profiling_active = True
@@ -66,6 +68,88 @@ def setup_signal_handlers():
 
     for sig in signals_to_handle:
         signal.signal(sig, end_profiling)
+
+
+def get_gpu_usage(architecture: str):
+    """
+    Execute the command to get the values of gpu usage for different architectures.
+
+    :param architecture: String specifying the GPU architecture ('nvidia', 'amd', 'intel', or 'apple')
+    :return: List containing [gpu_percentage, gpu_memory_percentage]
+    """
+
+    try:
+        if architecture == "nvidia":
+            cmd = "nvidia-smi --query-gpu=utilization.gpu,utilization.memory --format=csv,noheader,nounits"
+            result = subprocess.check_output(cmd, shell=True, text=True).strip().splitlines()[0].split(",")
+            return [x.strip() for x in result]
+
+        elif architecture == "amd":
+            # rocm-smi is the standard tool for AMD GPUs
+            # --csv flag forces output to: device,GPU use (%),GPU memory use (%)
+            cmd = "rocm-smi --showuse --showmemuse --csv"
+            output = subprocess.check_output(cmd, shell=True, text=True).strip().splitlines()
+            
+            # output[0] is the header, output[1] contains the actual data
+            if len(output) > 1:
+                result = output[1].split(",")
+                # Indices: 1 is GPU Use %, 2 is Mem Use % (0 is device name)
+                gpu_util = result[1].strip()
+                mem_util = result[2].strip()
+                return [gpu_util, mem_util]
+            return ["0", "0"]
+
+        elif architecture == "intel":
+            # Intel on Linux: Safest route without sudo is reading sysfs (if available)
+            # Paths vary based on kernel, but this is standard for modern i915 drivers
+            sysfs_path = "/sys/class/drm/card0/engine/rcs0/busy"
+            if os.path.exists(sysfs_path):
+                with open(sysfs_path, 'r') as f:
+                    gpu_util = f.read().strip()
+                return [gpu_util, "0"] # Sysfs rarely exposes VRAM util cleanly without extra tools
+            else:
+                print("PROVENANCE | PROFILING | WARNING: Intel sysfs path not found.")
+                return ["0", "0"]
+                
+        elif architecture == "apple":
+            # macOS Apple Silicon (M1/M2/M3)
+            # powermetrics requires sudo, but it's the standard way to get Apple GPU stats
+            print("PROVENANCE | PROFILING | WARNING: Apple GPU profiling requires 'sudo powermetrics'")
+            return ["0", "0"]
+
+        else:
+            print(f"PROVENANCE | PROFILING | ERROR: Unsupported GPU architecture '{architecture}'")
+            return ["0", "0"]
+
+    except subprocess.CalledProcessError as e:
+        print(f"PROVENANCE | PROFILING | ERROR: Failed to get {architecture.upper()} GPU usage: {e}")
+        return ["0", "0"]
+    except Exception as e:
+        print(f"PROVENANCE | PROFILING | ERROR: Unexpected error for {architecture.upper()}: {e}")
+        return ["0", "0"]
+
+
+def detect_profilable_gpu():
+    """
+    Detects which GPU vendor can be profiled based on available system tools.
+    """
+    # 1. Check for NVIDIA
+    if shutil.which("nvidia-smi") is not None:
+        return "nvidia"
+    
+    # 2. Check for AMD
+    if shutil.which("rocm-smi") is not None:
+        return "amd"
+    
+    # 3. Check for Apple Silicon (macOS)
+    if platform.system() == "Darwin" and platform.machine() == "arm64":
+        return "apple"
+        
+    # 4. Check for Intel (Linux sysfs path from our previous function)
+    if platform.system() == "Linux" and os.path.exists("/sys/class/drm/card0/engine/rcs0/busy"):
+        return "intel"
+
+    return "unknown"
 
 
 def _get_multiplication_factor() -> float:
@@ -337,9 +421,10 @@ def main():
     try:
         log_dir = sys.argv[1]
         is_master = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else False
+        check_gpu = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
     except IndexError:
         print("PROVENANCE | PROFILING | ERROR: Missing arguments.")
-        print("Usage: python profiler.py [log_dir] [is_master]")
+        print("Usage: python profiler.py [log_dir] [is_master] [check_gpu]")
         sys.exit(1)
 
     try:
@@ -353,7 +438,13 @@ def main():
     is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
     hostname = "localhost" if is_local else socket.gethostname()
 
-    to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
+    if check_gpu:
+        to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME,GPU_USAGE,GPU_MEM\n"
+        graphics_arch = detect_profilable_gpu()
+    else:
+        to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
+        graphics_arch = "unknown"
+
     counter = 0
 
     try:
@@ -369,6 +460,10 @@ def main():
         new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
             0, 0, 0, 0, ref_byte_sent, ref_byte_recv, profiling_interval, machine_os
         )
+
+        if check_gpu:
+            gpu_usage = get_gpu_usage(graphics_arch)
+            new_entry = f"{new_entry.strip()},{gpu_usage[0]},{gpu_usage[1]}\n"
 
         output_file.write(to_write_header)  # Write header
         output_file.write(new_entry)        # Write first entry
@@ -389,6 +484,10 @@ def main():
                 profiling_interval,
                 machine_os
             )
+
+            if check_gpu:
+                gpu_usage = get_gpu_usage(graphics_arch)
+                new_entry = f"{new_entry.strip()},{gpu_usage[0]},{gpu_usage[1]}\n"
 
             output_file.write(new_entry)
             output_file.flush()

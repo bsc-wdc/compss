@@ -329,40 +329,88 @@ def _render_resource_usage(action_tree, ca, verbose):
         # Calculate totals for non-verbose
         cpu_values = []
         mem_values = []
+        gpu_values = []
+        gpu_mem_values = []
 
         del_key = None
         master_avg_cpu = None
         master_avg_mem = None
+        master_avg_gpu = None
+        master_avg_gpu_mem = None
         for key, host_data in ru_dict.items():
             if "is_master" in host_data:
                 master_avg_cpu = host_data.get("cpuAvg")
                 master_avg_mem = host_data.get("memAvg")
+                # Try common GPU metric names on the master entry
+                master_avg_gpu = host_data.get("gpuAvg")
+                master_avg_gpu_mem = host_data.get("gpuMemAvg")
                 # We ingnore the data from the master to calculate the avg and merge entries
                 continue
             cpu = host_data.get("cpuAvg")
             mem = host_data.get("memAvg")
+            # GPU metrics per host (if present)
+            gpu = host_data.get("gpuAvg")
+            gpu_mem = host_data.get("gpuMemAvg")
             if cpu is not None:
                 cpu_values.append(float(cpu))
             if mem is not None:
                 mem_values.append(float(mem))
+            if gpu is not None:
+                gpu_values.append(float(gpu))
+            if gpu_mem is not None:
+                gpu_mem_values.append(float(gpu_mem))
         avg_cpu = (
             round(sum(cpu_values) / len(cpu_values), 2) if cpu_values else None
         )
         avg_mem = (
             round(sum(mem_values) / len(mem_values), 2) if mem_values else None
         )
+        avg_gpu = (
+            round(sum(gpu_values) / len(gpu_values), 2) if gpu_values else None
+        )
+        avg_gpu_mem = (
+            round(sum(gpu_mem_values) / len(gpu_mem_values), 2)
+            if gpu_mem_values
+            else None
+        )
 
         # Non-verbose
         if not verbose:
-            if avg_cpu and avg_mem:
-                usage_tree = action_tree.add(
-                    f"Resource Usage —— CPU [gold1]{avg_cpu} %[/] —— Mem [gold1]{avg_mem} %[/]"
-                )
-            else:
-                if master_avg_cpu or master_avg_mem:
-                    usage_tree = action_tree.add(
-                        f"Resource Usage —— CPU [gold1]{master_avg_cpu} %[/] —— Mem [gold1]{master_avg_mem} %[/]"
-                    )
+            sys_parts = []
+            gpu_parts = []
+
+            # System Metrics (Serious Cyan)
+            if avg_cpu is not None:
+                sys_parts.append(f"[gray62]CPU[/] [gold1]{avg_cpu} %[/]")
+            elif master_avg_cpu is not None:
+                sys_parts.append(f"[gray62]CPU[/] [gold1]{master_avg_cpu} %[/]")
+
+            if avg_mem is not None:
+                sys_parts.append(f"[gray62]Mem[/] [gold1]{avg_mem} %[/]")
+            elif master_avg_mem is not None:
+                sys_parts.append(f"[gray62]Mem[/] [gold1]{master_avg_mem} %[/]")
+
+            # GPU Metrics (Serious Magenta)
+            if avg_gpu is not None:
+                gpu_parts.append(f"[royal_blue1]GPU[/] [gold1]{avg_gpu} %[/]")
+            elif master_avg_gpu is not None:
+                gpu_parts.append(f"[royal_blue1]GPU[/] [gold1]{master_avg_gpu} %[/]")
+
+            if avg_gpu_mem is not None:
+                gpu_parts.append(f"[royal_blue1]GPU Mem[/] [gold1]{avg_gpu_mem} %[/]")
+            elif master_avg_gpu_mem is not None:
+                gpu_parts.append(f"[royal_blue1]GPU Mem[/] [gold1]{master_avg_gpu_mem} %[/]")
+
+            # Safely combine the groups with a pipe
+            combined_groups = []
+            if sys_parts:
+                combined_groups.append(" —— ".join(sys_parts))
+            if gpu_parts:
+                combined_groups.append(" —— ".join(gpu_parts))
+
+            if combined_groups:
+                final_string = " | ".join(combined_groups)
+                usage_tree = action_tree.add(f"Resource Usage —— {final_string}")
         else:
             # add to usage_tree
             usage_tree = action_tree.add(
@@ -383,7 +431,7 @@ def _render_resource_usage(action_tree, ca, verbose):
                         if "executionTime" in metric_value:
                             continue  # Ignore executionTime metric
                         executions = metric_value.get("executions")
-                        if executions == "None":
+                        if executions == "None" or executions is None:
                             # None comes as a string in the host_dict, not as a real None
                             executions = 0
                         else:
@@ -399,7 +447,7 @@ def _render_resource_usage(action_tree, ca, verbose):
                             host_tree.add(
                                 f"[cyan]{metric}[/] ({metric_value.get('executions', '')})"
                             )
-                # Deal with info about a machine direct metric
+                # Deal with info about a machine direct metric (CPU/Mem/GPU)
                 if "cpuAvg" in host_dict:
                     host_tree.add(
                         f"CPU: [gold1]{host_dict.get('cpuAvg', '')} %[/] —— [bright_red]{host_dict.get('cpuMax', '')} %"
@@ -418,6 +466,36 @@ def _render_resource_usage(action_tree, ca, verbose):
                         host_tree.add(f"Memory: [gold1]{avg_mem} %")
                     elif master_avg_mem:
                         host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
+
+                # GPU: only print if present
+                # GPU usage
+                if "gpuAvg" in host_dict or "gpuUsage" in host_dict:
+                    gavg = host_dict.get("gpuAvg", host_dict.get("gpuUsage", ""))
+                    gmax = host_dict.get("gpuMax", "")
+                    host_tree.add(f"GPU: [gold1]{gavg} %[/] —— [bright_red]{gmax} %")
+                elif host == "OVERALL":
+                    if avg_gpu:
+                        host_tree.add(f"GPU: [gold1]{avg_gpu} %")
+                    elif master_avg_gpu:
+                        host_tree.add(f"GPU: [gold1]{master_avg_gpu} %")
+
+                # GPU memory
+                if "gpuMemAvg" in host_dict or "gpuMem" in host_dict or "gpuMemoryAvg" in host_dict:
+                    gmem_avg = (
+                            host_dict.get("gpuMemAvg")
+                            or host_dict.get("gpuMem")
+                            or host_dict.get("gpuMemoryAvg")
+                    )
+                    gmem_max = host_dict.get("gpuMemMax", "")
+                    gmem_min = host_dict.get("gpuMemMin", "")
+                    host_tree.add(
+                        f"GPU Memory: [gold1]{gmem_avg} %[/] —— [bright_red]{gmem_max} %[/] —— [light_green]{gmem_min} %"
+                    )
+                elif host == "OVERALL":
+                    if avg_gpu_mem:
+                        host_tree.add(f"GPU Memory: [gold1]{avg_gpu_mem} %")
+                    elif master_avg_gpu_mem:
+                        host_tree.add(f"GPU Memory: [gold1]{master_avg_gpu_mem} %")
                 if host != "OVERALL":
                     host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"
 

@@ -95,9 +95,11 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
         value_list = [value / 10 ** 6 for value in value_list]
         measure = "Megabyte (MB)"
 
+    x_indices = range(len(time_list))
+
     # Use solid line with less frequent markers
     ax.plot(
-        time_list,
+        x_indices,
         value_list,
         marker='.',
         markersize=3,  # Smaller points
@@ -108,20 +110,20 @@ def build_plot(title, time_list, value_list, name_dataset, measure, num_entries)
     )
 
     timestamp_axis(num_entries, time_list)
+    ax.margins(x=0.01, y=0.05)
 
-    if avg_perc < 100:
-        plt.axhline(
-            avg_perc,
-            color=COLOR_PALETTE[1],
-            linestyle="--",
-            label=f"Average = {avg_perc}%"
-        )
+    plt.axhline(
+        avg_perc,
+        color=COLOR_PALETTE[1],
+        linestyle="--",
+        label=f"Average = {avg_perc}%"
+    )
 
     ax.set_title(title)
     ax.set_xlabel("Timestamp")
     ax.set_ylabel(measure)
     ax.grid(True)
-    ax.legend()
+    ax.legend(bbox_to_anchor=(1.005, 1), loc='upper left', borderaxespad=0.1)
 
 
 def plot_bytes(
@@ -158,8 +160,10 @@ def plot_bytes(
         second_df[i] = second_value + second_df[i]
 
     # Different line styles and markers for better distinction
+    x_indices = range(len(time_list))
+
     ax.plot(
-        time_list,
+        x_indices,
         first_df,
         color=COLOR_PALETTE[0],
         marker='s',
@@ -169,7 +173,7 @@ def plot_bytes(
         label=first_df_name
     )
     ax.plot(
-        time_list,
+        x_indices,
         second_df,
         color=COLOR_PALETTE[1],
         marker='^',
@@ -180,12 +184,34 @@ def plot_bytes(
     )
 
     timestamp_axis(num_entries, time_list)
+    ax.margins(x=0.01, y=0.05)
 
     ax.set_title(title)
     ax.set_xlabel("Timestamp")
     ax.set_ylabel("Megabyte (MB)")
     ax.grid(True)
-    ax.legend()
+    ax.legend(bbox_to_anchor=(1.005, 1), loc='upper left', borderaxespad=0.1)
+
+
+def _save_plot(file_path):
+    """
+        Function to save the plot in the specified file path
+        Prints an error message if the plot cannot be saved
+    :param file_path: pathname of the file to save the plot
+    :return:
+    """
+    try:
+        plt.savefig(file_path, format='svg', bbox_inches='tight', pad_inches=0.1)
+    except Exception as e:
+        print(f"PROVENANCE | PROFILING | WARNING: Could not save the plot to {file_path}. Exception: {e}")
+        return
+    finally:
+        plt.close()
+
+    if not os.path.exists(file_path):
+        print(f"PROVENANCE | PROFILING | WARNING: The plot file {file_path} was not created.")
+    elif os.path.getsize(file_path) == 0:
+        print(f"PROVENANCE | PROFILING | WARNING: The plot file {file_path} is empty.")
 
 
 def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
@@ -205,7 +231,7 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     plt.rcParams['lines.linewidth'] = 1.5
     plt.rcParams['lines.markersize'] = 3
 
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(18, 8))
 
     # Create custom legend handles for better distinction
     legend_elements = []
@@ -245,14 +271,17 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     labels = [time.strftime("%Y-%m-%d %H:%M:%S") for time in selected_times]
 
     plt.xticks(selected_times, labels=labels, rotation=80)
-    plt.subplots_adjust(top=0.95, bottom=0.25)
+    plt.subplots_adjust(top=0.95, bottom=0.12, left=0.06, right=0.92)
+
+    ax = plt.gca()
+    ax.margins(x=0.01, y=0.05)
 
     plt.xlabel("Timestamp")
     plt.ylabel(f"{name_metric} usage (%)")
     plt.title(f"{name_metric} usage among the nodes")
 
     # Use custom legend
-    plt.legend(handles=legend_elements)
+    plt.legend(handles=legend_elements, bbox_to_anchor=(1.005, 1), loc='upper left', borderaxespad=0.1)
 
     plt.grid(True)
     plt.tight_layout()
@@ -260,15 +289,16 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     # Save as SVG for vector format
     if name_plot.endswith('.svg'):
         name_plot = name_plot[:-4] + '.svg'
-    plt.savefig(name_plot, format='svg')
+    _save_plot(name_plot)
     plt.close()
 
 
-def plot_results(folder_pathname) -> str:
+def plot_results(folder_pathname, gpu_enabled: bool) -> str:
     """
     Function to store the plots generated
 
     :param folder_pathname: pathname of the directory containing the data
+    :param gpu_enabled: flag indicating whether GPU data is available
     :return plots_pathname: pathname of the directory containing the plots generated
     """
     folder_pathname = str(folder_pathname)
@@ -302,6 +332,8 @@ def plot_results(folder_pathname) -> str:
 
         cpu_usage = df["CPU"]
         mem_usage = df["MEM"]
+        gpu_usage = df["GPU_USAGE"] if gpu_enabled else None
+        gpu_mem = df["GPU_MEM"] if gpu_enabled else None
         byte_sent = df["BYTE_SENT"]
         byte_recv = df["BYTE_RECV"]
         byte_read_disk = df["BYTE_READ_DISK"]
@@ -322,7 +354,7 @@ def plot_results(folder_pathname) -> str:
             measure="CPU %",
             num_entries=df_length,
         )
-        plt.savefig(output_path + "/cpu.svg", format='svg')
+        _save_plot(output_path + "/cpu.svg")
         plt.close()
 
         build_plot(
@@ -333,8 +365,31 @@ def plot_results(folder_pathname) -> str:
             measure="Memory %",
             num_entries=df_length,
         )
-        plt.savefig(output_path + "/mem.svg", format='svg')
+        _save_plot(output_path + "/mem.svg")
         plt.close()
+
+        if gpu_enabled:
+            build_plot(
+                f"GPU usage of {machine_name}",
+                timestamps,
+                gpu_usage,
+                name_dataset="GPU",
+                measure="GPU %",
+                num_entries=df_length,
+            )
+            _save_plot(output_path + "/gpu.svg")
+            plt.close()
+
+            build_plot(
+                f"GPU Memory usage of {machine_name}",
+                timestamps,
+                gpu_mem,
+                name_dataset="GPU Memory",
+                measure="GPU Memory (MB)",
+                num_entries=df_length,
+            )
+            _save_plot(output_path + "/gpu_mem.svg")
+            plt.close()
 
         # if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
         #     plot_bytes(
@@ -378,6 +433,14 @@ def plot_results(folder_pathname) -> str:
             resampled_dfs, plots_pathname + "mem_nodes.svg", "MEM", "Memory", COLOR_PALETTE
         )
 
+        if gpu_enabled:
+            build_plot_nodes(
+                resampled_dfs, plots_pathname + "gpu_nodes.svg", "GPU_USAGE", "GPU", COLOR_PALETTE
+            )
+            build_plot_nodes(
+                resampled_dfs, plots_pathname + "gpu_mem_nodes.svg", "GPU_MEM", "GPU Memory", COLOR_PALETTE
+            )
+
     return plots_pathname
 
 
@@ -390,8 +453,16 @@ def generate_plots(stats_path) -> str:
     """
     plots_folder = None
     start_time = time.time()
+    gpu_enabled = False
     try:
-        plots_folder = plot_results(stats_path)
+        for fname in os.listdir(stats_path):
+            if fname.endswith("-MASTER.csv"):
+                fpath = os.path.join(stats_path, fname)
+                df = pd.read_csv(fpath, nrows=0)
+                if "GPU_USAGE" in df.columns:
+                    gpu_enabled = True
+                    break
+        plots_folder = plot_results(stats_path, gpu_enabled)
         elapsed_time = time.time() - start_time
         print(f"PROVENANCE | PROFILING | Profiling plots generation TIME: {elapsed_time:.2f} s.")
     except:

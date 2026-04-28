@@ -132,11 +132,11 @@ def add_dataset_file_to_crate(
             )
             # add_file_time = time.time() - add_file_time
     except AttributeError:
-        print(f"PROVENANCE WARNING | Could not process URL: {in_url}.")
+        print(f"PROVENANCE | WARNING: Could not process URL: {in_url}.")
         return in_url
     except FileNotFoundError:
         print(
-            f"PROVENANCE WARNING | Could not add file {url_parts}. The file does not exist."
+            f"PROVENANCE | WARNING: Could not add file {url_parts.path}. The file does not exist."
         )
         return in_url
 
@@ -359,7 +359,7 @@ def add_dataset_file_to_crate(
 
     # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
     except:
-        print(f"PROVENANCE WARNING | Could not add directory {url_parts}.")
+        print(f"PROVENANCE | WARNING: Could not add directory {url_parts.path}.")
 
     return fix_dir_url(in_url)
 
@@ -491,7 +491,7 @@ def add_file_to_crate(
     """
     if not source.exists():
         print(
-            f"PROVENANCE WARNING | File {source} does not exist. Could not be added to crate."
+            f"PROVENANCE | WARNING: File {source} does not exist. Could not be added to crate."
         )
         return None
 

@@ -52,6 +52,11 @@ def update_tasks_from_worker_logs(log_files: list[str], tasks: dict[int, Task]) 
             print(f"PROVENANCE DEBUG | Reading log file: {log_file}")
         with open(log_file, "r", encoding="UTF-8") as dp_file:
             for line in dp_file:
+                if line.strip() == "Empty file":
+                    print(
+                        f"PROVENANCE | WARNING: empty log file {log_file}"
+                    )
+                    return
                 try:
                     log_dict = parse_log_line(line)
                     task_id = log_dict["TASK"]

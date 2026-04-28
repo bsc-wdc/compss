@@ -180,9 +180,7 @@ def main():
 
     added_logs = set()
     job_logs_available = has_files(os.path.join(sys.argv[2], "jobs"))
-    successful_execution = (
-        int(os.environ.get("COMPSS_EXIT_CODE", "0")) == 0
-    )  # COMPSS_EXIT_CODE set in compss_setup.sh
+    exit_code = int(os.environ.get("COMPSS_EXIT_CODE", "0"))  # COMPSS_EXIT_CODE set in compss_setup.sh
 
     # Process general ins and outs of the workflow
     part_time = time.time()
@@ -211,6 +209,10 @@ def main():
         f"{time.time() - part_time} s"
     )
 
+    failed_tasks = False
+    canceled_tasks = False
+    executed_tasks = 0
+    steps = []
     # Compliance with RO-Crate WorkflowRun Level 3 profile, aka. Provenance Run Crate
     if PROVENANCE_RUN_ENABLED:
         # TASK AND PARAMETER PROCESSING IS THE MAIN SOURCE OF GENERATION TIME OVERHEAD RIGHT NOW FOR THE PROVENANCE RUN PART
@@ -218,20 +220,23 @@ def main():
 
         update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
 
-        steps = []
         step_control_actions = []
         added_formal_params = {}
         defined_tools = {}
         actual_to_formals = {}
-
+        
         # Process each task
         for task in tasks_dict.values():
-            successful_execution &= task.status in {
-                "FINISHED",
-                "RECOVERED",
-            }  # If tasks have been recovered from a checkpoint, the execution worked
             if task.tid == "master":
                 continue
+
+            if task.status == "FAILED":
+                failed_tasks = True
+            elif task.status == "CANCELED":
+                canceled_tasks = True
+            elif task.status in ["FINISHED", "RECOVERED"]:
+                # If the task has been recovered from a checkpoint, the execution worked
+                executed_tasks += 1
 
             # -------------------- PARAMETER-related ENTITIES -------------------- #
 
@@ -380,6 +385,39 @@ def main():
     # Can update Agent details from online search
 
     part_time = time.time()
+
+    # DETERMINE STATUS OF THE WHOLE WORKFLOW
+    workflow_status = "http://schema.org/ActiveActionStatus"
+    if PROVENANCE_RUN_ENABLED:
+        if failed_tasks:
+                workflow_status = "http://schema.org/FailedActionStatus"
+        else:
+            if exit_code in [130, 137, 143]:  # 128 + SIGINT (2), 128 + SIGKILL (9), 128 + SIGTERM (15)
+                workflow_status = "http://schema.org/PotentialActionStatus"
+            elif exit_code == 1:  # MN5 special case, wall_clock goes here. This case should not exist if exit_codes were correct at MN5
+                if len(steps) == executed_tasks:
+                    workflow_status = "http://schema.org/PotentialActionStatus"
+                else:
+                    workflow_status = "http://schema.org/FailedActionStatus"
+            elif exit_code == 0:
+                if len(steps) == executed_tasks:
+                    workflow_status = "http://schema.org/CompletedActionStatus"
+                else:  # Not all tasks have finished, but no errors have been detected. Potential start from a checkpoint
+                    if executed_tasks == 0:  # No checkpoint since first batch of tasks was stopped
+                        workflow_status = "http://schema.org/PotentialActionStatus"
+                    else:
+                        workflow_status = "http://schema.org/ActiveActionStatus"
+            else:  # Any other exit_code
+                workflow_status = "http://schema.org/FailedActionStatus"
+    else:  # We can only trust exit_code
+        if exit_code == 0:
+            workflow_status = "http://schema.org/CompletedActionStatus"
+        elif exit_code in [130, 137, 143]:  # 128 + SIGINT (2), 128 + SIGKILL (9), 128 + SIGTERM (15)
+            workflow_status = "http://schema.org/PotentialActionStatus"
+        else:
+            # exit_code == 1 used by default to detect failures, goes here, and the rest of codes
+            workflow_status = "http://schema.org/FailedActionStatus"
+
     fixed_ins = sorted(fixed_ins)  # Avoid duplicating memory footprint
     fixed_outs = sorted(fixed_outs)  # Avoid duplicating memory footprint
     main_create_action, agent = wrroc_create_action(
@@ -394,7 +432,7 @@ def main():
         dt.datetime.fromisoformat(end_time),
         run_uuid,
         auxiliary_file_list,
-        successful_execution,
+        workflow_status,
         PROVENANCE_RUN_ENABLED,
     )
     print(
@@ -485,6 +523,22 @@ if __name__ == "__main__":
         STATS_PATH = PATH_LOG / "stats/"
         PLOTS_PATH = PATH_LOG / "stats/plots/"
         # Find all static_binding_dp.out and static_worker_dp.out files in the workers folder recursively:
-        WORKER_LOGS = sorted((PATH_LOG / "workers").glob("*/Log/static_*_dp.out*"))
+        # WORKER_LOGS = sorted((PATH_LOG / "workers").glob("*/Log/static_*_dp.out*"))
+        workers_dir = PATH_LOG / "workers"
+        WORKER_LOGS = []
+        for subdir in sorted(p for p in workers_dir.iterdir() if p.is_dir()):
+            log_dir = subdir / "Log"
+            binding = list(log_dir.glob("static_binding_dp.out"))
+            worker = list(log_dir.glob("static_worker_dp.out"))
+            WORKER_LOGS.extend(binding + worker)
+            if not binding:
+                print(
+                f"PROVENANCE | WARNING: static_binding_dp.out log file missing from host {subdir.name}. Task information may be limited"
+            )
+            if not worker:
+                print(
+                f"PROVENANCE | WARNING: static_worker_dp.out log file missing from host {subdir.name}. Task information may be limited"
+            )
+        WORKER_LOGS = sorted(WORKER_LOGS)
 
     main()

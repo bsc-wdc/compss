@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 class _CrateContext:
     crate_path: str
     crate: ROCrate
+    is_compss_wf: bool = False
     root: Entity | None = None
     main_entity: Entity | None = None
     create_action: Entity | None = None
@@ -49,6 +50,42 @@ class _CrateContext:
             "total": 0,
         }
     )
+    
+
+# When we add Network and Disk metrics this will simplify the changes
+AVG_METRICS = ["cpuAvg", "memAvg", "gpuAvg", "gpuMemAvg"]
+
+# Only a new dictionary entry will be needed
+METRIC_CONFIG = {
+    "cpu": {
+        "avg": "cpuAvg",
+        "max": "cpuMax",
+        "min": None,
+        "label": "CPU",
+        "unit": "%",
+    },
+    "mem": {
+        "avg": "memAvg",
+        "max": "memMax",
+        "min": "memMin",
+        "label": "Memory",
+        "unit": "%",
+    },
+    "gpu": {
+        "avg": ["gpuAvg", "gpuUsage"],  # Internal fallback
+        "max": "gpuMax",
+        "min": None,
+        "label": "GPU",
+        "unit": "%",
+    },
+    "gpu_mem": {
+        "avg": ["gpuMemAvg", "gpuMem", "gpuMemoryAvg"],
+        "max": "gpuMemMax",
+        "min": "gpuMemMin",
+        "label": "GPU Memory",
+        "unit": "%",
+    },
+}
 
 
 # ############# #
@@ -220,8 +257,15 @@ def _format_author(author):
         f"{f' [cyan]({email})[/]' if email else ''}"
     )
 
+def format_dt(dt):
+    return (
+        dt.strftime('%A, %d of %B of %Y - %H:%M:%S')
+        + f".{dt.microsecond // 1000:03d} "
+        + dt.strftime('%Z')
+    )
 
-def _render_times(action_tree, ca, verbose):
+
+def _render_times(action_tree, ca, verbose, task=False):
     start_time = end_time = None
     if ca.get("startTime"):
         try:
@@ -239,19 +283,24 @@ def _render_times(action_tree, ca, verbose):
     time_details = None
     if start_time and end_time:
         total_time = end_time - start_time
-        time_details = action_tree.add(
-            f"Execution Time —— [magenta]{total_time} s[/magenta]"
-        )
-    if verbose and (start_time or end_time):
+        if not task:
+            time_details = action_tree.add(
+                f"Execution Time —— [magenta]{total_time} s[/magenta]"
+            )
+        else:
+            time_details = action_tree.add(
+                    f"Execution Time: [magenta]{total_time.total_seconds() * 1000:,.3f} ms[/magenta]"
+                )
+    if (verbose or task) and (start_time or end_time):
         if not time_details:
             time_details = action_tree.add(f"Execution Time")
         if start_time:
             time_details.add(
-                f"Start Time —— [green]{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+                f"Start Time —— [green]{format_dt(start_time)}[/green]"
             )
         if end_time:
             time_details.add(
-                f"End Time   —— [green]{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}[/green]"
+                f"End Time   —— [green]{format_dt(end_time)}[/green]"
             )
 
 
@@ -296,208 +345,219 @@ def _render_host_info(tree, crate, ca):
         )
 
 
-def _render_resource_usage(action_tree, ca, verbose):
-    if "resourceUsage" in ca:
-        # Create a dictionary with Resource Usage info, then print it
-        ru_dict = {}
-        for e in ca["resourceUsage"]:
-            is_master = False
-            keys = e.get("@id", "").split(".")
-            value = e.get("value", "")
-            host = keys[0].lstrip("#").removesuffix("-ib0")
-            if host.endswith("-MASTER"):
-                host = host.removesuffix("-MASTER")
-                is_master = True
-            if host == "overall":
-                host = host.upper()
-            if host not in ru_dict:
-                ru_dict[host] = {}
-            if is_master:
-                ru_dict[host]["is_master"] = True
-            if len(keys) == 2:
-                # Metric id: #[host|host-MASTER].metric_name
-                metric = keys[1]
-                ru_dict[host][metric] = value
-            elif len(keys) >= 3:
-                # Metric id's are: #[overall|host].filename.method_name.metric_name
-                method = ".".join(keys[1:-1])
-                if method not in ru_dict[host]:
-                    ru_dict[host][method] = {}
-                metric = keys[-1]
-                ru_dict[host][method][metric] = value
+def _parse_host(raw):
+    host = raw.lstrip("#").removesuffix("-ib0")
+    is_master = host.endswith("-MASTER")
+    if is_master:
+        host = host.removesuffix("-MASTER")
+    if host == "overall":
+        host = "OVERALL"
 
-        # Calculate totals for non-verbose
-        cpu_values = []
-        mem_values = []
-        gpu_values = []
-        gpu_mem_values = []
+    return host, is_master
 
-        del_key = None
-        master_avg_cpu = None
-        master_avg_mem = None
-        master_avg_gpu = None
-        master_avg_gpu_mem = None
-        for key, host_data in ru_dict.items():
-            if "is_master" in host_data:
-                master_avg_cpu = host_data.get("cpuAvg")
-                master_avg_mem = host_data.get("memAvg")
-                # Try common GPU metric names on the master entry
-                master_avg_gpu = host_data.get("gpuAvg")
-                master_avg_gpu_mem = host_data.get("gpuMemAvg")
-                # We ingnore the data from the master to calculate the avg and merge entries
-                continue
-            cpu = host_data.get("cpuAvg")
-            mem = host_data.get("memAvg")
-            # GPU metrics per host (if present)
-            gpu = host_data.get("gpuAvg")
-            gpu_mem = host_data.get("gpuMemAvg")
-            if cpu is not None:
-                cpu_values.append(float(cpu))
-            if mem is not None:
-                mem_values.append(float(mem))
-            if gpu is not None:
-                gpu_values.append(float(gpu))
-            if gpu_mem is not None:
-                gpu_mem_values.append(float(gpu_mem))
-        avg_cpu = (
-            round(sum(cpu_values) / len(cpu_values), 2) if cpu_values else None
+
+def _build_ru_dict(resource_usage):
+    ru_dict = {}
+
+    for e in resource_usage:
+        keys = e.get("@id", "").split(".")
+        value = e.get("value", "")
+        host, is_master = _parse_host(keys[0])
+        host_dict = ru_dict.setdefault(host, {})
+        if is_master:
+            host_dict["is_master"] = True
+        if len(keys) == 2:
+            # Metric id: #[host|host-MASTER].metric_name
+            host_dict[keys[1]] = value
+        elif len(keys) >= 3:
+            # Metric id's are: #[overall|host].filename.method_name.metric_name
+            method = ".".join(keys[1:-1])
+            metric = keys[-1]
+            host_dict.setdefault(method, {})[metric] = value
+
+    return ru_dict
+
+
+def _compute_averages(ru_dict):
+    values = {m: [] for m in AVG_METRICS}
+    master = {}
+    for host_data in ru_dict.values():
+        if host_data.get("is_master"):
+            for m in AVG_METRICS:
+                master[m] = host_data.get(m)
+            continue
+        for m in AVG_METRICS:
+            if host_data.get(m) is not None:
+                values[m].append(float(host_data[m]))
+
+    averages = {
+        m: round(sum(v) / len(v), 2) if v else None
+        for m, v in values.items()
+    }
+
+    return averages, master
+
+
+def _format_metric(label, avg, master):
+    value = avg if avg is not None else master
+    if value is None:
+        return None
+    return f"{label} [gold1]{value} %[/]"
+
+
+def _render_summary(action_tree, ca, averages, master):
+    sys_parts = []
+    gpu_parts = []
+
+    # System Metrics (Serious Cyan)
+    # GPU Metrics (Serious Magenta)
+    mapping = {
+        "cpuAvg": ("[gray62]CPU[/]", sys_parts),
+        "memAvg": ("[gray62]Mem[/]", sys_parts),
+        "gpuAvg": ("[royal_blue1]GPU[/]", gpu_parts),
+        "gpuMemAvg": ("[royal_blue1]GPU Mem[/]", gpu_parts),
+    }
+
+    for key, (label, target) in mapping.items():
+        formatted = _format_metric(label, averages[key], master.get(key))
+        if formatted:
+            target.append(formatted)
+
+    # Safely combine the groups with a pipe
+    groups = []
+    if sys_parts:
+        groups.append(" —— ".join(sys_parts))
+    if gpu_parts:
+        groups.append(" —— ".join(gpu_parts))
+
+    if groups:
+        action_tree.add(f"Resource Usage —— {' | '.join(groups)}")
+    else:
+        action_tree.add(
+            f"Resource Usage —— [dark_goldenrod]{len(ca['resourceUsage'])} values[/]"
         )
-        avg_mem = (
-            round(sum(mem_values) / len(mem_values), 2) if mem_values else None
-        )
-        avg_gpu = (
-            round(sum(gpu_values) / len(gpu_values), 2) if gpu_values else None
-        )
-        avg_gpu_mem = (
-            round(sum(gpu_mem_values) / len(gpu_mem_values), 2)
-            if gpu_mem_values
-            else None
-        )
 
-        # Non-verbose
-        if not verbose:
-            sys_parts = []
-            gpu_parts = []
 
-            # System Metrics (Serious Cyan)
-            if avg_cpu is not None:
-                sys_parts.append(f"[gray62]CPU[/] [gold1]{avg_cpu} %[/]")
-            elif master_avg_cpu is not None:
-                sys_parts.append(f"[gray62]CPU[/] [gold1]{master_avg_cpu} %[/]")
+def _render_methods(host_tree, host, host_dict):
+    executed_tasks = 0
 
-            if avg_mem is not None:
-                sys_parts.append(f"[gray62]Mem[/] [gold1]{avg_mem} %[/]")
-            elif master_avg_mem is not None:
-                sys_parts.append(f"[gray62]Mem[/] [gold1]{master_avg_mem} %[/]")
-
-            # GPU Metrics (Serious Magenta)
-            if avg_gpu is not None:
-                gpu_parts.append(f"[royal_blue1]GPU[/] [gold1]{avg_gpu} %[/]")
-            elif master_avg_gpu is not None:
-                gpu_parts.append(f"[royal_blue1]GPU[/] [gold1]{master_avg_gpu} %[/]")
-
-            if avg_gpu_mem is not None:
-                gpu_parts.append(f"[royal_blue1]GPU Mem[/] [gold1]{avg_gpu_mem} %[/]")
-            elif master_avg_gpu_mem is not None:
-                gpu_parts.append(f"[royal_blue1]GPU Mem[/] [gold1]{master_avg_gpu_mem} %[/]")
-
-            # Safely combine the groups with a pipe
-            combined_groups = []
-            if sys_parts:
-                combined_groups.append(" —— ".join(sys_parts))
-            if gpu_parts:
-                combined_groups.append(" —— ".join(gpu_parts))
-
-            if combined_groups:
-                final_string = " | ".join(combined_groups)
-                usage_tree = action_tree.add(f"Resource Usage —— {final_string}")
-        else:
-            # add to usage_tree
-            usage_tree = action_tree.add(
-                f"Resource Usage ([cyan]method_name[/] (invocations): [gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)"
+    for metric, value in host_dict.items():
+        if not isinstance(value, dict):
+            continue
+        if "executionTime" in value:
+            continue  # Ignore executionTime metric
+        executions = value.get("executions")
+        executions = 0 if executions in (None, "None") else int(executions)
+        if host != "OVERALL" and executions == 0:
+            continue  # Do not print if no executions in a host, but print in the OVERALL
+        executed_tasks += executions
+        if executions > 0:
+            host_tree.add(
+                f"[cyan]{metric}[/] ({executions}): "
+                f"[gold1]{fmt(value.get('avgTime', ''))}[/] —— "
+                f"[bright_red]{fmt(value.get('maxTime', ''))}[/] —— "
+                f"[light_green]{fmt(value.get('minTime', ''))}"
             )
-            for host, host_dict in sorted(ru_dict.items()):
-                host_executed_tasks = 0
-                master_text = (
-                    " (master node)" if "is_master" in host_dict else ""
-                )
-                if host != "OVERALL":
-                    host_tree = usage_tree.add(f"[blue]{host}{master_text}")
-                else:
-                    host_tree = usage_tree.add(f"[gold1]Overall Statistics")
-                for metric, metric_value in host_dict.items():
-                    if isinstance(metric_value, dict):
-                        # Info about a method
-                        if "executionTime" in metric_value:
-                            continue  # Ignore executionTime metric
-                        executions = metric_value.get("executions")
-                        if executions == "None" or executions is None:
-                            # None comes as a string in the host_dict, not as a real None
-                            executions = 0
-                        else:
-                            executions = int(executions)
-                        if host != "OVERALL" and executions == 0:
-                            continue  # Do not print if no executions in a host, but print in the OVERALL
-                        host_executed_tasks += executions
-                        if executions > 0:
-                            host_tree.add(
-                                f"[cyan]{metric}[/] ({metric_value.get('executions', '')}): [gold1]{fmt(metric_value.get('avgTime', ''))}[/] —— [bright_red]{fmt(metric_value.get('maxTime', ''))}[/] —— [light_green]{fmt(metric_value.get('minTime', ''))}"
-                            )
-                        else:
-                            host_tree.add(
-                                f"[cyan]{metric}[/] ({metric_value.get('executions', '')})"
-                            )
-                # Deal with info about a machine direct metric (CPU/Mem/GPU)
-                if "cpuAvg" in host_dict:
-                    host_tree.add(
-                        f"CPU: [gold1]{host_dict.get('cpuAvg', '')} %[/] —— [bright_red]{host_dict.get('cpuMax', '')} %"
-                    )
-                elif host == "OVERALL":
-                    if avg_cpu:
-                        host_tree.add(f"CPU: [gold1]{avg_cpu} %")
-                    elif master_avg_cpu:
-                        host_tree.add(f"CPU: [gold1]{master_avg_cpu} %")
-                if "memAvg" in host_dict:
-                    host_tree.add(
-                        f"Memory: [gold1]{host_dict.get('memAvg', '')} %[/] —— [bright_red]{host_dict.get('memMax', '')} %[/] —— [light_green]{host_dict.get('memMin', '')} %"
-                    )
-                elif host == "OVERALL":
-                    if avg_mem:
-                        host_tree.add(f"Memory: [gold1]{avg_mem} %")
-                    elif master_avg_mem:
-                        host_tree.add(f"Memory: [gold1]{master_avg_mem} %")
+        else:
+            host_tree.add(f"[cyan]{metric}[/] ({executions})")
 
-                # GPU: only print if present
-                # GPU usage
-                if "gpuAvg" in host_dict or "gpuUsage" in host_dict:
-                    gavg = host_dict.get("gpuAvg", host_dict.get("gpuUsage", ""))
-                    gmax = host_dict.get("gpuMax", "")
-                    host_tree.add(f"GPU: [gold1]{gavg} %[/] —— [bright_red]{gmax} %")
-                elif host == "OVERALL":
-                    if avg_gpu:
-                        host_tree.add(f"GPU: [gold1]{avg_gpu} %")
-                    elif master_avg_gpu:
-                        host_tree.add(f"GPU: [gold1]{master_avg_gpu} %")
+    return executed_tasks
 
-                # GPU memory
-                if "gpuMemAvg" in host_dict or "gpuMem" in host_dict or "gpuMemoryAvg" in host_dict:
-                    gmem_avg = (
-                            host_dict.get("gpuMemAvg")
-                            or host_dict.get("gpuMem")
-                            or host_dict.get("gpuMemoryAvg")
-                    )
-                    gmem_max = host_dict.get("gpuMemMax", "")
-                    gmem_min = host_dict.get("gpuMemMin", "")
-                    host_tree.add(
-                        f"GPU Memory: [gold1]{gmem_avg} %[/] —— [bright_red]{gmem_max} %[/] —— [light_green]{gmem_min} %"
-                    )
-                elif host == "OVERALL":
-                    if avg_gpu_mem:
-                        host_tree.add(f"GPU Memory: [gold1]{avg_gpu_mem} %")
-                    elif master_avg_gpu_mem:
-                        host_tree.add(f"GPU Memory: [gold1]{master_avg_gpu_mem} %")
-                if host != "OVERALL":
-                    host_tree.label = f"[blue]{host}{master_text}[/] ({host_executed_tasks} tasks executed)"
+
+def _get_metric(host_dict, metric_key):
+    # Returns first available value (supports list or string)
+    if isinstance(metric_key, list):
+        for k in metric_key:
+            if k in host_dict:
+                return host_dict[k]
+        return None
+    return host_dict.get(metric_key)
+
+
+def _fallback(metric, averages, master):
+    val = averages.get(metric)
+    if val is not None:
+        return val
+    return master.get(metric)
+
+
+def _render_host_metrics(host_tree, host, host_dict, averages, master):
+    # METRIC_CONFIG simplifies adding new metrics, so it is ready for Network and Disk data
+    for cfg in METRIC_CONFIG.values():
+        avg_key = cfg["avg"]
+        max_key = cfg["max"]
+        min_key = cfg["min"]
+
+        # AVG
+        avg_val = _get_metric(host_dict, avg_key)
+        # No avg_val means use fallback in OVERALL
+        if avg_val is None and host == "OVERALL":
+            if isinstance(avg_key, list):
+                for k in avg_key:
+                    avg_val = _fallback(k, averages, master)
+                    if avg_val is not None:
+                        break
+            else:
+                avg_val = _fallback(avg_key, averages, master)
+        if avg_val is None:
+            continue  
+
+        # MAX / MIN
+        max_val = _get_metric(host_dict, max_key) if max_key else None
+        min_val = _get_metric(host_dict, min_key) if min_key else None
+
+        # Final string
+        parts = [f"[gold1]{avg_val} {cfg['unit']}[/]"]
+        if max_val is not None:
+            parts.append(f"[bright_red]{max_val} {cfg['unit']}[/]")
+        if min_val is not None:
+            parts.append(f"[light_green]{min_val} {cfg['unit']}[/]")
+        host_tree.add(f"{cfg['label']}: " + " —— ".join(parts))
+
+
+def _render_verbose(action_tree, ru_dict, averages, master):
+    usage_tree = action_tree.add(
+        "Resource Usage ([cyan]method_name[/] (invocations): "
+        "[gold1]Avg[/] —— [bright_red]Max[/] —— [light_green]Min[/] time in ms)"
+    )
+    total_tasks = 0
+    for host, host_dict in sorted(ru_dict.items()):
+        is_master = host_dict.get("is_master", False)
+        master_text = " (master node)" if is_master else ""
+
+        if host != "OVERALL":
+            host_tree = usage_tree.add(f"[blue]{host}{master_text}")
+        else:
+            host_tree = usage_tree.add("[gold1]Overall Statistics")
+            overall_tree = host_tree
+
+        executed_tasks = _render_methods(host_tree, host, host_dict)
+        _render_host_metrics(host_tree, host, host_dict, averages, master)
+
+        if host != "OVERALL":
+            total_tasks += executed_tasks
+            host_tree.label = (
+                f"[blue]{host}{master_text}[/] "
+                f"({executed_tasks} tasks executed)"
+            )
+
+    overall_tree.label = (
+        f"[gold1]Overall Statistics[/] "
+        f"({total_tasks} tasks executed)"
+    )
+
+
+def _render_resource_usage(action_tree, ca, verbose, is_compss_wf):
+    if "resourceUsage" not in ca:
+        return
+    if not is_compss_wf:
+        return _render_non_compss_resource_usage(action_tree, ca, verbose)
+    ru_dict = _build_ru_dict(ca["resourceUsage"])
+    averages, master_avgs = _compute_averages(ru_dict)
+    if not verbose:
+        _render_summary(action_tree, ca, averages, master_avgs)
+    else:
+        _render_verbose(action_tree, ru_dict, averages, master_avgs)
 
 
 def _render_agent(action_tree, ca):
@@ -539,6 +599,26 @@ def _render_environment(action_tree, ca, verbose):
         else:
             action_tree.add(
                 f"Environment —— [dark_goldenrod]{len(ca['environment'])} variables [/dark_goldenrod]"
+            )
+
+        
+def _render_non_compss_resource_usage(action_tree, ca, verbose):
+    if ca.get("resourceUsage"):
+        if verbose:
+            usage_tree = action_tree.add("Resource Usage")
+            for res in ca["resourceUsage"]:
+                # unitCode can be Text or URL in schema.org
+                unit = res.get('unitCode', '').split('/')[-1]
+                val_id = res.get("propertyID") or res.get("@id", "") 
+                usage_tree.add(
+                    f"[dark_goldenrod]{res.get('name', '')}[/dark_goldenrod] = "
+                    f"[green]{res.get('value', '')}[/green]"
+                    f"{f' {unit}' if unit else ''} "
+                    f"[dim]({f'{val_id}' if val_id else ''})[/dim]"
+                )
+        else:
+            action_tree.add(
+                f"Resource Usage —— [dark_goldenrod]{len(ca['resourceUsage'])} values [/dark_goldenrod]"
             )
 
 
@@ -629,24 +709,39 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
         # Compatibility with non-COMPSs crates
         action_tree.add(f"Name —— [green]{ca_name}")
 
+    # Status
+    compss_exit_code_text = ""
+    compss_exit_code_e = ctx.crate.get("#compss_exit_code", None)
+    if compss_exit_code_e:
+        compss_exit_code_text = (
+            f" ([dark_goldenrod]{compss_exit_code_e['name']}[/dark_goldenrod] = [green]{compss_exit_code_e['value']}[/green])"
+        )
+
     # actionStatus
     if main_ca_status := ca.get("actionStatus", ""):
     # actionStatus potential values: ActiveActionStatus, CompletedActionStatus, FailedActionStatus, PotentialActionStatus
         if "Completed" in main_ca_status:
-            action_tree.add(f"Status —— {'[yellow]COMPLETED[/yellow]'}")
+            status_string = '[yellow]COMPLETED[/]'
         elif "Failed" in main_ca_status:
-            action_tree.add(f"Status —— {'[red]FAILED[/red]'}")
+            status_string = '[red]FAILED[/]'
+        elif "Potential" in main_ca_status:
+            status_string = '[yellow]CANCELED[/]'
+        elif "Active" in main_ca_status:
+            # This is to identify potential runs that have been checkpointed. Did not finish, but nor a single task failed or was canceled
+            # ACTIVE -> if you used checkpointing, you can continue the run
+            status_string = '[cyan]ACTIVE[/]'
+        action_tree.add(f"Status —— {status_string}{compss_exit_code_text}")
 
     # Task summary
     if ctx.task_stats['total'] != 0:
         # Can't trust m_e.get("step"), since Process Run can have executed tasks but no steps defined 
         task_tree = action_tree.add(
-            f"Executed Tasks: {ctx.task_stats['total']} —— [green]COMPLETED: {ctx.task_stats['completed']}[/green] —— [red]FAILED: {ctx.task_stats['failed']}[/red] —— [yellow]CANCELED: {ctx.task_stats['canceled']}[/yellow]"
+            f"Scheduled Tasks: {ctx.task_stats['total']} —— [green]COMPLETED: {ctx.task_stats['completed']}[/green] —— [red]FAILED: {ctx.task_stats['failed']}[/red] —— [yellow]CANCELED: {ctx.task_stats['canceled']}[/yellow]"
         )
 
     _render_times(action_tree, ca, verbose)
     _render_host_info(action_tree, ctx.crate, ca)
-    _render_resource_usage(action_tree, ca, verbose)
+    _render_resource_usage(action_tree, ca, verbose, ctx.is_compss_wf)
     _render_agent(action_tree, ca)
     if verbose:
         _render_submission(action_tree, ctx)
@@ -815,6 +910,11 @@ def _inspect_crate(path, crate: ROCrate) -> _CrateContext:
     ctx.root = crate.root_dataset
     ctx.main_entity = ctx.root.get("mainEntity")
     _collect_profiles(ctx, crate.root_dataset)
+
+    if crate.mainEntity.get("programmingLanguage").id == "#compss":
+        ctx.is_compss_wf = True
+    else:
+        ctx.is_compss_wf = False
 
     for e in crate.get_entities():
         if "CreateAction" in e.type:
@@ -1129,23 +1229,7 @@ def local_inspect_tasks(
                 task_tree[task_id].add(f"Description: [grey50]{method_desc}[/grey50]")
 
             # —— EXECUTION TIME ——
-            start_time = end_time = None
-            if e.get("startTime"):
-                try:
-                    start_time = datetime.fromisoformat(e.get("startTime"))
-                except (TypeError, ValueError):
-                    start_time = None
-            if e.get("endTime"):
-                try:
-                    end_time = datetime.fromisoformat(e.get("endTime"))
-                except (TypeError, ValueError):
-                    end_time = None
-
-            if start_time and end_time:
-                execution_time = end_time - start_time
-                task_tree[task_id].add(
-                    f"Execution Time: [magenta]{execution_time.total_seconds() * 1000:,.3f} ms[/magenta]"
-                )
+            _render_times(task_tree[task_id], e, verbose=True, task=True)
 
             # —— HOST ——
             host = None

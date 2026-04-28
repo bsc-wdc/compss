@@ -400,7 +400,7 @@ def wrroc_create_action(
     end_time: datetime,
     run_uuid: str,
     auxiliary_file_list: list,
-    successful_execution: bool,
+    execution_status: str,
     provenance_run_enabled: bool,
 ) -> tuple[ContextEntity, dict]:
     """
@@ -418,7 +418,7 @@ def wrroc_create_action(
     :param end_time: Time where the COMPSs application execution ended
     :param run_uuid: UUID generated for this run
     :param auxiliary_file_list: list of the auxiliary file contained in the instruments
-    :param successful_execution: The status of the workflow execution (True if successful, False otherwise).
+    :param execution_status: String on the status of the workflow execution in schema.org format
     """
     # Define useful pathnames of file/directory in log directory
     energy_path = log_dir / "energy/"
@@ -498,10 +498,14 @@ def wrroc_create_action(
                     "MV2_",
                     "MKL_",
                     "SRUN_",
+                    "JAVA_",
+                    "I_MPI_",
+                    "SRUN_",
                 )
             )
             and name != "SLURM_JOBID"
-        ) or (("THREADS" or "MPI") in name):
+        ) or (any(x in name for x in ("THREADS", "MPI"))
+        ) or (name in ["PATH", "CLASSPATH", "PYTHONPATH", "LD_LIBRARY_PATH"]):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}
             env_var["@type"] = "PropertyValue"
@@ -654,7 +658,7 @@ def wrroc_create_action(
         "@type": "CreateAction",
         "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
         "actionStatus": {
-            "@id": f"{'http://schema.org/CompletedActionStatus' if successful_execution else 'http://schema.org/FailedActionStatus'}"
+            "@id": execution_status
         },
         "endTime": end_time.isoformat(),  # endTime of the application corresponds to the start of the provenance generation
         "name": name_property,

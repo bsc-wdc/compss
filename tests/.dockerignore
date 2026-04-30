@@ -1,0 +1,18 @@
+# Java
+**/*.class
+**/*.jar
+**/target
+
+# Python
+**/__pycache__
+**/*.py[cod]
+**/*.so
+
+# Docker
+**/*Dockerfile
+**/.dockerignore
+**/*.hcl
+
+# Project
+**/update_images
+scripts/docker_test

@@ -92,7 +92,7 @@ def reduceCentersTask(a, b):
 def has_converged(mu, oldmu, epsilon, iter, maxIterations):
     print("iter: " + str(iter))
     print("maxIterations: " + str(maxIterations))
-    if oldmu != []:
+    if len(oldmu) != 0:
         if iter < maxIterations:
             aux = [np.linalg.norm(oldmu[i] - mu[i]) for i in range(len(mu))]
             distancia = sum(aux)

@@ -119,8 +119,9 @@ command_exists () {
 # WARN: Sets global uuid variable
 ###############################################
 get_uuid() {
-  uuid=$(uuidgen)
-  if [ -z "$uuid" ]; then
+  if command -v uuidgen > /dev/null ; then
+    uuid=$(uuidgen)
+  else
     uuid=$(cat /proc/sys/kernel/random/uuid)
   fi
 }

@@ -41,6 +41,7 @@ class PyCOMPSsException(Exception):
         msg = f"PyCOMPSs Exception: {message}"
         super().__init__(msg)
 
+
 class WallClockException(PyCOMPSsException):
     """Generic PyCOMPSs exception class."""
 
@@ -48,6 +49,7 @@ class WallClockException(PyCOMPSsException):
         """Create a new PyCOMPSsException instance."""
         msg = "Application has reached its wall clock limit."
         super().__init__(msg)
+
 
 class NotInPyCOMPSsException(Exception):
     """Not within PyCOMPSs scope exception class."""

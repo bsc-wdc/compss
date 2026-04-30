@@ -26,8 +26,8 @@ JACOCO_VERSION="0.8.5"
 #---------------------------------------------------
 # DEFAULTS
 #---------------------------------------------------
-DEFAULT_INSTALL_DIR="${HOME}/opt/COMPSs-deps"
-DEFAULT_MPI_HEADERS="/usr/include/x86_64-linux-gnu/mpi"
+DEFAULT_INSTALL_DIR="/opt/COMPSs/Dependencies"
+DEFAULT_MPI_HEADERS="/usr/include/$(uname -m)-linux-gnu/mpi"
 #DEFAULT_BINUTILS_PATH="/usr"
 DEFAULT_INSTALL_EXTRAE=true
 DEFAULT_INSTALL_DLB=true

@@ -51,14 +51,14 @@
   #          execute the task
   exit_value=0
   if [ "${comm}" == "es.bsc.compss.nio.master.NIOAdaptor" ]; then
-    processorExpected='[{"type":"CPU","computing_units":2,"speed":2.4,"internal_memory":-1,"architecture":"amd64","prop_name":"ThreadAffinity","prop_value":"Big"}]'
+    processorExpected='[{"type":"CPU","computing_units":2,"speed":2.4,"internal_memory":-1.0,"architecture":"amd64","prop_name":"ThreadAffinity","prop_value":"Big"}]'
     generalExpected='{"total_cpus":1,"total_cpu_cu":2,"total_gpus":0,"total_gpu_cu":0,"total_fpgas":0,"total_fpga_cu":0,"total_others":0,"total_other_cu":0}'
-    memoryExpected='{"size":8,"type":"Volatile"}'
-    storageExpected='{"size":240,"type":"SSD","bandwidth":100}'
+    memoryExpected='{"size":8.0,"type":"Volatile"}'
+    storageExpected='{"size":240.0,"type":"SSD","bandwidth":100}'
     osExpected='{"type":"Linux","distribution":"OpenSUSE","version":"13.2"}'
     softwareExpected='["JAVA","PYTHON","COMPSS"]'
     queuesExpected='["SEQUENTIAL","DEBUG","BSC"]'
-    pricesExpected='{"time_unit":-1,"price_per_unit":-1}'
+    pricesExpected='{"time_unit":-1,"price_per_unit":-1.0}'
     wallclockExpected="10"
     
     description_got=$(grep "Finished sending New Task" "${runtime_log}" | cut -c 105- | awk '{for(i=1; i<=NF-3; i++) printf $i" ";}')

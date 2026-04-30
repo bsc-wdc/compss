@@ -829,12 +829,12 @@ install_compss() {
 
   # CREATE TARGET FOLDER
   log_info "- Create target folder"
-  rm -rf ${targetDir}
-  mkdir -p ${targetDir}
+  rm -rf ${targetDir}/Bindings
+  mkdir -p ${targetDir}/Bindings/bindings-common
+  mkdir -p ${targetDir}/Dependencies # keep installed dependencies
+  rm -rf ${targetDir}/Doc
   mkdir -p ${targetDir}/Doc
-  mkdir -p ${targetDir}/Dependencies
-  mkdir -p ${targetDir}/Dependencies/extrae
-  mkdir -p ${targetDir}/Runtime
+  rm -rf ${targetDir}/Runtime
   mkdir -p ${targetDir}/Runtime/configuration
   mkdir -p ${targetDir}/Runtime/scripts
   mkdir -p ${targetDir}/Runtime/adaptors
@@ -842,13 +842,11 @@ install_compss() {
   mkdir -p ${targetDir}/Runtime/cloud-conn
   mkdir -p ${targetDir}/Runtime/scheduler
   mkdir -p ${targetDir}/Runtime/checkpointer
-  mkdir -p ${targetDir}/Tools
+  rm -rf ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
   mkdir -p ${targetDir}/Tools/storage
   mkdir -p ${targetDir}/Tools/tracing
   mkdir -p ${targetDir}/Tools/reproducibility_service
-  mkdir -p ${targetDir}/Bindings
-  mkdir -p ${targetDir}/Bindings/bindings-common
 
   # RUNTIME DEPLOYMENT
   log_info "- Copy Runtime deployment files"
@@ -868,20 +866,19 @@ install_compss() {
   cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
   # Extrae
   if [ "$tracing" == "true" ]; then
+    extraeDir="${targetDir}/Dependencies/extrae"
     if [ -n "${EXTRAE_HOME}" ] && [ -d "${EXTRAE_HOME}" ]; then
       log_info "--- Using pre-installed Extrae from ${EXTRAE_HOME}"
-      mkdir -p "${targetDir}/Dependencies/extrae"
-      cp -r "${EXTRAE_HOME}/." "${targetDir}/Dependencies/extrae/"
+      [ -d "${extraeDir}" ] || cp -r "${EXTRAE_HOME}/." "${extraeDir}/"
     else
       extrae_ver=$(get_dep_version "dependencies/extrae" "3.5.3")
       extrae_cache="${deps_cache}/extrae"
       if [ -n "${deps_cache}" ] && dep_cache_valid "${extrae_cache}" "${extrae_ver}"; then
         log_info "--- Reusing cached Extrae (${extrae_ver})"
-        mkdir -p "${targetDir}/Dependencies/extrae"
-        cp -r "${extrae_cache}/." "${targetDir}/Dependencies/extrae/"
+        cp -r "${extrae_cache}/." "${extraeDir}/"
       else
         cd "${TMP_DIR}"/dependencies/
-        ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae ${targetDir}/Dependencies/extrae true > "${bindingOut}" 2>&1
+        ./install_extrae.sh "${TMP_DIR}/dependencies/extrae" "${extraeDir}" true > "${bindingOut}" 2>&1
         ev=$?
         if [ $ev -ne 0 ]; then
           echo "ERROR: Failed to install extrae dependency"
@@ -890,7 +887,7 @@ install_compss() {
         if [ -n "${deps_cache}" ]; then
           log_info "--- Caching Extrae to ${extrae_cache}"
           mkdir -p "${extrae_cache}"
-          cp -r "${targetDir}/Dependencies/extrae/." "${extrae_cache}/"
+          cp -r "${extraeDir}/." "${extrae_cache}/"
           write_dep_version "${extrae_cache}" "${extrae_ver}"
         fi
       fi
@@ -899,20 +896,19 @@ install_compss() {
   fi
   # DLB
   if [ "$dlb" == "true" ]; then
+    dlbDir="${targetDir}/Dependencies/dlb"
     if [ -n "${DLB_HOME}" ] && [ -d "${DLB_HOME}" ]; then
       log_info "--- Using pre-installed DLB from ${DLB_HOME}"
-      mkdir -p "${targetDir}/Dependencies/dlb"
-      cp -r "${DLB_HOME}/." "${targetDir}/Dependencies/dlb/"
+      [ -d "${dlbDir}" ] || cp -r "${DLB_HOME}/." "${dlbDir}/"
     else
       dlb_ver=$(get_dep_version "dependencies/dlb" "3.6.0")
       dlb_cache="${deps_cache}/dlb"
       if [ -n "${deps_cache}" ] && dep_cache_valid "${dlb_cache}" "${dlb_ver}"; then
         log_info "--- Reusing cached DLB (${dlb_ver})"
-        mkdir -p "${targetDir}/Dependencies/dlb"
-        cp -r "${dlb_cache}/." "${targetDir}/Dependencies/dlb/"
+        cp -r "${dlb_cache}/." "${dlbDir}/"
       else
         cd "${TMP_DIR}"/dependencies/
-        ./install_dlb.sh "${TMP_DIR}"/dependencies/dlb ${targetDir}/Dependencies/dlb > "${bindingOut}" 2>&1 # true
+        ./install_dlb.sh "${TMP_DIR}/dependencies/dlb" ${dlbDir} > "${bindingOut}" 2>&1 # true
         ev=$?
         if [ $ev -ne 0 ]; then
           echo "ERROR: Failed to install dlb dependency"
@@ -921,39 +917,38 @@ install_compss() {
         if [ -n "${deps_cache}" ]; then
           log_info "--- Caching DLB to ${dlb_cache}"
           mkdir -p "${dlb_cache}"
-          cp -r "${targetDir}/Dependencies/dlb/." "${dlb_cache}/"
+          cp -r "${dlbDir}/." "${dlb_cache}/"
           write_dep_version "${dlb_cache}" "${dlb_ver}"
         fi
       fi
       cd "${SCRIPT_DIR}"
     fi
-    export DLB_HOME=${targetDir}/Dependencies/dlb
+    export DLB_HOME=${dlbDir}
   else
     unset DLB_HOME
   fi
   # Kafka
   if [ "${kafka}" = "true" ]; then
+    kafkaDir="${targetDir}/Dependencies/kafka"
     if [ -n "${KAFKA_HOME}" ] && [ -d "${KAFKA_HOME}" ]; then
       log_info "--- Using pre-installed Kafka from ${KAFKA_HOME}"
-      mkdir -p "${targetDir}/Dependencies/kafka"
-      cp -r "${KAFKA_HOME}/." "${targetDir}/Dependencies/kafka/"
+      [ -d "${kafkaDir}" ] || cp -r "${KAFKA_HOME}/." "${kafkaDir}/"
     else
       kafka_ver=$(get_dep_version "dependencies/kafka" "3.8.0")
       kafka_cache="${deps_cache}/kafka"
       if [ -n "${deps_cache}" ] && dep_cache_valid "${kafka_cache}" "${kafka_ver}"; then
         log_info "--- Reusing cached Kafka (${kafka_ver})"
-        mkdir -p "${targetDir}/Dependencies/kafka"
-        cp -r "${kafka_cache}/." "${targetDir}/Dependencies/kafka/"
+        cp -r "${kafka_cache}/." "${kafkaDir}/"
       else
         cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
-        #cp "${TMP_DIR}"/dependencies/gradle.properties ${targetDir}/Dependencies/kafka/.
+        #cp "${TMP_DIR}"/dependencies/gradle.properties ${kafkaDir}/.
 
         cd "${targetDir}"/Dependencies/kafka
         if which gradle; then
           ./retry_zinc gradle > "${bindingOut}" 2>&1
           ev=$?
         elif [ -n "${GRADLE_HOME}" ]; then
-          ./retry_zinc "${GRADLE_HOME}"/bin/gradle > "${bindingOut}" 2>&1
+          ./retry_zinc "${GRADLE_HOME}/bin/gradle" > "${bindingOut}" 2>&1
           ev=$?
         else
           echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
@@ -974,11 +969,11 @@ install_compss() {
           rm -rf "${kafka_cache}"
           mkdir -p "${kafka_cache}"
           # Cache the JARs and bin/ scripts needed at runtime by streams.sh
-          find "${targetDir}/Dependencies/kafka" -path "*/build/libs/*.jar" \
+          find "${kafkaDir}" -path "*/build/libs/*.jar" \
                ! -name "*-test*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
                -exec cp {} "${kafka_cache}/" \;
-          if [ -d "${targetDir}/Dependencies/kafka/bin" ]; then
-            cp -r "${targetDir}/Dependencies/kafka/bin" "${kafka_cache}/"
+          if [ -d "${kafkaDir}/bin" ]; then
+            cp -r "${kafkaDir}/bin" "${kafka_cache}/"
           fi
           write_dep_version "${kafka_cache}" "${kafka_ver}"
         fi
@@ -1271,9 +1266,9 @@ install_compss() {
   fi
 
   if [ "$dlb" == "true" ]; then
-    echo "export DLB_HOME=${targetDir}/Dependencies/dlb" >> $envFile
-    echo "export PATH=\$PATH:${targetDir}/Dependencies/dlb/bin" >> $envFile
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Dependencies/dlb/lib" >> $envFile
+    echo "export DLB_HOME=${DLB_HOME}" >> $envFile
+    echo "export PATH=\$PATH:${DLB_HOME}/bin" >> $envFile
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${DLB_HOME}/lib" >> $envFile
   fi
 
   # ADD MONITOR SCRIPT TO ETC (only when running as root / system-wide install)

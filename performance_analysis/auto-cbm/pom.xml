@@ -6,13 +6,8 @@
 
 	<!-- GENERAL INFORMATION -->
 	<artifactId>auto-cbm</artifactId>
+	<version>3.4.post2604</version>
 	<packaging>pom</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-trunk</artifactId>
-		<version>3.4.post2604</version>
-		<relativePath>../../</relativePath>
-	</parent>
 
 	<!-- PROJECT INFORMATION -->
 	<name>COMPSs Framework Auto-Cbm</name>
@@ -30,7 +25,14 @@
 		<url>http://www.bsc.es</url>
 	</organization>
 
-	<!-- PROPERTIES -->
+    <!-- PROPERTIES -->
+    <properties>
+        <compss.version>3.4</compss.version>
+
+        <!-- Project encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 
 	<!-- DEPENDENCIES -->
 	<dependencyManagement>

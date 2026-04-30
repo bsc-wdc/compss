@@ -16,10 +16,6 @@ fi
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
-# shellcheck source=../trace/generatePRVs.sh
-# shellcheck disable=SC1091
-source "${COMPSS_HOME}/Runtime/scripts/system/trace/generatePRVs.sh"
-
 
 ###############################################
 ###############################################
@@ -232,6 +228,10 @@ stop_tracing() {
 }
 
 generate_extrae_trace() {
+  # shellcheck source=../trace/generatePRVs.sh
+  # shellcheck disable=SC1091
+  source "${COMPSS_HOME}/Runtime/scripts/system/trace/generatePRVs.sh"
+
   if [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
     gen_tracing_log_level="${GEN_TRACING_LOG_LEVEL_OFF}"
   else

@@ -7,13 +7,8 @@
     <!-- GENERAL INFORMATION -->
     <groupId>es.bsc.compss.tests</groupId>
     <artifactId>compss-sc-tests</artifactId>
+    <version>3.4.post2604</version>
     <packaging>pom</packaging>
-    <parent>
-        <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-trunk</artifactId>
-        <version>3.4.post2604</version>
-        <relativePath>../../../</relativePath>
-    </parent>
 
     <!-- PROJECT INFORMATION -->
     <name>COMP Superscalar SC Tests</name>
@@ -30,6 +25,65 @@
         <name>BSC</name>
         <url>http://www.bsc.es</url>
     </organization>
+
+    <!-- PROPERTIES -->
+    <properties>
+        <compss.version>3.4</compss.version>
+
+        <!-- Code format -->
+        <code-format.version>2.12.2</code-format.version>
+        <bsc.wdc.formatter.version>1.0.0</bsc.wdc.formatter.version>
+
+        <!-- Maven Plugins -->
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
+
+        <!-- Project encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <!-- REPOSITORIES -->
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>compss-repo</id>
+            <name>BSC Workflows and Distributed Computing group</name>
+            <url>https://compss.bsc.es/artifactory/libs-release</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+        </pluginRepository>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>compss-repo</id>
+            <name>BSC Workflows and Distributed Computing group</name>
+            <url>https://compss.bsc.es/artifactory/libs-release</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <!-- DEPENDENCIES MANAGEMENT -->
     <dependencyManagement>
@@ -53,6 +107,13 @@
                 <groupId>es.bsc.compss</groupId>
                 <artifactId>compss-scheduler-commons</artifactId>
                 <version>${compss.version}</version>
+            </dependency>
+
+            <!-- BSC Streaming -->
+            <dependency>
+                <groupId>es.bsc.distro-stream-lib</groupId>
+                <artifactId>distro-stream</artifactId>
+                <version>${streaming.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -85,30 +146,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Check Style -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <configuration>
-                            <configLocation>checkstyle/checkstyle_warn.xml</configLocation>
-                            <suppressionsLocation>checkstyle/suppressed_files.xml</suppressionsLocation>
-                            <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
-                            <encoding>UTF-8</encoding>
-                            <consoleOutput>true</consoleOutput>
-                            <failsOnError>false</failsOnError>
-                            <linkXRef>false</linkXRef>
-                        </configuration>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
 
         <pluginManagement>
@@ -120,28 +157,9 @@
                     <version>${code-format.version}</version>
                     <dependencies>
                         <dependency>
-                            <groupId>es.bsc.compss</groupId>
+                            <groupId>es.bsc.wdc</groupId>
                             <artifactId>code_formatter</artifactId>
-                            <version>${project.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-
-                <!-- Check Style -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${maven-checkstyle-plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>es.bsc.compss</groupId>
-                            <artifactId>checkstyle</artifactId>
-                            <version>${project.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>com.puppycrawl.tools</groupId>
-                            <artifactId>checkstyle</artifactId>
-                            <version>${puppycrawl-tools-checkstyle.version}</version>
+                            <version>${bsc.wdc.formatter.version}</version>
                         </dependency>
                     </dependencies>
                 </plugin>

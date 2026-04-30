@@ -1,48 +1,32 @@
 #!/bin/bash
 
-  # Setting COMPSs docker image and container names
-  export COMPSS_IMAGE=${COMPSS_IMAGE:-compss}
-  export COMPSS_CONTAINER=${COMPSS_CONTAINER:-compss_test}
-
   # Check if the image is available locally
-  if [ -z "$(docker images -q ${COMPSS_IMAGE})" ] ; then
+  if ! docker image inspect "${COMPSS_IMAGE:=tests}" &> /dev/null ; then
     echo "Docker image '${COMPSS_IMAGE}' does not exist. Build it before trying to run the tests with:"
-    echo "docker build --target=ci -t ${COMPSS_IMAGE} ."
-    echo "NOTE: the command should be run at the root of the repo."
+    echo "docker bake --set tests.tags=${COMPSS_IMAGE} tests"
+    echo "NOTE: the command should be run at the root of the repository."
     exit 1
   fi
 
   # Set volumes paths
+  docker_host="${DOCKER_HOST:7}"
   docker_sock=/var/run/docker.sock
-  working_dir=/tmp/COMPSsWorker01
-  app_dir=/home/jenkins/tests
-  pycompss=/opt/COMPSs/Bindings/python/3/pycompss
+  master_dir=/root
+  worker_dir=/tmp/COMPSsWorker01
 
   # Run the container
   if ! docker run -d \
-                  --env COMPSS_IMAGE=${COMPSS_IMAGE} \
-                  --env COMPSS_CONTAINER=${COMPSS_CONTAINER} \
-                  --mount type=bind,src=${docker_sock},dst=${docker_sock} \
-                  --mount type=volume,dst=${working_dir} \
-                  --mount type=volume,dst=${app_dir} \
-                  --mount type=volume,dst=${pycompss} \
-                  --name=${COMPSS_CONTAINER} ${COMPSS_IMAGE} ; then
+                  --env COMPSS_CONTAINER="${COMPSS_CONTAINER:=tests}" \
+                  --env COMPSS_IMAGE="${COMPSS_IMAGE}" \
+                  --mount type=bind,src="${docker_host:-${docker_sock}}",dst=${docker_sock} \
+                  --mount type=volume,dst=${master_dir} \
+                  --mount type=volume,dst=${worker_dir} \
+                  --name="${COMPSS_CONTAINER}" \
+                  "${COMPSS_IMAGE}" sleep infinity ; then
     echo "Docker container '${COMPSS_CONTAINER}' is already running. Remove it before trying to run the tests with:"
     echo "docker rm -fv ${COMPSS_CONTAINER}"
     exit 1
   fi
 
-  # Insert hosts for testing
-  docker exec ${COMPSS_CONTAINER} bash -c \
-              "sudo /framework/tests/scripts/configure_hosts_insert \
-              && chmod a+w ${working_dir} ${app_dir} ${pycompss} \
-              && usermod -aG docker jenkins \
-              && groupmod -g $(stat -c '%g' ${docker_sock}) docker"
-
   # Execute the tests
-  if ! docker exec --user jenkins ${COMPSS_CONTAINER} python3 /framework/tests/scripts/tests.py \
-                   -cfg /framework/tests/configurations/NIO_Docker.cfg "$@" ; then
-    echo "ERROR"
-    echo "If you have changed or added new dependencies or base packages update the base docker image in ./utils/docker/base"
-    exit 1
-  fi
+  docker exec "${COMPSS_CONTAINER}" /bin/bash -lc 'python3 /framework/tests/scripts/tests.py "$@"' _ "$@"

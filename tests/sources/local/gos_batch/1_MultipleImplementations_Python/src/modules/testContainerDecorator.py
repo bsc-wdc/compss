@@ -141,7 +141,7 @@ class testContainerDecorator(unittest.TestCase):
     def test_software_pycompss(self):
         ret_int = task_python_return_int()
         ret_int = compss_wait_on(ret_int)
-        self.assertEquals(ret_int, 3)
+        self.assertEqual(ret_int, 3)
 
     def test_binary_container(self):
         # Imports
@@ -158,7 +158,7 @@ class testContainerDecorator(unittest.TestCase):
         ev = task_binary_ev()
 
         ev = compss_wait_on(ev)
-        self.assertEquals(ev, 0)
+        self.assertEqual(ev, 0)
 
         # Test working dir
         # WARN: Check WD in result script
@@ -206,11 +206,11 @@ class testContainerDecorator(unittest.TestCase):
         # Test returns
         ret_int = task_python_return_int()
         ret_int = compss_wait_on(ret_int)
-        self.assertEquals(ret_int, 3)
+        self.assertEqual(ret_int, 3)
 
         ret_str = task_python_return_str(num, in_str, fin)
         ret_str = compss_wait_on(ret_str)
-        self.assertEquals(ret_str, "Hello")
+        self.assertEqual(ret_str, "Hello")
 
         # Test INOUT
         finout = "inout.file"

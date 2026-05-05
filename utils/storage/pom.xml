@@ -93,9 +93,9 @@
                     <version>${code-format.version}</version>
                     <dependencies>
                         <dependency>
-                            <groupId>es.bsc.compss</groupId>
+                            <groupId>es.bsc.wdc</groupId>
                             <artifactId>code_formatter</artifactId>
-                            <version>${project.version}</version>
+                            <version>${bsc.wdc.formatter.version}</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -107,9 +107,9 @@
                     <version>${maven-checkstyle-plugin.version}</version>
                     <dependencies>
                         <dependency>
-                            <groupId>es.bsc.compss</groupId>
+                            <groupId>es.bsc.wdc</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>${project.version}</version>
+                            <version>${bsc.wdc.checkstyle.version}</version>
                         </dependency>
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>

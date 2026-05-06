@@ -99,14 +99,14 @@ class TypesEventsWorker:
     def __init__(self) -> None:
         """Create a new instance of TypesEventsWorker."""
         # Binding worker type
-        self.sync_type = 8000666
+        self.sync_type = 8000001
 
         # Tasks at master (id corresponds to task) type:
         self.binding_tasks_func_type = 9000000
 
         # Tasks at worker types:
         self.process_identifier = 8001003  # define the process purpose
-        self.executor_identifier = 8001006  # define the executor identifier
+        self.executor_identifier = 8001112  # define the executor identifier
         self.inside_tasks_type = 9000100
 
         # Process purpose events

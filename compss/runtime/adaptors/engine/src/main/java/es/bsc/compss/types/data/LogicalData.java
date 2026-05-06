@@ -30,7 +30,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -749,7 +749,7 @@ public class LogicalData {
                     case PERSISTENT:
                         PersistentLocation pLoc = (PersistentLocation) loc;
                         if (Tracer.isActivated()) {
-                            Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
+                            Tracer.emitEvent(StorageEvent.STORAGE_GETBYID);
                         }
                         try {
                             this.pscoId[0] = pLoc.getId();
@@ -759,7 +759,7 @@ public class LogicalData {
                             continue;
                         } finally {
                             if (Tracer.isActivated()) {
-                                Tracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
+                                Tracer.emitEventEnd(StorageEvent.STORAGE_GETBYID);
                             }
                         }
                     case BINDING:
@@ -817,7 +817,7 @@ public class LogicalData {
                         PersistentLocation pLoc = (PersistentLocation) loc;
 
                         if (Tracer.isActivated()) {
-                            Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
+                            Tracer.emitEvent(StorageEvent.STORAGE_GETBYID);
                         }
                         try {
                             this.value[0] = StorageItf.getByID(pLoc.getId());
@@ -827,7 +827,7 @@ public class LogicalData {
                             continue;
                         } finally {
                             if (Tracer.isActivated()) {
-                                Tracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
+                                Tracer.emitEventEnd(StorageEvent.STORAGE_GETBYID);
                             }
                         }
 

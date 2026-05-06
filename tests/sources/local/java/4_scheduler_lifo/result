@@ -63,12 +63,12 @@
   
   #---------------------------------------------------------------------------------- 
   # Compute scheduling status
-  pair1=$(grep "8000002" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | head -n 2)
-  pair2=$(grep "8000002" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +3 | head -n 2)
-  pair3=$(grep "8000002" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +5 | head -n 2)
-  pair4=$(grep "8000002" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +7 | head -n 2)
-  #pair5=$(grep "8000002" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +9 | head -n 2)
-  #pair6=$(grep "8000002" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +11 | head -n 2)
+  pair1=$(grep "8001133" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | head -n 2)
+  pair2=$(grep "8001133" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +3 | head -n 2)
+  pair3=$(grep "8001133" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +5 | head -n 2)
+  pair4=$(grep "8001133" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +7 | head -n 2)
+  #pair5=$(grep "8001133" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +9 | head -n 2)
+  #pair6=$(grep "8001133" "${target_log_folder}"/trace/*.prv | tr ":" "\\t" | awk '{ print $NF }' | grep -v "^0" | tail -n +11 | head -n 2)
   
   pair1Expected1=$'1\n3'
   pair1Expected2=$'3\n1'

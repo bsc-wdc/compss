@@ -59,7 +59,7 @@ public enum APRequestEvent implements Event {
     private final String signature;
 
     static {
-        type = Tracer.defineNewEventType(8_004_001, "AP Request", true, Arrays.asList(APRequestEvent.values()));
+        type = Tracer.defineNewEventType(8_003_001, "AP Request", true, Arrays.asList(APRequestEvent.values()));
     }
 
 

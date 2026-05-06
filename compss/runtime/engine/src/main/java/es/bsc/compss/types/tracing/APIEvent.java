@@ -74,7 +74,7 @@ public enum APIEvent implements Event {
     private final String signature;
 
     static {
-        type = Tracer.defineNewEventType(8_001_001, "API", true, Arrays.asList(APIEvent.values()));
+        type = Tracer.defineNewEventType(8_004_001, "API", true, Arrays.asList(APIEvent.values()));
     }
 
 

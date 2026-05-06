@@ -22,7 +22,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.util.Tracer;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -98,7 +98,7 @@ public class StorageInvoker extends JavaInvoker {
         }
 
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.STORAGE_EXECUTETASK);
+            Tracer.emitEvent(StorageEvent.STORAGE_EXECUTETASK);
         }
 
         List<? extends InvocationParam> params = invocation.getParams();
@@ -123,7 +123,7 @@ public class StorageInvoker extends JavaInvoker {
             throw new JobExecutionException(ERROR_CALLBACK_INTERRUPTED, e);
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.STORAGE_EXECUTETASK);
+                Tracer.emitEventEnd(StorageEvent.STORAGE_EXECUTETASK);
             }
         }
 

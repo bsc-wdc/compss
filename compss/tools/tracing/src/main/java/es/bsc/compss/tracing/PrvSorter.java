@@ -18,6 +18,7 @@ package es.bsc.compss.tracing;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
+import es.bsc.compss.types.tracing.ExecutorInfraType;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Threads;
@@ -57,7 +58,8 @@ public class PrvSorter implements ThreadTranslator {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
 
     private static final String THREAD_ID_EVENT_TYPE = Integer.toString(TraceEventType.THREAD_IDENTIFICATION.code);
-    private static final String EXEC_ID_EVENT_TYPE = Integer.toString(TraceEventType.EXECUTOR_IDENTIFICATION.code);
+    private static final String EXEC_ID_EVENT_TYPE =
+        Integer.toString(ExecutorInfraType.EXECUTOR_IDENTIFICATION.getCode());
 
     private Map<ThreadIdentifier, ThreadIdentifier> threadTranslations;
     private ApplicationComposition<PRVApplication> system;

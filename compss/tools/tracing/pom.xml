@@ -25,6 +25,11 @@
 			<artifactId>compss-commons</artifactId>
             <version>3.4.post2605</version>
 		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-execution</artifactId>
+            <version>3.4.post2605</version>
+		</dependency>
         
 		<!-- JUnit -->
 		<dependency>

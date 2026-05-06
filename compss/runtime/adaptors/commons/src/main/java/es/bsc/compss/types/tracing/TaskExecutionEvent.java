@@ -43,7 +43,7 @@ public enum TaskExecutionEvent implements Event {
     private final String signature;
 
     static {
-        type = Tracer.defineNewEventType(8_002_001, "Task Execution", true, Arrays.asList(TaskExecutionEvent.values()));
+        type = Tracer.defineNewEventType(8_001_134, "Task Execution", true, Arrays.asList(TaskExecutionEvent.values()));
     }
 
 

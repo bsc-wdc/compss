@@ -19,7 +19,7 @@ package es.bsc.compss.nio.worker.components;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.serializers.Serializer;
 import java.io.File;
@@ -160,7 +160,7 @@ public class DataRegister {
             Object obj;
             // Get Object from its ID
             if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(TraceEvent.STORAGE_GETBYID);
+                NIOTracer.emitEvent(StorageEvent.STORAGE_GETBYID);
             }
             try {
                 obj = StorageItf.getByID(this.storageId);
@@ -170,7 +170,7 @@ public class DataRegister {
                 throw e;
             } finally {
                 if (NIOTracer.isActivated()) {
-                    NIOTracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
+                    NIOTracer.emitEventEnd(StorageEvent.STORAGE_GETBYID);
                 }
             }
         }

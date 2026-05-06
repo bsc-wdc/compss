@@ -357,13 +357,7 @@ public abstract class Tracer {
      */
     private static void defineEvents() {
         for (TraceEventType type : TraceEventType.values()) {
-            switch (type) {
-                case TASKTYPE:
-                    defineEventsForTaskType(type, MethodType.values());
-                    break;
-                default:
-                    defineEventType(type);
-            }
+            defineEventType(type);
         }
     }
 

@@ -44,7 +44,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.AgentEvent;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
@@ -149,7 +149,7 @@ public class Agent {
      */
     public static void stop() {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.AGENT_STOP);
+            Tracer.emitEvent(AgentEvent.AGENT_STOP);
         }
         RUNTIME.stopIT(true);
         Iterator<AgentInterface<?>> itfs = INTERFACES.iterator();
@@ -159,7 +159,7 @@ public class Agent {
             itfs.remove();
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.AGENT_STOP);
+            Tracer.emitEventEnd(AgentEvent.AGENT_STOP);
         }
     }
 
@@ -181,7 +181,7 @@ public class Agent {
         ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
         throws AgentException {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.AGENT_RUN_TASK);
+            Tracer.emitEvent(AgentEvent.AGENT_RUN_TASK);
         }
 
         synchronized (RUNTIME) {
@@ -252,7 +252,7 @@ public class Agent {
             throw new AgentException(e);
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.AGENT_RUN_TASK);
+                Tracer.emitEventEnd(AgentEvent.AGENT_RUN_TASK);
             }
         }
         return appId;
@@ -452,7 +452,7 @@ public class Agent {
      */
     public static void addResources(Resource<?, ?> r) throws AgentException {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.AGENT_ADD_RESOURCE);
+            Tracer.emitEvent(AgentEvent.AGENT_ADD_RESOURCE);
         }
         String workerName = r.getName();
         MethodResourceDescription description = r.getDescription();
@@ -469,7 +469,7 @@ public class Agent {
             registerWorker(workerName, description, adaptor, projectConf, resourcesConf);
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.AGENT_ADD_RESOURCE);
+            Tracer.emitEventEnd(AgentEvent.AGENT_ADD_RESOURCE);
         }
     }
 
@@ -517,7 +517,7 @@ public class Agent {
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.AGENT_REMOVE_RESOURCES);
+            Tracer.emitEvent(AgentEvent.AGENT_REMOVE_RESOURCES);
         }
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {
@@ -526,7 +526,7 @@ public class Agent {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.AGENT_REMOVE_RESOURCES);
+            Tracer.emitEventEnd(AgentEvent.AGENT_REMOVE_RESOURCES);
         }
     }
 
@@ -538,7 +538,7 @@ public class Agent {
      */
     public static void removeNode(String workerName) throws AgentException {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.AGENT_REMOVE_RESOURCES);
+            Tracer.emitEvent(AgentEvent.AGENT_REMOVE_RESOURCES);
         }
         try {
             ResourceManager.requestWholeWorkerReduction(workerName);
@@ -546,7 +546,7 @@ public class Agent {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         } finally {
             if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.AGENT_REMOVE_RESOURCES);
+                Tracer.emitEventEnd(AgentEvent.AGENT_REMOVE_RESOURCES);
             }
         }
     }

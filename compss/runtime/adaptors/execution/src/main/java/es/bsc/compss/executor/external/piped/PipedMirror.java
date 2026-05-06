@@ -38,7 +38,7 @@ import es.bsc.compss.executor.external.piped.commands.WorkerStartedPipeCommand;
 import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.tracing.TraceEventType;
+import es.bsc.compss.types.tracing.ExecutorInfraType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
@@ -147,7 +147,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
             // Emit event for worker initialisation
             if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEventType.SYNC, this.size);
+                Tracer.emitEvent(ExecutorInfraType.SYNC, this.size);
             }
 
             // Launch process builder
@@ -298,10 +298,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
         // Emit one event when the executors are going to be stopped
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEventType.SYNC);
+            Tracer.emitEventEnd(ExecutorInfraType.SYNC);
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            Tracer.emitEvent(TraceEventType.SYNC, (long) timestamp.getTime());
-            Tracer.emitEventEnd(TraceEventType.SYNC);
+            Tracer.emitEvent(ExecutorInfraType.SYNC, (long) timestamp.getTime());
+            Tracer.emitEventEnd(ExecutorInfraType.SYNC);
         }
 
         for (String executorId : new LinkedList<>(pipePool.keySet())) {
@@ -325,10 +325,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
         // Emit event for end worker
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEventType.SYNC);
+            Tracer.emitEventEnd(ExecutorInfraType.SYNC);
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            Tracer.emitEvent(TraceEventType.SYNC, (long) timestamp.getTime());
-            Tracer.emitEventEnd(TraceEventType.SYNC);
+            Tracer.emitEvent(ExecutorInfraType.SYNC, (long) timestamp.getTime());
+            Tracer.emitEventEnd(ExecutorInfraType.SYNC);
         }
         waitForWorkerEnd();
         // Unregister worker and delete pipe

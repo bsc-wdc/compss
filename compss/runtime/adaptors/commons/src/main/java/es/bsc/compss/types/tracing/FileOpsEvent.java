@@ -37,7 +37,7 @@ public enum FileOpsEvent implements Event {
     private final String signature;
 
     static {
-        type = Tracer.defineNewEventType(8_002_002, "File Ops", true, Arrays.asList(FileOpsEvent.values()));
+        type = Tracer.defineNewEventType(8_001_211, "File Ops", true, Arrays.asList(FileOpsEvent.values()));
     }
 
 

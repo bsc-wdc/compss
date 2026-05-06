@@ -79,7 +79,7 @@ import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
-import es.bsc.compss.types.tracing.TraceEventType;
+import es.bsc.compss.types.tracing.TransferType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ExecutionManager;
@@ -394,11 +394,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEventEnd(NIOWorkerEvent.FETCH_PARAM);
             // Request the transfers
-            NIOTracer.emitEvent(TraceEventType.TASK_TRANSFERS, listener.getTask().getTaskId());
+            NIOTracer.emitEvent(TransferType.TASK_TRANSFERS, listener.getTask().getTaskId());
         }
         requestTransfers();
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEventEnd(TraceEventType.TASK_TRANSFERS);
+            NIOTracer.emitEventEnd(TransferType.TASK_TRANSFERS);
         }
 
         if (IS_TIMER_COMPSS_ENABLED) {

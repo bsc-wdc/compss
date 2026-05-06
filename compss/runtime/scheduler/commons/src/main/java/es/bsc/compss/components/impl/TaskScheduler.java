@@ -51,7 +51,7 @@ import es.bsc.compss.types.resources.updates.IdleResources;
 import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.SchedulerEvent;
 import es.bsc.compss.util.ActionSet;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
@@ -484,7 +484,7 @@ public class TaskScheduler {
         Integer coreId = action.getCoreId();
         if (coreId != null) {
             if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEvent.READY_COUNT);
+                Tracer.emitEvent(SchedulerEvent.READY_COUNT);
             }
             this.readyCounts[coreId]++;
         }
@@ -502,7 +502,7 @@ public class TaskScheduler {
                 Integer coreId = action.getImplementations()[0].getCoreId();
                 if (coreId != null) {
                     if (Tracer.isActivated()) {
-                        Tracer.emitEventEnd(TraceEvent.READY_COUNT);
+                        Tracer.emitEventEnd(SchedulerEvent.READY_COUNT);
                     }
                     this.readyCounts[coreId]--;
                 }

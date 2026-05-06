@@ -25,32 +25,9 @@ public enum TraceEventType implements EventType {
 
     // Event codes
     // Core Element Id
-    TASKS_FUNC(8_000_000, "Task", true),
+    TASKS_FUNC(8_001_131, "Task", true),
     // Identifies the thread as AP, TD, executor...
     THREAD_IDENTIFICATION(8_001_003, "Thread type identifier", true),
-
-    // Marks the life and end of an executor thread
-    EXECUTOR_COUNTS(8_001_004, "Executor threads count", true),
-    // Marks the activity of an executor
-    EXECUTOR_ACTIVITY(8_001_005, "Executor thread activity", true),
-    // Marks the life and end of an executor thread
-    EXECUTOR_IDENTIFICATION(8_001_006, "Executor thread identifier", true),
-    // Task Ids
-    TASKS_ID(8_000_002, "Task IDs", true),
-
-    TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
-    DATA_TRANSFERS(8_000_004, "Data Transfers", false), //
-    STORAGE_TYPE(8_000_005, "Storage API", true), //
-    READY_COUNTS(8_000_006, "Ready queue count", true), //
-    TASKTYPE(8_000_007, "Type of task", true), //
-    CPU_COUNTS(8_000_008, "Number of requested CPUs", false), //
-    GPU_COUNTS(8_000_009, "Number of requested GPUs", false), //
-    MEMORY(8_000_010, "Requested Memory", false), //
-    DISK_BW(8_000_011, "Requested disk bandwidth", false), //
-    SYNC(8_000_666, "Trace Synchronization event", true), //
-    TASKS_CPU_AFFINITY(8_000_150, "Tasks CPU affinity", true), // Java assignment
-    TASKS_GPU_AFFINITY(8_000_160, "Tasks GPU affinity", true), // Java assignment
-    AGENT(8_006_000, "Agents events", true),
 
     // PYTHON RELATED EVENT GROUPS
     BINDING_TASKS_FUNC(9_000_000, "Binding tasks", true), // tasks emitted from master

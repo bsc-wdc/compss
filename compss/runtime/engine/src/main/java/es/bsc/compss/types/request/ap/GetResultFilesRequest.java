@@ -31,7 +31,7 @@ import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.tracing.APRequestEvent;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.util.LinkedList;
@@ -179,7 +179,7 @@ public class GetResultFilesRequest implements APRequest {
             if (loc instanceof PersistentLocation) {
                 String pscoId = ((PersistentLocation) loc).getId();
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE);
+                    Tracer.emitEvent(StorageEvent.STORAGE_CONSOLIDATE);
                 }
                 try {
                     StorageItf.consolidateVersion(pscoId);
@@ -187,7 +187,7 @@ public class GetResultFilesRequest implements APRequest {
                     LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
                 } finally {
                     if (Tracer.isActivated()) {
-                        Tracer.emitEventEnd(TraceEvent.STORAGE_CONSOLIDATE);
+                        Tracer.emitEventEnd(StorageEvent.STORAGE_CONSOLIDATE);
                     }
                 }
                 LOGGER.debug("Returned because persistent object");

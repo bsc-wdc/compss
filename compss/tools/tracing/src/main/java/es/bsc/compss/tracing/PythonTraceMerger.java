@@ -19,6 +19,7 @@ package es.bsc.compss.tracing;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.EventsDefinition;
+import es.bsc.compss.types.tracing.ExecutorInfraType;
 import es.bsc.compss.types.tracing.SynchEvent;
 import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.SystemStructure;
@@ -53,7 +54,8 @@ public class PythonTraceMerger extends TraceMerger {
     private final Trace mergeOnTrace;
 
     private static final String THREAD_ID_EVENT_TYPE = Integer.toString(TraceEventType.THREAD_IDENTIFICATION.code);
-    private static final String EXEC_ID_EVENT_TYPE = Integer.toString(TraceEventType.EXECUTOR_IDENTIFICATION.code);
+    private static final String EXEC_ID_EVENT_TYPE =
+        Integer.toString(ExecutorInfraType.EXECUTOR_IDENTIFICATION.getCode());
 
 
     /**

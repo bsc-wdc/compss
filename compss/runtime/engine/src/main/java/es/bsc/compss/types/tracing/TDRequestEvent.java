@@ -43,7 +43,7 @@ public enum TDRequestEvent implements Event {
     private final String signature;
 
     static {
-        type = Tracer.defineNewEventType(8_003_001, "TD Request", true, Arrays.asList(TDRequestEvent.values()));
+        type = Tracer.defineNewEventType(8_002_001, "TD Request", true, Arrays.asList(TDRequestEvent.values()));
     }
 
 

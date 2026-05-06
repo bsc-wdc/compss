@@ -18,7 +18,7 @@ package es.bsc.compss.nio;
 
 import static java.lang.Math.abs;
 
-import es.bsc.compss.types.tracing.TraceEventType;
+import es.bsc.compss.types.tracing.TransferType;
 import es.bsc.compss.util.Tracer;
 
 public class NIOTracer extends Tracer {
@@ -41,9 +41,9 @@ public class NIOTracer extends Tracer {
 
         if (dataTransfer) {
             if (end) {
-                emitEventEnd(TraceEventType.DATA_TRANSFERS);
+                emitEventEnd(TransferType.DATA_TRANSFERS);
             } else {
-                emitEvent(TraceEventType.DATA_TRANSFERS, transferID);
+                emitEvent(TransferType.DATA_TRANSFERS, transferID);
             }
         }
 

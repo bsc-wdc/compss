@@ -23,14 +23,6 @@ import es.bsc.wdc.tracing.Event;
  */
 public enum TraceEvent implements Event {
 
-    // Storage Events
-    STORAGE_GETBYID(38, TraceEventType.STORAGE_TYPE, "getByID"), //
-    STORAGE_NEWREPLICA(39, TraceEventType.STORAGE_TYPE, "newReplica"), //
-    STORAGE_NEWVERSION(40, TraceEventType.STORAGE_TYPE, "newVersion"), //
-    STORAGE_INVOKE(41, TraceEventType.STORAGE_TYPE, "invoke"), //
-    STORAGE_EXECUTETASK(42, TraceEventType.STORAGE_TYPE, "executeTask"), //
-    STORAGE_GETLOCATIONS(43, TraceEventType.STORAGE_TYPE, "getLocations"), //
-    STORAGE_CONSOLIDATE(44, TraceEventType.STORAGE_TYPE, "consolidateVersion"), //
     // Python Events Inside Worker
     WORKER_RUNNING(1, TraceEventType.BINDING_INSIDE_WORKER, "Worker running"), //
     PROCESS_TASK_PYTHON(2, TraceEventType.BINDING_INSIDE_WORKER, "Process task"), //
@@ -141,13 +133,6 @@ public enum TraceEvent implements Event {
     PYTHON_PROCESS_TASK_BINDING(116, TraceEventType.BINDING_MASTER, "Process task binding"), //
     PYTHON_ATTRIBUTES_CLEANUP(117, TraceEventType.BINDING_MASTER, "Cleanup"), //
 
-    // Agent events
-    AGENT_ADD_RESOURCE(6002, TraceEventType.AGENT, "Add resources agent"), //
-    AGENT_STOP(6003, TraceEventType.AGENT, "Stop agent"), //
-    AGENT_REMOVE_NODE(6004, TraceEventType.AGENT, "Remove node agent"), //
-    AGENT_REMOVE_RESOURCES(6005, TraceEventType.AGENT, "Remove resources agent"), //
-    AGENT_RUN_TASK(6006, TraceEventType.AGENT, "Run task agent"), //
-
     // Thread identifier events
     AP_THREAD_ID(Threads.AP.id, TraceEventType.THREAD_IDENTIFICATION, Threads.AP.description), //
     TD_THREAD_ID(Threads.TD.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TD.description), //
@@ -157,14 +142,7 @@ public enum TraceEvent implements Event {
     EXECUTOR_THREAD_ID(Threads.EXEC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.EXEC.description), //
     PYTHON_WORKER_THREAD_ID(Threads.PYTHON_WORKER.id, TraceEventType.THREAD_IDENTIFICATION,
         Threads.PYTHON_WORKER.description), //
-    PYTHON_CACHE_THREAD_ID(Threads.CACHE.id, TraceEventType.THREAD_IDENTIFICATION, Threads.CACHE.description), //
-
-    // Executor Thread events
-    EXECUTOR_COUNTS(1, TraceEventType.EXECUTOR_COUNTS, "Executor counts"), // Executor start
-    EXECUTOR_ACTIVE(1, TraceEventType.EXECUTOR_ACTIVITY, "Executor active"), // Executor start
-
-    // Other
-    READY_COUNT(1, TraceEventType.READY_COUNTS, "Ready queue count"); // Ready count
+    PYTHON_CACHE_THREAD_ID(Threads.CACHE.id, TraceEventType.THREAD_IDENTIFICATION, Threads.CACHE.description); //
 
 
     private final int id;

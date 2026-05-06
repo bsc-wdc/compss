@@ -37,7 +37,7 @@ public enum NIOWorkerEvent implements Event {
     private final String signature;
 
     static {
-        type = Tracer.defineNewEventType(8_002_003, "NIO Worker", true, Arrays.asList(NIOWorkerEvent.values()));
+        type = Tracer.defineNewEventType(8_001_501, "NIO Worker", true, Arrays.asList(NIOWorkerEvent.values()));
     }
 
 

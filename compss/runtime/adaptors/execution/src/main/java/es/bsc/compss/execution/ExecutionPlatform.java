@@ -34,8 +34,9 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.StopExecutorRequest;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.tracing.ExecutorInfraEvent;
+import es.bsc.compss.types.tracing.ExecutorInfraType;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 import java.util.Collection;
@@ -256,10 +257,10 @@ public class ExecutionPlatform implements ExecutorContext {
                     @Override
                     public void run() {
                         if (Tracer.isActivated()) {
-                            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS);
+                            Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_COUNTS);
                             Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID);
-                            Tracer.emitEvent(TraceEventType.EXECUTOR_IDENTIFICATION, executorId);
-                            Tracer.emitEvent(TraceEvent.EXECUTOR_ACTIVE);
+                            Tracer.emitEvent(ExecutorInfraType.EXECUTOR_IDENTIFICATION, executorId);
+                            Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_ACTIVE);
                             Tracer.disablePThreads(1);
                         }
                         startSem.release();
@@ -269,8 +270,8 @@ public class ExecutionPlatform implements ExecutorContext {
                         }
                         ExecutionPlatform.this.stopSemaphore.release();
                         if (Tracer.isActivated()) {
-                            Tracer.emitEventEnd(TraceEvent.EXECUTOR_ACTIVE);
-                            Tracer.emitEventEnd(TraceEvent.EXECUTOR_COUNTS);
+                            Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_ACTIVE);
+                            Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_COUNTS);
                             Tracer.emitEventEnd(TraceEvent.EXECUTOR_THREAD_ID);
                         }
                     }
@@ -423,13 +424,13 @@ public class ExecutionPlatform implements ExecutorContext {
             public void onActivation() {
                 freezeSem.release();
                 if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEvent.EXECUTOR_ACTIVE);
+                    Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_ACTIVE);
                 }
                 LOGGER.info(Thread.currentThread().getName() + " freezes");
                 ExecutionPlatform.this.frozenSemaphore.acquireUninterruptibly();
                 LOGGER.info(Thread.currentThread().getName() + " unfrozen");
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(TraceEvent.EXECUTOR_ACTIVE);
+                    Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_ACTIVE);
                 }
             }
         };

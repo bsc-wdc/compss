@@ -68,7 +68,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -475,7 +475,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         // Get the current locations
         List<String> currentLocations;
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS);
+            NIOTracer.emitEvent(StorageEvent.STORAGE_GETLOCATIONS);
         }
         try {
             currentLocations = StorageItf.getLocations(pscoId);
@@ -485,7 +485,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             return;
         } finally {
             if (NIOTracer.isActivated()) {
-                NIOTracer.emitEventEnd(TraceEvent.STORAGE_GETLOCATIONS);
+                NIOTracer.emitEventEnd(StorageEvent.STORAGE_GETLOCATIONS);
             }
         }
 
@@ -539,7 +539,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.STORAGE_NEWVERSION);
+            NIOTracer.emitEvent(StorageEvent.STORAGE_NEWVERSION);
         }
         try {
             String newId = StorageItf.newVersion(pscoId, preserveSource, targetHostname);
@@ -556,7 +556,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             return;
         } finally {
             if (NIOTracer.isActivated()) {
-                NIOTracer.emitEventEnd(TraceEvent.STORAGE_NEWVERSION);
+                NIOTracer.emitEventEnd(StorageEvent.STORAGE_NEWVERSION);
             }
         }
 

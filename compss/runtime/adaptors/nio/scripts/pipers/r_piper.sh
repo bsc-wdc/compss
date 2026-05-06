@@ -156,8 +156,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
           #if [ "$tracing" != "" ] && [ "${executor_index}" == "0" ]; then
           #  echo "Emitting sync event for executor: ${executor_index}"
           #  env | grep EXTRAE
-          #  $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 $(date +%s)
-          #  $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 0
+          #  $EXTRAE_HOME/bin/extrae-cmd emit 0 8000001 $(date +%s)
+          #  $EXTRAE_HOME/bin/extrae-cmd emit 0 8000001 0
           #fi
           wait ${pipe_pid}
           pipe_pids[${executor_index}]=-1
@@ -183,8 +183,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
      i=$((i+1))
   done
 
-  # $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 $(date +%s)
-  # $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 0
+  # $EXTRAE_HOME/bin/extrae-cmd emit 0 8000001 $(date +%s)
+  # $EXTRAE_HOME/bin/extrae-cmd emit 0 8000001 0
 
   # Exit message
   if [ $errorStatus -ne 0 ]; then

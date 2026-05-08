@@ -1,15 +1,11 @@
-FROM eclipse-temurin:21-jdk AS compss
+FROM eclipse-temurin:21-jdk-noble AS compss
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
-	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
-	apt-get update && \
-	apt-get install -y --no-install-recommends \
-			openssh-server \
-			uuid-runtime
+	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
 COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \
@@ -27,22 +23,14 @@ COPY --from=build --link --parents \
 	/opt/COMPSs/Runtime/scripts \
 	/
 
-RUN mkdir /opt/COMPSs/Runtime/connectors && \
-	cat > /compss_entrypoint.sh <<-'EOF' && \
-	chmod 755 /compss_entrypoint.sh
-		#!/usr/bin/env -S bash -le
-		service ssh start
-		exec /__cacert_entrypoint.sh "$@"
-		EOF
+RUN mkdir /opt/COMPSs/Runtime/connectors
 
 ENV APP_PATH="/app"
 ENV LOG_LEVEL="off"
 
-EXPOSE 22
 EXPOSE 46101
 EXPOSE 46102
 
-ENTRYPOINT ["/compss_entrypoint.sh"]
 SHELL ["/bin/bash", "-lc"]
 CMD compss_agent_start --hostname=$(hostname -i) \
 					   --classpath="${APP_PATH}" \

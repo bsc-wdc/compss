@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre AS compss-orchestra
+FROM eclipse-temurin:21-jre-noble AS compss-orchestra
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
@@ -19,8 +19,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			docker-ce-cli \
-			uuid-runtime
+			docker-ce-cli
 
 COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \
@@ -57,7 +56,6 @@ ENV SOCKET="/tmp/compss.sock"
 EXPOSE 46101
 EXPOSE 46102
 
-ENTRYPOINT ["/__cacert_entrypoint.sh"]
 SHELL ["/bin/bash", "-lc"]
 CMD compss_agent_start --hostname=$(hostname -i) \
 					   --classpath="${APP_PATH}" \

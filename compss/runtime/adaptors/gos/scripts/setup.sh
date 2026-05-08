@@ -1,4 +1,9 @@
 #!/bin/bash
+
+  # shellcheck source=../system/commons/utils.sh
+  # shellcheck disable=SC1091
+  source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
+
   JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
   NUM_PARAMS=39
@@ -51,7 +56,9 @@
       jvmFlags="${jvmFlags} ${!pos}"
     done
     #Changed to support Coverage mode
-    uuid=$(uuidgen)
+    if [ -z "${uuid}" ]; then
+      get_uuid
+    fi
     jvmFlags=$(echo "$jvmFlags" | tr "#" ",")
     jvmFlags=$(echo "$jvmFlags" | tr "@" ",")
     jvmFlags="${jvmFlags/ffff/$uuid}"

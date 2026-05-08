@@ -4,6 +4,10 @@
 
 # shellcheck disable=SC2034
 
+  # shellcheck source=../system/commons/java.sh
+  # shellcheck disable=SC1091
+  source "${COMPSS_HOME}/Runtime/scripts/system/commons/java.sh"
+
 ##########################
 # HELPER FUNCTIONS
 ##########################
@@ -534,8 +538,6 @@ setup_environment(){
 }
 
 get_command(){
-  # Prepare the worker command
-    local JAVA="java"
     local worker_jar=${SCRIPT_DIR}/../../../../adaptors/gos/worker/compss-adaptors-gos-worker.jar
     local main_worker_class=es.bsc.compss.gos.worker.GOSWorker
 

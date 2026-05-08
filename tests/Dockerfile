@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk AS tests
+FROM eclipse-temurin:21-jdk-noble AS tests
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
@@ -30,13 +30,17 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			libboost-system-dev \
 			libopenmpi-dev \
 			make \
-			maven \
 			openssh-server \
 			python3-dev \
 			python3-pip
 
+ARG MAVEN_VERSION=3.9.15
+ARG MAVEN_HOME=/opt/maven
 RUN curl -fsSL https://install.julialang.org | sh -s -- -y && \
-	ln -s /root/.juliaup/bin/* /usr/bin
+	ln -s /root/.juliaup/bin/* /usr/bin && \
+	curl -fsSL https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar xzv && \
+	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME}
+ENV PATH=${PATH}:${MAVEN_HOME}/bin
 
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
@@ -77,6 +81,7 @@ RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N '' && \
 	cat >> /etc/environment <<-EOT && \
 	cat > /compss_entrypoint.sh <<-'EOF' && \
 	chmod +x /compss_entrypoint.sh
+		JAVA_HOME=${JAVA_HOME}
 		OMPI_ALLOW_RUN_AS_ROOT="${OMPI_ALLOW_RUN_AS_ROOT}"
 		OMPI_ALLOW_RUN_AS_ROOT_CONFIRM="${OMPI_ALLOW_RUN_AS_ROOT_CONFIRM}"
 		EOT

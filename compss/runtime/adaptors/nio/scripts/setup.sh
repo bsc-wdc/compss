@@ -1,4 +1,13 @@
 #!/bin/bash
+
+  # shellcheck source=../system/commons/java.sh
+  # shellcheck disable=SC1091
+  source "${COMPSS_HOME}/Runtime/scripts/system/commons/java.sh"
+
+  # shellcheck source=../system/commons/utils.sh
+  # shellcheck disable=SC1091
+  source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
+
   JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
   NUM_PARAMS=41
@@ -60,7 +69,9 @@
       jvmFlags="${jvmFlags} ${!pos}"
     done
     #Changed to support Coverage mode
-    uuid=$(uuidgen)
+    if [ -z "${uuid}" ]; then
+      get_uuid
+    fi
     jvmFlags=$(echo "$jvmFlags" | tr "#" ",")
     jvmFlags=$(echo "$jvmFlags" | tr "@" ",")
     jvmFlags="${jvmFlags/ffff/$uuid}"
@@ -335,8 +346,6 @@
   }
 
   setup_jvm() {
-    # Prepare the worker command
-    local JAVA=java
     worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
     local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
     perf_jvm_flags="-Djdk.lang.Process.launchMechanism=fork -XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC -XX:ParallelGCThreads=1"  # -XX:+UseSerialGC"

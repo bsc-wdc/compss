@@ -1,4 +1,4 @@
-FROM compss-orch AS rcompss
+FROM eclipse-temurin:21-jre-noble AS rcompss
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
@@ -8,7 +8,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			openssh-server \
+			cmake \
 			r-base
 
 COPY --from=build --link --parents \
@@ -29,20 +29,14 @@ COPY --from=build --link --parents \
 	/opt/COMPSs/Runtime/scripts \
 	/
 
-COPY --chmod=755 <<-'EOF' /compss_entrypoint.sh
-	#!/usr/bin/env -S bash -le
-	service ssh start
-	exec /__cacert_entrypoint.sh "$@"
-	EOF
+RUN mkdir /opt/COMPSs/Runtime/connectors
 
 ENV APP_PATH="/app"
 ENV LOG_LEVEL="off"
 
-EXPOSE 22
 EXPOSE 46101
 EXPOSE 46102
 
-ENTRYPOINT ["/compss_entrypoint.sh"]
 SHELL ["/bin/bash", "-lc"]
 CMD compss_agent_start --hostname=$(hostname -i) \
 					   --classpath="${APP_PATH}" \

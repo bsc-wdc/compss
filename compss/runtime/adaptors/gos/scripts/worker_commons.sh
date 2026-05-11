@@ -29,7 +29,6 @@ get_batch_parameters () {
           batchSlaveNodesList=($worker_nodes)
           echo "[WORKER_COMMONS.SH] is batch, reads slave nodes: ${batchSlaveNodesList[*]} given by batchScript.sh"
   else
-        create_kill_script_interactive "$killScriptDir" "$killScriptPath" "$programID"
         programID=$$
   fi
   if [ -z "${programID}" ]; then
@@ -698,6 +697,12 @@ get_all_parameters(){
   get_taskID ${remainingParams[@]}
   get_batch_parameters ${remainingParams[@]}
   get_response_parameters ${remainingParams[@]}
+  # create_kill_script_interactive needs killScriptDir/killScriptPath (set by
+  # get_response_parameters) and programID (set by get_batch_parameters), so
+  # it must be called after both of those functions have run.
+  if [ "${isBatch}" != "true" ]; then
+    create_kill_script_interactive "$killScriptDir" "$killScriptPath" "$programID"
+  fi
   get_host_parameters ${remainingParams[@]}
   get_implementation_parameters ${remainingParams[@]}
   get_invocation_params ${remainingParams[@]}

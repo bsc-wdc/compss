@@ -260,7 +260,11 @@ install_kafka() {
   trap "rm -rf '${tmpdir}'" EXIT
 
   cd "${tmpdir}"
-  wget -q "${url}" || {
+  # --timeout=60: abort if the connection goes idle for >60 s (catches hung
+  #   servers that open TCP but stop sending data mid-transfer).
+  # timeout 1800: hard wall-clock cap so a server that trickles data at
+  #   byte-per-minute rates cannot stall the build indefinitely.
+  timeout 1800 wget -q --timeout=60 --tries=3 "${url}" || {
     echo "ERROR: Failed to download Kafka ${KAFKA_VERSION} from Apache archive."
     exit 1
   }
@@ -294,9 +298,9 @@ install_tomcat() {
   trap "rm -rf '${tmpdir}'" EXIT
 
   cd "${tmpdir}"
-  if ! wget -q "${url}"; then
+  if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
     echo "[tomcat] BSC mirror failed, trying Apache archive..."
-    wget -q "${fallback_url}" || {
+    timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
       echo "ERROR: Failed to download Tomcat from both mirrors."
       exit 1
     }

@@ -26,6 +26,7 @@ This file contains the distro stream components code.
 # Imports
 import queue
 import socket
+import time
 from threading import Thread
 
 # Project imports
@@ -183,53 +184,85 @@ class DistroStreamClient(Thread):
         :param req: Request.
         :return: None.
         """
-        # Open socket connection
-        try:
+        # Retry on connection refused: the DistroStream master server may not
+        # be ready yet immediately after COMPSs starts
+        # (timing race on restart).
+        _MAX_RETRIES = 5
+        _RETRY_DELAY = 2  # seconds
+
+        last_exc: typing.Optional[Exception] = None
+        for attempt in range(_MAX_RETRIES):
             comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            comm_socket.connect((self.master_ip, self.master_port))
+            try:
+                comm_socket.connect((self.master_ip, self.master_port))
 
-            # Send request message
-            req_msg = req.get_request_msg()
-            if __debug__:
-                logger.debug("Sending request to server: %s", str(req_msg))
-            req_msg = req_msg + "\n"
-            req_msg = req_msg.encode()
-            comm_socket.sendall(req_msg)
-            if __debug__:
-                logger.debug("Sent request to server")
+                # Send request message
+                req_msg = req.get_request_msg()
+                if __debug__:
+                    logger.debug("Sending request to server: %s", str(req_msg))
+                req_msg = req_msg + "\n"
+                req_msg = req_msg.encode()
+                comm_socket.sendall(req_msg)
+                if __debug__:
+                    logger.debug("Sent request to server")
 
-            # Receive answer
-            chunk = comm_socket.recv(DistroStreamClient.BUFFER_SIZE)
-            answer = chunk
-            if __debug__:
-                logger.debug("Received answer from server: %s", str(answer))
-            while (
-                chunk is not None
-                and chunk
-                and not chunk.endswith("\n".encode())
-            ):
+                # Receive answer
+                chunk = comm_socket.recv(DistroStreamClient.BUFFER_SIZE)
+                answer = chunk
                 if __debug__:
                     logger.debug(
-                        "Received chunk answer from server with size = %s",
-                        str(len(chunk)),
+                        "Received answer from server: %s", str(answer)
                     )
-                chunk = comm_socket.recv(DistroStreamClient.BUFFER_SIZE)
-                if chunk is not None and chunk:
-                    answer = answer + chunk
-            answer_str = answer.decode(encoding="UTF-8").strip()
-            if __debug__:
-                logger.debug(
-                    "Received answer from server: %s", str(answer_str)
-                )
-            req.set_response(answer_str)
-        except Exception as general_exception:  # pylint: disable=broad-except
-            if __debug__:
-                logger.error(
-                    "ERROR: Cannot process request \n %s",
-                    str(general_exception),
-                )
-            # Some error occurred, mark request as failed and keep going
-            req.set_error(1, str(general_exception))
+                while (
+                    chunk is not None
+                    and chunk
+                    and not chunk.endswith("\n".encode())
+                ):
+                    if __debug__:
+                        logger.debug(
+                            "Received chunk answer from server with size = %s",
+                            str(len(chunk)),
+                        )
+                    chunk = comm_socket.recv(DistroStreamClient.BUFFER_SIZE)
+                    if chunk is not None and chunk:
+                        answer = answer + chunk
+                answer_str = answer.decode(encoding="UTF-8").strip()
+                if __debug__:
+                    logger.debug(
+                        "Received answer from server: %s", str(answer_str)
+                    )
+                req.set_response(answer_str)
+                return
+            except ConnectionRefusedError as exc:
+                last_exc = exc
+                if __debug__:
+                    logger.warning(
+                        "DS Server not ready (attempt %d/%d), retrying in %ds",
+                        attempt + 1,
+                        _MAX_RETRIES,
+                        _RETRY_DELAY,
+                    )
+                if attempt < _MAX_RETRIES - 1:
+                    time.sleep(_RETRY_DELAY)
+            except Exception as general_exception:
+                if __debug__:
+                    logger.error(
+                        "ERROR: Cannot process request \n %s",
+                        str(general_exception),
+                    )
+                req.set_error(1, str(general_exception))
+                return
+            finally:
+                comm_socket.close()
+
+        # All retries exhausted
+        if __debug__:
+            logger.error(
+                "ERROR: DS Server unreachable after %d attempts: %s",
+                _MAX_RETRIES,
+                str(last_exc),
+            )
+        req.set_error(1, str(last_exc))
 
     def add_request(self, req: typing.Any) -> None:
         """Add a new request to the client.

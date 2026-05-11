@@ -10,26 +10,26 @@
   echo "** Inserting new hosts on /etc/hosts"
 
 cat >> /etc/hosts <<EOT
-127.0.0.21        COMPSsWorker01
-127.0.0.22        COMPSsWorker02
-127.0.0.23        COMPSsWorker03
-127.0.0.24        COMPSsWorker04
-127.0.0.25        COMPSsWorker05
-127.0.0.26        COMPSsWorker06
-127.0.0.27        COMPSsWorker07
-127.0.0.28        COMPSsWorker08
-127.0.0.29        COMPSsWorker09
-127.0.0.30        COMPSsWorker10
-127.0.0.31        COMPSsWorker11
-127.0.0.32        COMPSsWorker12
-127.0.0.33        COMPSsWorker13
-127.0.0.34        COMPSsWorker14
-127.0.0.35        COMPSsWorker15
-127.0.0.36        COMPSsWorker16
-127.0.0.37        COMPSsWorker17
-127.0.0.38        COMPSsWorker18
-127.0.0.39        COMPSsWorker19
-127.0.0.40        COMPSsWorker20
+127.0.0.1        COMPSsWorker01
+127.0.0.1        COMPSsWorker02
+127.0.0.1        COMPSsWorker03
+127.0.0.1        COMPSsWorker04
+127.0.0.1        COMPSsWorker05
+127.0.0.1        COMPSsWorker06
+127.0.0.1        COMPSsWorker07
+127.0.0.1        COMPSsWorker08
+127.0.0.1        COMPSsWorker09
+127.0.0.1        COMPSsWorker10
+127.0.0.1        COMPSsWorker11
+127.0.0.1        COMPSsWorker12
+127.0.0.1        COMPSsWorker13
+127.0.0.1        COMPSsWorker14
+127.0.0.1        COMPSsWorker15
+127.0.0.1        COMPSsWorker16
+127.0.0.1        COMPSsWorker17
+127.0.0.1        COMPSsWorker18
+127.0.0.1        COMPSsWorker19
+127.0.0.1        COMPSsWorker20
 EOT
 
   # Prompt result

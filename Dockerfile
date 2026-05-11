@@ -1,6 +1,19 @@
-FROM eclipse-temurin:21-jdk-noble AS build
+# syntax=docker/dockerfile:1
+ARG DEBIAN_FRONTEND=noninteractive
+# In CI, docker_build overrides this with the pre-built registry image so the
+# deps stage is bypassed entirely (no submodule init or compilation needed).
+ARG CI_DEPS_IMAGE=deps
+
+# Stage: pre-install external dependencies (Extrae, DLB, Kafka, Tomcat, JaCoCo).
+# Built and pushed to the registry by the docker_build_deps CI job.
+# Clones submodules directly from their remotes (no .git needed in context).
+# Dependency version pins live in builders/deps-versions — edit that file to
+# trigger a deps image rebuild in CI without touching the rest of this Dockerfile.
+FROM eclipse-temurin:21-jdk-noble AS deps
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
+
+ENV GRADLE_HOME=/opt/gradle
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
@@ -23,7 +36,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			r-base=4.3.3-2build2 \
 			unzip=6.0-28ubuntu4.1
 
-ARG GRADLE_HOME=/opt/gradle
 RUN wget https://services.gradle.org/distributions/gradle-8.7-bin.zip && \
 	unzip gradle-8.7-bin.zip && \
 	rm gradle-8.7-bin.zip && \
@@ -43,22 +55,33 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			pytest==9.0.3 \
 			types-tabulate==0.10.0.20260408
 
-COPY --parents \
-	builders/pre-install-deps \
-	dependencies/install_dlb.sh  \
-	dependencies/install_extrae.sh \
-	/framework/
+COPY builders/deps-versions builders/pre-install-deps /framework/builders/
+COPY dependencies/install_extrae.sh dependencies/install_dlb.sh /framework/dependencies/
 
-RUN cd /framework && \
-	git clone --depth 1 -b v3.6.0 https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
-	git clone --depth 1 -b master_compss https://github.com/bsc-wdc/extrae.git dependencies/extrae && \
-	git clone --depth 1 -b next-release https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
-	git clone --depth 1 -b master https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
-	/framework/builders/pre-install-deps
+WORKDIR /framework
+
+# Pull Kafka from the official Docker Hub image instead of archive.apache.org
+# (the archive server is slow/unreliable for older releases).
+# Version must stay in sync with KAFKA_VERSION in builders/pre-install-deps.
+COPY --from=apache/kafka:3.8.0 /opt/kafka /opt/COMPSs/Dependencies/kafka
+
+RUN . /framework/builders/deps-versions && \
+	git clone --depth=1 --branch ${EXTRAE_BRANCH} https://github.com/bsc-wdc/extrae.git dependencies/extrae && \
+	git clone --depth=1 --branch ${DLB_TAG} https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
+	git clone --depth=1 --branch ${THREADPOOLCTL_TAG} https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
+	git clone --depth=1 --branch ${RCOMPSS_BRANCH} https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
+	/framework/builders/pre-install-deps --no-kafka && \
+	echo "export KAFKA_HOME=\"/opt/COMPSs/Dependencies/kafka\"" >> /opt/COMPSs/Dependencies/compss-deps.env
+
+# Stage: build and install COMPSs.
+# Starts FROM the pre-built deps registry image when CI_DEPS_IMAGE is set,
+# skipping the deps stage above entirely.
+FROM ${CI_DEPS_IMAGE} AS build
 
 COPY . /framework
 
-RUN . /opt/COMPSs/Dependencies/compss-deps.env && \
+RUN python3 -m pip install --break-system-packages kafka-python && \
+	. /opt/COMPSs/Dependencies/compss-deps.env && \
 	/framework/builders/buildlocal --rcompss
 
 CMD ["/bin/bash"]

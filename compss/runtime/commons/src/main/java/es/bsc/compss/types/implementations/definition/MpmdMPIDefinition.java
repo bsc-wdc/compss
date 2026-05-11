@@ -297,6 +297,8 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
                 }
                 fullCmd.add(this.programsSeparator);
             }
+            int index = fullCmd.size() - 1;
+            fullCmd.remove(index);
             String[] ret = new String[fullCmd.size()];
             return fullCmd.toArray(ret);
         }

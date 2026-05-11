@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Imports
+import glob
 import os
 import shutil
 import subprocess
@@ -304,7 +305,14 @@ def _compile(working_dir, compss_cfg):
     if not os.path.isfile(pom_file):
         print("[WARN] No pom.xml file found. Skipping compilation")
     else:
-        cmd = ["mvn", "-U", "clean", "install"]
+        # Skip Maven when the image was pre-compiled (CI Docker build bakes JARs
+        # into the image to avoid runtime downloads and recompilation).
+        target_dir = os.path.join(working_dir, "target")
+        if glob.glob(os.path.join(target_dir, "*.jar")):
+            print(f"[INFO] Pre-built JAR found, skipping compilation for {working_dir}")
+            return
+
+        cmd = ["mvn", "-nsu", "clean", "install"]
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()

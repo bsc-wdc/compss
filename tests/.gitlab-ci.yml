@@ -1,146 +1,250 @@
 variables:
-  DOCKER_WORKING_DIR_VOLUME: "working_dir"
-  DOCKER_WORKING_DIR_MOUNT: "/tmp/COMPSsWorker01"
-  DOCKER_APP_DIR_VOLUME: "app_dir"
-  DOCKER_APP_DIR_MOUNT: "/home/jenkins/tests"
-  DOCKER_PYCOMPSS_VOLUME: "pycompss_dir"
-  DOCKER_PYCOMPSS_MOUNT: "/opt/COMPSs/Bindings/python/3/pycompss"
+  CONTAINER_NAME: "compss_test_$CI_JOB_ID"
+  COMPSS_IMAGE: "$CI_REGISTRY_IMAGE/ci:$CI_PIPELINE_ID"
+  DEPS_IMAGE: $CI_REGISTRY_IMAGE/deps:latest
+  TEST_DEPS_IMAGE: $CI_REGISTRY_IMAGE/test-deps:latest
 
 stages:
   - rebase_verify
   - header_setup
   - docker_build
   - tests
+  - cleanup
 
 rebase_verify:
   stage: rebase_verify
+  variables:
+    GIT_DEPTH: 0
   script:
+    - TARGET="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-trunk}"
+    - SOURCE="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
     - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
-    - git checkout ${CI_MERGE_REQUEST_SOURCE_BRANCH}
-    - git rebase origin/${CI_MERGE_REQUEST_TARGET_BRANCH:-trunk}
-    - log=$(git log origin/${CI_MERGE_REQUEST_SOURCE_BRANCH}..${CI_MERGE_REQUEST_SOURCE_BRANCH})
-    - if [ -n "${log}" ]; then
-        echo "Merge request was not rebased, pushing rebase"
-        git push origin ${CI_MERGE_REQUEST_SOURCE_BRANCH}
-        exit 1
+    - git fetch origin "$TARGET"
+    - |
+      if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_PROJECT_ID" ]; then
+        # Fork MR: runner has no write access to source branch — verify only
+        if ! git merge-base --is-ancestor "origin/$TARGET" HEAD; then
+          echo "ERROR: Branch is not rebased on $TARGET. Please rebase and push again."
+          exit 1
+        fi
+        echo "Branch is already rebased on $TARGET, proceeding"
+      else
+        # Same-repo MR: auto-rebase and push if needed
+        git fetch origin "$SOURCE"
+        git checkout -B "$SOURCE" "origin/$SOURCE"
+        BEFORE=$(git rev-parse HEAD)
+        if ! git rebase "origin/$TARGET"; then
+          git rebase --abort
+          echo "ERROR: Rebase conflict on $TARGET. Please rebase manually and resolve conflicts."
+          exit 1
+        fi
+        if [ "$(git rev-parse HEAD)" != "$BEFORE" ]; then
+          echo "Branch was not rebased on $TARGET, pushing rebase"
+          git push origin "HEAD:$SOURCE"
+          exit 1
+        fi
+        echo "Branch is already rebased on $TARGET, proceeding"
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
-    - if: $CI_COMMIT_BRANCH
 
 header_setup:
   stage: header_setup
   script:
+    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
+    - git config user.email "ci@bsc.es"
+    - git config user.name "COMPSs CI"
     - ./utils/scripts/header_setup/replace_all.sh
     - mvn -U clean validate
     - git add -u
-    - if git commit -m "Add headers and format code"; then
+    - |
+      if ! git diff --cached --quiet; then
+        if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_PROJECT_ID" ]; then
+          echo "ERROR: Files with missing headers detected. Please run utils/scripts/header_setup/replace_all.sh locally and push again."
+          exit 1
+        fi
+        git commit -m "Add headers and format code"
         echo "Files with no headers detected, pushing commit"
-        git push origin ${CI_MERGE_REQUEST_SOURCE_BRANCH}
+        git push origin "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
         exit 1
       else
         echo "All files contained headers, proceeding"
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
-    - if: $CI_COMMIT_BRANCH
-
 
 # Builds and pushes the deps pre-image to the GitLab Container Registry.
-# Only runs when builders/pre-install-deps or the dependency submodule sources
-# change, so the slow Extrae/DLB/Kafka compilation is cached across pipelines.
+# Only runs when the slow inputs change (apt/pip lists, git clone refs, or
+# the pre-install-deps script), so Extrae/DLB compilation is cached across pipelines.
 docker_build_deps:
   stage: docker_build
-  image: docker:latest
-  services:
-    - docker:dind
+  tags:
+    - fast-docker
   variables:
     DOCKER_BUILDKIT: "1"
-    DEPS_IMAGE: $CI_REGISTRY_IMAGE/deps:latest
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --target deps -t "$DEPS_IMAGE" .
+    - docker pull "$DEPS_IMAGE" || true
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "$DEPS_IMAGE" --target deps -t "$DEPS_IMAGE" .
     - docker push "$DEPS_IMAGE"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - Dockerfile
+        - builders/deps-versions
         - builders/pre-install-deps
-        - dependencies/**/*
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
-    - if: $CI_COMMIT_BRANCH
+        - .gitmodules
+        - dependencies/dlb
+        - dependencies/extrae
+        - dependencies/kafka
+
+# Builds and pushes the test-deps pre-image to the GitLab Container Registry.
+# Only runs when tests/Dockerfile changes (apt packages, pip packages, Julia),
+# so the slow installs are cached across pipelines.
+docker_build_test_deps:
+  stage: docker_build
+  tags:
+    - fast-docker
+  services:
+    - docker:dind
+  variables:
+    DOCKER_BUILDKIT: "1"
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker pull "$TEST_DEPS_IMAGE" || true
+    - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "$TEST_DEPS_IMAGE" --target test-deps -t "$TEST_DEPS_IMAGE" tests/
+    - docker push "$TEST_DEPS_IMAGE"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-        - Dockerfile
-        - builders/pre-install-deps
-        - dependencies/**/*
+        - tests/Dockerfile
 
 docker_build:
   stage: docker_build
-  image: docker:latest
+  tags:
+    - fast-docker
+  timeout: 1h
   services:
     - docker:dind
   needs:
     - job: docker_build_deps
       optional: true
+    - job: docker_build_test_deps
+      optional: true
   variables:
     DOCKER_BUILDKIT: "1"
-    DEPS_IMAGE: $CI_REGISTRY_IMAGE/deps:latest
+    CI_BUILD_TAG: "ci-build:$CI_PIPELINE_ID"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY" || true
-    - docker rm -f compss_test || true
-    - docker rmi compss || true
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    # Remove old ci images from previous pipelines to free disk.
+    # Builder prune uses a 48h window so the Maven cache mount stays warm between pipelines.
+    - docker images "$CI_REGISTRY_IMAGE/ci" --format "{{.Tag}}" | grep -v "^$CI_PIPELINE_ID$" | xargs -r -I{} docker rmi "$CI_REGISTRY_IMAGE/ci:{}" 2>/dev/null || true
+    - docker image prune -f
+    - docker builder prune --filter until=48h -f
     - |
+      # Build the COMPSs installation (build stage) — used as 'build' context for tests/Dockerfile
       if docker pull "$DEPS_IMAGE"; then
-        docker build --build-arg CI_DEPS_IMAGE="$DEPS_IMAGE" --target ci -t compss .
+        docker build --build-arg CI_DEPS_IMAGE="$DEPS_IMAGE" --cache-from "$DEPS_IMAGE" --target build -t "$CI_BUILD_TAG" .
       else
-        docker build --target ci -t compss .
+        echo "WARN: deps image pull failed, building deps+build from scratch (this will be slow)"
+        docker build --target build -t "$CI_BUILD_TAG" .
       fi
+    # Tag build image as 'build' so COPY --from=build in tests/Dockerfile resolves locally.
+    # tests/Dockerfile uses '# syntax=docker/dockerfile:1' to enable --parents support.
+    - docker tag "$CI_BUILD_TAG" build
+    # Pull pre-built test-deps image if available; fall through to full build if not.
+    - docker pull "$TEST_DEPS_IMAGE" || true
+    - |
+      if docker image inspect "$TEST_DEPS_IMAGE" &>/dev/null; then
+        docker build --build-arg CI_TEST_DEPS_IMAGE="$TEST_DEPS_IMAGE" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
+      else
+        echo "WARN: test-deps image not found, building tests from scratch (this will be slow)"
+        docker build -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
+      fi
+    - docker push "$COMPSS_IMAGE"
+    # Clean up temporary local tags
+    - docker rmi "$CI_BUILD_TAG" build 2>/dev/null || true
     - echo "Image successfully built"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
-    - if: $CI_COMMIT_BRANCH
 
 tests:
   stage: tests
-  image: docker:latest
-  services:
-    - docker:dind
+  timeout: 4h
+  needs:
+    - job: docker_build
+  parallel:
+    matrix:
+      # Job 1 (~62 min based on Jenkins timing): python ~40 min, cloud ~14 min,
+      # fault_tolerance ~5 min, performance ~3 min, socket ~1 min.
+      - TEST_FAMILIES: "-f python -f cloud -f fault_tolerance -f performance -f socket"
+      # Job 2 (~63 min based on Jenkins timing): java ~33 min (3_node_init_failure
+      # alone takes 439 s), c ~10 min, agents ~5 min, agents_transfers ~3 min,
+      # pscos ~5 min, tools ~6 min, gos ~1 min.
+      - TEST_FAMILIES: "-f java -f c -f agents -f agents_transfers -f gos -f pscos -f tools"
   script:
-    - docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
-    - docker volume rm $DOCKER_APP_DIR_VOLUME || true
-    - docker volume rm $DOCKER_PYCOMPSS_VOLUME || true
-    - docker volume create $DOCKER_WORKING_DIR_VOLUME
-    - docker volume create $DOCKER_APP_DIR_VOLUME
-    - docker volume create $DOCKER_PYCOMPSS_VOLUME
-    - docker run -d --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        --mount source=$DOCKER_PYCOMPSS_VOLUME,target=$DOCKER_PYCOMPSS_MOUNT \
-        --mount source=$DOCKER_WORKING_DIR_VOLUME,target=$DOCKER_WORKING_DIR_MOUNT \
-        --mount source=$DOCKER_APP_DIR_VOLUME,target=$DOCKER_APP_DIR_MOUNT \
-        -e DOCKER_WORKING_DIR_VOLUME=$DOCKER_WORKING_DIR_VOLUME \
-        -e DOCKER_WORKING_DIR_MOUNT=$DOCKER_WORKING_DIR_MOUNT \
-        -e DOCKER_APP_DIR_VOLUME=$DOCKER_APP_DIR_VOLUME \
-        -e DOCKER_APP_DIR_MOUNT=$DOCKER_APP_DIR_MOUNT \
-        -e DOCKER_PYCOMPSS_VOLUME=$DOCKER_PYCOMPSS_VOLUME \
-        -e DOCKER_PYCOMPSS_MOUNT=$DOCKER_PYCOMPSS_MOUNT \
-        --name=compss_test compss
-    - docker exec compss_test bash -c "sudo /framework/tests/scripts/configure_hosts_insert && chmod a+w $DOCKER_WORKING_DIR_MOUNT && chmod a+w $DOCKER_APP_DIR_MOUNT && chmod a+w $DOCKER_PYCOMPSS_MOUNT && usermod -aG docker jenkins && groupmod -g $(stat -c '%g' /var/run/docker.sock) docker"
-    - docker exec --user jenkins compss_test python3 /framework/tests/scripts/tests.py \
-          -cfg /framework/tests/configurations/NIO_Docker.cfg -FF -R
-    - docker rm -f compss_test
-    - docker rmi compss
-    - docker volume rm $DOCKER_WORKING_DIR_VOLUME || true
-    - docker volume rm $DOCKER_APP_DIR_VOLUME || true
-    - docker volume rm $DOCKER_PYCOMPSS_VOLUME || true
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    # Remove old ci images from previous pipelines to free disk before pulling
+    - docker images "$CI_REGISTRY_IMAGE/ci" --format "{{.Tag}}" | grep -v "^$CI_PIPELINE_ID$" | xargs -r -I{} docker rmi "$CI_REGISTRY_IMAGE/ci:{}" 2>/dev/null || true
+    - docker image prune -f
+    - docker pull "$COMPSS_IMAGE"
+    # Use the same docker_test script as Jenkins. COMPSS_CONTAINER is set to a
+    # per-job unique name so parallel jobs on the same runner don't collide.
+    # COMPSS_IMAGE is already available from the global variables block.
+    - export COMPSS_CONTAINER=$CONTAINER_NAME
+    # Tee docker_test output to an artifact so the test runner pass/fail
+    # summary is available even when the 4 MB job log is truncated.
+    # $TEST_FAMILIES is intentionally unquoted so the shell word-splits
+    # "-f python -f cloud ..." into separate arguments for docker_test.
+    - mkdir -p test-results
+    - $CI_PROJECT_DIR/tests/scripts/docker_test -FF $TEST_FAMILIES 2>&1 | tee test-results/docker_test.log; exit ${PIPESTATUS[0]}
+  after_script:
+    # Copy only the logs/ subtree: all *.outputlog, *.errorlog, runtime.log,
+    # and job output files written by the test execution scripts go there.
+    # apps/ contains only deployed binaries (jars, compiled C, xmls) and is
+    # not needed for debugging failures.
+    - mkdir -p test-results
+    - docker cp $CONTAINER_NAME:/root/tests_execution_sandbox/logs/. test-results/logs/ 2>/dev/null || true
+    # docker rm -fv removes the container and its anonymous volumes (the same
+    # three volumes that docker_test creates with --mount type=volume).
+    - docker rm -fv $CONTAINER_NAME || true
+  artifacts:
+    when: always
+    name: "test-results-${CI_JOB_NAME}-${CI_PIPELINE_ID}"
+    paths:
+      - test-results/
+    expire_in: 7 days
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
-    - if: $CI_COMMIT_BRANCH
+
+# Deletes the per-pipeline ci image tag from the registry after tests complete
+# to prevent unbounded registry growth. Runs even if tests failed.
+# Registry size can be monitored at: Project > Packages & Registries > Container Registry
+# A GitLab cleanup policy on the ci/* tags (TTL: 7 days) is also recommended as a safety net.
+cleanup_registry:
+  stage: cleanup
+  script:
+    - |
+      REPO_ID=$(curl -sf --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories" | \
+        python3 -c "
+      import sys, json
+      repos = json.load(sys.stdin)
+      match = next((r['id'] for r in repos if r.get('path', '').endswith('/ci')), None)
+      print(match if match is not None else '')
+      ")
+      if [ -z "$REPO_ID" ]; then
+        echo "WARN: could not find ci registry repository, skipping cleanup"
+        exit 0
+      fi
+      HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --request DELETE \
+        --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID/tags/$CI_PIPELINE_ID")
+      if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "204" ]; then
+        echo "Deleted registry tag ci:$CI_PIPELINE_ID"
+      else
+        echo "WARN: failed to delete registry tag ci:$CI_PIPELINE_ID (HTTP $HTTP_STATUS)"
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always

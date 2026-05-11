@@ -52,6 +52,7 @@
       --comm="$comm" \
       \
       --debug \
+      --log_level=debug \
       ${runcompss_opts} \
       \
       --lang=python \

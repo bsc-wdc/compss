@@ -630,6 +630,8 @@ public class ResourceOptimizer extends Thread {
         int currentCloudVMCount = ResourceManager.getCurrentVMCount();
         Integer maxNumberOfVMs = ResourceManager.getMaxCloudVMs();
         Integer minNumberOfVMs = ResourceManager.getMinCloudVMs();
+        RUNTIME_LOGGER.info("[Resource Optimizer] Applying VM optimization policies (currentVMs: " + currentCloudVMCount
+            + " maxVMs: " + maxNumberOfVMs + " minVMs: " + minNumberOfVMs + ")");
 
         long creationTime;
         try {
@@ -712,10 +714,6 @@ public class ResourceOptimizer extends Thread {
                 }
             }
 
-        }
-        if (DEBUG) {
-            RUNTIME_LOGGER.debug("[Resource Optimizer] Applying VM optimization policies (currentVMs: "
-                + currentCloudVMCount + " maxVMs: " + maxNumberOfVMs + " minVMs: " + minNumberOfVMs + ")");
         }
 
         // Check if there is some mandatory creation/destruction

@@ -14,7 +14,8 @@
   master_dir=/root
   worker_dir=/tmp/COMPSsWorker01
 
-  # Run the container
+  # Run the container — the ENTRYPOINT (compss_entrypoint.sh) handles
+  # configure_hosts_insert and starting sshd before exec-ing the CMD.
   if ! docker run -d \
                   --env COMPSS_CONTAINER="${COMPSS_CONTAINER:=tests}" \
                   --env COMPSS_IMAGE="${COMPSS_IMAGE}" \
@@ -29,4 +30,6 @@
   fi
 
   # Execute the tests
-  docker exec "${COMPSS_CONTAINER}" /bin/bash -lc 'python3 /framework/tests/scripts/tests.py "$@"' _ "$@"
+  docker exec "${COMPSS_CONTAINER}" /bin/bash -lc \
+    'python3 /framework/tests/scripts/tests.py "$@"' \
+    _ "$@"

@@ -187,8 +187,8 @@ class DistroStreamClient(Thread):
         # Retry on connection refused: the DistroStream master server may not
         # be ready yet immediately after COMPSs starts
         # (timing race on restart).
-        _MAX_RETRIES = 5
-        _RETRY_DELAY = 2  # seconds
+        _MAX_RETRIES = 10
+        _RETRY_DELAY = 3  # seconds
 
         last_exc: typing.Optional[Exception] = None
         for attempt in range(_MAX_RETRIES):

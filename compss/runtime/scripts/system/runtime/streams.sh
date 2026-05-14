@@ -39,6 +39,10 @@ BASE_STREAMING_PORT=49049
 #     Range of ports
 STREAMING_PORT_RAND_RANGE=100
 
+#   Kafka replication factor for auto-created topics.
+#   Default is 2 for multi-broker fault tolerance; set to 1 for single-broker setups.
+KAFKA_REPLICATION_FACTOR=${KAFKA_REPLICATION_FACTOR:-2}
+
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
@@ -177,7 +181,7 @@ num.recovery.threads.per.data.dir=1
 # Replication factor for the offsets topic (1 means no redundancy)
 offsets.topic.replication.factor=1
 # Default replication factor for new topics
-replication.factor=2
+replication.factor=${KAFKA_REPLICATION_FACTOR}
 # The maximum number of times the producer will retry sending a message after failure (set to a very high number)
 retries=2147483647
 # The time in milliseconds to wait before retrying a failed request
@@ -257,6 +261,19 @@ clean_stream_env () {
   if [ "${streaming}" == "${STREAMING_OBJECTS}" ] || [ "${streaming}" == "${STREAMING_ALL}" ]; then
     "${KAFKA_HOME}"/bin/kafka-server-stop.sh
     "${KAFKA_HOME}"/bin/zookeeper-server-stop.sh
+
+    # Wait until both ports are released before deleting state dirs.
+    # Kafka (49001) and ZooKeeper (49000) stop scripts send SIGTERM and return
+    # immediately; without this wait the next retry can fail to bind the port.
+    # /proc/net/tcp{,6} uses little-endian hex: 49000=BF88, 49001=BF89.
+    local deadline=$(( $(date +%s) + 30 ))
+    while grep -qiE "BF88|BF89" /proc/net/tcp /proc/net/tcp6 2>/dev/null; do
+      if [ "$(date +%s)" -ge "${deadline}" ]; then
+        display_info "Warning: Kafka/ZooKeeper ports still in use after 30s, proceeding anyway"
+        break
+      fi
+      sleep 1
+    done
 
     # Delete ZooKeeper and Kafka logs and configuration files
     rm -rf "${zookeeper_log_dir}"

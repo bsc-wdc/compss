@@ -19,9 +19,6 @@
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
 
-  # Wait for system sockets to close
-  sleep 15s
-
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
@@ -34,9 +31,6 @@
   output_log="${target_log_folder}/objectStreams_0${retry_num}.outputlog"
   error_log="${target_log_folder}/objectStreams_0${retry_num}.errorlog"
   expectedTime=300s
-
-  # Add a little sleep to allow OS free Kafka ports
-  sleep 10s
 
   # shellcheck disable=SC2086
   timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \

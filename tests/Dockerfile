@@ -106,6 +106,7 @@ RUN find /framework/tests/sources/local -mindepth 3 -maxdepth 3 -name pom.xml | 
 
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+ENV KAFKA_REPLICATION_FACTOR=1
 RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N '' && \
 	cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys && \
 	cat >> /etc/environment <<-EOT && \

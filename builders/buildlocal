@@ -668,6 +668,9 @@ install_compss() {
     bindingOut="/dev/stdout"
   fi
 
+  # Parallelise Maven builds across available cores (Maven CLI flag, not a JVM option)
+  mvnParallel="-T 1C"
+
   # COMPILE
   log_info "- Compile sources"
   cd "${SOURCES_DIR}"
@@ -675,10 +678,10 @@ install_compss() {
   touch compss/runtime/config/xml/resources/resources_schema.xsd
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
     log_info "   (as root)"
-    mvn ${mvnQuiet} -U clean install ${mvnTests}
+    mvn ${mvnQuiet} ${mvnParallel} -U clean install ${mvnTests}
   else
     log_info "   (as user ${user_exec})"
-    sudo -E -u "${user_exec}" mvn ${mvnQuiet} clean install ${mvnTests}
+    sudo -E -u "${user_exec}" mvn ${mvnQuiet} ${mvnParallel} clean install ${mvnTests}
   fi
   cd "${SCRIPT_DIR}"
 

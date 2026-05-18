@@ -88,7 +88,6 @@ COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \
 	/framework/utils \
 	/opt/COMPSs \
-	/root/.m2 \
 	/usr/local/lib/python3.12/dist-packages/compss* \
 	/usr/local/lib/python3.12/dist-packages/process_affinity* \
 	/usr/local/lib/python3.12/dist-packages/pycompss* \
@@ -96,13 +95,15 @@ COPY --from=build --link --parents \
 
 COPY . /framework/tests
 
-# Pre-compile all Java test apps so the Maven plugin cache and project deps are
-# baked into the image. At test runtime, compilation_and_deployment.py detects
-# the pre-built JARs and skips Maven entirely (no network, no re-compilation).
-RUN find /framework/tests/sources/local -mindepth 3 -maxdepth 3 -name pom.xml | \
+# Pre-compile all Java test apps and bake the Maven local repo into the image.
+# The cache mount at /tmp/m2-cache speeds up rebuilds across builds; copying it
+# to /root/.m2 ensures Maven plugins and deps are available offline at runtime.
+RUN --mount=type=cache,target=/tmp/m2-cache,id=maven \
+    find /framework/tests/sources/local -mindepth 3 -maxdepth 3 -name pom.xml | \
     while IFS= read -r pom; do \
-        mvn -f "$pom" install -nsu --no-transfer-progress -q 2>/dev/null || true; \
-    done
+        mvn -Dmaven.repo.local=/tmp/m2-cache/repository -f "$pom" install -nsu --no-transfer-progress -q 2>/dev/null || true; \
+    done && \
+    cp -a /tmp/m2-cache /root/.m2
 
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
 ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1

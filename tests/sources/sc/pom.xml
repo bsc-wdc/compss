@@ -28,7 +28,7 @@
 
     <!-- PROPERTIES -->
     <properties>
-        <compss.version>3.4</compss.version>
+        <compss.version>${project.version}</compss.version>
 
         <!-- Code format -->
         <code-format.version>2.12.2</code-format.version>

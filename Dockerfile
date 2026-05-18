@@ -80,7 +80,9 @@ FROM ${CI_DEPS_IMAGE} AS build
 
 COPY . /framework
 
-RUN python3 -m pip install --break-system-packages kafka-python && \
+RUN --mount=type=cache,target=/root/.m2,id=maven \
+	--mount=type=cache,target=/root/.cache/pip,id=pip \
+	python3 -m pip install --break-system-packages kafka-python && \
 	. /opt/COMPSs/Dependencies/compss-deps.env && \
 	/framework/builders/buildlocal --rcompss
 

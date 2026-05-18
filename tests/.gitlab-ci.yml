@@ -1,3 +1,9 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_DRAFT
+      when: never
+    - when: always
+
 variables:
   CONTAINER_NAME: "compss_test_$CI_JOB_ID"
   COMPSS_IMAGE: "$CI_REGISTRY_IMAGE/ci:$CI_PIPELINE_ID"
@@ -13,12 +19,13 @@ stages:
 
 rebase_verify:
   stage: rebase_verify
+  interruptible: true
   variables:
     GIT_DEPTH: 0
   script:
     - TARGET="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-trunk}"
     - SOURCE="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
-    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
+    - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
     - git fetch origin "$TARGET"
     - |
       if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_PROJECT_ID" ]; then
@@ -50,8 +57,9 @@ rebase_verify:
 
 header_setup:
   stage: header_setup
+  interruptible: true
   script:
-    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
+    - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@gitlab.bsc.es/wdc/compss/framework.git"
     - git config user.email "ci@bsc.es"
     - git config user.name "COMPSs CI"
     - ./utils/scripts/header_setup/replace_all.sh
@@ -78,6 +86,7 @@ header_setup:
 # the pre-install-deps script), so Extrae/DLB compilation is cached across pipelines.
 docker_build_deps:
   stage: docker_build
+  interruptible: true
   tags:
     - fast-docker
   variables:
@@ -103,6 +112,7 @@ docker_build_deps:
 # so the slow installs are cached across pipelines.
 docker_build_test_deps:
   stage: docker_build
+  interruptible: true
   tags:
     - fast-docker
   services:
@@ -121,6 +131,7 @@ docker_build_test_deps:
 
 docker_build:
   stage: docker_build
+  interruptible: true
   tags:
     - fast-docker
   timeout: 1h
@@ -170,6 +181,7 @@ docker_build:
 
 tests:
   stage: tests
+  interruptible: true
   timeout: 4h
   needs:
     - job: docker_build
@@ -199,6 +211,14 @@ tests:
     - mkdir -p test-results
     - $CI_PROJECT_DIR/tests/scripts/docker_test -FF $TEST_FAMILIES 2>&1 | tee test-results/docker_test.log; exit ${PIPESTATUS[0]}
   after_script:
+    # Cancel the whole pipeline if this job failed so the parallel test job
+    # doesn't keep running needlessly (workaround for GitLab < 17.0 which
+    # lacks workflow.auto_cancel.on_failure).
+    - |
+      if [ "$CI_JOB_STATUS" = "failed" ]; then
+        curl -sf --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/cancel" || true
+      fi
     # Copy only the logs/ subtree: all *.outputlog, *.errorlog, runtime.log,
     # and job output files written by the test execution scripts go there.
     # apps/ contains only deployed binaries (jars, compiled C, xmls) and is

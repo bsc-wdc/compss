@@ -601,12 +601,6 @@ void SOCKET_RegisterCE(char* ceSignature,
 // Miscellaneous -------------------------------------------------------------------
 
 
-void SOCKET_EmitEvent(int type, long id) {
-    debug_printf("[BINDING-COMMONS] - @SOCKET_EmitEvent - Emit Event\n");
-    socket_send_command(build_emit_event_command(type, id));
-    debug_printf("[BINDING-COMMONS] - @SOCKET_EmitEvent - Event emitted\n");
-}
-
 CompssInterface setup_SOCKET_runtime(char* endpoint){
     SOCKET_set_endpoint(endpoint);
 
@@ -620,8 +614,6 @@ CompssInterface setup_SOCKET_runtime(char* endpoint){
     
     iface.registerWorkflow = SOCKET_RegisterWorkflow;
     iface.RegisterCE = SOCKET_RegisterCE;
-
-    iface.EmitEvent = SOCKET_EmitEvent;
 
     return iface;
 }

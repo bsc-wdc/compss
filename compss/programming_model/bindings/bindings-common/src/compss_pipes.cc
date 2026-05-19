@@ -530,20 +530,6 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
     debug_printf("[BINDING-COMMONS] - @PIPE_RegisterCE - Task registered: %s\n", ceSignature);
 }
 
-void PIPE_EmitEvent(int type, long id) {
-    debug_printf("[BINDING-COMMONS] - @PIPE_EmitEvent - Emit Event\n");
-
-    // Check validity
-    if (type < 0  or id < 0) {
-        debug_printf ("[BINDING-COMMONS] - @PIPE_EmitEvent - Error: event type and ID must be positive integers, but found: type: %d, ID: %ld\n", type, id);
-    }
-    // MESSAGE: EMIT_EVENT type id
-    // NO RETURN
-    write_command_in_pipe(build_emit_event_command(type, id));
-
-    debug_printf("[BINDING-COMMONS] - @PIPE_EmitEvent - Event emitted\n");
-}
-
 CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
 	init_env_vars();
 	command_pipe = strdup(comPipe);
@@ -561,7 +547,5 @@ CompssInterface setup_PIPE_runtime(char* comPipe, char* resPipe){
     iface.RegisterCE = PIPE_RegisterCE;
     iface.registerWorkflow = PIPE_RegisterWorkflow;
     
-    iface.EmitEvent = PIPE_EmitEvent;
-
     return iface;
 }

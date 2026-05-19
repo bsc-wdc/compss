@@ -17,9 +17,6 @@
 #ifndef JNI_COMPSS_H
 #define JNI_COMPSS_H
 
-
-#include "common.h"
-#include "common_jni.h"
 #include "compss_interface.h"
 
 CompssInterface setup_JNI_runtime(void);

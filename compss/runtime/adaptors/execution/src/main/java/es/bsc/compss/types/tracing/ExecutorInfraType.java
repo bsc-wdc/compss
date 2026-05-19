@@ -36,9 +36,6 @@ public final class ExecutorInfraType {
     public static final EventType EXECUTOR_ACTIVITY =
         Tracer.defineNewEventType(8_001_113, "Executor thread activity", true, EXECUTOR_ACTIVITY_EVENTS);
 
-    public static final EventType SYNC =
-        Tracer.defineNewEventType(8_000_001, "Trace Synchronization event", true, new ArrayList<>());
-
 
     private ExecutorInfraType() {
         // Utility class

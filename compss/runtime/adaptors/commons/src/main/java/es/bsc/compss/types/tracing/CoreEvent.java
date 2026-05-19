@@ -16,44 +16,49 @@
  */
 package es.bsc.compss.types.tracing;
 
+import es.bsc.compss.util.Tracer;
 import es.bsc.wdc.tracing.Event;
+import es.bsc.wdc.tracing.EventType;
+import es.bsc.wdc.tracing.ExtensibleEventType;
+import java.util.LinkedList;
 
-/**
- * Representation of a tracing event.
- */
-public class CustomTraceEvent implements Event {
+public class CoreEvent implements Event {
+
+    private static final int TASK_FUNC_ID = 8_001_131;
 
     private final int id;
-    private final TraceEventType type;
-    private final String signature;
+    private final String desc;
+    public static final ExtensibleEventType TYPE =
+        Tracer.defineNewExtensibleEventType(TASK_FUNC_ID, "Task", true, new LinkedList<>());
 
+
+    private CoreEvent(int id, String desc) {
+        this.id = id;
+        this.desc = desc;
+    }
 
     /**
-     * Constructs and registers as part of a type a new Custom Event.
+     * Adds a new event to the list of core events.
      *
-     * @param type EventType of the event
-     * @param id value of the event
-     * @param signature label of the event
+     * @param id id of the core
+     * @param signature signature of the core event
      */
-    public CustomTraceEvent(TraceEventType type, int id, String signature) {
-        this.id = id;
-        this.type = type;
-        this.signature = signature;
-        type.addEvent(this);
+    public static void addCore(int id, String signature) {
+        TYPE.addEvent(new CoreEvent(id, signature));
     }
 
     @Override
     public int getId() {
-        return this.id;
+        return id;
     }
 
     @Override
     public String getSignature() {
-        return this.signature;
+        return desc;
     }
 
-    public TraceEventType getType() {
-        return this.type;
+    @Override
+    public EventType getType() {
+        return TYPE;
     }
-
 }

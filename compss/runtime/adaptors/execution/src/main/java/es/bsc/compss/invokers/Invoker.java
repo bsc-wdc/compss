@@ -39,8 +39,8 @@ import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.tracing.CoreEvent;
 import es.bsc.compss.types.tracing.TaskExecutionType;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
@@ -400,14 +400,14 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
             // +1 Because Invocation ID can't be 0 (0 signals end task)
             int coreId = this.invocation.getMethodImplementation().getCoreId() + 1;
             int taskId = this.invocation.getTaskId();
-            Tracer.emitEventAndCounters(TraceEventType.TASKS_FUNC, coreId);
+            Tracer.emitEventAndCounters(CoreEvent.TYPE, coreId);
             Tracer.emitEvent(TaskExecutionType.TASKS_ID, taskId);
         }
     }
 
     private void emitEndTask() {
         if (Tracer.isActivated()) {
-            Tracer.emitEventEndAndCounters(TraceEventType.TASKS_FUNC);
+            Tracer.emitEventEndAndCounters(CoreEvent.TYPE);
             Tracer.emitEventEnd(TaskExecutionType.TASKS_ID);
         }
     }

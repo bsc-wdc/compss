@@ -23,7 +23,6 @@ import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.tracing.paraver.PRVApplication;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.types.tracing.paraver.PRVNode;
@@ -33,6 +32,7 @@ import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.ThreadTranslator;
 import es.bsc.compss.util.tracing.TraceTransformation;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
+import es.bsc.wdc.tracing.extrae.ExtraeTracer;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,7 +57,7 @@ public class PrvSorter implements ThreadTranslator {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
 
-    private static final String THREAD_ID_EVENT_TYPE = Integer.toString(TraceEventType.THREAD_IDENTIFICATION.code);
+    private static final String THREAD_ID_EVENT_TYPE = Integer.toString(ExtraeTracer.THREAD_EVENT_CODE);
     private static final String EXEC_ID_EVENT_TYPE =
         Integer.toString(ExecutorInfraType.EXECUTOR_IDENTIFICATION.getCode());
 

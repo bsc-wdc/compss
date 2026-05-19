@@ -23,7 +23,7 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.tracing.TraceEventType;
+import es.bsc.compss.types.tracing.CoreEvent;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -135,7 +135,7 @@ public class CoreManager {
         if (coreElement == null) {
             coreElement = insertCoreElement(ceSignature);
             String tracerSignature = generateCESignatureForTracer(ceSignature);
-            Tracer.defineNewEvent(TraceEventType.TASKS_FUNC, coreElement.getCoreId() + 1, tracerSignature);
+            CoreEvent.addCore(coreElement.getCoreId() + 1, tracerSignature);
         }
 
         for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {

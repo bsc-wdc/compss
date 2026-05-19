@@ -64,7 +64,7 @@ public class MonitorTracer implements TracingBackend {
     }
 
 
-    private static final ThreadLocal<ThreadCtx> CTX = ThreadLocal.withInitial(ThreadCtx::new);
+    private static final ThreadLocal<ThreadCtx> CTX = new ThreadLocal<>();
     private final String masterName;
     private final String nodeName;
     private final EventSink sink;
@@ -97,6 +97,40 @@ public class MonitorTracer implements TracingBackend {
 
     @Override
     public final void disablePThreads() {
+        // Do nothing
+    }
+
+    @Override
+    public final void activeComponent(int id, String description) {
+        // Identify thread emitting the event
+        if (id != 0L) {
+            ThreadCtx c = new ThreadCtx();
+            c.threadId = Thread.currentThread().getId();
+            if (id == ThreadType.AP.id) {
+                c.threadType = ThreadType.AP;
+            } else if (id == ThreadType.TD.id) {
+                c.threadType = ThreadType.TD;
+            } else if (id == ThreadType.EXEC.id) {
+                c.threadType = ThreadType.EXEC;
+            } else {
+                c.threadType = ThreadType.UNKNOWN;
+            }
+            CTX.set(c);
+        }
+    }
+
+    @Override
+    public final void inactiveComponent() {
+        CTX.remove();
+    }
+
+    @Override
+    public final void startSynch(long value) {
+        // Do nothing
+    }
+
+    @Override
+    public final void endSynch() {
         // Do nothing
     }
 
@@ -143,25 +177,9 @@ public class MonitorTracer implements TracingBackend {
     @Override
     public final void emitEvent(int eventType, long value) {
         try {
-            // Identify thread emitting the event
-            if (eventType == THREAD_IDENTIFICATION_CODE && value != 0L) {
-                ThreadCtx c = CTX.get();
-                c.threadId = Thread.currentThread().getId();
-                if (value == ThreadType.AP.id) {
-                    c.threadType = ThreadType.AP;
-                } else if (value == ThreadType.TD.id) {
-                    c.threadType = ThreadType.TD;
-                } else if (value == ThreadType.EXEC.id) {
-                    c.threadType = ThreadType.EXEC;
-                } else {
-                    c.threadType = ThreadType.UNKNOWN;
-                }
-                return;
-            }
 
             ThreadCtx c = CTX.get();
-            if (!(c.threadType == ThreadType.AP || c.threadType == ThreadType.TD || c.threadType == ThreadType.EXEC)) {
-                // Ignore events from threads other than AP, TD and Executors
+            if (c != null) {
                 return;
             }
 

@@ -22,6 +22,8 @@
 #include <sstream>
 #include <fstream>
 
+#include "common.h"
+#include "common_jni.h"
 #include "compss_interface.h"
 #include "compss_jni.h"
 #include "param_metadata.h"
@@ -29,22 +31,11 @@
 
 using namespace std;
 
-typedef struct {
-  int isLocked;
-  JNIEnv* localJniEnv;
-  JavaVM* localJvm;
-  int isAttached;
-} ThreadStatus;
-
-
 typedef struct JNIWorkflow {
     CompssWorkflow base;
     jobject jWorkflow;
 } JNIWorkflow;
 
-JNIEnv* globalJniEnv;
-JavaVM* globalJvm;
-pthread_mutex_t globalJniAccessMutex;
 jobject globalRuntime;
 
 CompssWorkflow* JNI_wf;
@@ -56,8 +47,6 @@ jmethodID midTempDir;                   /* ID of the getTempDirectory method in 
 
 jmethodID midRegWf;                     /* ID of the registerWorkflow method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRegisterCE;                /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
-
-jmethodID midEmitEvent;                 /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jclass clsWorkflow;                     /* Class implementing the Workflow interface at runtime */
 jmethodID mid_wf_getID;  
@@ -167,69 +156,6 @@ jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method
 // Private helper methods
 // ******************************
 
-/**
- * Registers and attaches the current thread to access the JVM.
- * Requires globalJniAccessMutex, globalJniEnv, and globalJvm to be initialised.
- */
-ThreadStatus* access_request() {
-    ThreadStatus* status = new ThreadStatus();
-
-    // Lock mutex
-    pthread_mutex_lock(&globalJniAccessMutex);
-    status->isLocked = 1;
-
-    // Attach thread to JVM
-    status->localJniEnv = globalJniEnv;
-    status->localJvm = globalJvm;
-    status->isAttached = check_and_attach(globalJvm, status->localJniEnv); // WARN: Updates isAttached and localEnv
-
-    // Return status
-    return status;
-}
-
-/**
- * Revokes the current thread to access the JVM. The given status cannot be user after this callee.
- */
-void access_revoke(ThreadStatus* status) {
-    // Detach thread from JVM
-    if (status->localJvm != NULL && status->isAttached == 1) {
-        status->localJvm->DetachCurrentThread();
-
-        status->localJniEnv = NULL;
-        status->localJvm = NULL;
-        status->isAttached = 0;
-    }
-
-    // Unlock mutex
-    if (status->isLocked == 1) {
-        pthread_mutex_unlock(&globalJniAccessMutex);
-
-        status->isLocked = 0;
-    }
-
-    // Free status memory
-    free(status);
-}
-
-/**
- * Checks if an exception occurred. If an exception is registered, log it, revoke the
- * thread JVM permissions, and exit.
- */
-void check_exception(ThreadStatus* status, const char* message) {
-    if (status->localJniEnv->ExceptionOccurred()) {
-        // Log provided exception message
-        print_error("\n[BINDING-COMMONS] ERROR: %s. \n", message);
-
-        // Log exception
-        status->localJniEnv->ExceptionDescribe();
-
-        // Free thread status
-        access_revoke(status);
-
-        // Error Exit
-        exit(1);
-    }
-}
 
 /**
  * Gets the containing message of a given a COMPSsException. Does not stop the execution.
@@ -437,10 +363,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // getMasterWorkingDirectory method
     midTempDir = status->localJniEnv->GetMethodID(clsITimpl, "getTempDir", "()Ljava/lang/String;");
     check_exception(status, "Cannot find getMasterWorkingDirectory method");
-
-    // EmitEvent method
-    midEmitEvent = status->localJniEnv->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
-    check_exception(status, "Cannot find emitEvent");
 
     // RegisterCE method
     midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
@@ -1422,17 +1344,12 @@ void JNI_On() {
 
     // Initialise COMPSs env vars for debugging (from commons.h)
     debug_printf ("[BINDING-COMMONS] - @JNI_On - Initialising environment\n");
-    pthread_mutex_init(&globalJniAccessMutex, NULL);
     init_env_vars();
 
     // Create the JVM instance
     debug_printf ("[BINDING-COMMONS] - @JNI_On - Creating the JVM\n");
-    globalJniEnv = create_vm(&globalJvm);
-    if (globalJniEnv == NULL) {
-        print_error ("[BINDING-COMMONS] - @JNI_On - Error creating the JVM\n");
-        exit(1);
-    }
-
+    create_vm();
+    
     // Request thread access to JVM
     // debug_printf ("[BINDING-COMMONS] - @JNI_On - Request thread access to JVM\n");
     ThreadStatus* status = access_request();
@@ -1516,13 +1433,10 @@ void JNI_Off(int code) {
 
     // Remove JVM
     debug_printf("[BINDING-COMMONS] - @Off - Removing JVM\n");
-    destroy_vm(globalJvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
-    // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
-    globalJvm = NULL;
+    destroy_vm();    
 
     // Delete environment
     debug_printf("[BINDING-COMMONS] - @Off - Removing environment\n");
-    pthread_mutex_destroy(&globalJniAccessMutex);
 
     // End
     debug_printf("[BINDING-COMMONS] - @Off - End\n");
@@ -1641,31 +1555,6 @@ void JNI_Get_MasterWorkingDir(char** buf) {
 }
 
 
-void JNI_EmitEvent(int type, long id) {
-    debug_printf("[BINDING-COMMONS] - @JNI_EmitEvent - Emit Event\n");
-
-    // Check validity
-    if (type < 0  or id < 0) {
-        debug_printf ("[BINDING-COMMONS] - @JNI_EmitEvent - Error: event type and ID must be positive integers, but found: type: %u, ID: %lu\n", type, id);
-
-        JNI_Off(1);
-        exit(1);
-    }
-
-    // Request thread access to JVM
-    ThreadStatus* status = access_request();
-
-    // Perform operation
-    debug_printf ("[BINDING-COMMONS] - @JNI_EmitEvent - Type: %u, ID: %lu\n", type, id);
-    status->localJniEnv->CallVoidMethod(globalRuntime, midEmitEvent, type, id);
-    check_exception(status, "Exception received when calling emitEvent");
-
-    // Revoke thread access to JVM
-    access_revoke(status);
-
-    debug_printf("[BINDING-COMMONS] - @JNI_EmitEvent - Event emitted\n");
-}
-
 CompssInterface setup_JNI_runtime(){
     CompssInterface iface{};
     iface.On = JNI_On;
@@ -1677,8 +1566,6 @@ CompssInterface setup_JNI_runtime(){
     
     iface.registerWorkflow = JNI_RegisterWorkflow;
     iface.RegisterCE = JNI_RegisterCE;
-
-    iface.EmitEvent = JNI_EmitEvent;
 
     return iface;
 }

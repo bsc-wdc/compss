@@ -188,8 +188,6 @@ struct RuntimeApi {
 
     virtual void snapshot(long appId) { GS_Snapshot(appId); }
 
-    virtual void emitEvent(int type, long id) { GS_EmitEvent(type, id); }
-
     virtual std::string getAppDir() {
         char* buffer = nullptr;
         GS_Get_AppDir(&buffer);

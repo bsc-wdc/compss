@@ -18,7 +18,7 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.FileOpsEvent;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.util.serializers.Serializer;
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class FileOpsManager {
                 Thread.currentThread().setName("Low priority FS");
                 if (Tracer.isActivated()) {
                     Tracer.disablePThreads(1);
-                    Tracer.emitEvent(TraceEvent.LOW_FILE_SYS_THREAD_ID);
+                    Tracer.activeComponent(Threads.FSL.id, Threads.FSL.description);
                     Tracer.emitEvent(FileOpsEvent.INIT_FS);
                     Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
                 }
@@ -72,7 +72,7 @@ public class FileOpsManager {
                 Thread.currentThread().setName("High priority FS");
                 if (Tracer.isActivated()) {
                     Tracer.disablePThreads(1);
-                    Tracer.emitEvent(TraceEvent.HIGH_FILE_SYS_THREAD_ID);
+                    Tracer.activeComponent(Threads.FSH.id, Threads.FSH.description);
                     Tracer.emitEvent(FileOpsEvent.INIT_FS);
                     Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
                 }
@@ -413,26 +413,9 @@ public class FileOpsManager {
      * Stops the File Operations Manager.
      */
     public static void shutdown() {
+
         LOW_PRIORITY.shutdown();
         HIGH_PRIORITY.shutdown();
-
-        // this code is comented because the extrae tracer is already off when we reach this point
-        // if (Tracer.extraeEnabled()) {
-        // Semaphore sem = new Semaphore(0);
-        // HIGH_PRIORITY.submit(new Callable<Object>() {
-        // public Object call() {
-        // Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.FILE_SYS_THREAD_ID.getType());
-        // sem.release();
-        // return null;
-        // }
-        // });
-        // try {
-        // sem.acquire();
-        // } catch (InterruptedException e) {
-        // WORKER_LOGGER
-        // .warn("Tracer could not register end of event " + TraceEvent.FILE_SYS_THREAD_ID.getSignature());
-        // }
-        // }
     }
 
     private static void serialize(final Object o, final String target) throws IOException {

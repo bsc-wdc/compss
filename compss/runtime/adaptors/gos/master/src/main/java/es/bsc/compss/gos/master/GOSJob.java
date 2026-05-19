@@ -51,8 +51,8 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.tracing.CoreEvent;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.Tracer;
 import java.io.File;
@@ -314,7 +314,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
         jd.addArgument("tracer runtime type", String.valueOf(TaskExecutionEvent.type.getCode()));
         jd.addArgument("sandbox creation id", String.valueOf(TaskExecutionEvent.CREATING_TASK_SANDBOX.getId()));
         jd.addArgument("sandbox removal id", String.valueOf(TaskExecutionEvent.REMOVING_TASK_SANDBOX.getId()));
-        jd.addArgument("event type", String.valueOf(TraceEventType.TASKS_FUNC.code));
+        jd.addArgument("event type", String.valueOf(CoreEvent.TYPE.getCode()));
         jd.addArgument("tracer task id", String.valueOf(this.taskId));
         int slot = Tracer.isActivated() ? acquireTracingSlot() : -1;
         jd.addArgument("slot", String.valueOf(slot));

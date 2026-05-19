@@ -17,9 +17,9 @@
 package es.bsc.compss.util.tracing.transformations;
 
 import es.bsc.compss.types.tracing.ApplicationComposition;
+import es.bsc.compss.types.tracing.CoreEvent;
 import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.SystemComposition;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.util.tracing.EventTranslator;
 import es.bsc.compss.util.tracing.TraceTransformation;
@@ -28,7 +28,7 @@ import java.util.Map.Entry;
 
 public class CETranslation implements TraceTransformation {
 
-    private static final String CE_CODE = Integer.toString(TraceEventType.TASKS_FUNC.code);
+    private static final String CE_CODE = Integer.toString(CoreEvent.TYPE.getCode());
     private final EventTranslator<String> translation;
     private final Map<String, String> labels;
 

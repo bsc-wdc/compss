@@ -14,30 +14,12 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_JNI_H
-#define COMMONS_JNI_H
-#include <jni.h>
-#include <pthread.h>
+ 
+#ifndef TRACING_JNI_H
+#define TRACING_JNI_H
 
-#include "common.h"
+#include "tracing_interface.h"
 
-/**
- * Thread-safe JNI access management
- */
-typedef struct {
-    int isLocked;
-    JNIEnv* localJniEnv;
-    JavaVM* localJvm;
-    int isAttached;
-} ThreadStatus;
+TracingInterface setup_JNI_tracing(void);
 
-// JVM initialization and destruction
-void create_vm();
-void destroy_vm();
-
-// Thread access management
-ThreadStatus* access_request(void);
-void access_revoke(ThreadStatus* status);
-
-void check_exception(ThreadStatus* status, const char* message);
-#endif // COMMONS_JNI_H
+#endif // TRACING_JNI_H

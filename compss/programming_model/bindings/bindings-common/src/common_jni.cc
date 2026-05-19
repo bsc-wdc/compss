@@ -16,16 +16,29 @@
  */
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
 #include <vector>
 #include <sstream>
 #include <fstream>
+
 #include "common_jni.h"
 
 using namespace std;
 
-JNIEnv* create_vm(JavaVM** jvm) {
+// Global JVM reference (managed once, shared by all components of binding commons)
+int jvmUsers = 0; // Number of users of the JVM. Used to manage the lifecycle of the JVM instance.
+JavaVM* globalJvm = NULL;
+JNIEnv* globalJniEnv = NULL;
+pthread_mutex_t globalJniAccessMutex;
+
+void create_vm() {
+    jvmUsers++;
+    if (globalJvm != NULL) {
+        debug_printf("[BINDING-COMMONS]  -  @create_vm  -  JVM already created.\n");
+        return;
+    }
     JNIEnv* env;
+    pthread_mutex_init(&globalJniAccessMutex, NULL);
+
     JavaVMInitArgs vm_args;
     vector<JavaVMOption> options;
 
@@ -107,22 +120,37 @@ JNIEnv* create_vm(JavaVM** jvm) {
     copy(options.begin(), options.end(), vm_args.options);
     vm_args.ignoreUnrecognized = false;
     debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Launching JVM\n");
-    int ret = JNI_CreateJavaVM(jvm, (void**) &env, &vm_args);
+    int ret = JNI_CreateJavaVM(&globalJvm, (void**) &env, &vm_args);
     if (ret < 0) {
         debug_printf("[BINDING-COMMONS]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
         exit(1);
     } else {
         debug_printf("[BINDING-COMMONS]  -  @create_vm  -  JVM Ready\n");
     }
-    return env;
+    globalJniEnv = env;
 }
 
-void destroy_vm(JavaVM* jvm) {
-    int ret = jvm->DestroyJavaVM();
+void destroy_vm() {
+    jvmUsers--;
+    if (jvmUsers > 0) {
+        debug_printf("[BINDING-COMMONS]  -  @destroy_vm  -  JVM still in use by %i users.\n", jvmUsers);
+        return;
+    }
+    
+    int ret = globalJvm->DestroyJavaVM();   // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
     if (ret < 0) {
         debug_printf("[BINDINGS-COMMON]  -  @destroy_vm  -  Unable to Destroy JVM - %i\n", ret);
     }
+    // delete jvm; 
+    // free(): invalid pointer: 0x00007fbc11ba8020 ***
+    globalJvm = NULL;
+    globalJniEnv = NULL;
+    pthread_mutex_destroy(&globalJniAccessMutex);
 }
+
+
+
+
 
 int check_and_attach(JavaVM* jvm, JNIEnv* &env) {
     if (jvm == NULL){
@@ -144,6 +172,52 @@ int check_and_attach(JavaVM* jvm, JNIEnv* &env) {
         return 0;
     }
 }
+
+
+/**
+ * Registers and attaches the current thread to access the JVM.
+ * Requires globalJniAccessMutex, globalJniEnv, and globalJvm to be initialised.
+ */
+ThreadStatus* access_request() {
+    ThreadStatus* status = new ThreadStatus();
+
+    // Lock mutex
+    pthread_mutex_lock(&globalJniAccessMutex);
+    status->isLocked = 1;
+
+    // Attach thread to JVM
+    status->localJniEnv = globalJniEnv;
+    status->localJvm = globalJvm;
+    status->isAttached = check_and_attach(globalJvm, status->localJniEnv); // WARN: Updates isAttached and localEnv
+
+    // Return status
+    return status;
+}
+
+/**
+ * Revokes the current thread to access the JVM. The given status cannot be user after this callee.
+ */
+void access_revoke(ThreadStatus* status) {
+    // Detach thread from JVM
+    if (status->localJvm != NULL && status->isAttached == 1) {
+        status->localJvm->DetachCurrentThread();
+
+        status->localJniEnv = NULL;
+        status->localJvm = NULL;
+        status->isAttached = 0;
+    }
+
+    // Unlock mutex
+    if (status->isLocked == 1) {
+        pthread_mutex_unlock(&globalJniAccessMutex);
+
+        status->isLocked = 0;
+    }
+
+    // Free status memory
+    free(status);
+}
+
 
 void _append_exception_trace_messages(JNIEnv& a_jni_env, std::string& a_error_msg, jthrowable a_exception,
                                       jmethodID a_mid_throwable_getCause, jmethodID  a_mid_throwable_getStackTrace,
@@ -204,28 +278,23 @@ void _append_exception_trace_messages(JNIEnv& a_jni_env, std::string& a_error_ms
     }
 }
 
-void check_and_treat_exception(JNIEnv* pEnv, const char* message) {
-    jthrowable exception = pEnv->ExceptionOccurred();
-    if (exception) {
+
+/**
+ * Checks if an exception occurred. If an exception is registered, log it, revoke the
+ * thread JVM permissions, and exit.
+ */
+void check_exception(ThreadStatus* status, const char* message) {
+    if (status->localJniEnv->ExceptionOccurred()) {
         // Log provided exception message
-        printf("\n[BINDING-COMMONS] Exception: %s. \n", message);
+        print_error("\n[BINDING-COMMONS] ERROR: %s. \n", message);
 
-        // Log JNI Exception
-        pEnv->ExceptionDescribe();
+        // Log exception
+        status->localJniEnv->ExceptionDescribe();
 
-        // Log detailed exception
-        jclass throwable_class = pEnv->FindClass("java/lang/Throwable");
-        jmethodID mid_throwable_getCause = pEnv->GetMethodID(throwable_class, "getCause", "()Ljava/lang/Throwable;");
-        jmethodID mid_throwable_getStackTrace = pEnv->GetMethodID(throwable_class, "getStackTrace",     "()[Ljava/lang/StackTraceElement;");
-        jmethodID mid_throwable_toString = pEnv->GetMethodID(throwable_class, "toString", "()Ljava/lang/String;");
-        jclass frame_class = pEnv->FindClass("java/lang/StackTraceElement");
-        jmethodID mid_frame_toString = pEnv->GetMethodID(frame_class, "toString", "()Ljava/lang/String;");
-        std::string error_msg;
-        _append_exception_trace_messages(*pEnv, error_msg, exception, mid_throwable_getCause, mid_throwable_getStackTrace,
-                                         mid_throwable_toString, mid_frame_toString);
-        printf("\n[BINDING-COMMONS] Exception Occurred during runtime interaction:\n %s", error_msg.c_str());
+        // Free thread status
+        access_revoke(status);
 
-        // Error exit
+        // Error Exit
         exit(1);
     }
 }

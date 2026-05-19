@@ -24,6 +24,14 @@ void GS_On(AbstractCache* absCache);
 
 /*** ==============> API FUNCTIONS <================= ***/
 
+// Tracing
+extern "C" void GS_StartSynchronization(long value);
+extern "C" void GS_EndSynchronization(void);
+extern "C" void GS_ActiveComponent(int id, char* description);
+extern "C" void GS_InactiveComponent(void);
+extern "C" void GS_DefineNewEventType(int code, char* description, int enable, int numEvents, int* eventIDs, char** eventLabels);
+extern "C" void GS_EmitEvent(int type, long id);
+
 // COMPSs Runtime state
 extern "C" void GS_On(void);
 extern "C" void GS_set_pipes(char* comPipe, char* resPipe);
@@ -99,7 +107,6 @@ extern "C" void GS_Snapshot(long appId);
 // Misc functions
 extern "C" void GS_Get_AppDir(char** buf);
 extern "C" void GS_Get_MasterWorkingDir(char** buf);
-extern "C" void GS_EmitEvent(int type, long id);
 extern "C" void GS_Get_Object(long appId, char* objectId, char** buf);
 extern "C" void GS_Delete_Object(long appId, char* objectId, int** buf);
 

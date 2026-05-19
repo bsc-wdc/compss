@@ -356,8 +356,3 @@ std::string build_snapshot_command() {
     return ss.str();
 }
 
-std::string build_emit_event_command(int type, long id) {
-    std::ostringstream ss;
-    ss << "EMIT_EVENT " << type << " " << id << std::endl;
-    return ss.str();
-}

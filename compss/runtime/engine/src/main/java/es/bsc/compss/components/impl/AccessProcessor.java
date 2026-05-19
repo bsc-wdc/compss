@@ -62,7 +62,7 @@ import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.List;
@@ -112,8 +112,19 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
     }
 
     @Override
-    public TraceEvent getThreadEvent() {
-        return TraceEvent.AP_THREAD_ID;
+    protected Component getComponent() {
+        return new Component() {
+
+            @Override
+            public int getId() {
+                return Threads.AP.id;
+            }
+
+            @Override
+            public String getDescription() {
+                return Threads.AP.description;
+            }
+        };
     }
 
     @Override

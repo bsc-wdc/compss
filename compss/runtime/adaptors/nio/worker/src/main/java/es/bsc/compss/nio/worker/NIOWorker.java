@@ -162,8 +162,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Load timer property
         String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
-        IS_TIMER_COMPSS_ENABLED = (isTimerCOMPSsEnabledProperty == null || isTimerCOMPSsEnabledProperty.isEmpty()
-            || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
+        IS_TIMER_COMPSS_ENABLED = isTimerCOMPSsEnabledProperty != null && !isTimerCOMPSsEnabledProperty.isEmpty()
+            && !isTimerCOMPSsEnabledProperty.equals("null") && Boolean.valueOf(isTimerCOMPSsEnabledProperty);
 
         // Set processes to capturer out/error
         OUT = new ThreadedPrintStream(SUFFIX_OUT, System.out);
@@ -224,7 +224,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         try {
             this.tracingId = Integer.parseInt(traceHost);
         } catch (Exception e) {
-            WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
+            WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: {}", hostName);
         }
         this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
         NIOTracer.init(this.tracingId, hostName, installDir, this.tracingTaskDependencies);
@@ -272,7 +272,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         try {
             this.executionManager.init();
-            // Starting the Python mirror here is avoids the overhead of mirror creation
+            // Starting the Python mirror here is avoiding the overhead of mirror creation
             // right before the task execution
             if (lang.toUpperCase().equals(String.valueOf(COMPSsConstants.Lang.PYTHON))) {
                 this.executionManager.startMirror();
@@ -324,20 +324,17 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         task.profileArrival();
-        WORKER_LOGGER.info("Received Job " + task);
+        WORKER_LOGGER.info("Received Job {}", task);
         if (WORKER_LOGGER_DEBUG) {
-            WORKER_LOGGER.debug("ARGUMENTS:");
-            for (InvocationParam param : task.getParams()) {
-                WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
+            for (InvocationParam p : task.getParams()) {
+                WORKER_LOGGER.info("  ARG  -{} {}:{}", p.getPrefix(), p.getType(), p.getValue());
             }
-            WORKER_LOGGER.debug("TARGET:");
             if (task.getTarget() != null) {
-                WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":"
-                    + task.getTarget().getValue());
+                InvocationParam t = task.getTarget();
+                WORKER_LOGGER.info("  TGT  -{} {}:{}", t.getPrefix(), t.getType(), t.getValue());
             }
-            WORKER_LOGGER.debug("RESULTS:");
-            for (InvocationParam param : task.getResults()) {
-                WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
+            for (InvocationParam p : task.getResults()) {
+                WORKER_LOGGER.info("  RES  -{} {}:{}", p.getPrefix(), p.getType(), p.getValue());
             }
         }
 
@@ -839,8 +836,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private void freezeFolderFiles(String folderPath) throws Exception {
         // cd to the folder and cp every file onto static_${file} and removes the original file
         String cmd = "cd " + folderPath + " && for file in *; do cp ${file} static_${file} && rm -rf ${file}; done";
-        WORKER_LOGGER.debug("Executing: " + cmd.toString());
-        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd.toString());
+        WORKER_LOGGER.debug("Executing: " + cmd);
+        ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd);
         Tracer.prepareSubProcessEnvironment(pb.environment(), false);
         int exitCode = pb.inheritIO().start().waitFor();
         if (exitCode != 0) {
@@ -874,9 +871,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         StringBuilder cmd = new StringBuilder();
         // need to cd to the analysis director in order for the tar to contain relative paths
-        cmd.append("cd " + sourceFolder + " && ");
+        cmd.append("cd ").append(sourceFolder).append(" && ");
         // we only want to make the tar if we can get into the appropriate folder
-        cmd.append("tar -czf " + tarTargetPath + " " + ".");
+        cmd.append("tar -czf ").append(tarTargetPath).append(" ").append(".");
 
         WORKER_LOGGER.debug("Executing: " + cmd.toString());
         ProcessBuilder pb = new ProcessBuilder("/bin/bash", "-c", cmd.toString());
@@ -1162,7 +1159,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Parse arguments
-        boolean debug = Boolean.valueOf(args[0]);
+        boolean debug = Boolean.parseBoolean(args[0]);
 
         int maxSnd = Integer.parseInt(args[1]);
         int maxRcv = Integer.parseInt(args[2]);
@@ -1308,6 +1305,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         /*
          * ***********************************************************************************************************
+         * MASTER WATCHDOG
+         *************************************************************************************************************/
+        // Daemon thread: periodically checks TCP reachability of the master. If the master becomes
+        // permanently unreachable (e.g. killed by SIGKILL before sending CommandShutdown), the worker
+        // initiates a graceful self-shutdown so it does not hang indefinitely.
+        MasterWatchdog.start(nw, mName, mPort);
+
+        /*
+         * ***********************************************************************************************************
          * JOIN AND END
          *************************************************************************************************************/
         // Wait for the Transfer Manager thread to finish (the shutdown is received on that thread)
@@ -1317,6 +1323,20 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         } catch (InterruptedException ie) {
             WORKER_LOGGER.warn("TransferManager interrupted", ie);
             Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Initiates a graceful shutdown when the master is detected as unreachable. Safe to call from any thread; guarded
+     * against double-invocation by {@code synchronized} and the finished flag.
+     */
+    public synchronized void selfShutdown() {
+        if (!this.isFinished()) {
+            // markFinished() before shutdown() so concurrent isFinished() checks return true immediately,
+            // preventing a second invocation from re-entering the critical section after the lock releases.
+            markFinished();
+            WORKER_LOGGER.warn("[Watchdog] Master declared unreachable. Initiating self-shutdown.");
+            shutdown(null);
         }
     }
 
@@ -1440,7 +1460,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             final float obsoletesTimeElapsed = (obsoletesTimeEnd - obsoletesTimeStart) / (float) 1_000_000;
             TIMER_LOGGER.info("[TIMER] Erasing obsoletes for command : " + obsoletesTimeElapsed + " ms");
         }
-
     }
 
     @Override

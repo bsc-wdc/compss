@@ -46,7 +46,7 @@ ARG MAVEN_VERSION=3.9.15
 ARG MAVEN_HOME=/opt/maven
 RUN curl -fsSL https://install.julialang.org | sh -s -- -y && \
 	ln -s /root/.juliaup/bin/* /usr/bin && \
-	curl -fsSL https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar xzf - && \
+	curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar xzf - && \
 	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME}
 ENV PATH=${PATH}:${MAVEN_HOME}/bin
 

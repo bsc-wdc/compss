@@ -31,14 +31,12 @@
 #define NUM_PARAMS 5
 using namespace std;
 
-JNIEnv *w_env;
+
 jclass clsNioWorker;
-JavaVM * w_jvm;
 jclass w_clsString;       /*  java.lang.String class */
 jmethodID w_midStrCon;    	/* ID of the java.lang.String class constructor method */
 
-void init_worker_jni_types() {
-
+void init_worker_jni_types(JNIEnv *w_env) {
     // Parameter classes
     debug_printf ("[BINDING-COMMONS]  -  @Init JNI Types\n");
 
@@ -54,7 +52,7 @@ void init_worker_jni_types() {
     }
 }
 
-jobjectArray convertToJavaArgs(int argc, char** args) {
+jobjectArray convertToJavaArgs(JNIEnv *w_env, int argc, char** args) {
     int i;
     jobjectArray args_java = w_env->NewObjectArray( argc, w_clsString, NULL);
     for (i=0; i<argc; i++) {
@@ -75,13 +73,11 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
 
     init_executor(absExecutor);
 
-    w_env = create_vm(&w_jvm);
-    if (w_env == NULL) {
-        print_error ("[BINDING-COMMONS]  -  @GS_On  -  Error creating the JVM\n");
-        exit(1);
-    }
+    create_vm();
+    ThreadStatus* status = access_request();
+    JNIEnv *w_env = status->localJniEnv;
 
-    init_worker_jni_types();
+    init_worker_jni_types(w_env);
 
     //Obtaining Classes
     clsNioWorker = w_env->FindClass("es/bsc/compss/nio/worker/NIOWorker");
@@ -100,7 +96,7 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
             print_error("[BINDING-COMMONS]  -  @GS_On  -  Error looking for the init method\n");
             exit(1);
         }
-        jobjectArray args_java = convertToJavaArgs(argc, args);
+        jobjectArray args_java = convertToJavaArgs(w_env, argc, args);
         debug_printf ("[BINDING-COMMONS]  -  @Starting NIO Worker\n");
         if (midNioWorkerMain != NULL ) {
             w_env->CallStaticVoidMethod(clsNioWorker, midNioWorkerMain, args_java); //Calling the method and passing IT Object as parameter
@@ -112,4 +108,5 @@ void worker_start(AbstractCache *absCache, AbstractExecutor *absExecutor, int ar
         }
         debug_printf ("[BINDING-COMMONS]  -  @Worker ended\n");
     }
+    access_revoke(status);
 }

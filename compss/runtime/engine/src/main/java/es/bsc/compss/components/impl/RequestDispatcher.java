@@ -18,7 +18,6 @@ package es.bsc.compss.components.impl;
 
 import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -28,6 +27,14 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.Logger;
 
 public abstract class RequestDispatcher<T extends Request> implements Runnable {
+
+    protected interface Component {
+
+        int getId();
+
+        String getDescription();
+    }
+
 
     private final String threadName;
     private final Logger logger;
@@ -69,7 +76,8 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
     @Override
     public final void run() {
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(getThreadEvent());
+            Component c = getComponent();
+            Tracer.activeComponent(c.getId(), c.getDescription());
             Tracer.disablePThreads(1);
         }
         while (keepGoing) {
@@ -97,7 +105,7 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
 
         }
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(getThreadEvent());
+            Tracer.inactiveComponent();
         }
         logger.info(threadName + " shutdown");
     }
@@ -137,11 +145,11 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
     }
 
     /**
-     * Obtains the event related to the thread Id of the dispatcher.
+     * Obtains a descriptor of the component that runs the dispatcher.
      *
-     * @return event related to threadId
+     * @return Component supported by the Dispatcher
      */
-    public abstract TraceEvent getThreadEvent();
+    protected abstract Component getComponent();
 
     /**
      * Method for handling one of the requests.

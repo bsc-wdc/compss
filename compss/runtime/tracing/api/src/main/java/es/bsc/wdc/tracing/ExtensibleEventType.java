@@ -14,30 +14,14 @@
  *  limitations under the License.
  *
  */
-#ifndef COMMONS_JNI_H
-#define COMMONS_JNI_H
-#include <jni.h>
-#include <pthread.h>
+package es.bsc.wdc.tracing;
 
-#include "common.h"
+public interface ExtensibleEventType extends EventType {
 
-/**
- * Thread-safe JNI access management
- */
-typedef struct {
-    int isLocked;
-    JNIEnv* localJniEnv;
-    JavaVM* localJvm;
-    int isAttached;
-} ThreadStatus;
-
-// JVM initialization and destruction
-void create_vm();
-void destroy_vm();
-
-// Thread access management
-ThreadStatus* access_request(void);
-void access_revoke(ThreadStatus* status);
-
-void check_exception(ThreadStatus* status, const char* message);
-#endif // COMMONS_JNI_H
+    /**
+     * Adds an additional event to the event type.
+     *
+     * @param event event to add to the type
+     */
+    void addEvent(Event event);
+}

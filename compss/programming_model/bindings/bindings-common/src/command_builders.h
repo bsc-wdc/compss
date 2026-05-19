@@ -63,6 +63,5 @@ std::string build_open_task_group_command(const char* groupName, int implicitBar
 std::string build_close_task_group_command(const char* groupName);
 std::string build_cancel_task_group_command(const char* groupName);
 std::string build_snapshot_command();
-std::string build_emit_event_command(int type, long id);
 
 #endif  // COMMAND_BUILDERS_H

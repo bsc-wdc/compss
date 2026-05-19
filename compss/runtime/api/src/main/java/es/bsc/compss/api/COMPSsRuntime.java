@@ -91,16 +91,4 @@ public interface COMPSsRuntime {
     void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints, String implType,
         String implLocal, String implIO, String[] prolog, String[] epilog, String[] container, String... implTypeArgs);
 
-    /*
-     * *****************************************************************************************************************
-     * TOOLS ACCESS FOR BINDINGS
-     ******************************************************************************************************************/
-    /**
-     * Emits a tracing event.
-     *
-     * @param type Event type.
-     * @param id Event id.
-     */
-    void emitEvent(int type, long id);
-
 }

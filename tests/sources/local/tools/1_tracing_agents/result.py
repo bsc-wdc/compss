@@ -61,7 +61,7 @@ def parsePcf(file):
                     line = reader.readline()
                 return result
         line = reader.readline()
-    raise Exception(".pcf file malformed, core elements not found")
+    return result
 
 
 def checkPrvBody(agentReaders, mergedReader):

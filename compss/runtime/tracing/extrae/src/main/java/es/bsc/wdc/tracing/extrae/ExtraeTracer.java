@@ -24,7 +24,9 @@ import es.bsc.wdc.tracing.Loggers;
 import es.bsc.wdc.tracing.TracingBackend;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,12 +35,85 @@ import org.apache.logging.log4j.Logger;
 
 public class ExtraeTracer implements TracingBackend {
 
-    // Configuration
-    private final String extraeLib;
-    private final String extraeFile;
-    private final String extraeOuputDir;
+    // Constants
+    public static final int SYNCH_EVENT_CODE = 8_000_001;
+    private static final EventType SYNCH_EVENT_TYPE = new EventType() {
 
-    private final Set<EventType> eventTypes;
+        @Override
+        public int getCode() {
+            return SYNCH_EVENT_CODE;
+        }
+
+        @Override
+        public String getDescription() {
+            return "Trace Synchronization event";
+        }
+
+        @Override
+        public boolean isEndable() {
+            return true;
+        }
+
+        @Override
+        public List<Event> getEvents() {
+            return new ArrayList<>(0);
+        }
+    };
+
+    public static final int THREAD_EVENT_CODE = 8_001_003;
+    private static final Map<Integer, HashSet<String>> COMPONENTS = new HashMap<>();
+    private static final EventType THREAD_EVENT_TYPE = new EventType() {
+
+        @Override
+        public int getCode() {
+            return THREAD_EVENT_CODE;
+        }
+
+        @Override
+        public String getDescription() {
+            return "Thread type identifier";
+        }
+
+        @Override
+        public boolean isEndable() {
+            return true;
+        }
+
+        @Override
+        public List<Event> getEvents() {
+            List<Event> events = new ArrayList<>(COMPONENTS.size());
+            for (Map.Entry<Integer, HashSet<String>> e : COMPONENTS.entrySet()) {
+
+                StringBuilder signature = new StringBuilder();
+                Set<String> labels = e.getValue();
+                Iterator<String> labelsItr = labels.iterator();
+                while (labelsItr.hasNext()) {
+                    signature.append(labelsItr.next());
+                    if (labelsItr.hasNext()) {
+                        signature.append(",");
+                    }
+                }
+                events.add(new Event() {
+
+                    @Override
+                    public int getId() {
+                        return e.getKey();
+                    }
+
+                    @Override
+                    public String getSignature() {
+                        return signature.toString();
+                    }
+
+                    @Override
+                    public EventType getType() {
+                        return THREAD_EVENT_TYPE;
+                    }
+                });
+            }
+            return events;
+        }
+    };
 
     // Errors
     private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
@@ -57,6 +132,13 @@ public class ExtraeTracer implements TracingBackend {
     // Extrae environment variables
     public static final String[] CLEAN_ENVIRONMENT_VARIABLES = new String[] { "LD_PRELOAD" };
 
+    // Configuration
+    private final String extraeLib;
+    private final String extraeFile;
+    private final String extraeOuputDir;
+
+    private final Set<EventType> eventTypes;
+
 
     /**
      * Constructs and sets up new tracer leveraging Extrae.
@@ -69,6 +151,9 @@ public class ExtraeTracer implements TracingBackend {
     public ExtraeTracer(int hostId, String file, String folder, String extraelib) {
         this.extraeLib = extraelib;
         eventTypes = new HashSet<>();
+        eventTypes.add(SYNCH_EVENT_TYPE);
+        eventTypes.add(THREAD_EVENT_TYPE);
+
         boolean customFile = (file != null) && !file.isEmpty() && file.compareTo("null") != 0;
         this.extraeFile = customFile ? file : "null";
         LOGGER.debug("\t Extrae file: " + this.extraeFile);
@@ -102,6 +187,32 @@ public class ExtraeTracer implements TracingBackend {
         synchronized (Wrapper.class) {
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
         }
+    }
+
+    @Override
+    public final void activeComponent(int id, String description) {
+        HashSet<String> labels = COMPONENTS.get(id);
+        if (labels == null) {
+            labels = new HashSet<>();
+            COMPONENTS.put(id, labels);
+        }
+        labels.add(description);
+        emitEvent(THREAD_EVENT_CODE, id);
+    }
+
+    @Override
+    public final void inactiveComponent() {
+        emitEvent(THREAD_EVENT_CODE, 0);
+    }
+
+    @Override
+    public final void startSynch(long value) {
+        emitEvent(SYNCH_EVENT_CODE, value);
+    }
+
+    @Override
+    public final void endSynch() {
+        emitEvent(SYNCH_EVENT_CODE, 0);
     }
 
     @Override

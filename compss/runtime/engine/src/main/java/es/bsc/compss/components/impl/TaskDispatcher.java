@@ -40,7 +40,7 @@ import es.bsc.compss.types.request.td.WorkerUpdateRequest;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
@@ -190,8 +190,19 @@ public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?
     }
 
     @Override
-    public TraceEvent getThreadEvent() {
-        return TraceEvent.TD_THREAD_ID;
+    protected Component getComponent() {
+        return new Component() {
+
+            @Override
+            public int getId() {
+                return Threads.TD.id;
+            }
+
+            @Override
+            public String getDescription() {
+                return Threads.TD.description;
+            }
+        };
     }
 
     @Override

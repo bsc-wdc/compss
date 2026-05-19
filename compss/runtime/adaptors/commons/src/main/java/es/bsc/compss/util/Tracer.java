@@ -20,12 +20,10 @@ package es.bsc.compss.util;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.tracing.CustomTraceEvent;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.tracing.TraceScript;
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
+import es.bsc.wdc.tracing.ExtensibleEventType;
 import es.bsc.wdc.tracing.TracingBackend;
 import es.bsc.wdc.tracing.extrae.ExtraeTracer;
 import es.bsc.wdc.tracing.monitor.MonitorTracer;
@@ -40,9 +38,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public abstract class Tracer {
-
-    // Errors
-    private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
     // Logger
     protected static Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
@@ -263,9 +258,35 @@ public abstract class Tracer {
             MonitorTracer otelBE = new MonitorTracer(masterName, nodeName);
             BACKENDS.add(otelBE);
         }
-
-        defineEvents();
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Trace Synchronization
+    // ----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Registers that a synchronization between multiple processes and traces is going on.
+     *
+     * @param value value associated to the ongoing synchronization
+     */
+    public static void startSynchronization(long value) {
+        for (TracingBackend tb : BACKENDS) {
+            tb.startSynch(value);
+        }
+    }
+
+    /**
+     * Registers that an ongoing synchronization reaches its end.
+     */
+    public static void endSynchronization() {
+        for (TracingBackend tb : BACKENDS) {
+            tb.endSynch();
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Thread Management
+    // ----------------------------------------------------------------------------------------------------------------
 
     /**
      * When using extrae's tracing, this call enables the instrumentation of ALL created threads from here onwards until
@@ -299,6 +320,71 @@ public abstract class Tracer {
     }
 
     /**
+     * Registers that the thread starts to run a component.
+     *
+     * @param id unique identifier associated to the component
+     * @param description description of the component
+     */
+    public static void activeComponent(int id, String description) {
+        for (TracingBackend tb : BACKENDS) {
+            tb.activeComponent(id, description);
+        }
+    }
+
+    /**
+     * Registers that the thread ended running a component.
+     */
+    public static void inactiveComponent() {
+        for (TracingBackend tb : BACKENDS) {
+            tb.inactiveComponent();
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Event Management
+    // ----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Constructs a new Event Type and defines it in the backends.
+     *
+     * @param code code of the event type
+     * @param description description of the event type
+     * @param endable {@literal true} if the type is endable
+     * @param eventIDs set of ids under the umbrella of the type
+     * @param eventLabels set of labels under the umbrella of the type
+     */
+    public static EventType defineNewEventType(int code, String description, boolean endable, int[] eventIDs,
+        String[] eventLabels) {
+        ArrayList<Event> events = new ArrayList<>(eventIDs.length);
+
+        EventType type = new EventTypeImpl(code, description, endable, events);
+
+        for (int i = 0; i < eventIDs.length; i++) {
+            final int idx = i;
+            events.add(new Event() {
+
+                @Override
+                public int getId() {
+                    return eventIDs[idx];
+                }
+
+                @Override
+                public String getSignature() {
+                    return eventLabels[idx];
+                }
+
+                @Override
+                public EventType getType() {
+                    return type;
+                }
+            });
+        }
+
+        defineEventType(type);
+        return type;
+    }
+
+    /**
      * Constructs a new Event Type and defines it in the backends.
      *
      * @param code code of the event type
@@ -307,66 +393,26 @@ public abstract class Tracer {
      * @param events set of events under the umbrella of the type
      */
     public static EventType defineNewEventType(int code, String description, boolean endable, List<Event> events) {
-        EventType type = new EventType() {
+        return new EventTypeImpl(code, description, endable, events);
+    }
 
-            @Override
-            public final int getCode() {
-                return code;
-            }
-
-            @Override
-            public final String getDescription() {
-                return description;
-            }
-
-            @Override
-            public final boolean isEndable() {
-                return endable;
-            }
-
-            @Override
-            public final List<Event> getEvents() {
-                return events;
-            }
-        };
-        defineEventType(type);
-        return type;
+    /**
+     * Constructs a new Event Type and defines it in the backends.
+     *
+     * @param code code of the event type
+     * @param description description of the event type
+     * @param endable {@literal true} if the type is endable
+     * @param events set of events under the umbrella of the type
+     */
+    public static ExtensibleEventType defineNewExtensibleEventType(int code, String description, boolean endable,
+        List<Event> events) {
+        return new ExtensibleEventTypeImpl(code, description, endable, events);
     }
 
     private static void defineEventType(EventType type) {
         for (TracingBackend tb : BACKENDS) {
             tb.defineEventType(type);
         }
-    }
-
-    /**
-     * Defines a new Event that will be traced.
-     *
-     * @param eventType type of event
-     * @param id id of the event within the type
-     * @param signature signature of the event
-     */
-    public static void defineNewEvent(TraceEventType eventType, int id, String signature) {
-        // Instantiates the event and automatically gets registered in the type
-        new CustomTraceEvent(eventType, id, signature);
-        defineEventType(eventType);
-    }
-
-    /**
-     * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
-     */
-    private static void defineEvents() {
-        for (TraceEventType type : TraceEventType.values()) {
-            defineEventType(type);
-        }
-    }
-
-    private static void defineEventsForTaskType(TraceEventType type, MethodType[] types) {
-        // Populate method's id for different task stype
-        for (MethodType tp : types) {
-            new CustomTraceEvent(type, tp.ordinal(), tp.name());
-        }
-        defineEventType(type);
     }
 
     /**
@@ -412,8 +458,8 @@ public abstract class Tracer {
      * @param type type of the event.
      * @param value ID of the event
      */
-    public static void emitEventAndCounters(TraceEventType type, int value) {
-        int eventType = type.code;
+    public static void emitEventAndCounters(EventType type, int value) {
+        int eventType = type.getCode();
         if (DEBUG) {
             LOGGER.debug(
                 "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + value + "]");
@@ -449,7 +495,7 @@ public abstract class Tracer {
      *
      * @param type event being emitted
      */
-    public static void emitEventEndAndCounters(TraceEventType type) {
+    public static void emitEventEndAndCounters(EventType type) {
         emitEventAndCounters(type, EVENT_END);
     }
 
@@ -591,4 +637,53 @@ public abstract class Tracer {
         }
     }
 
+    private static class EventTypeImpl implements EventType {
+
+        private final int code;
+        private final String description;
+        private final boolean endable;
+        private final List<Event> events;
+
+
+        private EventTypeImpl(int code, String description, boolean endable, List<Event> events) {
+            this.code = code;
+            this.description = description;
+            this.endable = endable;
+            this.events = events;
+            defineEventType(this);
+        }
+
+        @Override
+        public int getCode() {
+            return code;
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public boolean isEndable() {
+            return endable;
+        }
+
+        @Override
+        public List<Event> getEvents() {
+            return events;
+        }
+    }
+
+    private static class ExtensibleEventTypeImpl extends EventTypeImpl implements ExtensibleEventType {
+
+        private ExtensibleEventTypeImpl(int code, String description, boolean endable, List<Event> events) {
+            super(code, description, endable, events);
+        }
+
+        @Override
+        public void addEvent(Event event) {
+            super.getEvents().add(event);
+            defineEventType(this);
+        }
+    }
 }

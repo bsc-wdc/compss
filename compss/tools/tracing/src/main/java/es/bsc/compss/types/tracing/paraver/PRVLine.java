@@ -17,10 +17,10 @@
 package es.bsc.compss.types.tracing.paraver;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.tracing.ExecutorInfraType;
 import es.bsc.compss.types.tracing.SynchEvent;
 import es.bsc.compss.util.tracing.EventTranslator;
 import es.bsc.compss.util.tracing.ThreadTranslator;
+import es.bsc.wdc.tracing.extrae.ExtraeTracer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +31,7 @@ public abstract class PRVLine {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
 
     // Info used for matching sync events
-    private static final Integer SYNC_TYPE = ExecutorInfraType.SYNC.getCode();
+    private static final Integer SYNC_TYPE = ExtraeTracer.SYNCH_EVENT_CODE;
     private static final String SYNC_REGEX = "(^\\d+:\\d+:\\d+):(\\d+):(\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
     private static final Pattern SYNC_PATTERN = Pattern.compile(SYNC_REGEX);
 

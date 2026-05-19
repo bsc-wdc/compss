@@ -36,7 +36,7 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesEx
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.ExecutorInfraEvent;
 import es.bsc.compss.types.tracing.ExecutorInfraType;
-import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 import java.util.Collection;
@@ -195,7 +195,7 @@ public class ExecutionPlatform implements ExecutorContext {
                 @Override
                 public void run() {
                     Tracer.disablePThreads(1);
-                    Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID);
+                    Tracer.activeComponent(Threads.TIMER.id, Threads.TIMER.description);
                 }
             }, 0);
         }
@@ -208,7 +208,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
                 @Override
                 public void run() {
-                    Tracer.emitEventEnd(TraceEvent.TIMER_THREAD_ID);
+                    Tracer.inactiveComponent();
                     sem.release();
                 }
             }, 0);
@@ -258,7 +258,7 @@ public class ExecutionPlatform implements ExecutorContext {
                     public void run() {
                         if (Tracer.isActivated()) {
                             Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_COUNTS);
-                            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID);
+                            Tracer.activeComponent(Threads.EXEC.id, Threads.EXEC.description);
                             Tracer.emitEvent(ExecutorInfraType.EXECUTOR_IDENTIFICATION, executorId);
                             Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_ACTIVE);
                             Tracer.disablePThreads(1);
@@ -271,8 +271,8 @@ public class ExecutionPlatform implements ExecutorContext {
                         ExecutionPlatform.this.stopSemaphore.release();
                         if (Tracer.isActivated()) {
                             Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_ACTIVE);
+                            Tracer.inactiveComponent();
                             Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_COUNTS);
-                            Tracer.emitEventEnd(TraceEvent.EXECUTOR_THREAD_ID);
                         }
                     }
 

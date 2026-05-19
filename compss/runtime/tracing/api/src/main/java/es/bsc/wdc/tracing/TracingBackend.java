@@ -32,6 +32,31 @@ public interface TracingBackend {
     void disablePThreads();
 
     /**
+     * Registers that the thread starts to run a component.
+     *
+     * @param id unique identifier associated to the component
+     * @param description description of the component
+     */
+    void activeComponent(int id, String description);
+
+    /**
+     * Registers that the thread ended running a component.
+     */
+    void inactiveComponent();
+
+    /**
+     * Registers that a synchronization between multiple processes and traces is going on.
+     * 
+     * @param value value associated to the ongoing synchronization
+     */
+    void startSynch(long value);
+
+    /**
+     * Registers that an ongoing synchronization reaches its end.
+     */
+    void endSynch();
+
+    /**
      * Defines a new event type or updates in the tracing backend.
      *
      * @param type Event type

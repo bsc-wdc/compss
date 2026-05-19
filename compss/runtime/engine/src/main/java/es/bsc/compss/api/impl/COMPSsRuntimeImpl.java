@@ -39,6 +39,7 @@ import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.tracing.APIEvent;
 import es.bsc.compss.types.tracing.APITracer;
+import es.bsc.compss.types.tracing.binding.EventType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.Tracer;
@@ -103,6 +104,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
         Tracer.init(0, "master", installDir, tracingTaskDep);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.STATIC_IT);
+            EventType.registerAllBindingEvents();
         }
 
         /*
@@ -444,16 +446,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
             LOGGER.debug("Getting Result Files for app" + app.getId());
             ap.getResultFiles(app);
         }
-    }
-
-    /*
-     * ************************************************************************************************************
-     * ************************************** OTHER FUNCTIONALITIES ***********************************************
-     * ************************************************************************************************************
-     */
-    @Override
-    public void emitEvent(int type, long id) {
-        Tracer.emitEvent(type, id);
     }
 
     /*

@@ -439,80 +439,6 @@ TEST_P(GenericRuntimeTransportTest, PipeSnapshot_WritesCommand) {
     EXPECT_EQ(harness->commands(), "SNAPSHOT 1\n");
 }
 
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_WritesCommand) {
-    int type = 10;
-    long id = 20L;
-
-    runtime->emitEvent(type, id);
-
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT 10 20\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_NegativeType_WritesCommand) {
-    int type = -1;
-    long id = 20L;
-
-    runtime->emitEvent(type, id);
-
-    // The command should still be written to the pipe even with a negative type
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT -1 20\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_NegativeId_WritesCommand) {
-    int type = 10;
-    long id = -1L;
-
-    runtime->emitEvent(type, id);
-
-    // The command should still be written to the pipe even with a negative ID
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT 10 -1\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_ZeroId_WritesCommand) {
-    int type = 10;
-    long id = 0L;
-
-    runtime->emitEvent(type, id);
-
-    // The command should still be written to the pipe even with a zero ID
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT 10 0\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, SetWallClockProducesNoTransportCommand) {
-    runtime->setWallClock(101, 500, false);
-    EXPECT_TRUE(harness->commands().empty());
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_ZeroTypeNegativeId_WritesCommand) {
-    int type = 0;
-    long id = -1L;
-
-    runtime->emitEvent(type, id);
-
-    // The command should still be written to the pipe even with zero type and negative ID
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT 0 -1\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_ZeroTypePositiveId_WritesCommand) {
-    int type = 0;
-    long id = 1L;
-
-    runtime->emitEvent(type, id);
-
-    // The command should still be written to the pipe even with zero type and positive ID
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT 0 1\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_ZeroTypeZeroId_WritesCommand) {
-    int type = 0;
-    long id = 0L;
-
-    runtime->emitEvent(type, id);
-
-    // The command should still be written to the pipe even with zero type and zero ID
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT 0 0\n");
-}
-
 TEST_P(GenericRuntimeTransportTest, PipeGetAppDir_WritesCommandAndParsesResult) {
     std::string expectedAppDir = "/path/to/my/app";
 
@@ -612,22 +538,6 @@ TEST_P(GenericRuntimeTransportTest, ReadCommand_AsyncPartialThenCompleteLine) {
 
     EXPECT_EQ(actual, "ASYNC_PART_COMPLETE");
     EXPECT_TRUE(harness->commands().empty());
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_NegativeTypeAndId_WritesCommand) {
-    int type = -5;
-    long id = -10L;
-    runtime->emitEvent(type, id);
-    EXPECT_EQ(harness->commands(), "EMIT_EVENT -5 -10\n");
-}
-
-TEST_P(GenericRuntimeTransportTest, PipeEmitEvent_LargeValues_WritesCommand) {
-    int type = std::numeric_limits<int>::max();
-    long id = std::numeric_limits<long>::max();
-    runtime->emitEvent(type, id);
-    std::ostringstream oss;
-    oss << "EMIT_EVENT " << type << " " << id << "\n";
-    EXPECT_EQ(harness->commands(), oss.str());
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeRegisterCE_NoArgs_WritesCommand) {

@@ -195,12 +195,6 @@ struct CompssInterface {
     void (*Get_MasterWorkingDir)(
         char** buf
     );
-
-    void (*EmitEvent)(
-        int type,
-        long id
-    );
-
 };
 
 #endif // COMPSS_INTERFACE_H

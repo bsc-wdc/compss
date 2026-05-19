@@ -815,6 +815,82 @@ static PyObject* snapshot(PyObject* self, PyObject* args) {
 }
 
 /*
+  Registers the start of a synchronization with the given id.
+*/
+static PyObject* start_synchronization(PyObject* self, PyObject* args) {
+    debug("Start synchronization\n");
+    long value = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("- Sync value: %ld\n", (value));
+    GS_StartSynchronization(value);
+    debug("Start synchronization end\n");
+    Py_RETURN_NONE;
+}
+
+/*
+  Registers the end of the current synchronization.
+*/
+static PyObject* end_synchronization(PyObject* self, PyObject* args) {
+    debug("End synchronization\n");
+    GS_EndSynchronization();
+    debug("End synchronization end\n");
+    Py_RETURN_NONE;
+}
+
+/*
+  Registers the activation of a component with the given id and description.
+*/
+static PyObject* active_component(PyObject* self, PyObject* args) {
+    debug("Active component\n");
+    int id = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char* description = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("- Component id: %i\n", (id));
+    debug("- Component description: %s\n", (description));
+    GS_ActiveComponent(id, description);
+    debug("Active component end\n");
+    Py_RETURN_NONE;
+}
+
+/*
+  Registers the deactivation of the current component.
+*/
+static PyObject* inactive_component(PyObject* self, PyObject* args) {
+    debug("Inactive component\n");
+    GS_InactiveComponent();
+    debug("Inactive component end\n");
+    Py_RETURN_NONE;
+}
+
+/*
+  Define a new event type with the given id, name and events.
+*/
+static PyObject* define_new_event_type(PyObject* self, PyObject* args) {
+    debug("Define new event type\n");
+    int code = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("- Event code: %i\n", (code));
+    char* event_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("- Event name: %s\n", (event_name));
+    bool endable = PyObject_IsTrue(PyTuple_GetItem(args, 2));
+    debug("- Endable?: %s \n", (endable ? "true" : "false"));
+    int numEvents = int(PyInt_AsLong(PyTuple_GetItem(args, 3)));
+    debug("- Number of events: %i\n", (numEvents));
+
+    int* eventIDs = new int[numEvents];
+    PyObject* eventIDsList = PyTuple_GetItem(args, 4);
+    for (int i = 0; i < numEvents; i++) {
+        eventIDs[i] = int(PyInt_AsLong(PyList_GetItem(eventIDsList, i)));
+    }
+
+    char** eventLabels = new char*[numEvents];
+    PyObject* eventLabelsList = PyTuple_GetItem(args, 5);
+    for (int i = 0; i < numEvents; i++) {
+        eventLabels[i] = _pystring_to_char(PyList_GetItem(eventLabelsList, i));
+    }
+
+    GS_DefineNewEventType(code, event_name, endable, numEvents, eventIDs, eventLabels);
+    debug("Event type defined: %i\n", (code));
+    Py_RETURN_NONE;
+}
+/*
   Notify the event emission.
 */
 static PyObject* emit_event(PyObject *self, PyObject *args) {
@@ -924,6 +1000,11 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
   Method definition, generic argument speficication, and __doc__ field value
 */
 static PyMethodDef CompssMethods[] = {
+    // Configure Binding
+	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },
+    { "set_socket_endpoint", set_socket_endpoint, METH_VARARGS, "Set compss module to socket communication mode." },
+    { "set_JNI_runtime", set_JNI_runtime, METH_NOARGS, "Enable JNI runtime support." },
+    // COMPSs Runtime
     { "error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
     { "set_debug", set_debug, METH_VARARGS, "Set debug mode." },
     { "start_runtime", start_runtime, METH_VARARGS, "Start the COMPSs runtime." },
@@ -946,11 +1027,14 @@ static PyMethodDef CompssMethods[] = {
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "get_master_working_path", get_master_working_path, METH_VARARGS, "Requests the master working path." },
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
-	{ "emit_event", emit_event, METH_VARARGS, "Emit a event in the API Thread." },
-	{ "set_pipes", set_pipes, METH_VARARGS, "Set compss module to pipe comunication mode." },
-    { "set_socket_endpoint", set_socket_endpoint, METH_VARARGS, "Set compss module to socket communication mode." },
-    { "set_JNI_runtime", set_JNI_runtime, METH_NOARGS, "Enable JNI runtime support." },
     { "read_command", read_command, METH_VARARGS, "Reads a command obtained from comunication mode." },
+    // Tracing methods
+    { "start_synchronization", start_synchronization, METH_VARARGS, "Start synchronization with the given value." },
+    { "end_synchronization", end_synchronization, METH_VARARGS, "End synchronization." },
+    { "active_component", active_component, METH_VARARGS, "Activate a component with the given id and description." },
+    { "inactive_component", inactive_component, METH_VARARGS, "Deactivate the current component." },
+    { "define_new_event_type", define_new_event_type, METH_VARARGS, "Define a new event type." },
+	{ "emit_event", emit_event, METH_VARARGS, "Emit a event." },
     { NULL, NULL } /* sentinel */
 };
 

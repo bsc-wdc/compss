@@ -28,7 +28,6 @@ import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
-import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.types.tracing.paraver.PRVNode;
 import es.bsc.compss.types.tracing.paraver.PRVTask;
@@ -40,6 +39,7 @@ import es.bsc.compss.util.tracing.TraceTransformation;
 import es.bsc.compss.util.tracing.transformations.CPUOffset;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
 import es.bsc.compss.util.tracing.transformations.TimeOffset;
+import es.bsc.wdc.tracing.extrae.ExtraeTracer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class PythonTraceMerger extends TraceMerger {
 
     private final Trace mergeOnTrace;
 
-    private static final String THREAD_ID_EVENT_TYPE = Integer.toString(TraceEventType.THREAD_IDENTIFICATION.code);
+    private static final String THREAD_ID_EVENT_TYPE = Integer.toString(ExtraeTracer.THREAD_EVENT_CODE);
     private static final String EXEC_ID_EVENT_TYPE =
         Integer.toString(ExecutorInfraType.EXECUTOR_IDENTIFICATION.getCode());
 

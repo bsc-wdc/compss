@@ -29,8 +29,10 @@
 #include "compss_pipes.h"
 #include "compss_sockets.h"
 #include "param_metadata.h"
-#include "compss_interface.h"
-#include "BindingDataManager.h"
+
+
+#include "tracing_interface.h"
+#include "tracing_jni.h"
 
 using namespace std;
 
@@ -38,6 +40,8 @@ CompssInterface runtime;
 pthread_mutex_t workflow_mutex = PTHREAD_MUTEX_INITIALIZER;
 CompssWorkflow* workflow = NULL;
 long wf_appId = -1;
+
+TracingInterface tracing;
 
 void registerWorkflow() {
 	pthread_mutex_lock(&workflow_mutex);
@@ -52,16 +56,55 @@ void registerWorkflow() {
 // ******************************
 // API functions
 // ******************************
+
+void no_StartSynchronization(long value) {
+	// No-op
+}
+
+void no_EndSynchronization() {
+	// No-op
+}
+
+void no_ActiveComponent(int id, char* description) {
+	// No-op
+}
+
+void no_InactiveComponent() {
+	// No-op
+}
+
+void no_DefineNewEventType(int code, char* description, int endable, int numEventIDs, int* eventIDs, char** eventLabels) {
+	// No-op
+}
+
+void no_EmitEvent(int type, long id){
+	// No-op
+}
+
+TracingInterface setup_no_tracing() {
+	TracingInterface iface;
+	iface.EmitEvent = no_EmitEvent;
+	iface.DefineNewEventType = no_DefineNewEventType;
+	iface.StartSynchronization = no_StartSynchronization;
+	iface.EndSynchronization = no_EndSynchronization;
+	iface.ActiveComponent = no_ActiveComponent;
+	iface.InactiveComponent = no_InactiveComponent;
+	return iface;
+}
+
 void GS_set_pipes(char* comPipe, char* resPipe){
 	runtime = setup_PIPE_runtime(comPipe, resPipe);
+	tracing = setup_no_tracing();
 }
 
 void GS_set_socket_endpoint(char* endpoint) {
     runtime = setup_SOCKET_runtime(endpoint);
+	tracing = setup_no_tracing();
 }
 
 void GS_set_JNI_runtime(void) {
     runtime = setup_JNI_runtime();
+	tracing = setup_JNI_tracing();
 } 
 
 void GS_read_command(char **command) {
@@ -93,8 +136,28 @@ void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints
 	runtime.RegisterCE(ceSignature, implSignature, implConstraints, implType, implLocal, implIO, prolog, epilog, container, numArgs, implTypeArgs);
 }
 
+void GS_StartSynchronization(long value){
+	tracing.StartSynchronization(value);
+}
+
+void GS_EndSynchronization(void){
+	tracing.EndSynchronization();
+}
+
+void GS_ActiveComponent(int id, char* description){
+	tracing.ActiveComponent(id, description);
+}
+
+void GS_InactiveComponent(void){
+	tracing.InactiveComponent();
+}
+
+void GS_DefineNewEventType(int code, char* description, int endable, int numEvents, int* eventIDs, char** eventLabels) {
+	tracing.DefineNewEventType(code, description, endable, numEvents, eventIDs, eventLabels);
+}
+
 void GS_EmitEvent(int type, long id) {
-	runtime.EmitEvent(type, id);
+	tracing.EmitEvent(type, id);
 }
 
 void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId){

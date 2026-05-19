@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.types.tracing.paraver;
 
+import es.bsc.compss.types.tracing.CoreEvent;
 import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.MalformedException;
-import es.bsc.compss.types.tracing.TraceEventType;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class PcfFile implements EventsDefinition {
     private static final String ID_VALUE_SEPARATOR = "      ";
 
     // CE identifier in .pcf
-    private static final String CE_TYPE_DEFINITION = "0    " + TraceEventType.TASKS_FUNC.code + "    Task";
+    private static final String CE_TYPE_DEFINITION = "0    " + CoreEvent.TYPE.getCode() + "    Task";
 
     // Hardware counters pattern
     private static final String HW_TYPE_DEFINITION = "7  41999999 Active hardware counter set";

@@ -27,7 +27,7 @@
 
     <!-- PROPERTIES -->
     <properties>
-        <compss.version>3.4</compss.version>
+        <compss.version>${project.version}</compss.version>
 
         <!-- Project encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

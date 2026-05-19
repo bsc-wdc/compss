@@ -28,7 +28,7 @@
 
     <!-- PROPERTIES -->
     <properties>
-        <compss.version>3.4</compss.version>
+        <compss.version>${project.version}</compss.version>
         <jaxb.version>2.3.3</jaxb.version>
         <jaxws.version>2.3.3</jaxws.version>
 

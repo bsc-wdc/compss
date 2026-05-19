@@ -87,6 +87,13 @@ def test_produce_gen_tasks(num_producers, producer_sleep, consumer_sleep):
         # Sleep between requests
         time.sleep(consumer_sleep)
 
+    # Drain any objects that arrived between the last poll and is_closed() returning True
+    print("Polling objects")
+    new_objects = ods.poll()
+    for obj in new_objects:
+        res = process_object(obj)
+        processed_results.append(res)
+
     # Sync and accumulate read files
     print("Wait for processed objects")
     processed_results = compss_wait_on(processed_results)

@@ -1,4 +1,6 @@
 workflow:
+  auto_cancel:
+    on_job_failure: all
   rules:
     - if: $CI_MERGE_REQUEST_DRAFT
       when: never
@@ -92,7 +94,7 @@ docker_build_deps:
   variables:
     DOCKER_BUILDKIT: "1"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - docker pull "$DEPS_IMAGE" || true
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "$DEPS_IMAGE" --target deps -t "$DEPS_IMAGE" .
     - docker push "$DEPS_IMAGE"
@@ -120,7 +122,7 @@ docker_build_test_deps:
   variables:
     DOCKER_BUILDKIT: "1"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     - docker pull "$TEST_DEPS_IMAGE" || true
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "$TEST_DEPS_IMAGE" --target test-deps -t "$TEST_DEPS_IMAGE" tests/
     - docker push "$TEST_DEPS_IMAGE"
@@ -146,7 +148,7 @@ docker_build:
     DOCKER_BUILDKIT: "1"
     CI_BUILD_TAG: "ci-build:$CI_PIPELINE_ID"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     # Remove old ci images from previous pipelines to free disk.
     # Builder prune uses a 48h window so the Maven cache mount stays warm between pipelines.
     - docker images "$CI_REGISTRY_IMAGE/ci" --format "{{.Tag}}" | grep -v "^$CI_PIPELINE_ID$" | xargs -r -I{} docker rmi "$CI_REGISTRY_IMAGE/ci:{}" 2>/dev/null || true
@@ -195,7 +197,7 @@ tests:
       # pscos ~5 min, tools ~6 min, gos ~1 min.
       - TEST_FAMILIES: "-f java -f c -f agents -f agents_transfers -f gos -f pscos -f tools"
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
     # Remove old ci images from previous pipelines to free disk before pulling
     - docker images "$CI_REGISTRY_IMAGE/ci" --format "{{.Tag}}" | grep -v "^$CI_PIPELINE_ID$" | xargs -r -I{} docker rmi "$CI_REGISTRY_IMAGE/ci:{}" 2>/dev/null || true
     - docker image prune -f

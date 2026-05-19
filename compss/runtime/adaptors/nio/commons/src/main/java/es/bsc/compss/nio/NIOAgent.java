@@ -106,7 +106,7 @@ public abstract class NIOAgent {
     private int receiveTransfers;
     private final int maxReceiveTransfers;
 
-    private boolean finish;
+    private volatile boolean finish;
     private Connection closingConnection = null;
 
     // Requests related to a DataId
@@ -238,6 +238,23 @@ public abstract class NIOAgent {
 
     /**
      * Returns whether there are pending transfers or not.
+     *
+     * @return {@code true} if there are pending transfers, {@code false} otherwise.
+     */
+    public boolean isFinished() {
+        return this.finish;
+    }
+
+    /**
+     * Marks this agent as finished so that concurrent threads observe the flag immediately. Must be called before
+     * invoking {@link #shutdown} from any path that does not go through {@link #receivedShutdown}.
+     */
+    protected void markFinished() {
+        this.finish = true;
+    }
+
+    /**
+     * Returns whether there are pending transfers.
      *
      * @return {@code true} if there are pending transfers, {@code false} otherwise.
      */

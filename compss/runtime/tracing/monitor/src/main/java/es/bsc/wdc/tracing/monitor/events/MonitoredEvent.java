@@ -22,6 +22,7 @@ import java.time.Instant;
 public class MonitoredEvent {
 
     private final Instant ts;
+    private final String runId;
     private final String agentId;
     private final String nodeName;
     private final String threadType;
@@ -34,6 +35,7 @@ public class MonitoredEvent {
     /**
      * Constructs a new MonitoredEvent.
      *
+     * @param runId execution run id
      * @param agentId agentId agent where the event occurred
      * @param nodeName node name where the event occurred
      * @param threadType thread Type of the event emitter
@@ -42,9 +44,10 @@ public class MonitoredEvent {
      * @param eventCode code of the event
      * @param eventName name of the event
      */
-    public MonitoredEvent(String agentId, String nodeName, String threadType, long threadId, int eventType,
-        int eventCode, String eventName) {
+    public MonitoredEvent(String runId, String agentId, String nodeName, String threadType, long threadId,
+        int eventType, int eventCode, String eventName) {
         this.ts = Instant.now();
+        this.runId = runId;
         this.agentId = agentId;
         this.nodeName = nodeName;
         this.threadType = threadType;
@@ -61,6 +64,8 @@ public class MonitoredEvent {
         // fields
         sb.append('{');
         kv(sb, "ts", ts.toString());
+        sb.append(",");
+        kv(sb, "run_id", runId);
         sb.append(",");
         String finalAgentId = (agentId == null | agentId.trim().isEmpty()) ? Constants.DEFAULT_MASTER_NAME : agentId;
         kv(sb, "agent_id", finalAgentId);

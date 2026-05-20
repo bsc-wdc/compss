@@ -83,7 +83,7 @@ public class GOSWorker implements InvocationContext {
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
     private static final int HOSTS_FLAGS_SIZE = 10;
-    private static final int TRACING_FLAGS_SIZE = 7;
+    private static final int TRACING_FLAGS_SIZE = 9;
     private static final int LANG_SIZE_FLAGS = 9;
     private static final int EXTRA_FLAG_SIZE = 0;
     private static final int HOST_INX = 0;
@@ -137,12 +137,12 @@ public class GOSWorker implements InvocationContext {
         int streamMasterPort = Integer.parseInt(args[HOST_INX + i++]);
 
         /*
-         * tracingFlags=( "${tracing}" "${runtimeEventType}" "${sandBoxCreationId}" "${sandBoxRemovalId}"
-         * "${taskEventType}" "${tracingTaskId}" "${slot}" )
+         * tracingFlags=( "${tracing}" "${tracingExtrae}" "${tracingMonitor}" "${runtimeEventType}"
+         * "${sandBoxCreationId}" "${sandBoxRemovalId}" "${taskEventType}" "${tracingTaskId}" "${slot}" )
          */
         final boolean tracing = Boolean.parseBoolean(args[TRACING_INX]);
         final String[] tracingParams = Arrays.copyOfRange(args, TRACING_INX + 1, TRACING_INX + TRACING_FLAGS_SIZE);
-        final int tracingSlot = Integer.parseInt(args[TRACING_INX + 6]);
+        final int tracingSlot = Integer.parseInt(args[TRACING_INX + 8]);
 
         /*
          * langFlags=(${persistentWorker} "${taskSandboxWorkingDir}" "${cp}" "${pythonpath}" "${pythonInterpreter}"

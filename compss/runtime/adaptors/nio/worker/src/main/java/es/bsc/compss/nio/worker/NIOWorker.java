@@ -1188,26 +1188,28 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonpath = args[23];
 
         String traceFlag = args[24];
-        String extraeFile = args[25];
-        String traceHost = args[26];
-        String traceTaskDependencies = args[27];
+        String traceExtraeFlag = args[25];
+        String traceMonitorFlag = args[26];
+        String extraeFile = args[27];
+        String traceHost = args[28];
+        String traceTaskDependencies = args[29];
 
-        String storageConf = args[28];
-        TaskExecution executionType = TaskExecution.valueOf(args[29].toUpperCase());
+        String storageConf = args[30];
+        TaskExecution executionType = TaskExecution.valueOf(args[31].toUpperCase());
 
-        boolean persistentC = Boolean.parseBoolean(args[30]);
+        boolean persistentC = Boolean.parseBoolean(args[32]);
 
-        String pythonInterpreter = args[31];
-        String pythonVersion = args[32];
-        String pythonVirtualEnvironment = args[33];
-        String pythonPropagateVirtualEnvironment = args[34];
-        String pythonExtraeFile = args[35];
-        String pythonMpiWorker = args[36];
-        String pythonWorkerCache = args[37];
-        String pythonCacheProfiler = args[38];
+        String pythonInterpreter = args[33];
+        String pythonVersion = args[34];
+        String pythonVirtualEnvironment = args[35];
+        String pythonPropagateVirtualEnvironment = args[36];
+        String pythonExtraeFile = args[37];
+        String pythonMpiWorker = args[38];
+        String pythonWorkerCache = args[39];
+        String pythonCacheProfiler = args[40];
 
-        boolean ear = Boolean.parseBoolean(args[39]);
-        boolean dataProvenance = Boolean.parseBoolean(args[40]);
+        boolean ear = Boolean.parseBoolean(args[41]);
+        boolean dataProvenance = Boolean.parseBoolean(args[42]);
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
@@ -1243,6 +1245,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Install Dir: " + installDir);
 
             WORKER_LOGGER.debug("Tracing: " + traceFlag);
+            WORKER_LOGGER.debug("Tracing Extrae: " + traceExtraeFlag);
+            WORKER_LOGGER.debug("Tracing Monitor: " + traceMonitorFlag);
             WORKER_LOGGER.debug("Extrae config File: " + extraeFile);
             WORKER_LOGGER.debug("Python extrae config File: " + pythonExtraeFile);
             WORKER_LOGGER.debug("Host: " + traceHost);
@@ -1273,8 +1277,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Configure storage
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
+        System.setProperty(COMPSsConstants.DEPLOYMENT_ID, appUuid);
 
         // Configure tracing
+        System.setProperty(COMPSsConstants.TRACING, traceFlag);
+        System.setProperty(COMPSsConstants.TRACING_EXTRAE, traceExtraeFlag);
+        System.setProperty(COMPSsConstants.TRACING_MONITOR, traceMonitorFlag);
         System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
         System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, workingDir);
 

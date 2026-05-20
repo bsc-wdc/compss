@@ -124,7 +124,6 @@ check_tracing_setup () {
     tracing="${TRACING_ENABLED}"
   fi
 
-
   extraeFile="${DEFAULT_EXTRAE_CONFIG_FILE}"
   if [ "${tracing_extrae}" == "${TRACING_ENABLED}" ]; then
     # Determine extrae directories

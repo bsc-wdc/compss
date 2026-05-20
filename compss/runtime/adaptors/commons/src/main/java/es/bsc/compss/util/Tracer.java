@@ -51,6 +51,7 @@ public abstract class Tracer {
         && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_EXTRAE));
 
     private static final boolean ENABLED = EXTRAE_ENABLED || MONITOR_ENABLED;
+    private static final String LOCAL_WORKER_AGENT_ID = "local-worker";
 
     // Tracing script and file paths
     public static final String TRACE_SUBFOLDER = "trace";
@@ -114,6 +115,15 @@ public abstract class Tracer {
      */
     public static boolean isExtraeActivated() {
         return EXTRAE_ENABLED;
+    }
+
+    /**
+     * Returns if monitor tracing is activated.
+     *
+     * @return true if monitor tracing is activated
+     */
+    public static boolean isMonitorActivated() {
+        return MONITOR_ENABLED;
     }
 
     /**
@@ -255,7 +265,8 @@ public abstract class Tracer {
         }
         if (MONITOR_ENABLED) {
             String masterName = System.getProperty(COMPSsConstants.MASTER_NAME);
-            MonitorTracer otelBE = new MonitorTracer(masterName, nodeName);
+            String monitorAgentId = hostId == 0 ? masterName : LOCAL_WORKER_AGENT_ID;
+            MonitorTracer otelBE = new MonitorTracer(monitorAgentId, nodeName);
             BACKENDS.add(otelBE);
         }
     }

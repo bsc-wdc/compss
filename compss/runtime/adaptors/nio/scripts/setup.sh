@@ -10,7 +10,7 @@
 
   JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
-  NUM_PARAMS=41
+  NUM_PARAMS=43
 
   ######################
   # INTERNAL FUNCTIONS
@@ -106,6 +106,7 @@
     debug=${1}
     hostName=${4}
     worker_port=${5}
+    masterName=${6}
     streaming_port=${8}
     cusCPU=${9}
     cusGPU=${10}
@@ -121,22 +122,24 @@
     cpNW=${23}
     pythonpath=${24}
     tracing=${25}
-    extraeFile=${26}
-    hostId=${27}
-    traceTaskDependencies=${28}
-    storageConf=${29}
-    execType=${30}
-    persistentBinding=${31}
-    pythonInterpreter=${32}
-    pythonVersion=${33}
-    pythonVirtualEnvironment=${34}
-    pythonPropagateVirtualEnvironment=${35}
-    pythonExtraeFile=${36}
-    pythonMpiWorker=${37}
-    pythonWorkerCache=${38}
-    pythonCacheProfiler=${39}
-    ear=${40}
-    provenance=${41}
+    tracingExtrae=${26}
+    tracingMonitor=${27}
+    extraeFile=${28}
+    hostId=${29}
+    traceTaskDependencies=${30}
+    storageConf=${31}
+    execType=${32}
+    persistentBinding=${33}
+    pythonInterpreter=${34}
+    pythonVersion=${35}
+    pythonVirtualEnvironment=${36}
+    pythonPropagateVirtualEnvironment=${37}
+    pythonExtraeFile=${38}
+    pythonMpiWorker=${39}
+    pythonWorkerCache=${40}
+    pythonCacheProfiler=${41}
+    ear=${42}
+    provenance=${43}
 
     #This decides where the worker.* files are stored
     #NIOWorker.java getLogDir decides where the binding_worker.* files are stored
@@ -176,6 +179,8 @@
       echo "- Python Extrae File   $pythonExtraeFile"
 
       echo "- Tracing:             $tracing"
+      echo "- Tracing Extrae:      ${tracingExtrae}"
+      echo "- Tracing Monitor:     ${tracingMonitor}"
       echo "- ExtraeFile:          ${extraeFile}"
       echo "- HostId:              ${hostId}"
       echo "- TracingTaskDep:      ${traceTaskDependencies}"
@@ -225,7 +230,7 @@
 
   setup_extrae() {
     # Trace initialization
-    if [ "${tracing}" == "true" ]; then
+    if [ "${tracingExtrae}" == "true" ]; then
 
       configPath="${SCRIPT_DIR}/../../../../configuration/xml/tracing"
 
@@ -355,8 +360,11 @@
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
-    -Dcompss.tracing.extrae=${tracing} \
+    -Dcompss.tracing=${tracing} \
+    -Dcompss.tracing.extrae=${tracingExtrae} \
+    -Dcompss.tracing.monitor=${tracingMonitor} \
     -Dcompss.extrae.file.python=${pythonExtraeFile} \
+    -Dcompss.masterName=${masterName} \
     -Dcompss.ear=${ear} \
     -Dcompss.data_provenance=${provenance} \
     -Dcompss.worker.logdir=${workingDir}/log\
@@ -410,7 +418,7 @@ EOT
   }
 
   clean_env() {
-    if [ "${tracing}" == "true" ]; then
+    if [ "${tracingExtrae}" == "true" ]; then
       unset LD_PRELOAD
       unset EXTRAE_HOME
       unset EXTRAE_LIB

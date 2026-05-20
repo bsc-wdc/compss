@@ -22,6 +22,7 @@ import es.bsc.wdc.tracing.EventType;
 import es.bsc.wdc.tracing.Loggers;
 import es.bsc.wdc.tracing.TracingBackend;
 import es.bsc.wdc.tracing.monitor.events.MonitoredEvent;
+import java.io.File;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,8 @@ public class MonitorTracer implements TracingBackend {
 
     // Constants to remove
     private static final int THREAD_IDENTIFICATION_CODE = 8_001_003;
+    private static final int TASKS_FUNC_CODE = 8_001_131;
+    private static final int TASK_REGISTRY_CODE = 88_000_000;
 
 
     private enum ThreadType {
@@ -67,10 +70,28 @@ public class MonitorTracer implements TracingBackend {
     private static final ThreadLocal<ThreadCtx> CTX = new ThreadLocal<>();
     private final String masterName;
     private final String nodeName;
-    private final EventSink sink;
+    private final EventSink monitoredSink;
+    private final EventSink graphSink;
     private final OtelMetrics metrics;
+
     private final Map<Integer, Map<Integer, String>> eventLabels = new HashMap<>();
 
+    // We extract the run id from the LOG_DIR
+    private static String RUN_ID =
+        extractRunId(System.getProperty("compss.uuid", System.getProperty("compss.log.dir")));
+
+
+    private static String extractRunId(String logDir) {
+        if (logDir == null || logDir.trim().isEmpty()) {
+            return "unknown_run";
+        }
+        try {
+            File dir = new File(logDir);
+            return dir.getName(); // last directory
+        } catch (Exception e) {
+            return "unknown_run";
+        }
+    }
 
     /**
      * Constructs and sets up new tracer leveraging OpenTelemetry.
@@ -85,9 +106,13 @@ public class MonitorTracer implements TracingBackend {
         String otlpEP = System.getProperty(Constants.ENV_OTEL_ENDPOINT, Constants.DEFAULT_OTEL_ENDPOINT);
         this.metrics = new OtelMetrics(otlpEP, serviceName, hostname, masterName);
 
-        String eventsEP = System.getProperty(Constants.ENV_EVENTS_API, Constants.DEFAULT_EVENTS_API);
-        this.sink = new EventSink(eventsEP);
-        this.sink.start();
+        String monitoredEP = System.getProperty(Constants.ENV_EVENTS_API, Constants.DEFAULT_EVENTS_API);
+        this.monitoredSink = new EventSink(monitoredEP);
+        this.monitoredSink.start();
+
+        String graphEP = System.getProperty(Constants.ENV_GRAPH_API, Constants.DEFAULT_GRAPH_API);
+        this.graphSink = new EventSink(graphEP);
+        this.graphSink.start();
     }
 
     @Override
@@ -151,6 +176,11 @@ public class MonitorTracer implements TracingBackend {
         synchronized (typeLabels) {
             for (Event e : type.getEvents()) {
                 typeLabels.put(e.getId(), e.getSignature());
+                if (typeCode == TASKS_FUNC_CODE) {
+                    MonitoredEvent registryEvent = new MonitoredEvent(RUN_ID, masterName, nodeName, "REGISTRY", 0L,
+                        TASK_REGISTRY_CODE, e.getId(), e.getSignature());
+                    this.monitoredSink.enqueue(registryEvent.toString());
+                }
             }
         }
     }
@@ -186,8 +216,9 @@ public class MonitorTracer implements TracingBackend {
             MonitoredEvent event;
             String threadType = c.threadType.name();
             String label = getEventLabel(eventType, value);
-            event = new MonitoredEvent(masterName, nodeName, threadType, c.threadId, eventType, (int) value, label);
-            this.sink.enqueue(event);
+            event =
+                new MonitoredEvent(RUN_ID, masterName, nodeName, threadType, c.threadId, eventType, (int) value, label);
+            this.monitoredSink.enqueue(event.toString());
         } catch (Throwable t) {
             LOGGER.debug("MonitorTracer emitEvent failed", t);
         }
@@ -205,7 +236,8 @@ public class MonitorTracer implements TracingBackend {
 
     @Override
     public void fini() {
-        this.sink.stop();
+        this.monitoredSink.stop();
+        this.graphSink.stop();
     }
 
     @Override

@@ -17,7 +17,6 @@
 package es.bsc.wdc.tracing.monitor;
 
 import es.bsc.wdc.tracing.Loggers;
-import es.bsc.wdc.tracing.monitor.events.MonitoredEvent;
 import java.net.HttpURLConnection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -52,7 +51,7 @@ public final class EventSink {
      */
     public EventSink(String api) {
         this.endpoint = api;
-        worker = new Thread(this::loop, "events-sink-" + api);
+        this.worker = new Thread(this::loop, "events-sink-" + api);
     }
 
     /**
@@ -107,12 +106,14 @@ public final class EventSink {
     /**
      * Adds an event to be published by the EventSink.
      * 
-     * @param event Description of the event to publish
+     * @param json Description of the event to publish
      */
-    public void enqueue(MonitoredEvent event) {
-
+    public void enqueue(String json) {
+        if (json == null) {
+            return;
+        }
         try {
-            pendingQueue.offer(event.toString());
+            pendingQueue.offer(json);
         } catch (Exception e) {
             if (DEBUG) {
                 LOGGER.error("ERROR enqueuing to EventSink for " + this.endpoint, e);

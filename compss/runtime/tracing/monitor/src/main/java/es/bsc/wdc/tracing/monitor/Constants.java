@@ -22,13 +22,15 @@ public class Constants {
 
     // Environment variables
     public static final String ENV_EVENTS_API = "compss.events.api";
+    public static final String ENV_GRAPH_API = "compss.graph.api";
     public static final String ENV_OTEL_ENDPOINT = "compss.otel.endpoint";
     public static final String ENV_OTEL_SERVICE = "compss.otel.service";
 
     // Default values
     public static final String DEFAULT_MASTER_NAME = "local-master";
     public static final String DEFAULT_NODE_NAME = "master";
-    public static final String DEFAULT_EVENTS_API = "http://localhost:8088/events";
+    public static final String DEFAULT_EVENTS_API = "http://localhost:8088/monitored-events";
+    public static final String DEFAULT_GRAPH_API = "http://localhost:8088/graph-events";
     public static final String DEFAULT_OTEL_ENDPOINT = "http://localhost:4317";
     public static final String DEFAULT_SERVICE_NAME = "compss-agent";
 

@@ -117,6 +117,9 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String pythonCacheProfiler;
     protected String ear;
     protected String dataProvenance;
+    protected String tracing;
+    protected String tracingExtrae;
+    protected String tracingMonitor;
     protected int totalCPU;
     protected int totalGPU;
     protected int totalFPGA;
@@ -318,6 +321,20 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         this.dataProvenance = System.getProperty(COMPSsConstants.DATA_PROVENANCE);
         if (this.dataProvenance == null || this.dataProvenance.isEmpty() || this.dataProvenance.equals("null")) {
             this.dataProvenance = COMPSsDefaults.DP_ENABLED;
+        }
+
+        // Configure tracing
+        this.tracing = System.getProperty(COMPSsConstants.TRACING);
+        if (this.tracing == null || this.tracing.isEmpty() || this.tracing.equals("null")) {
+            this.tracing = COMPSsDefaults.TRACING;
+        }
+        this.tracingExtrae = System.getProperty(COMPSsConstants.TRACING_EXTRAE);
+        if (this.tracingExtrae == null || this.tracingExtrae.isEmpty() || this.tracingExtrae.equals("null")) {
+            this.tracingExtrae = COMPSsDefaults.TRACING;
+        }
+        this.tracingMonitor = System.getProperty(COMPSsConstants.TRACING_MONITOR);
+        if (this.tracingMonitor == null || this.tracingMonitor.isEmpty() || this.tracingMonitor.equals("null")) {
+            this.tracingMonitor = COMPSsDefaults.TRACING;
         }
 
         this.lang = System.getProperty(COMPSsConstants.LANG);

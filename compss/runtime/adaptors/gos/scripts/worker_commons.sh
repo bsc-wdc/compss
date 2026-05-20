@@ -100,16 +100,18 @@ get_host_parameters () {
     shift $((12 + rmfilesNum))
 
     tracing=$1
+    tracingExtrae=$2
+    tracingMonitor=$3
     export EXTRAE_BUFFER_SIZE=100
-    runtimeEventType=$2
-    sandBoxCreationId=$3
-    sandBoxRemovalId=$4
-    taskEventType=$5
-    tracingTaskId=$6
-    slot=$7
-    tracingFlags=( "${tracing}" "${runtimeEventType}" "${sandBoxCreationId}" "${sandBoxRemovalId}"
+    runtimeEventType=$4
+    sandBoxCreationId=$5
+    sandBoxRemovalId=$6
+    taskEventType=$7
+    tracingTaskId=$8
+    slot=$9
+    tracingFlags=( "${tracing}" "${tracingExtrae}" "${tracingMonitor}" "${runtimeEventType}" "${sandBoxCreationId}" "${sandBoxRemovalId}"
                       "${taskEventType}" "${tracingTaskId}" "${slot}" )
-    shift 7
+    shift 9
 
 
 
@@ -322,6 +324,8 @@ printHostParams(){
 printTracingParams(){
   echo "[WORKER_COMMONS.SH] Tracing Parameters ---------------------------"
     echo "[WORKER_COMMONS.SH]         - Tracing                            = ${tracing}"
+    echo "[WORKER_COMMONS.SH]         - Tracing Extrae                     = ${tracingExtrae}"
+    echo "[WORKER_COMMONS.SH]         - Tracing Monitor                    = ${tracingMonitor}"
     echo "[WORKER_COMMONS.SH]         - Tracing runtimeEventType           = ${runtimeEventType}"
     echo "[WORKER_COMMONS.SH]         - Tracing sandBoxCreationId          = ${sandBoxCreationId}"
     echo "[WORKER_COMMONS.SH]         - Tracing sandBoxRemovalId           = ${sandBoxRemovalId}"
@@ -435,7 +439,7 @@ printInvocationParams(){
 
 setup_extrae() {
   # Trace initialization
-  if [ "${tracing}" == "true" ]; then
+  if [ "${tracingExtrae}" == "true" ]; then
 
     configPath="${SCRIPT_DIR}/../../../../configuration/xml/tracing"
 
@@ -548,7 +552,11 @@ get_command(){
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
+    -Dcompss.tracing=${tracing} \
+    -Dcompss.tracing.extrae=${tracingExtrae} \
+    -Dcompss.tracing.monitor=${tracingMonitor} \
     -Dcompss.extrae.file.python=${pythonExtraeFile} \
+    -Dcompss.masterName=${streamingMasterName} \
     -Dcompss.data_provenance=${provenance}"
      #\
     #-Djava.library.path=$LD_LIBRARY_PATH"

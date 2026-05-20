@@ -2,6 +2,9 @@
 # In CI, docker_build overrides this with the pre-built registry image so the
 # slow apt/pip/julia installs are skipped when tests/Dockerfile hasn't changed.
 ARG CI_TEST_DEPS_IMAGE=test-deps
+# In CI, overridden with the pipeline-specific image tag to avoid a shared
+# local 'build' alias that would race when multiple pipelines run concurrently.
+ARG CI_BUILD_IMAGE=build
 
 # Stage: pre-install test runner dependencies.
 # Built and pushed to the registry by the docker_build_test_deps CI job.
@@ -81,10 +84,14 @@ RUN sed -i '/^btl = /d' /etc/openmpi/openmpi-mca-params.conf && \
 	printf '\nbtl = tcp,self\nplm = rsh\noob_tcp_if_include = lo\nbtl_tcp_if_include = lo\nbtl_vader_single_copy_mechanism = none\n' >> /etc/openmpi/openmpi-mca-params.conf && \
 	printf '\nSetEnv OMPI_MCA_btl=tcp,self OMPI_MCA_oob_tcp_if_include=lo OMPI_MCA_btl_tcp_if_include=lo OMPI_MCA_btl_vader_single_copy_mechanism=none\n' >> /etc/ssh/sshd_config
 
+# Alias stage: resolves CI_BUILD_IMAGE (global ARG) into a named stage so
+# COPY --from can reference it — variable expansion in --from is unsupported.
+FROM $CI_BUILD_IMAGE AS compss-build
+
 # Stage: assemble the test runner image from the pre-built deps + COMPSs install.
 FROM ${CI_TEST_DEPS_IMAGE} AS tests
 
-COPY --from=build --link --parents \
+COPY --from=compss-build --link --parents \
 	/etc/profile.d/compss.sh \
 	/framework/utils \
 	/opt/COMPSs \

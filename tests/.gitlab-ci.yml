@@ -162,21 +162,18 @@ docker_build:
         echo "WARN: deps image pull failed, building deps+build from scratch (this will be slow)"
         docker build --target build -t "$CI_BUILD_TAG" .
       fi
-    # Tag build image as 'build' so COPY --from=build in tests/Dockerfile resolves locally.
-    # tests/Dockerfile uses '# syntax=docker/dockerfile:1' to enable --parents support.
-    - docker tag "$CI_BUILD_TAG" build
     # Pull pre-built test-deps image if available; fall through to full build if not.
     - docker pull "$TEST_DEPS_IMAGE" || true
     - |
       if docker image inspect "$TEST_DEPS_IMAGE" &>/dev/null; then
-        docker build --build-arg CI_TEST_DEPS_IMAGE="$TEST_DEPS_IMAGE" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
+        docker build --build-arg CI_BUILD_IMAGE="$CI_BUILD_TAG" --build-arg CI_TEST_DEPS_IMAGE="$TEST_DEPS_IMAGE" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
       else
         echo "WARN: test-deps image not found, building tests from scratch (this will be slow)"
-        docker build -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
+        docker build --build-arg CI_BUILD_IMAGE="$CI_BUILD_TAG" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
       fi
     - docker push "$COMPSS_IMAGE"
-    # Clean up temporary local tags
-    - docker rmi "$CI_BUILD_TAG" build 2>/dev/null || true
+    # Clean up temporary local build image
+    - docker rmi "$CI_BUILD_TAG" 2>/dev/null || true
     - echo "Image successfully built"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"

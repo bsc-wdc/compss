@@ -77,6 +77,7 @@ RUN . /framework/builders/deps-versions && \
 # Starts FROM the pre-built deps registry image when CI_DEPS_IMAGE is set,
 # skipping the deps stage above entirely.
 FROM ${CI_DEPS_IMAGE} AS build
+ARG BUILDKIT_CACHE_MOUNT_NS
 
 COPY . /framework
 

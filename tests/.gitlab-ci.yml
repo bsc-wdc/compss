@@ -140,6 +140,10 @@ docker_build:
   services:
     - docker:dind
   needs:
+    - job: rebase_verify
+      optional: true
+    - job: header_setup
+      optional: true
     - job: docker_build_deps
       optional: true
     - job: docker_build_test_deps
@@ -157,19 +161,19 @@ docker_build:
     - |
       # Build the COMPSs installation (build stage) — used as 'build' context for tests/Dockerfile
       if docker pull "$DEPS_IMAGE"; then
-        docker build --build-arg CI_DEPS_IMAGE="$DEPS_IMAGE" --cache-from "$DEPS_IMAGE" --target build -t "$CI_BUILD_TAG" .
+        docker build --build-arg CI_DEPS_IMAGE="$DEPS_IMAGE" --build-arg BUILDKIT_CACHE_MOUNT_NS="$CI_COMMIT_REF_SLUG" --cache-from "$DEPS_IMAGE" --target build -t "$CI_BUILD_TAG" .
       else
         echo "WARN: deps image pull failed, building deps+build from scratch (this will be slow)"
-        docker build --target build -t "$CI_BUILD_TAG" .
+        docker build --build-arg BUILDKIT_CACHE_MOUNT_NS="$CI_COMMIT_REF_SLUG" --target build -t "$CI_BUILD_TAG" .
       fi
     # Pull pre-built test-deps image if available; fall through to full build if not.
     - docker pull "$TEST_DEPS_IMAGE" || true
     - |
       if docker image inspect "$TEST_DEPS_IMAGE" &>/dev/null; then
-        docker build --build-arg CI_BUILD_IMAGE="$CI_BUILD_TAG" --build-arg CI_TEST_DEPS_IMAGE="$TEST_DEPS_IMAGE" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
+        docker build --build-arg CI_BUILD_IMAGE="$CI_BUILD_TAG" --build-arg CI_TEST_DEPS_IMAGE="$TEST_DEPS_IMAGE" --build-arg BUILDKIT_CACHE_MOUNT_NS="$CI_COMMIT_REF_SLUG" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
       else
         echo "WARN: test-deps image not found, building tests from scratch (this will be slow)"
-        docker build --build-arg CI_BUILD_IMAGE="$CI_BUILD_TAG" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
+        docker build --build-arg CI_BUILD_IMAGE="$CI_BUILD_TAG" --build-arg BUILDKIT_CACHE_MOUNT_NS="$CI_COMMIT_REF_SLUG" -f tests/Dockerfile -t "$COMPSS_IMAGE" tests/
       fi
     - docker push "$COMPSS_IMAGE"
     # Clean up temporary local build image

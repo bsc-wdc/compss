@@ -90,6 +90,7 @@ FROM $CI_BUILD_IMAGE AS compss-build
 
 # Stage: assemble the test runner image from the pre-built deps + COMPSs install.
 FROM ${CI_TEST_DEPS_IMAGE} AS tests
+ARG BUILDKIT_CACHE_MOUNT_NS
 
 COPY --from=compss-build --link --parents \
 	/etc/profile.d/compss.sh \

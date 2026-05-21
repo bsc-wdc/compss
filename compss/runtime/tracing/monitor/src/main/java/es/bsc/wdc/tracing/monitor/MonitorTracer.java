@@ -209,7 +209,7 @@ public class MonitorTracer implements TracingBackend {
         try {
 
             ThreadCtx c = CTX.get();
-            if (c != null) {
+            if (c == null) {
                 return;
             }
 

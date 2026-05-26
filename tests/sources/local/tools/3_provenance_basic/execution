@@ -75,8 +75,16 @@
       exit_value=$?
     fi
 
-    if [ ${exit_value} -ne 0 ]; then
-      exit ${exit_value}
+    prov_dir=$(cat "${output_log}" | grep "Destination folder" | sed -E 's/^.*: //')
+    python3 ${base_app_dir}/src/check_ro_crate_metadata.py ${prov_dir}
+    validator_exit_value=$?
+
+    if [ ${validator_exit_value} -ne 0 ]; then
+      exit ${validator_exit_value}
+    else
+      if [ ${exit_value} -ne 0 ]; then
+        exit ${exit_value}
+      fi
     fi
   done
 

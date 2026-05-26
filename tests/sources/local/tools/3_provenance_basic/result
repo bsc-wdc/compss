@@ -8,6 +8,7 @@
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
+  dataprovenance_log="${target_log_folder}/dataprovenance.log"
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
@@ -83,6 +84,12 @@
     else
       echo "profiling/ DIRECTORY EXISTS" | tee -a "${output_file}"
     fi
+    if [ ! -d "${prov_dir}profiling/" ]; then
+      echo "profiling/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "profiling/ DIRECTORY EXISTS" | tee -a "${output_file}"
+    fi
 
     # Test all files inside the provenance directory exist
     
@@ -104,6 +111,41 @@
     else
       echo "ro-crate-metadata.json FILE EXISTS" | tee -a "${output_file}"
     fi
+
+    # Check if in profiling subdirectory there are cpu.svg and mem.svg files
+    # put in a list all the directory within profiling/ and check if cpu.svg and mem.svg exist in each of them
+    profiling_subdirs=$(find "${prov_dir}profiling/" -mindepth 1 -maxdepth 1 -type d)
+    # if the lenght of profiling_subdirs is greater than 1, check if cpu.svg and mem.svg exist in profiling/ directory as well
+    if [ $(echo "${profiling_subdirs}" | wc -l) -gt 1 ]; then
+      if [ ! -f "${prov_dir}profiling/cpu.svg" ]; then
+        echo "cpu.svg FILE DOES NOT EXIST IN profiling/ DIRECTORY" | tee -a "${output_file}"
+        exit 1
+      else
+        echo "cpu.svg FILE EXISTS IN profiling/ DIRECTORY" | tee -a "${output_file}"
+      fi
+      if [ ! -f "${prov_dir}profiling/mem.svg" ]; then
+        echo "mem.svg FILE DOES NOT EXIST IN profiling/ DIRECTORY" | tee -a "${output_file}"
+        exit 1
+      else
+        echo "mem.svg FILE EXISTS IN profiling/ DIRECTORY" | tee -a "${output_file}"
+      fi
+    fi
+    # Check if cpu.svg and mem.svg exist in each of the subdirectories of profiling/
+    for subdir in ${profiling_subdirs}; do
+      if [ ! -f "${subdir}/cpu.svg" ]; then
+        echo "cpu.svg FILE DOES NOT EXIST IN ${subdir}" | tee -a "${output_file}"
+        exit 1
+      else
+        echo "cpu.svg FILE EXISTS IN ${subdir}" | tee -a "${output_file}"
+      fi
+      if [ ! -f "${subdir}/mem.svg" ]; then
+        echo "mem.svg FILE DOES NOT EXIST IN ${subdir}" | tee -a "${subdir}" | tee -a "${output_file}"
+        exit 1
+      else
+        echo "mem.svg FILE EXISTS IN ${subdir}" | tee -a "${output_file}"
+      fi
+    done
+
     
     # Check ro-crate-metadata.json content
 
@@ -170,6 +212,94 @@
     # jq '."@graph".[] | select(."@type"=="CreativeWork".version)' ro-crate-metadata.json
     # Must be: null, "0.1", "0.1", "1.0"
 
+
+    #----------------------------------------------------------------------------------
+    # Check dataprovenance.log has been generated and follows expected structure
+    if [ ! -f "${dataprovenance_log}" ]; then
+      echo "dataprovenance.log FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    fi
+    echo "dataprovenance.log FILE EXISTS" | tee -a "${output_file}"
+    # File must not be empty
+    if [ ! -s "${dataprovenance_log}" ]; then
+      echo "dataprovenance.log FILE IS EMPTY" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Read header lines
+    version=$(sed -n '1p' "${dataprovenance_log}")
+    app_name=$(sed -n '2p' "${dataprovenance_log}")
+    starting_timestamp=$(sed -n '3p' "${dataprovenance_log}")
+
+    # Basic header sanity checks
+    if ! echo "${version}" | grep -qE '^[0-9]+\.[0-9]+'; then
+      echo "dataprovenance.log: First line (version) not found or malformed: ${version}" | tee -a "${output_file}"
+      exit 1
+    fi
+    if ! echo "${app_name}" | grep -qE '^[^[:space:]]+$'; then                          # FIX: no trailing [LABEL]
+      echo "dataprovenance.log: Second line (app name) not found or malformed: ${app_name}" | tee -a "${output_file}"
+      exit 1
+    fi
+    if ! echo "${starting_timestamp}" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$'; then        # FIX: no trailing [LABEL]
+      echo "dataprovenance.log: Third line (starting timestamp) not found or malformed: ${starting_timestamp}" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Locate section boundaries by content — no section header lines exist in the file
+    # INPUT/OUTPUT block starts immediately after the 3 header lines
+    input_start=4
+
+    # TASKS OUTCOME block starts at the first "task N status ..." line
+    tasks_outcome_start=$(grep -n "^task [0-9]\+ status " "${dataprovenance_log}" | head -1 | cut -d: -f1 || true)
+
+    # METHODS STATS block starts at the first line after TASKS OUTCOME that is not a task status line
+    methods_stats_start=$(awk -v start="${tasks_outcome_start}" \
+      'NR>start && !/^task [0-9]/ { print NR; exit }' "${dataprovenance_log}" || true)
+
+    # ENDING TIME is the very last line of the file
+    ending_time_line=$(awk 'END{print NR}' "${dataprovenance_log}")
+
+    if [ -z "${tasks_outcome_start}" ] || [ -z "${methods_stats_start}" ] || [ -z "${ending_time_line}" ]; then
+      echo "dataprovenance.log: Required section headers missing" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Ensure sections are in order
+    if [ "${input_start}" -ge "${tasks_outcome_start}" ] || [ "${tasks_outcome_start}" -ge "${methods_stats_start}" ] || [ "${methods_stats_start}" -ge "${ending_time_line}" ]; then
+      echo "dataprovenance.log: Section headers in unexpected order" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Check that the INPUT/OUTPUT block contains file and task declarations
+    files_count=$(sed -n "${input_start},$((tasks_outcome_start-1))p" "${dataprovenance_log}" | grep -cE '^file\s+' || true)
+    tasks_count=$(sed -n "${input_start},$((tasks_outcome_start-1))p" "${dataprovenance_log}" | grep -cE '^task\s+[0-9]+' || true)
+    if [ "${files_count}" -lt 1 ] || [ "${tasks_count}" -lt 1 ]; then
+      echo "dataprovenance.log: No file/task declarations found in INPUT/OUTPUT block" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Check task outcomes in the TASKS OUTCOME block
+    outcome_finished_count=$(sed -n "${tasks_outcome_start},$((methods_stats_start-1))p" "${dataprovenance_log}" | grep -cE '^task\s+[0-9]+\s+status\s+FINISHED' || true)
+    if [ "${outcome_finished_count}" -lt 1 ]; then
+      echo "dataprovenance.log: No 'task ... status FINISHED' lines found in TASKS OUTCOME block" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Check METHODS STATS block contains at least one 'overall' entry
+    overall_count=$(sed -n "${methods_stats_start},$((ending_time_line-1))p" "${dataprovenance_log}" | grep -cE '^overall\s+' || true)
+    if [ "${overall_count}" -lt 1 ]; then
+      echo "dataprovenance.log: METHODS STATS missing overall entries" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    # Check ending timestamp (last line) looks like ISO8601
+    ending_line=$(sed -n "${ending_time_line}p" "${dataprovenance_log}")
+    if ! echo "${ending_line}" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$'; then    # FIX: no trailing [ENDING TIME]
+      echo "dataprovenance.log: Ending timestamp line malformed: ${ending_line}" | tee -a "${output_file}"
+      exit 1
+    fi
+
+    echo "dataprovenance.log: STRUCTURE OK" | tee -a "${output_file}"
 
 
   else

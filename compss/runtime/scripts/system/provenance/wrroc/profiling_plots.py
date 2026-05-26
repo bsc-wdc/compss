@@ -281,7 +281,19 @@ def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
     plt.title(f"{name_metric} usage among the nodes")
 
     # Use custom legend
-    plt.legend(handles=legend_elements, bbox_to_anchor=(1.005, 1), loc='upper left', borderaxespad=0.1)
+    # Calculate columns dynamically (e.g., fitting ~25 nodes per vertical column)
+    num_nodes = len(resampled_dfs)
+    legend_cols = max(1, (num_nodes + 39) // 40)
+
+    # Use custom legend with multiple columns and slightly smaller text
+    plt.legend(
+        handles=legend_elements,
+        bbox_to_anchor=(1.005, 1),
+        loc='upper left',
+        borderaxespad=0.1,
+        ncol=legend_cols,  # Splits the legend into multiple columns
+        fontsize='small'  # Shrinks the font slightly to save space
+    )
 
     plt.grid(True)
     plt.tight_layout()
@@ -315,9 +327,8 @@ def plot_results(folder_pathname, gpu_enabled: bool) -> str:
     df_list = []
     name_list = []
 
-    num_files = sum(1 for f in os.listdir(folder_pathname) if f.endswith(".csv"))
-
-    # iterate on every file in the directory
+    # Read all data and find the max length
+    max_length = 0
     for csv_resources in os.listdir(folder_pathname):
         csv_resources = os.path.join(folder_pathname, csv_resources)
         if not csv_resources.endswith(".csv") or os.path.isdir(csv_resources):
@@ -328,102 +339,139 @@ def plot_results(folder_pathname, gpu_enabled: bool) -> str:
 
         df = pd.read_csv(csv_resources)
         df_list.append(df)
-        df_length = len(df)
 
-        cpu_usage = df["CPU"]
-        mem_usage = df["MEM"]
-        gpu_usage = df["GPU_USAGE"] if gpu_enabled else None
-        gpu_mem = df["GPU_MEM"] if gpu_enabled else None
-        byte_sent = df["BYTE_SENT"]
-        byte_recv = df["BYTE_RECV"]
-        byte_read_disk = df["BYTE_READ_DISK"]
-        byte_write_disk = df["BYTE_WRITE_DISK"]
-        timestamps = df["TIME"]
+        if len(df) > max_length:
+            max_length = len(df)
+
+    num_files = sum(1 for f in os.listdir(folder_pathname) if f.endswith(".csv"))
+
+    TARGET_POINTS = 100
+    MAX_NODE_PLOTS = 20
+
+    global_step = max(1, max_length // TARGET_POINTS)
+
+    generate_plots = True if num_files < MAX_NODE_PLOTS else False
+    if not generate_plots:
+        print(f"PROVENANCE | PROFILING | INFO: Detected {num_files} nodes. Only aggregated plots will be generated. Individual node plots are skipped to preserve space. Check the log folder for full details on the profiling data of each node.")
+
+    for df, machine_name in zip(df_list, name_list):
+        df_sampled = df.iloc[::global_step, :].copy()
+        df_length = len(df_sampled)
+
+        cpu_usage = df_sampled["CPU"]
+        mem_usage = df_sampled["MEM"]
+        gpu_usage = df_sampled["GPU_USAGE"] if gpu_enabled else None
+        gpu_mem = df_sampled["GPU_MEM"] if gpu_enabled else None
+        byte_sent = df_sampled["BYTE_SENT"]
+        byte_recv = df_sampled["BYTE_RECV"]
+        byte_read_disk = df_sampled["BYTE_READ_DISK"]
+        byte_write_disk = df_sampled["BYTE_WRITE_DISK"]
+        timestamps = df_sampled["TIME"]
 
         list_of_cpus[machine_name] = list(cpu_usage)
         list_of_mems[machine_name] = list(mem_usage)
 
-        output_path = plots_pathname + machine_name
-        os.makedirs(output_path, exist_ok=True)
+        if generate_plots:
+            output_path = plots_pathname + machine_name
+            os.makedirs(output_path, exist_ok=True)
 
-        build_plot(
-            f"CPU usage of {machine_name}",
-            timestamps,
-            cpu_usage,
-            name_dataset="CPU",
-            measure="CPU %",
-            num_entries=df_length,
-        )
-        _save_plot(output_path + "/cpu.svg")
-        plt.close()
-
-        build_plot(
-            f"Memory usage of {machine_name}",
-            timestamps,
-            mem_usage,
-            name_dataset="MEM",
-            measure="Memory %",
-            num_entries=df_length,
-        )
-        _save_plot(output_path + "/mem.svg")
-        plt.close()
-
-        if gpu_enabled:
             build_plot(
-                f"GPU usage of {machine_name}",
+                f"CPU usage of {machine_name}",
                 timestamps,
-                gpu_usage,
-                name_dataset="GPU",
-                measure="GPU %",
+                cpu_usage,
+                name_dataset="CPU",
+                measure="CPU %",
                 num_entries=df_length,
             )
-            _save_plot(output_path + "/gpu.svg")
+            _save_plot(output_path + "/cpu.svg")
             plt.close()
 
             build_plot(
-                f"GPU Memory usage of {machine_name}",
+                f"Memory usage of {machine_name}",
                 timestamps,
-                gpu_mem,
-                name_dataset="GPU Memory",
-                measure="GPU Memory (MB)",
+                mem_usage,
+                name_dataset="MEM",
+                measure="Memory %",
                 num_entries=df_length,
             )
-            _save_plot(output_path + "/gpu_mem.svg")
+            _save_plot(output_path + "/mem.svg")
             plt.close()
 
-        # if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
-        #     plot_bytes(
-        #         time_list=timestamps,
-        #         first_df=byte_sent,
-        #         first_df_name="Bytes sent",
-        #         second_df=byte_recv,
-        #         second_df_name="Bytes received",
-        #         num_entries=df_length,
-        #         title=f"Network usage of {machine_name}",
-        #     )
-        #     plt.savefig(output_path + "/network_usage.svg", format='svg')
-        #     plt.close()
-        #
-        # if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
-        #     plot_bytes(
-        #         time_list=timestamps,
-        #         first_df=byte_write_disk,
-        #         first_df_name="Bytes written",
-        #         second_df=byte_read_disk,
-        #         second_df_name="Bytes read",
-        #         num_entries=df_length,
-        #         title=f"Disk usage of {machine_name}",
-        #     )
-        #     plt.savefig(output_path + "/disk_usage.svg", format='svg')
-        #     plt.close()
+            if gpu_enabled:
+                build_plot(
+                    f"GPU usage of {machine_name}",
+                    timestamps,
+                    gpu_usage,
+                    name_dataset="GPU",
+                    measure="GPU %",
+                    num_entries=df_length,
+                )
+                _save_plot(output_path + "/gpu.svg")
+                plt.close()
+
+                build_plot(
+                    f"GPU Memory usage of {machine_name}",
+                    timestamps,
+                    gpu_mem,
+                    name_dataset="GPU Memory",
+                    measure="GPU Memory (MB)",
+                    num_entries=df_length,
+                )
+                _save_plot(output_path + "/gpu_mem.svg")
+                plt.close()
+
+            # if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
+            #     plot_bytes(
+            #         time_list=timestamps,
+            #         first_df=byte_sent,
+            #         first_df_name="Bytes sent",
+            #         second_df=byte_recv,
+            #         second_df_name="Bytes received",
+            #         num_entries=df_length,
+            #         title=f"Network usage of {machine_name}",
+            #     )
+            #     plt.savefig(output_path + "/network_usage.svg", format='svg')
+            #     plt.close()
+            #
+            # if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
+            #     plot_bytes(
+            #         time_list=timestamps,
+            #         first_df=byte_write_disk,
+            #         first_df_name="Bytes written",
+            #         second_df=byte_read_disk,
+            #         second_df_name="Bytes read",
+            #         num_entries=df_length,
+            #         title=f"Disk usage of {machine_name}",
+            #     )
+            #     plt.savefig(output_path + "/disk_usage.svg", format='svg')
+            #     plt.close()
 
     if num_files > 1:
         plt.style.use("ggplot")
         resampled_dfs = {}
+
+        # Convert all timestamps to Datetime objects first
+        for df in df_list:
+            if not pd.api.types.is_datetime64_any_dtype(df["TIME"]):
+                df["TIME"] = pd.to_datetime(df["TIME"])
+
+        # Find the absolute earliest start and latest end times
+        min_time = min(df["TIME"].min() for df in df_list)
+        max_time = max(df["TIME"].max() for df in df_list)
+
+        total_seconds = (max_time - min_time).total_seconds()
+
+        time_step = max(1, int(total_seconds // TARGET_POINTS))
+        freq = f"{time_step}s"
+
+        # We use the original df_list here (before it was sliced) so the .mean()
+        # calculation has all the raw data to figure out accurate bucket averages.
         for df, label in zip(df_list, name_list):
-            df["TIME"] = pd.to_datetime(df["TIME"])
-            df.set_index("TIME", inplace=True)
-            resampled_df = df.resample("s").mean().interpolate(method="linear")
+            df_working = df.copy()
+            df_working.set_index("TIME", inplace=True)
+
+            # Resample using our new Time-Based frequency
+            resampled_df = df_working.resample(freq).mean().interpolate(method="linear")
             resampled_dfs[label] = resampled_df
 
         build_plot_nodes(

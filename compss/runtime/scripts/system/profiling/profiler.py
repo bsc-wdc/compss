@@ -84,6 +84,7 @@ def get_gpu_usage(architecture: str):
             result = subprocess.check_output(cmd, shell=True, text=True).strip().splitlines()[0].split(",")
             return [x.strip() for x in result]
 
+        # This is AI generated and not tested yet because we don't have the following hardware available for testing. Please review and adjust as needed when testing on AMD, Intel, or Apple Silicon GPUs.
         elif architecture == "amd":
             # rocm-smi is the standard tool for AMD GPUs
             # --csv flag forces output to: device,GPU use (%),GPU memory use (%)

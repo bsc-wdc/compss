@@ -25,7 +25,7 @@ def main():
 
     # Call the validation service with the settings
     issues = False
-    for prof_str in ['ro-crate-1.1', 'workflow-ro-crate-1.0', 'process-run-crate-0.5', 'workflow-run-crate-0.5']:  # , 'provenance-run-crate-0.5']:
+    for prof_str in ['ro-crate-1.1', 'workflow-ro-crate-1.0', 'process-run-crate-0.5', 'workflow-run-crate-0.5', 'provenance-run-crate-0.5']:
         settings = configure_validation(crate, prof_str)
         result = services.validate(settings)
 

@@ -19,9 +19,9 @@ package es.bsc.compss.agent.comm.messages.types;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -32,7 +32,7 @@ import java.io.ObjectOutput;
  */
 public class CommParam extends NIOParam implements ApplicationParameter, Externalizable {
 
-    private Direction direction = Direction.IN;
+    private AccessMode accessMode = AccessMode.READ;
 
     private RemoteDataInformation remoteData = null;
 
@@ -49,17 +49,17 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
      *
      * @param dataMgmtId id associated to the value
      * @param type type of the parameter value
-     * @param direction direction of the parameter
+     * @param accessMode direction of the parameter
      * @param stream stream to redirect to the parameter
      * @param prefix prefix to add to the parameter
      * @param name name of the parameter
      * @param originalName original name of the parameter value
      */
-    public CommParam(String dataMgmtId, DataType type, Direction direction, StdIOStream stream, String prefix,
+    public CommParam(String dataMgmtId, DataType type, AccessMode accessMode, StdIOStream stream, String prefix,
         String name, String contentType, double weight, boolean keepRename, String originalName) {
         super(dataMgmtId, type, stream, prefix, name, contentType, weight, keepRename, false, false, null, null,
             originalName);
-        this.direction = direction;
+        this.accessMode = accessMode;
     }
 
     /**
@@ -69,17 +69,17 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
      */
     public CommParam(CommParam p) {
         super(p);
-        this.direction = p.direction;
+        this.accessMode = p.accessMode;
         this.remoteData = p.remoteData;
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = direction;
+    public void setAccessMode(AccessMode accessMode) {
+        this.accessMode = accessMode;
     }
 
     @Override
-    public Direction getDirection() {
-        return direction;
+    public AccessMode getAccessMode() {
+        return accessMode;
     }
 
     @Override
@@ -109,14 +109,14 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
         super.writeExternal(oo);
-        oo.writeInt(direction.ordinal());
+        oo.writeByte(accessMode.toByte());
         oo.writeObject(remoteData);
     }
 
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
         super.readExternal(oi);
-        direction = Direction.values()[oi.readInt()];
+        accessMode = AccessMode.fromByte(oi.readByte());
         remoteData = (RemoteDataInformation) oi.readObject();
     }
 

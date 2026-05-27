@@ -44,9 +44,7 @@ import es.bsc.compss.executor.types.ParameterResult;
 import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
 import es.bsc.compss.executor.types.ParameterResult.SingleResult;
 import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -117,7 +115,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case EXECUTE_NESTED_TASK: {
                                 ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
                                 ExecuteNestedTaskPipeCommand.EntryPoint entryPoint = entpc.getEntryPoint();
-                                OnFailure onFailure = OnFailure.valueOf(entpc.getOnFailure());
+                                byte onFailure = entpc.getOnFailure();
                                 int timeOut = entpc.getTimeOut();
                                 boolean isPrioritary = entpc.getPrioritary();
                                 boolean hasTarget = entpc.hasTarget();
@@ -153,7 +151,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case OPEN_FILE: {
                                 OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
-                                Direction dir = ofpc.getDirection();
+                                byte dir = ofpc.getAccessMode();
                                 if (this.wf == null) {
                                     this.pipes.sendCommand(new SynchPipeCommand(file));
                                 } else {
@@ -165,7 +163,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case CLOSE_FILE: {
                                 CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
-                                Direction dir = ofpc.getDirection();
+                                byte dir = ofpc.getAccessMode();
                                 if (this.wf != null) {
                                     this.wf.closeFile(file, dir);
                                 }

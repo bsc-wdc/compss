@@ -18,6 +18,7 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
@@ -255,8 +256,8 @@ public class CommutativeGroupTask extends AbstractTask {
         }
 
         @Override
-        public Direction getDirection() {
-            return firstAccess.getDirection();
+        public AccessMode getAccessMode() {
+            return firstAccess.getAccessMode();
         }
 
         @Override

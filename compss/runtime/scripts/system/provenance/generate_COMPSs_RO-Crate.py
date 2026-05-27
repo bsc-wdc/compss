@@ -253,7 +253,7 @@ def main():
                     added_formal_params[(task.tid, param.name)] = param.formal_instance
 
                 # Do not print output for failed tasks
-                if not task.status == "FINISHED" and param.direction == "OUT":
+                if not task.status == "FINISHED" and param.accessMode == "OUT":
                     continue
 
                 # Add the actual parameter value (File/PropertyValue)

@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.types.fake;
 
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;

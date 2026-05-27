@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.ErrorManager;
 import java.util.List;
@@ -35,7 +35,7 @@ public class TaskDescription<P extends Parameter> {
     private final List<P> parameters;
     private final boolean hasTarget;
     private final int numReturns;
-    private final OnFailure onFailure;
+    private final FailurePolicy failurePolicy;
     private final long timeOut;
 
     private final String parallelismSource;
@@ -60,7 +60,7 @@ public class TaskDescription<P extends Parameter> {
      */
     public TaskDescription(String signature, CoreElement coreElement, String parallelismSource, boolean isPrioritary,
         int numNodes, boolean isReduction, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        int numReturns, OnFailure onFailure, long timeOut, List<P> parameters) {
+        int numReturns, FailurePolicy onFailure, long timeOut, List<P> parameters) {
 
         this.signature = signature;
         this.coreElement = coreElement;
@@ -76,7 +76,7 @@ public class TaskDescription<P extends Parameter> {
         this.parameters = parameters;
         this.numReturns = numReturns;
 
-        this.onFailure = onFailure;
+        this.failurePolicy = onFailure;
         this.timeOut = timeOut;
 
         if (this.numNodes < Constants.SINGLE_NODE) {
@@ -204,8 +204,8 @@ public class TaskDescription<P extends Parameter> {
      *
      * @return The on-failure mechanisms.
      */
-    public OnFailure getOnFailure() {
-        return this.onFailure;
+    public FailurePolicy getOnFailure() {
+        return this.failurePolicy;
     }
 
     /**

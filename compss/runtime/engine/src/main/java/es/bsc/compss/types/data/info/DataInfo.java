@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
@@ -25,7 +26,6 @@ import es.bsc.compss.types.data.accessid.EngineDataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.params.DataOwner;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -161,24 +161,22 @@ public abstract class DataInfo<T extends DataParams> {
         // Version management
         EngineDataAccessId daId = null;
         if (this.currentVersion != null) {
-            switch (mode) {
-                case C:
-                case R:
+            if (mode.isRead() && mode.isWrite()) {
+                DataVersion readInstance = this.versions.get(this.currentVersionId - 1);
+                if (readInstance != null) {
+                    daId = new RWAccessId(this, readInstance, this.currentVersion);
+                } else {
+                    LOGGER.warn("Previous instance for data" + this.dataId + " is null.");
+                }
+            } else {
+                if (mode.isRead()) {
                     daId = new RAccessId(this, this.currentVersion);
-                    break;
-                case W:
+                }
+                if (mode.isWrite()) {
                     daId = new WAccessId(this, this.currentVersion);
-                    break;
-                case CV:
-                case RW:
-                    DataVersion readInstance = this.versions.get(this.currentVersionId - 1);
-                    if (readInstance != null) {
-                        daId = new RWAccessId(this, readInstance, this.currentVersion);
-                    } else {
-                        LOGGER.warn("Previous instance for data" + this.dataId + " is null.");
-                    }
-                    break;
+                }
             }
+
         } else {
             LOGGER.warn("Current instance for data" + this.dataId + " is null.");
         }
@@ -288,32 +286,24 @@ public abstract class DataInfo<T extends DataParams> {
      * @param keepModified {@literal true}, if the value resulting from the access should be kept
      */
     public void cancelledAccess(EngineDataAccessId dAccId, boolean keepModified) {
-        Integer rVersionId;
-        Integer wVersionId;
-        switch (dAccId.getDirection()) {
-            case C:
-            case R:
-                rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
+        AccessMode m = dAccId.getAccessMode();
+        boolean isRead = m.isRead();
+        boolean isWrite = m.isWrite();
+        if (isRead && isWrite && keepModified) {
+            int rVersionId = ((ReadingDataAccessId) dAccId).getReadDataInstance().getVersionId();
+            int wVersionId = ((WritingDataAccessId) dAccId).getWrittenDataInstance().getVersionId();
+            this.versionHasBeenRead(rVersionId);
+            this.tryRemoveVersion(rVersionId);
+            this.versionHasBeenWritten(wVersionId);
+        } else {
+            if (isRead) {
+                int rVersionId = ((ReadingDataAccessId) dAccId).getReadDataInstance().getVersionId();
                 this.canceledReadVersion(rVersionId);
-                break;
-            case CV:
-            case RW:
-                rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                if (keepModified) {
-                    this.versionHasBeenRead(rVersionId);
-                    // read data version can be removed
-                    this.tryRemoveVersion(rVersionId);
-                    this.versionHasBeenWritten(wVersionId);
-                } else {
-                    this.canceledReadVersion(rVersionId);
-                    this.canceledWriteVersion(wVersionId);
-                }
-                break;
-            default:// case W:
-                wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
+            }
+            if (isWrite) {
+                int wVersionId = ((WritingDataAccessId) dAccId).getWrittenDataInstance().getVersionId();
                 this.canceledWriteVersion(wVersionId);
-                break;
+            }
         }
     }
 

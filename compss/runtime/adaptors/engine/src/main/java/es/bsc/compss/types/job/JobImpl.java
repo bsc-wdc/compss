@@ -19,10 +19,10 @@ package es.bsc.compss.types.job;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
@@ -185,7 +185,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      *
      * @return The on-failure mechanisms.
      */
-    public OnFailure getOnFailure() {
+    public FailurePolicy getOnFailure() {
         return this.taskParams.getOnFailure();
     }
 
@@ -338,7 +338,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                         JobImpl.this.removeTmpData();
                         JobImpl.this.transferErrors++;
                         if (JobImpl.this.transferErrors < TRANSFER_CHANCES
-                            && JobImpl.this.taskParams.getOnFailure() == OnFailure.RETRY) {
+                            && JobImpl.this.taskParams.getOnFailure() == FailurePolicy.RETRY) {
                             JOB_LOGGER.debug("Resubmitting input files for task " + JobImpl.this.taskId + " to host "
                                 + JobImpl.this.worker.getName() + " since " + numErrors + " transfers failed.");
                             JobImpl.this.stageIn();
@@ -603,7 +603,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             JOB_LOGGER.error(errMsg);
             ErrorManager.warn(errMsg);
             ++this.executionErrors;
-            if (this.taskParams.getOnFailure() == OnFailure.RETRY
+            if (this.taskParams.getOnFailure() == FailurePolicy.RETRY
                 && this.transferErrors + this.executionErrors < SUBMISSION_CHANCES) {
                 final String resubmitMsg = "Resubmitting job to the same worker.";
                 JOB_LOGGER.error(resubmitMsg);

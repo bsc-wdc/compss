@@ -21,7 +21,7 @@ import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.master.NIOWorkerNode;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;

@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.components.monitor.impl.EdgeType;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Task;
@@ -24,7 +25,6 @@ import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.params.DataOwner;
 import es.bsc.compss.types.data.params.StreamData;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -63,20 +63,19 @@ public class StreamInfo extends DataInfo<StreamData> {
     @Override
     public EngineDataAccessId willAccess(AccessMode mode) {
         EngineDataAccessId daId;
-        switch (mode) {
-            case R:
+        boolean isRead = mode.isRead();
+        boolean isWrite = mode.isWrite();
+        if (isRead && isWrite) {
+            ErrorManager.warn("Unsupported type of access (" + mode + ") for stream " + this.dataId);
+            daId = null;
+        } else {
+            if (isRead) {
                 this.currentVersionWillBeRead();
-
                 daId = new RAccessId(this, this.currentVersion);
-                break;
-
-            case W:
+            } else {
                 this.currentVersionWillBeWritten();
                 daId = new WAccessId(this, this.currentVersion);
-                break;
-            default: // cases C, CV, RW
-                ErrorManager.warn("Unsupported type of access (" + mode + ") for stream " + this.dataId);
-                daId = null;
+            }
         }
         return daId;
     }

@@ -26,10 +26,6 @@ import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.util.Tracer;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.Descriptor;
 import storage.CallbackEvent;
 import storage.CallbackHandler;
 import storage.StorageException;
@@ -59,24 +55,21 @@ public class StorageInvoker extends JavaInvoker {
 
         // WARN: ExternalExecution is only supported for methods with PSCO as target object
         int n = method.getParameterAnnotations().length;
-        ClassPool pool = ClassPool.getDefault();
-        Class<?>[] cParams = method.getParameterTypes();
-        CtClass[] ctParams = new CtClass[n];
-        for (int i = 0; i < n; i++) {
-            try {
-                ctParams[i] = pool.getCtClass(((Class<?>) cParams[i]).getName());
-            } catch (NotFoundException e) {
-                throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + cParams[i].getName(), e);
-            }
-        }
 
-        String descriptor;
-        try {
-            descriptor =
-                method.getName() + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
-        } catch (NotFoundException e) {
-            throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
+        // Build method descriptor using StringBuilder
+        StringBuilder descriptorBuilder = new StringBuilder();
+        descriptorBuilder.append(method.getName());
+
+        descriptorBuilder.append("(");
+        for (Class<?> param : method.getParameterTypes()) {
+            descriptorBuilder.append(getTypeDescriptor(param));
         }
+        descriptorBuilder.append(")");
+
+        Class<?> returnType = method.getReturnType();
+        descriptorBuilder.append(getTypeDescriptor(returnType));
+
+        String descriptor = descriptorBuilder.toString();
 
         // Check and retrieve target PSCO Id
         String id = null;
@@ -151,6 +144,37 @@ public class StorageInvoker extends JavaInvoker {
             } else {
                 np.setValueClass(null);
             }
+        }
+    }
+
+    /**
+     * Converts a Java class to its method descriptor format. Same syntax as JNI.
+     *
+     * @param type the Java class to convert
+     * @return the descriptor string for the type
+     */
+    private String getTypeDescriptor(Class<?> type) {
+        if (type == void.class) {
+            return "V";
+        } else if (type == boolean.class) {
+            return "Z";
+        } else if (type == byte.class) {
+            return "B";
+        } else if (type == char.class) {
+            return "C";
+        } else if (type == short.class) {
+            return "S";
+        } else if (type == int.class) {
+            return "I";
+        } else if (type == long.class) {
+            return "J";
+        } else if (type == float.class) {
+            return "F";
+        } else if (type == double.class) {
+            return "D";
+        } else {
+            // Object type
+            return "L" + type.getName().replace(".", "/") + ";";
         }
     }
 

@@ -36,9 +36,9 @@ import es.bsc.compss.scheduler.types.allocatableactions.BusyWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
@@ -700,7 +700,7 @@ public class TaskScheduler {
             // Action has completely failed
             failed = true;
             removeFromReady(action);
-            if (action.getOnFailure() != OnFailure.IGNORE) {
+            if (action.getOnFailure() != FailurePolicy.IGNORE) {
                 // Free all the dependent tasks
                 for (AllocatableAction failedAction : action.failed()) {
                     try {
@@ -727,7 +727,7 @@ public class TaskScheduler {
 
         workerLoadUpdate(resource);
 
-        if (action.getOnFailure() == OnFailure.RETRY && !failed) {
+        if (action.getOnFailure() == FailurePolicy.RETRY && !failed) {
             if (DEBUG) {
                 LOGGER.debug("Adding action " + action + " to data Free actions.");
             }
@@ -735,7 +735,7 @@ public class TaskScheduler {
 
         }
 
-        if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS && !action.isCancelled()) {
+        if (action.getOnFailure() != FailurePolicy.CANCEL_SUCCESSORS && !action.isCancelled()) {
             handleDependencyFreeActionsAndBlock(dataFreeActions, resourceFree, resource);
         }
     }

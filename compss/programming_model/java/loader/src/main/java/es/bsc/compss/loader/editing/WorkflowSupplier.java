@@ -14,18 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.editing;
 
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.api.Workflow;
-import es.bsc.compss.loader.JavaWorkflow;
+import es.bsc.compss.api.WorkflowListener;
+import es.bsc.compss.loader.workflow.JavaWorkflow;
 
 public class WorkflowSupplier extends ThreadLocal<JavaWorkflow> {
 
     private final COMPSsRuntime runtime;
     private final String ceiName;
-    private final ApplicationRunner runner;
+    private final WorkflowListener listener;
 
 
     /**
@@ -33,18 +32,18 @@ public class WorkflowSupplier extends ThreadLocal<JavaWorkflow> {
      * 
      * @param rt runtime that will support the workflows
      * @param ceiName Name of the interface used to parallelize the workflow
-     * @param runner element running the workflow
+     * @param listener element monitoring changes in the workflow
      */
-    public WorkflowSupplier(COMPSsRuntime rt, String ceiName, ApplicationRunner runner) {
+    public WorkflowSupplier(COMPSsRuntime rt, String ceiName, WorkflowListener listener) {
         this.runtime = rt;
         this.ceiName = ceiName;
-        this.runner = runner;
+        this.listener = listener;
     }
 
     @Override
     protected JavaWorkflow initialValue() {
         try {
-            return new JavaWorkflow(runtime, ceiName, runner);
+            return new JavaWorkflow(runtime, ceiName, listener);
         } catch (Exception e) {
             System.err.println("Cannot register workflow");
             e.printStackTrace(System.err);

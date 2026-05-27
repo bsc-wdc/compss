@@ -17,9 +17,6 @@
 package es.bsc.compss.executor.external.commands;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -43,7 +40,7 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
 
 
     protected EntryPoint entryPoint;
-    protected String onFailure;
+    protected byte onFailure;
     protected int timeout;
     protected boolean prioritary;
     protected String signature;
@@ -75,7 +72,7 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
         return this.entryPoint;
     }
 
-    public String getOnFailure() {
+    public byte getOnFailure() {
         return this.onFailure;
     }
 
@@ -150,9 +147,9 @@ public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
         for (int i = 0; i < jsonParams.length(); i++) {
             JSONObject param = jsonParams.getJSONObject(i);
             methodParams[offset++] = param.getString("Value");
-            methodParams[offset++] = DataType.values()[param.getInt("DataType")];
-            methodParams[offset++] = Direction.values()[param.getInt("Direction")];
-            methodParams[offset++] = StdIOStream.values()[param.getInt("IOStream")];
+            methodParams[offset++] = ((Number) param.getInt("DataType")).byteValue();
+            methodParams[offset++] = ((Number) param.getInt("Direction")).byteValue();
+            methodParams[offset++] = ((Number) param.getInt("IOStream")).byteValue();
             methodParams[offset++] = param.getString("Prefix");
             methodParams[offset++] = param.getString("Name");
             methodParams[offset++] = param.getString("ContType");

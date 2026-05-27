@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.gat.worker;
 
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.task.FailurePolicy;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
@@ -362,8 +362,8 @@ public class GATInvocation implements Invocation {
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return OnFailure.IGNORE;
+    public FailurePolicy getOnFailure() {
+        return FailurePolicy.IGNORE;
     }
 
     @Override

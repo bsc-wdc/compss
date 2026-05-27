@@ -17,9 +17,9 @@
 package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.api.ParameterMonitor;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import java.io.Serializable;
 
 public interface Parameter extends Serializable {
@@ -59,7 +59,7 @@ public interface Parameter extends Serializable {
      *
      * @return The parameter direction.
      */
-    public Direction getDirection();
+    public AccessMode getAccessMode();
 
     /**
      * Returns the parameter IO stream mode.

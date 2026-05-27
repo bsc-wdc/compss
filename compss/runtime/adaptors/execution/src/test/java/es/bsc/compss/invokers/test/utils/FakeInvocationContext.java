@@ -19,7 +19,7 @@ package es.bsc.compss.invokers.test.utils;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;

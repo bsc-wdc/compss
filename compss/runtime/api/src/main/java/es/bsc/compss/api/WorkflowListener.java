@@ -19,39 +19,39 @@ package es.bsc.compss.api;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
-public interface ApplicationRunner {
+public interface WorkflowListener {
 
     /**
-     * Notifies the application runner that the application's main code cannot make no progress until further notice.
+     * Invoked when workflow's main code reaches a synchronization point and can make no progress until further notice.
      */
-    public void stalledApplication();
+    public void onSynchronization();
 
     /**
-     * Notifies the application runner that the execution of the application's main is ready to continue.
+     * Invoked when the synchronization blocking the workflow has been resolved and its execution can resume.
      * 
      * @param sem element to notify when the runner is ready
      */
-    public void readyToContinue(Semaphore sem);
+    public void onReadyToContinue(Semaphore sem);
 
     /**
-     * Actions to be performed by monitor on task cancellation.
+     * Invoked when the workflow has raised a COMPSsException and has been canceled.
      *
-     * @param e Exception raised during the task execution
+     * @param e Exception raised during the workflow execution
      */
     public void onException(COMPSsException e);
 
     /**
-     * Actions to be performed by monitor on task cancellation.
+     * Invoked when the workflow has been canceled.
      */
     public void onCancellation();
 
     /**
-     * Actions to be performed by monitor on task completion.
+     * Invoked when the workflow completes its execution.
      */
     public void onCompletion();
 
     /**
-     * Actions to be performed by monitor on task failure.
+     * Invoked when the workflow fails.
      */
     public void onFailure();
 

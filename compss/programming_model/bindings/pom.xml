@@ -61,49 +61,13 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <artifactId>exec-maven-plugin</artifactId>
-                <groupId>org.codehaus.mojo</groupId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>Datatype Generation</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>python3</executable>
-                            <arguments>
-                                <argument>${basedir}/generate_datatype_enums.py</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>Datatype Deletion</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>rm</executable>
-                            <arguments>
-                                <argument>-f</argument>
-                                <argument>${basedir}/bindings-common/src/data_type.h</argument>
-                                <argument>${basedir}/python/src/pycompss/api/data_type.py</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 
 
 
     <!-- SUB-MODULES -->
     <modules>
+        <module>bindings-common</module>
         <module>python</module>
     </modules>
 </project>

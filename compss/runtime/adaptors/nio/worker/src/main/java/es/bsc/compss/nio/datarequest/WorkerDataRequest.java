@@ -19,7 +19,7 @@ package es.bsc.compss.nio.datarequest;
 import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.requests.DataRequest;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 
 public class WorkerDataRequest extends DataRequest {
 

@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader;
+package es.bsc.compss.loader.editing;
 
+import es.bsc.compss.loader.LoaderConstants;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;

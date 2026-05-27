@@ -20,10 +20,10 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
@@ -416,9 +416,9 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
                             || type == DataType.BINDING_OBJECT_T) {
                             if (dAccId.isWrite()) {
                                 // For the worker to know it must write the object to disk
-                                sb.append("\t Direction: " + "W").append("\n");
+                                sb.append("\t Access mode: " + "W").append("\n");
                             } else {
-                                sb.append("\t Direction: " + "R").append("\n");
+                                sb.append("\t Access mode: " + "R").append("\n");
                             }
                         }
                         break;

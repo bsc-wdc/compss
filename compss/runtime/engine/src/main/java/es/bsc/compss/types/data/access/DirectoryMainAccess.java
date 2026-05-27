@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.types.data.access;
 
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -38,7 +38,7 @@ public class DirectoryMainAccess extends FileMainAccess<DirectoryData, Directory
      * @param loc File location.
      * @return new DirectoryMainAccess instance
      */
-    public static final DirectoryMainAccess constructDMA(Application app, Direction dir, DataLocation loc) {
+    public static final DirectoryMainAccess constructDMA(Application app, AccessMode dir, DataLocation loc) {
         DirectoryAccessParams dap = DirectoryAccessParams.constructDAP(app, dir, loc);
         return new DirectoryMainAccess(app, dap);
     }

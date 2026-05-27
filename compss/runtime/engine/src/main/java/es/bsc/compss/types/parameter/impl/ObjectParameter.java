@@ -17,11 +17,11 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.params.ObjectData;
 import storage.StubItf;
@@ -39,7 +39,7 @@ public class ObjectParameter<V extends Object, A extends ObjectAccessParams<V, D
      * Creates a new Object Parameter.
      *
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -51,18 +51,18 @@ public class ObjectParameter<V extends Object, A extends ObjectAccessParams<V, D
      * @return new ObjectParameter instance
      */
     public static <V extends Object> ObjectParameter<V, ObjectAccessParams<V, ObjectData>, ObjectData> newOP(
-        Application app, Direction direction, StdIOStream stream, String prefix, String name, String contentType,
+        Application app, AccessMode accessMode, StdIOStream stream, String prefix, String name, String contentType,
         double weight, V value, int hashCode, ParameterMonitor monitor) {
         ObjectAccessParams<V, ObjectData> oap;
-        oap = ObjectAccessParams.constructObjectAP(app, direction, value, hashCode);
+        oap = ObjectAccessParams.constructObjectAP(app, accessMode, value, hashCode);
 
-        return new ObjectParameter(oap, DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight,
+        return new ObjectParameter(oap, DataType.OBJECT_T, accessMode, stream, prefix, name, contentType, weight,
             monitor);
     }
 
-    protected ObjectParameter(A objectAP, DataType type, Direction direction, StdIOStream stream, String prefix,
+    protected ObjectParameter(A objectAP, DataType type, AccessMode accessMode, StdIOStream stream, String prefix,
         String name, String contentType, double weight, ParameterMonitor monitor) {
-        super(objectAP, type, direction, stream, prefix, name, contentType, weight, false, monitor);
+        super(objectAP, type, accessMode, stream, prefix, name, contentType, weight, false, monitor);
 
     }
 
@@ -82,7 +82,7 @@ public class ObjectParameter<V extends Object, A extends ObjectAccessParams<V, D
     @Override
     public String toString() {
         return "ObjectParameter with hash code " + this.getCode() + ", type " + getType() + ", direction "
-            + getDirection();
+            + getAccessMode();
     }
 
     @Override

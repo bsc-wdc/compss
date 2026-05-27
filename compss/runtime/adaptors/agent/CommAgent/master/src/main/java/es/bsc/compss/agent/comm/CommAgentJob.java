@@ -31,11 +31,11 @@ import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.master.NIOJob;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
@@ -157,7 +157,7 @@ class CommAgentJob extends NIOJob {
 
     private static CommParam buildCommParamFromBasicParameter(BasicTypeParameter param) {
         DataType type = param.getType();
-        Direction dir = param.getDirection();
+        AccessMode mode = param.getAccessMode();
         StdIOStream stdIOStream = param.getStream();
         String prefix = param.getPrefix();
         String name = param.getName();
@@ -165,7 +165,7 @@ class CommAgentJob extends NIOJob {
         double weight = param.getWeight();
         boolean keepRename = param.isKeepRename();
         CommParam commParam =
-            new CommParam(null, type, dir, stdIOStream, prefix, name, pyType, weight, keepRename, null);
+            new CommParam(null, type, mode, stdIOStream, prefix, name, pyType, weight, keepRename, null);
         commParam.setValue(((BasicTypeParameter) param).getValue());
         return commParam;
     }
@@ -203,14 +203,14 @@ class CommAgentJob extends NIOJob {
         }
 
         DataType type = dPar.getType();
-        Direction dir = dPar.getDirection();
+        AccessMode mode = dPar.getAccessMode();
         StdIOStream stdIOStream = dPar.getStream();
         String prefix = dPar.getPrefix();
         String name = dPar.getName();
         String pyType = dPar.getContentType();
         double weight = dPar.getWeight();
         boolean keepRename = dPar.isKeepRename();
-        CommParam commParam = new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, pyType, weight,
+        CommParam commParam = new CommParam(dataMgmtId, type, mode, stdIOStream, prefix, name, pyType, weight,
             keepRename, dPar.getOriginalName());
         commParam.setValue(dPar.getOriginalName());
         CommData sourceData = (CommData) dPar.getDataSource();

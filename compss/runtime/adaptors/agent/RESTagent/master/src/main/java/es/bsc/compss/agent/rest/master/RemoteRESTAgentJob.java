@@ -24,9 +24,9 @@ import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
@@ -152,7 +152,7 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
                         System.out.println("SUBMISSION[" + this.getJobId() + "]         Access " + dAccId);
                         value = dPar.getDataTarget();
                         System.out.println("SUBMISSION[" + this.getJobId() + "]         ID " + value);
-                        sar.addPersistedParameter(param.getDirection(), (String) value);
+                        sar.addPersistedParameter(param.getAccessMode(), (String) value);
                     } else {
                         throw new UnsupportedOperationException(
                             "Non-persisted DependencyParameters are not supported yet");
@@ -162,7 +162,7 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
                     BasicTypeParameter btParB = (BasicTypeParameter) param;
                     Object value = btParB.getValue();
                     System.out.println("SUBMISSION[" + this.getJobId() + "]         Value " + value);
-                    sar.addParameter(value, btParB.getDirection(), btParB.getType(), btParB.getStream(),
+                    sar.addParameter(value, btParB.getAccessMode(), btParB.getType(), btParB.getStream(),
                         btParB.getPrefix(), btParB.getName(), btParB.getContentType(), btParB.getWeight(),
                         btParB.isKeepRename());
 

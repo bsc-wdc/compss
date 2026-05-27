@@ -19,9 +19,9 @@ package es.bsc.compss.invokers;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
-import es.bsc.compss.loader.JavaWorkflow;
 import es.bsc.compss.loader.LoaderConstants;
-import es.bsc.compss.loader.total.ITAppModifier;
+import es.bsc.compss.loader.editing.ITAppModifier;
+import es.bsc.compss.loader.workflow.JavaWorkflow;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -143,7 +143,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             case OBJECT_T:
             case PSCO_T:
                 Object o = p.getValue();
-                wf.registerData(p.getType(), o, p.getSourceDataId());
+                wf.registerData(p.getType().toByte(), o, p.getSourceDataId());
                 break;
             default:
                 super.handleSimpleInputValue(wf, p);

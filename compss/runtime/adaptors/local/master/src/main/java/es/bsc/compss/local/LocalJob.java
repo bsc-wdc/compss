@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.local;
 
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
@@ -232,8 +232,8 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 
     @Override
     public boolean producesEmptyResultsOnFailure() {
-        OnFailure failPolicy = this.getOnFailure();
-        return failPolicy != OnFailure.RETRY && failPolicy != OnFailure.FAIL;
+        FailurePolicy failPolicy = this.getOnFailure();
+        return failPolicy != FailurePolicy.RETRY && failPolicy != FailurePolicy.FAIL;
     }
 
     @Override

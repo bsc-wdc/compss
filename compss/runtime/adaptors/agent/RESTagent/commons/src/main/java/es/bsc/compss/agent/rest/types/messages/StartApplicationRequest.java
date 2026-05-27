@@ -22,9 +22,9 @@ import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ArrayParameter;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ElementParameter;
 import es.bsc.compss.agent.rest.types.OrchestratorNotification;
 import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.implementations.ExecType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
@@ -135,54 +135,54 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public void addParameter(String name, String prefix, boolean value) {
-        addParameter(value, Direction.IN, DataType.BOOLEAN_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.BOOLEAN_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, byte value) {
-        addParameter(value, Direction.IN, DataType.BYTE_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.BYTE_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, char value) {
-        addParameter(value, Direction.IN, DataType.CHAR_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.CHAR_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, short value) {
-        addParameter(value, Direction.IN, DataType.SHORT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.SHORT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, int value) {
-        addParameter(value, Direction.IN, DataType.INT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.INT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, long value) {
-        addParameter(value, Direction.IN, DataType.LONG_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.LONG_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, float value) {
-        addParameter(value, Direction.IN, DataType.FLOAT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.FLOAT_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String name, String prefix, double value) {
-        addParameter(value, Direction.IN, DataType.DOUBLE_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.DOUBLE_T, StdIOStream.UNSPECIFIED, prefix, name, "", 1.0, false);
     }
 
     public void addParameter(String value) {
-        addParameter(value, Direction.IN, DataType.STRING_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
+        addParameter(value, AccessMode.READ, DataType.STRING_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
     }
 
     public void addParameter(Object value) {
-        addParameter(Direction.IN, value);
+        addParameter(AccessMode.READ, value);
     }
 
-    public void addParameter(Direction direction, Object value) {
-        addParameter(value, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
+    public void addParameter(AccessMode accessMode, Object value) {
+        addParameter(value, AccessMode.READ, DataType.OBJECT_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
     }
 
     /**
      * Constructs a new Parameter for the request and appends it to the current existing ones.
      * 
      * @param value value of the parameter
-     * @param direction directionality of the parameter
+     * @param accessMode directionality of the parameter
      * @param type type of the data of the parameter
      * @param stream stream redirection
      * @param prefix prefix to add to the parameter on execution
@@ -192,11 +192,12 @@ public class StartApplicationRequest implements Serializable {
      * @param keepRename should keep rename on execution
      * @return constructed parameter
      */
-    public ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
+    public ApplicationParameterImpl addParameter(Object value, AccessMode accessMode, DataType type, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename) {
 
         ApplicationParameterImpl p;
-        p = new ApplicationParameterImpl(value, direction, type, stream, prefix, name, contentType, weight, keepRename);
+        p = new ApplicationParameterImpl(value, accessMode, type, stream, prefix, name, contentType, weight,
+            keepRename);
         p.setParamId(this.params.length);
 
         ApplicationParameterImpl[] oldParams = this.params;
@@ -209,18 +210,18 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public void addPersistedParameter(String id) {
-        addPersistedParameter(Direction.IN, id);
+        addPersistedParameter(AccessMode.READ, id);
     }
 
     /**
      * Add a Persistent parameter.
      *
-     * @param direction parameter direction
+     * @param accessMode parameter direction
      * @param id parameter identifier
      */
-    public void addPersistedParameter(Direction direction, String id) {
+    public void addPersistedParameter(AccessMode accessMode, String id) {
         ApplicationParameterImpl p =
-            addParameter(id, direction, DataType.PSCO_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
+            addParameter(id, accessMode, DataType.PSCO_T, StdIOStream.UNSPECIFIED, "", "", "", 1.0, false);
         ((ElementParameter) p.getValue()).setClassName("storage.StubItf");
     }
 

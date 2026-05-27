@@ -18,7 +18,6 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.DataVersion;
@@ -45,11 +44,11 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
      * @return new ObjectAccessParams instance
      */
     public static final <T extends Object> ObjectAccessParams<T, ObjectData> constructObjectAP(Application app,
-        Direction dir, T value, int code) {
+        es.bsc.compss.semantics.data.access.AccessMode dir, T value, int code) {
         return new ObjectAccessParams(app, new ObjectData(code), dir, value);
     }
 
-    protected ObjectAccessParams(Application app, D data, Direction dir, T value) {
+    protected ObjectAccessParams(Application app, D data, es.bsc.compss.semantics.data.access.AccessMode dir, T value) {
         super(app, data, dir);
         this.value = value;
     }
@@ -85,7 +84,7 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
 
     @Override
     protected void registerValueForVersion(DataVersion dv) {
-        if (mode != AccessMode.W) {
+        if (mode.isRead()) {
             EngineDataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerValue(renaming, value);

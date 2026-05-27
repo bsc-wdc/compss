@@ -33,7 +33,7 @@ import es.bsc.compss.invokers.types.RParams;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
 import es.bsc.compss.log.LoggerManager;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;

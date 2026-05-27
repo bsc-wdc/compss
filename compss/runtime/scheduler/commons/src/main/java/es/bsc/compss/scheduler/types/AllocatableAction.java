@@ -25,7 +25,7 @@ import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -1234,7 +1234,7 @@ public abstract class AllocatableAction {
      *
      * @return The failing behavior.
      */
-    public abstract OnFailure getOnFailure();
+    public abstract FailurePolicy getOnFailure();
 
     /**
      * Returns the scheduling score of the action for a given worker.

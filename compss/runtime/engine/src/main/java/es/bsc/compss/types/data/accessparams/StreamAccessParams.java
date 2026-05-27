@@ -17,8 +17,8 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.params.StreamData;
@@ -44,11 +44,11 @@ public class StreamAccessParams<T extends Object, D extends StreamData> extends 
      * @return new StreamAccessParams instance
      */
     public static final <T extends Object> StreamAccessParams<T, StreamData> constructStreamAP(Application app,
-        Direction dir, T value, int code) {
+        es.bsc.compss.semantics.data.access.AccessMode dir, T value, int code) {
         return new StreamAccessParams(app, new StreamData(code), dir, value);
     }
 
-    protected StreamAccessParams(Application app, D data, Direction dir, T value) {
+    protected StreamAccessParams(Application app, D data, es.bsc.compss.semantics.data.access.AccessMode dir, T value) {
         super(app, data, dir, value);
     }
 
@@ -62,7 +62,7 @@ public class StreamAccessParams<T extends Object, D extends StreamData> extends 
     @Override
     protected void externalRegister() {
         // Inform the StreamClient
-        if (mode != AccessMode.R) {
+        if (mode != AccessMode.READ) {
             DistroStream<?> ds = (DistroStream<?>) this.getValue();
             String streamId = ds.getId();
             if (DEBUG) {

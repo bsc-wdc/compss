@@ -17,22 +17,22 @@
 package es.bsc.compss.api.impl;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.FailurePolicy;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
@@ -83,7 +83,7 @@ public class WorkflowImpl extends Application implements Workflow {
         "ERROR: Incorrect number of parameters for external objects";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
     private static final String ERROR_DIR_NAME = "ERROR: Not a valid directory";
-    private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
+    private static final String WARN_INVALID_PARAM_ACCESS_MODE = "WARNING: Invalid parameter access mode: ";
     private static final String WARN_NULL_PARAM = "WARNING: Optional parameter: ";
 
     // Number of fields per parameter
@@ -115,7 +115,7 @@ public class WorkflowImpl extends Application implements Workflow {
         WorkflowImpl.AP = ap;
     }
 
-    public WorkflowImpl(String parallelismSource, ApplicationRunner runner) {
+    public WorkflowImpl(String parallelismSource, WorkflowListener runner) {
         super(parallelismSource, runner);
     }
 
@@ -155,7 +155,7 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public int executeTask(String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
+    public int executeTask(String signature, byte onFailure, int timeOut, boolean isPrioritary, int numNodes,
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
         Integer numReturns, int parameterCount, Object... parameters) {
         // Tracing flag for task creation
@@ -176,22 +176,22 @@ public class WorkflowImpl extends Application implements Workflow {
             if (nReturns == null) {
                 nReturns = hasReturn(pars) ? 1 : 0;
             }
-
+            FailurePolicy onFail = FailurePolicy.fromByte(onFailure);
             int task = AP.newTask(this, monitor, signature, isPrioritary, numNodes, isReduce, reduceChunkSize,
-                isReplicated, isDistributed, hasTarget, nReturns, pars, onFailure, timeOut);
+                isReplicated, isDistributed, hasTarget, nReturns, pars, onFail, timeOut);
 
             if (DP_ENABLED) {
                 StringBuilder taskInfoBuilder = new StringBuilder("task " + task + " " + signature + " ");
                 for (Parameter p : pars) {
                     taskInfoBuilder.append(p.getName()).append(".").append(p.getType().name()).append(".")
-                        .append(p.getDirection().toString()).append("::");
+                        .append(p.getAccessMode().toString()).append("::");
                 }
                 String taskInfo = taskInfoBuilder.substring(0, taskInfoBuilder.length() - 2);
                 DP_LOGGER.info(taskInfo);
             }
 
             for (Parameter p : pars) {
-                if (p.getDirection().equals(Direction.IN_DELETE)) {
+                if (p.getAccessMode().isDelete()) {
                     deleteParameter(p);
                 }
             }
@@ -207,12 +207,9 @@ public class WorkflowImpl extends Application implements Workflow {
         for (int paramIdx = 0; paramIdx < parameterCount; ++paramIdx) {
             int paramOffset = NUM_FIELDS_PER_PARAM * paramIdx;
             Object content = parameters[paramOffset];
-            DataType type = (DataType) parameters[paramOffset + 1];
-            if (type == null) {
-                type = DataType.NULL_T;
-            }
-            Direction direction = (Direction) parameters[paramOffset + 2];
-            StdIOStream stream = (StdIOStream) parameters[paramOffset + 3];
+            DataType type = DataType.fromByte((byte) parameters[paramOffset + 1]);
+            AccessMode accessMode = AccessMode.fromByte((byte) parameters[paramOffset + 2]);
+            StdIOStream stream = StdIOStream.fromByte((byte) parameters[paramOffset + 3]);
             String prefix = (String) parameters[paramOffset + 4];
             String name = (String) parameters[paramOffset + 5];
             String contentType = (String) parameters[paramOffset + 6];
@@ -226,15 +223,15 @@ public class WorkflowImpl extends Application implements Workflow {
                 LOGGER.debug(" Parameter " + paramIdx + " has type " + type.name());
             }
             ParameterMonitor monitor = monitors.getParameterMonitor(paramIdx);
-            addParameter(monitor, content, type, direction, stream, prefix, name, contentType, weight, keepRename, pars,
-                0, null);
+            addParameter(monitor, content, type, accessMode, stream, prefix, name, contentType, weight, keepRename,
+                pars, 0, null);
         }
 
         // Return parameters
         return pars;
     }
 
-    private int addParameter(ParameterMonitor monitor, Object content, DataType type, Direction direction,
+    private int addParameter(ParameterMonitor monitor, Object content, DataType type, AccessMode accessMode,
         StdIOStream stream, String prefix, String name, String pyType, double weight, boolean keepRename,
         ArrayList<Parameter> pars, int offset, String[] vals) {
         String nameToPrint = name;
@@ -248,8 +245,8 @@ public class WorkflowImpl extends Application implements Workflow {
                     File dirFile = new File(dirName);
                     String originalName = dirFile.getName();
                     DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
-                    pars.add(DirectoryParameter.newDP(this, direction, stream, prefix, name, pyType, weight, keepRename,
-                        location, originalName, monitor));
+                    pars.add(DirectoryParameter.newDP(this, accessMode, stream, prefix, name, pyType, weight,
+                        keepRename, location, originalName, monitor));
                     if (DP_ENABLED) {
                         // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
@@ -261,7 +258,7 @@ public class WorkflowImpl extends Application implements Workflow {
                             pathToPrint = fixedFinalPath;
                         }
                         DP_LOGGER
-                            .info("file " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
+                            .info("file " + nameToPrint + " " + type + " " + pathToPrint + " " + accessMode.toString());
                     }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
@@ -274,7 +271,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     File f = new File(fileName);
                     String originalName = f.getName();
                     DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
-                    pars.add(FileParameter.newFP(this, direction, stream, prefix, name, pyType, weight, keepRename,
+                    pars.add(FileParameter.newFP(this, accessMode, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName, monitor));
                     if (DP_ENABLED) {
                         // Log access to file in the dataprovenance.log.
@@ -289,7 +286,7 @@ public class WorkflowImpl extends Application implements Workflow {
                                 pathToPrint = fixedFinalPath;
                             }
                             DP_LOGGER.info(
-                                "file " + nameToPrint + " " + type + " " + pathToPrint + " " + direction.toString());
+                                "file " + nameToPrint + " " + type + " " + pathToPrint + " " + accessMode.toString());
                         }
                     }
                 } catch (Exception e) {
@@ -300,19 +297,19 @@ public class WorkflowImpl extends Application implements Workflow {
             case OBJECT_T:
             case PSCO_T:
                 int code = System.identityHashCode(content);
-                pars.add(ObjectParameter.newOP(this, direction, stream, prefix, name, pyType, weight, content, code,
+                pars.add(ObjectParameter.newOP(this, accessMode, stream, prefix, name, pyType, weight, content, code,
                     monitor));
                 break;
             case STREAM_T:
                 int streamCode = System.identityHashCode(content);
-                pars.add(StreamParameter.newSP(this, direction, stream, prefix, name, content, streamCode, monitor));
+                pars.add(StreamParameter.newSP(this, accessMode, stream, prefix, name, content, streamCode, monitor));
                 break;
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = content.toString();
                     DataLocation location = createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
                     String originalName = new File(fileName).getName();
-                    pars.add(ExternalStreamParameter.newESP(this, direction, stream, prefix, name, location,
+                    pars.add(ExternalStreamParameter.newESP(this, accessMode, stream, prefix, name, location,
                         originalName, monitor));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
@@ -322,7 +319,7 @@ public class WorkflowImpl extends Application implements Workflow {
             case EXTERNAL_PSCO_T:
                 String id = content.toString();
                 int pscoCode = externalObjectHashcode(id);
-                pars.add(ExternalPSCOParameter.newEPOP(this, direction, stream, prefix, name, weight, id, pscoCode,
+                pars.add(ExternalPSCOParameter.newEPOP(this, accessMode, stream, prefix, name, weight, id, pscoCode,
                     monitor));
                 break;
             case BINDING_OBJECT_T:
@@ -334,7 +331,7 @@ public class WorkflowImpl extends Application implements Workflow {
                         int extObjectType = Integer.parseInt(fields[1]);
                         int extObjectElements = Integer.parseInt(fields[2]);
                         int boCode = externalObjectHashcode(extObjectId);
-                        pars.add(BindingObjectParameter.newBOP(this, direction, stream, prefix, name, pyType, weight,
+                        pars.add(BindingObjectParameter.newBOP(this, accessMode, stream, prefix, name, pyType, weight,
                             new BindingObject(extObjectId, extObjectType, extObjectElements), boCode, monitor));
                     } else {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -368,7 +365,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     // Second element is the content
                     contentIds.add(values[offset + ret + 1]);
                     final DataType elemType = contentTypes.get(j);
-                    final Direction elemDir = direction;
+                    final AccessMode elemDir = accessMode;
                     // Third element is the Python type of the object
                     final String elemPyType = values[offset + ret + 2];
                     // Prepare stuff for recursive call
@@ -387,7 +384,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     ret += addParameter(submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
                         elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectiveParameter cp = CollectiveParameter.newCP(this, type, collectionId, direction, stream, prefix,
+                CollectiveParameter cp = CollectiveParameter.newCP(this, type, collectionId, accessMode, stream, prefix,
                     name, colPyType, weight, keepRename, monitor, collectionParameters);
                 pars.add(cp);
                 return ret;
@@ -421,7 +418,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     if (!elemNameKey.startsWith("@key")) {
                         elemNameKey = "@key" + elemNameKey;
                     }
-                    Direction elemDirKey = direction;
+                    AccessMode elemDirKey = accessMode;
 
                     // Key element recursive call
                     Object elemContentKey = contentKey;
@@ -455,7 +452,7 @@ public class WorkflowImpl extends Application implements Workflow {
                     if (!elemNameValue.startsWith("@value")) {
                         elemNameValue = "@value" + elemNameKey;
                     }
-                    Direction elemDirValue = direction;
+                    AccessMode elemDirValue = accessMode;
 
                     // Value element recursive call
                     Object elemContentValue = contentValue;
@@ -471,7 +468,7 @@ public class WorkflowImpl extends Application implements Workflow {
                         offset + pointer, values1) + extraValue;
                     pointer += vDret;
                 }
-                CollectiveParameter dcp = CollectiveParameter.newCP(this, type, dictCollectionId, direction, stream,
+                CollectiveParameter dcp = CollectiveParameter.newCP(this, type, dictCollectionId, accessMode, stream,
                     prefix, name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2
@@ -482,17 +479,17 @@ public class WorkflowImpl extends Application implements Workflow {
                 return pointer;
             case NULL_T:
                 LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
-                pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, "null",
+                pars.add(BasicTypeParameter.newBP(type, AccessMode.READ, stream, prefix, name, content, weight, "null",
                     monitor));
                 break;
             default:
                 // Basic types (including String)
                 // The only possible direction is IN, warn otherwise
-                if (direction != Direction.IN && direction != Direction.IN_DELETE) {
-                    LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
+                if (!accessMode.isRead()) {
+                    LOGGER.warn(WARN_INVALID_PARAM_ACCESS_MODE + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, pyType,
+                pars.add(BasicTypeParameter.newBP(type, AccessMode.READ, stream, prefix, name, content, weight, pyType,
                     monitor));
                 break;
         }
@@ -504,8 +501,8 @@ public class WorkflowImpl extends Application implements Workflow {
         if (!parameters.isEmpty()) {
             Parameter lastParam = parameters.get(parameters.size() - 1);
             DataType type = lastParam.getType();
-            hasReturn = (lastParam.getDirection() == Direction.OUT && (type == DataType.OBJECT_T
-                || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
+            hasReturn = (lastParam.getAccessMode().isWrite() && (type == DataType.OBJECT_T || type == DataType.PSCO_T
+                || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;
@@ -600,10 +597,10 @@ public class WorkflowImpl extends Application implements Workflow {
      */
 
     @Override
-    public void registerData(DataType type, Object stub, String data) {
+    public void registerData(byte type, Object stub, String data) {
         APITracer.traced(APIEvent.REGISTER_DATA, (Runnable) () -> {
             DataParams dp = null;
-            switch (type) {
+            switch (DataType.fromByte(type)) {
                 case DIRECTORY_T:
                 case FILE_T:
                     try {
@@ -744,8 +741,9 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public String openFile(String fileName, Direction mode) {
+    public String openFile(String fileName, byte m) {
         return APITracer.traced(APIEvent.OPEN_FILE, () -> {
+            AccessMode mode = AccessMode.fromByte(m);
             return openFileSystemData(fileName, mode, false);
         });
     }
@@ -765,13 +763,13 @@ public class WorkflowImpl extends Application implements Workflow {
             }
 
             LOGGER.debug("Getting file " + fileName);
-            String renamedPath = openFileSystemData(fileName, Direction.INOUT, false);
+            String renamedPath = openFileSystemData(fileName, AccessMode.UPDATE, false);
             // If renamePth is the same as original, file has not accessed. Nothing to do.
             if (!renamedPath.equals(sourceLocation.getPath())) {
                 try {
                     String intermediateTmpPath = renamedPath + ".tmp";
                     FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
-                    closeFileData(fileName, Direction.INOUT);
+                    closeFileData(fileName, AccessMode.UPDATE);
                     AP.deleteData(this, new FileData(sourceLocation), true, false);
                     FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
                 } catch (IOException ioe) {
@@ -782,8 +780,9 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public void closeFile(String fileName, Direction mode) {
+    public void closeFile(String fileName, byte m) {
         APITracer.traced(APIEvent.CLOSE_FILE, (Runnable) () -> {
+            AccessMode mode = AccessMode.fromByte(m);
             closeFileData(fileName, mode);
         });
     }
@@ -826,12 +825,12 @@ public class WorkflowImpl extends Application implements Workflow {
             }
 
             LOGGER.debug("Getting directory " + dirName);
-            String renamedPath = openFileSystemData(dirName, Direction.IN, true);
+            String renamedPath = openFileSystemData(dirName, AccessMode.READ, true);
             try {
                 LOGGER.debug("Getting directory renamed path: " + renamedPath);
                 String intermediateTmpPath = renamedPath + ".tmp";
                 FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
-                closeFileData(dirName, Direction.IN);
+                closeFileData(dirName, AccessMode.READ);
 
                 AP.deleteData(this, new FileData(sourceLocation), true, false);
                 FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
@@ -853,7 +852,7 @@ public class WorkflowImpl extends Application implements Workflow {
                 LOGGER.debug("Getting object with hash code " + hashCode);
             }
 
-            ObjectMainAccess<T, ?, ?> oap = ObjectMainAccess.constructOMA(this, Direction.INOUT, obj, hashCode);
+            ObjectMainAccess<T, ?, ?> oap = ObjectMainAccess.constructOMA(this, AccessMode.UPDATE, obj, hashCode);
             T oUpdated;
             try {
                 oUpdated = AP.mainAccess(oap);
@@ -877,7 +876,7 @@ public class WorkflowImpl extends Application implements Workflow {
             BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
             String boId = boLoc.getId();
             int hashCode = externalObjectHashcode(boId);
-            BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(this, Direction.INOUT, bo, hashCode);
+            BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(this, AccessMode.UPDATE, bo, hashCode);
 
             // Otherwise we request it from a task
             String finalPath;
@@ -939,8 +938,8 @@ public class WorkflowImpl extends Application implements Workflow {
      * ************************************************************************************************************
      */
 
-    private String openFileSystemData(String fileName, Direction direction, boolean isDir) {
-        LOGGER.info("Opening " + fileName + " in direction " + direction);
+    private String openFileSystemData(String fileName, AccessMode accessMode, boolean isDir) {
+        LOGGER.info("Opening " + fileName + " in direction " + accessMode);
         // Parse arguments to internal structures
         DataLocation loc;
         try {
@@ -957,9 +956,9 @@ public class WorkflowImpl extends Application implements Workflow {
             case SHARED:
                 FileMainAccess<?, ?> access;
                 if (isDir) {
-                    access = DirectoryMainAccess.constructDMA(this, direction, loc);
+                    access = DirectoryMainAccess.constructDMA(this, accessMode, loc);
                 } else {
-                    access = FileMainAccess.constructFMA(this, direction, loc);
+                    access = FileMainAccess.constructFMA(this, accessMode, loc);
                 }
                 finalPath = mainAccessToFile(access, fileName);
                 if (LOGGER.isDebugEnabled()) {
@@ -970,7 +969,7 @@ public class WorkflowImpl extends Application implements Workflow {
                 String id = ((PersistentLocation) loc).getId();
                 int ePscoHashcode = externalObjectHashcode(id);
                 ExternalPSCObjectMainAccess eoap;
-                eoap = ExternalPSCObjectMainAccess.constructEPOMA(this, Direction.INOUT, id, ePscoHashcode);
+                eoap = ExternalPSCObjectMainAccess.constructEPOMA(this, AccessMode.UPDATE, id, ePscoHashcode);
 
                 // Otherwise we request it from a task
                 try {
@@ -992,8 +991,8 @@ public class WorkflowImpl extends Application implements Workflow {
         return finalPath;
     }
 
-    private void closeFileData(String fileName, Direction direction) {
-        LOGGER.info("Closing " + fileName + " in direction " + direction);
+    private void closeFileData(String fileName, AccessMode accessMode) {
+        LOGGER.info("Closing " + fileName + " in direction " + accessMode);
 
         // Parse arguments to internal structures
         DataLocation loc;
@@ -1008,7 +1007,7 @@ public class WorkflowImpl extends Application implements Workflow {
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                FileMainAccess fma = FileMainAccess.constructFMA(this, direction, loc);
+                FileMainAccess fma = FileMainAccess.constructFMA(this, accessMode, loc);
                 AP.finishDataAccess(fma, null);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());

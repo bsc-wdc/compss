@@ -19,7 +19,7 @@ package es.bsc.compss.agent.comm.messages.types;
 
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.job.JobHistory;
 import java.io.IOException;
@@ -56,16 +56,16 @@ public class CommTask extends NIOTask {
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
-     * @param onFailure Behavior in case of execution failure.
+     * @param failurePolicy Behavior in case of execution failure.
      * @param timeOut Task Deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
     public CommTask(boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
         String parallelismSource, boolean hasTarget, int numReturns, LinkedList<NIOParam> params,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
-        OnFailure onFailure, long timeOut, CommResource orchestrator) {
+        FailurePolicy failurePolicy, long timeOut, CommResource orchestrator) {
         super(workerDebug, impl, parallelismSource, hasTarget, numReturns, params, slaveWorkersNodeNames, taskId, jobId,
-            hist, transferGroupId, onFailure, timeOut, null, null);
+            hist, transferGroupId, failurePolicy, timeOut, null, null);
 
         this.orchestrator = orchestrator;
         this.ceSignature = ceSignature;
@@ -86,17 +86,17 @@ public class CommTask extends NIOTask {
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
-     * @param onFailure Behavior in case of execution failure.
+     * @param failurePolicy Behavior in case of execution failure.
      * @param timeOut Task deadline
      * @param orchestrator CommResource that will be notified at the end of the task
      */
     public CommTask(boolean workerDebug, String ceSignature, AbstractMethodImplementation impl,
         String parallelismSource, LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
-        OnFailure onFailure, long timeOut, CommResource orchestrator) {
+        FailurePolicy failurePolicy, long timeOut, CommResource orchestrator) {
 
         super(workerDebug, impl, parallelismSource, arguments, target, results, slaveWorkersNodeNames, taskId, jobId,
-            hist, transferGroupId, onFailure, timeOut);
+            hist, transferGroupId, failurePolicy, timeOut);
 
         this.orchestrator = orchestrator;
         this.ceSignature = ceSignature;

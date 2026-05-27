@@ -17,7 +17,6 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.DirectoryData;
 
@@ -38,12 +37,14 @@ public class DirectoryAccessParams extends FileAccessParams<DirectoryData> {
      * @param loc File location.
      * @return new FileAccessParams instance
      */
-    public static final DirectoryAccessParams constructDAP(Application app, Direction dir, DataLocation loc) {
+    public static final DirectoryAccessParams constructDAP(Application app,
+        es.bsc.compss.semantics.data.access.AccessMode dir, DataLocation loc) {
         DirectoryData dd = new DirectoryData(loc);
         return new DirectoryAccessParams(app, dd, dir);
     }
 
-    private DirectoryAccessParams(Application app, DirectoryData data, Direction dir) {
+    private DirectoryAccessParams(Application app, DirectoryData data,
+        es.bsc.compss.semantics.data.access.AccessMode dir) {
         super(app, data, dir);
     }
 

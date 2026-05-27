@@ -16,15 +16,16 @@
  */
 package es.bsc.compss.loader;
 
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.loader.total.ArrayAccessWatcher;
-import es.bsc.compss.loader.total.CEIParser;
-import es.bsc.compss.loader.total.COMPSsGroupLoader;
-import es.bsc.compss.loader.total.StreamRegistry;
-import es.bsc.compss.loader.total.WorkflowSupplier;
+import es.bsc.compss.api.WorkflowListener;
+import es.bsc.compss.loader.editing.ArrayAccessWatcher;
+import es.bsc.compss.loader.editing.WorkflowSupplier;
+import es.bsc.compss.loader.workflow.CEIParser;
+import es.bsc.compss.loader.workflow.COMPSsGroupLoader;
+import es.bsc.compss.loader.workflow.JavaWorkflow;
+import es.bsc.compss.loader.workflow.data.StreamRegistry;
 import es.bsc.compss.types.annotations.Orchestration;
 import java.io.File;
 import java.util.Arrays;
@@ -43,13 +44,16 @@ public class LoaderConstants {
     public static final String PACKAGE_COMPSS_ROOT = "es.bsc.compss";
     public static final String PACKAGE_COMPSS_API = PACKAGE_COMPSS_ROOT + ".api";
     public static final String PACKAGE_COMPSS_API_IMPL = PACKAGE_COMPSS_API + ".impl";
+
     public static final String PACKAGE_COMPSS_LOADER = PACKAGE_COMPSS_ROOT + ".loader";
-    public static final String PACKAGE_COMPSS_LOADER_TOTAL = PACKAGE_COMPSS_LOADER + ".total";
+    public static final String PACKAGE_COMPSS_LOADER_EDIT = PACKAGE_COMPSS_LOADER + ".editing";
+    public static final String PACKAGE_COMPSS_LOADER_WF = PACKAGE_COMPSS_LOADER + ".workflow";
+    public static final String PACKAGE_COMPSS_LOADER_WF_DATA = PACKAGE_COMPSS_LOADER_WF + ".data";
 
     // Classes
     public static final String CLASS_COMPSS_API = COMPSs.class.getCanonicalName();
     public static final String CLASS_COMPSSRUNTIME_API = COMPSsRuntime.class.getCanonicalName();
-    public static final String CLASS_APP_RUNNER = ApplicationRunner.class.getCanonicalName();
+    public static final String CLASS_APP_RUNNER = WorkflowListener.class.getCanonicalName();
     public static final String CLASS_STREAM_REGISTRY = StreamRegistry.class.getCanonicalName();
     public static final String CLASS_ARRAY_ACCESS_WATCHER = ArrayAccessWatcher.class.getCanonicalName();
     public static final String CLASS_COMPSS_API_IMPL = "es.bsc.compss.api.impl.COMPSsRuntimeImpl";

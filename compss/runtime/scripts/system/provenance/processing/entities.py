@@ -283,7 +283,7 @@ def get_main_entities(
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
     3 First lines expected format: compss_version_number\n main_entity\n output_profile_file\n
-    Next lines are for "accessed files" and "direction"
+    Next lines are for "accessed files" and "accessMode"
     mainEntity can be directly obtained for Python, or defined by the user in the YAML (sources_main_file)
 
     :param wf_info: YAML dict to extract info form the application, as specified by the user

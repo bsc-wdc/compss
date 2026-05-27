@@ -19,7 +19,7 @@ package es.bsc.compss.scheduler.types.schedulinginformation;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.LocationScoreMonitor;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
-import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -59,7 +59,7 @@ public class DataLocality extends SchedulingInformation {
     }
 
     private void registerLocalityScoreMonitoring(Parameter p) {
-        if (p.isPotentialDependency() && p.getDirection() != Direction.OUT) {
+        if (p.isPotentialDependency() && p.getAccessMode() != AccessMode.GENERATE) {
             if (p.isCollective()) {
                 CollectiveParameter cp = (CollectiveParameter) p;
                 registerLocalityScoreMonitoring(cp.getElements());

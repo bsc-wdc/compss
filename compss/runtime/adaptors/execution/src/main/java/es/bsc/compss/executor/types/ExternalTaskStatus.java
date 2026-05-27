@@ -19,7 +19,7 @@ package es.bsc.compss.executor.types;
 import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
 import es.bsc.compss.executor.types.ParameterResult.SingleResult;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.LinkedList;

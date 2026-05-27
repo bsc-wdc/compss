@@ -17,7 +17,7 @@
 package es.bsc.compss.nio.requests;
 
 import es.bsc.compss.nio.NIOData;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.operation.DataOperation;
 
 public class MasterDataRequest extends DataRequest {

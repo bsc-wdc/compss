@@ -14,14 +14,12 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader;
+package es.bsc.compss.loader.workflow;
 
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.api.WorkflowListener;
+import es.bsc.compss.loader.workflow.data.ObjectRegistry;
 import es.bsc.compss.worker.COMPSsException;
 
 public class JavaWorkflow implements Workflow {
@@ -30,7 +28,7 @@ public class JavaWorkflow implements Workflow {
     private final ObjectRegistry oReg;
 
 
-    public JavaWorkflow(COMPSsRuntime runtime, String parallelismSource, ApplicationRunner runner) {
+    public JavaWorkflow(COMPSsRuntime runtime, String parallelismSource, WorkflowListener runner) {
         this.workflow = runtime.registerWorkflow(parallelismSource, runner);
         this.oReg = new ObjectRegistry(this.workflow);
     }
@@ -46,7 +44,7 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
-    public void registerData(DataType type, Object stub, String dataId) {
+    public void registerData(byte type, Object stub, String dataId) {
         this.workflow.registerData(type, stub, dataId);
     }
 
@@ -75,12 +73,12 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
-    public String openFile(String fileName, Direction mode) {
+    public String openFile(String fileName, byte mode) {
         return this.workflow.openFile(fileName, mode);
     }
 
     @Override
-    public void closeFile(String fileName, Direction mode) {
+    public void closeFile(String fileName, byte mode) {
         this.workflow.closeFile(fileName, mode);
     }
 
@@ -150,7 +148,7 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
-    public int executeTask(String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
+    public int executeTask(String signature, byte onFailure, int timeOut, boolean isPrioritary, int numNodes,
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
         Integer numReturns, int parameterCount, Object... parameters) {
         return workflow.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce, reduceChunkSize,

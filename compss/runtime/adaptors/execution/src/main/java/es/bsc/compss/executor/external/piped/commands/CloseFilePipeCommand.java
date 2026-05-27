@@ -17,7 +17,6 @@
 package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.CloseFileExternalCommand;
-import es.bsc.compss.types.annotations.parameter.Direction;
 
 public class CloseFilePipeCommand extends CloseFileExternalCommand implements PipeCommand {
 
@@ -29,7 +28,7 @@ public class CloseFilePipeCommand extends CloseFileExternalCommand implements Pi
     public CloseFilePipeCommand(String[] args) {
         super();
         this.file = args[1];
-        this.direction = Direction.values()[Integer.parseInt(args[2])];
+        this.accessMode = Byte.parseByte(args[2]);
     }
 
     @Override

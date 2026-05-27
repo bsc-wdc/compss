@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.data.accessid;
 
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.info.DataInfo;
@@ -52,8 +53,8 @@ public class WAccessId extends EngineDataAccessId implements WritingDataAccessId
     }
 
     @Override
-    public Direction getDirection() {
-        return Direction.W;
+    public AccessMode getAccessMode() {
+        return AccessMode.GENERATE;
     }
 
     @Override

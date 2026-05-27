@@ -129,9 +129,61 @@
   #----------------------------------------------------------------------------------
   # Check dot file
   final_graph_got=${target_log_folder}/monitor/complete_graph.dot
-  allowed_diff=6
-  graph_status=$(diff -U 0 "${final_graph_expected}" "${final_graph_got}" | grep -v ^@ | grep -v "#" | tail -n+3 | wc -l)
-  if [ "${graph_status}" -gt "${allowed_diff}" ]; then
+  
+  if [[ ! -f "${final_graph_got}" ]]; then
+      echo "Error: Dot file '${final_graph_got}' not found"
+      exit 1
+  fi
+
+  if [[ -z "$runtime_log" || ! -f "$runtime_log" ]]; then
+      if [[ -n "$runtime_log" ]]; then
+          echo "Warning: runtime.log file '$runtime_log' not found"
+      fi
+      exit 1
+  fi
+
+  temp_file=$(mktemp)
+  cp "${final_graph_got}" "$temp_file"
+
+  # Remove fillcolor and fontcolor attributes, and remove the legend subgraph
+  sed -i -E '/subgraph legend/,/^  }/d; s/fillcolor="[^"]*"\s*//g; s/fontcolor="[^"]*"\s*//g' "$temp_file"
+
+  # Build associative array mapping Core ID -> core_name
+  declare -A core_id_to_name
+      
+  # Recreate the mapping in the current shell context
+  while IFS= read -r line; do
+      core_id=$(echo "$line" | awk '{print $1}')
+      core_name=$(echo "$line" | awk '{print $2}')
+      core_id_to_name[$core_id]="$core_name"
+  done < <(grep "Registering New CoreElement" "$runtime_log" | \
+      sed -E 's/.*"method_name":"([^"]+)".*/\1/' | \
+      sort -u | \
+      nl)
+      
+
+  # Find all unique clusterCommutative patterns in the file
+  grep -oE "clusterCommutative[0-9]+_[0-9]+" "$temp_file" | sort -u | while read pattern; do
+      # Extract the cluster number and core_id
+      cluster_num=$(echo "$pattern" | sed -E 's/clusterCommutative([0-9]+)_.*/\1/')
+      core_id=$(echo "$pattern" | sed -E 's/.*_([0-9]+)$/\1/')
+      
+      # Get the core name from the mapping
+      core_name="${core_id_to_name[$core_id]}"
+      
+      # Replace the pattern in the file
+      if [[ -n "$core_name" ]]; then
+          new_pattern="clusterCommutative${cluster_num}_${core_name}"
+          sed -i "s/${pattern}/${new_pattern}/g" "$temp_file"
+          sed -i "s/CGT${cluster_num}_${core_id}/CGT${cluster_num}_${core_name}/g" "$temp_file"
+      fi
+  done
+
+  # Move the modified file to the output location
+  mv "$temp_file" "${final_graph_got}"
+
+  graph_status=$(diff -U 0 "${final_graph_got}" "${final_graph_expected}" | wc -l)
+  if [ "${graph_status}" -gt "0" ]; then
     echo "[ERROR] Obtained graph file is not as expected" | tee -a "${output_file}"
     exit 1
   fi

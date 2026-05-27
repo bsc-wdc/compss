@@ -32,9 +32,9 @@ import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -194,7 +194,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         ImplementationDescription<?, ?> implDef = impl.getDescription();
         ced.addImplementation(implDef);
 
-        OnFailure onFail = request.getOnFailure();
+        FailurePolicy onFail = request.getOnFailure();
         try {
             long appId = Agent.runTask(ced, ceiClass, arguments, target, results, monitor, onFail);
             LOGGER.info("External job " + request.getJobId() + " is app " + appId);

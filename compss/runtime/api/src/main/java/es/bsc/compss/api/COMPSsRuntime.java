@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 
 public interface COMPSsRuntime {
 
@@ -66,14 +66,24 @@ public interface COMPSsRuntime {
      * @param runner Element executing the application's main code.
      * @return workflow being executed
      */
-    Workflow registerWorkflow(String parallelismSource, ApplicationRunner runner);
+    Workflow registerWorkflow(String parallelismSource, WorkflowListener runner);
 
     /**
      * Registers a new CoreElement in the Runtime.
      *
-     * @param ced Definition of the core element to add.
+     * @param ceSignature The coreElement signature.
+     * @param implSignature The implementation signature.
+     * @param constraints The implementation constraints.
+     * @param implType The implementation type.
+     * @param implIO Whether an implementation is IO.
+     * @param prolog commands to execute before task execution
+     * @param epilog commands to execute after task execution
+     * @param container available if @container is used with other decorators.
+     * @param implTypeArgs The implementation specific arguments.
      */
-    void registerCoreElement(CoreElementDefinition ced);
+    void registerCoreElement(String ceSignature, String implSignature, MethodResourceDescription constraints,
+        String implType, boolean implLocal, boolean implIO, String[] prolog, String[] epilog, String[] container,
+        String... implTypeArgs);
 
     /**
      * Registers a new CoreElement in the Runtime.

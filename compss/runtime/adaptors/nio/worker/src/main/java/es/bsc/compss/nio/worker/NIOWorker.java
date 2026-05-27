@@ -65,7 +65,7 @@ import es.bsc.compss.nio.listeners.TaskFetchOperationsListener;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.types.tracing.NIOWorkerEvent;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;

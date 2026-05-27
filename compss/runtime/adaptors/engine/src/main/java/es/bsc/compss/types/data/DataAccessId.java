@@ -16,21 +16,10 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.semantics.data.access.AccessMode;
 import java.io.Serializable;
 
 public interface DataAccessId extends Serializable {
-
-    /**
-     * Data Direction.
-     */
-    public static enum Direction {
-        R, // Read
-        RW, // Read and write
-        W, // Write
-        C, // Concurrent
-        CV // Commutative
-    }
-
 
     /**
      * Returns the data Id.
@@ -44,7 +33,7 @@ public interface DataAccessId extends Serializable {
      * 
      * @return The data direction.
      */
-    Direction getDirection();
+    AccessMode getAccessMode();
 
     /**
      * Returns whether the data access will read or not.

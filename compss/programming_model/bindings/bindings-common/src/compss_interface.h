@@ -45,7 +45,7 @@ struct CompssWorkflow {
     void (*executeTask)(
         struct CompssWorkflow* self,
         char* signature,
-        char* onFailure,
+        int onFailure,
         int timeout,
         int priority,
         int numNodes,
@@ -62,7 +62,7 @@ struct CompssWorkflow {
     void (*executeHttpTask)(
         struct CompssWorkflow* self,
         char* signature,
-        char* onFailure,
+        int onFailure,
         int timeout,
         int priority,
         int numNodes,

@@ -35,11 +35,11 @@ import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.FailurePolicy;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -355,8 +355,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         boolean hasResult = request.isHasResult();
         if (hasResult) {
             results = new ApplicationParameterImpl[1];
-            results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED,
-                "", "result", "", 1.0, false);
+            results[0] = new ApplicationParameterImpl(null, AccessMode.GENERATE, DataType.OBJECT_T,
+                StdIOStream.UNSPECIFIED, "", "result", "", 1.0, false);
         } else {
             results = new ApplicationParameterImpl[0];
         }
@@ -396,7 +396,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             implSignature, false, requirements, request.getProlog(), request.getEpilog(), null, typeArgs);
         ced.addImplementation(implDef);
         try {
-            appId = Agent.runTask(ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);
+            appId = Agent.runTask(ced, ceiClass, arguments, target, results, monitor, FailurePolicy.FAIL);
             LOGGER.info("External job - is app " + appId);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runTask : ", e);

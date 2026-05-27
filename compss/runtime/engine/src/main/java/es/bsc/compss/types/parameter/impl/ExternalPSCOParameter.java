@@ -17,10 +17,10 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.params.ExternalPSCObjectData;
 
@@ -40,7 +40,7 @@ public class ExternalPSCOParameter
      * Creates a new ExternalPSCO Parameter.
      *
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -50,17 +50,17 @@ public class ExternalPSCOParameter
      * @param monitor object to notify to changes on the parameter
      * @return new ExternalPSCO Parameter.
      */
-    public static final ExternalPSCOParameter newEPOP(Application app, Direction direction, StdIOStream stream,
+    public static final ExternalPSCOParameter newEPOP(Application app, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
         ExternalPSCObjectAccessParams epoap;
-        epoap = ExternalPSCObjectAccessParams.constructEPOAP(app, direction, pscoId, hashCode);
-        return new ExternalPSCOParameter(epoap, direction, stream, prefix, name, weight, pscoId, hashCode, monitor);
+        epoap = ExternalPSCObjectAccessParams.constructEPOAP(app, accessMode, pscoId, hashCode);
+        return new ExternalPSCOParameter(epoap, accessMode, stream, prefix, name, weight, pscoId, hashCode, monitor);
     }
 
-    private ExternalPSCOParameter(ExternalPSCObjectAccessParams epoap, Direction direction, StdIOStream stream,
+    private ExternalPSCOParameter(ExternalPSCObjectAccessParams epoap, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
 
-        super(epoap, DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, monitor);
+        super(epoap, DataType.EXTERNAL_PSCO_T, accessMode, stream, prefix, name, "null", weight, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
     }

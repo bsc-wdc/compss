@@ -20,8 +20,8 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ExternalPropertyException;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -46,12 +46,13 @@ public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation,
      * @param location Location of the external stream.
      * @return new ExternalStreamAccessParams instance
      */
-    public static final ExternalStreamAccessParams constructESAP(Application app, Direction dir,
-        DataLocation location) {
+    public static final ExternalStreamAccessParams constructESAP(Application app,
+        es.bsc.compss.semantics.data.access.AccessMode dir, DataLocation location) {
         return new ExternalStreamAccessParams(app, dir, location);
     }
 
-    private ExternalStreamAccessParams(Application app, Direction dir, DataLocation location) {
+    private ExternalStreamAccessParams(Application app, es.bsc.compss.semantics.data.access.AccessMode dir,
+        DataLocation location) {
         super(app, new ExternalStreamData(location.hashCode()), dir, location);
     }
 
@@ -66,7 +67,7 @@ public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation,
     protected void externalRegister() {
         DataLocation location = this.getValue();
         // Inform the StreamClient
-        if (mode != AccessMode.R) {
+        if (mode != AccessMode.READ) {
             String filePath = location.getURIInHost(Comm.getAppHost()).getPath();
 
             try {

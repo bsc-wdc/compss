@@ -18,7 +18,6 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.params.CollectionData;
@@ -40,11 +39,13 @@ public class CollectionAccessParams extends AccessParams<CollectionData> {
      * @param collectionId Id of the collection
      * @return new CollectionAccessParams instance
      */
-    public static final CollectionAccessParams constructCAP(Application app, Direction dir, String collectionId) {
+    public static final CollectionAccessParams constructCAP(Application app,
+        es.bsc.compss.semantics.data.access.AccessMode dir, String collectionId) {
         return new CollectionAccessParams(app, dir, collectionId);
     }
 
-    private CollectionAccessParams(Application app, Direction dir, String collectionId) {
+    private CollectionAccessParams(Application app, es.bsc.compss.semantics.data.access.AccessMode dir,
+        String collectionId) {
         super(app, new CollectionData(collectionId), dir);
     }
 
@@ -55,7 +56,7 @@ public class CollectionAccessParams extends AccessParams<CollectionData> {
 
     @Override
     protected void registerValueForVersion(DataVersion dv) {
-        if (mode != AccessMode.W) {
+        if (mode.isRead()) {
             EngineDataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             // Null until the two-step transfer method is implemented

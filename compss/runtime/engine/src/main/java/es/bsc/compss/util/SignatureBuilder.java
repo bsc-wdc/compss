@@ -18,7 +18,7 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import java.util.List;

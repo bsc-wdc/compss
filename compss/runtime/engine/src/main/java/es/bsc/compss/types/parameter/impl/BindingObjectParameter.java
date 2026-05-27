@@ -17,11 +17,11 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.params.BindingObjectData;
 
@@ -38,7 +38,7 @@ public class BindingObjectParameter
      * Creates a new BindingObjectParameter Parameter.
      * 
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -48,17 +48,17 @@ public class BindingObjectParameter
      * @param monitor object to notify to changes on the parameter
      * @return new BindingObjectParameter instance
      */
-    public static final BindingObjectParameter newBOP(Application app, Direction direction, StdIOStream stream,
+    public static final BindingObjectParameter newBOP(Application app, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, String contentType, double weight, BindingObject bo, int hashCode,
         ParameterMonitor monitor) {
-        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, direction, bo, hashCode);
-        return new BindingObjectParameter(boap, direction, stream, prefix, name, contentType, weight, monitor);
+        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, accessMode, bo, hashCode);
+        return new BindingObjectParameter(boap, accessMode, stream, prefix, name, contentType, weight, monitor);
     }
 
-    private BindingObjectParameter(BindingObjectAccessParams boap, Direction direction, StdIOStream stream,
+    private BindingObjectParameter(BindingObjectAccessParams boap, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, String contentType, double weight, ParameterMonitor monitor) {
 
-        super(boap, DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, monitor);
+        super(boap, DataType.BINDING_OBJECT_T, accessMode, stream, prefix, name, contentType, weight, monitor);
     }
 
     public String getId() {

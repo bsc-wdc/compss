@@ -17,7 +17,7 @@
 package es.bsc.compss.invokers.test.utils;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -76,8 +76,8 @@ public class FakeInvocation implements Invocation {
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return OnFailure.RETRY;
+    public FailurePolicy getOnFailure() {
+        return FailurePolicy.RETRY;
     }
 
     @Override

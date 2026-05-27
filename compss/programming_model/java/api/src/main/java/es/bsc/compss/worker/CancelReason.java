@@ -17,6 +17,19 @@
 package es.bsc.compss.worker;
 
 public enum CancelReason {
-    COMPSS_EXCEPTION, // When a COMPSs exception has occurred
-    TIMEOUT; // When task has reached timeout
+
+    COMPSS_EXCEPTION("raised a COMPSs Exception"), // When a COMPSs exception has occurred
+    TIMEOUT("timed out."); // When task has reached timeout
+
+
+    private final String causeDescription;
+
+
+    CancelReason(String msg) {
+        this.causeDescription = msg;
+    }
+
+    public String getCauseDescription() {
+        return causeDescription;
+    }
 }

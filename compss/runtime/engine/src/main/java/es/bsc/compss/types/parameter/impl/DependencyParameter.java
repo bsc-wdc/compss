@@ -18,12 +18,12 @@ package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
@@ -54,7 +54,7 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
      * Creates a new DependencyParameter instance from the given parameters.
      *
      * @param type Parameter type.
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param access description of the access performed on the data
      * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
@@ -63,9 +63,9 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
      * @param keepRename Parameter keep rename property.
      * @param monitor object to notify to changes on the parameter
      */
-    protected DependencyParameter(T access, DataType type, Direction direction, StdIOStream stream, String prefix,
+    protected DependencyParameter(T access, DataType type, AccessMode accessMode, StdIOStream stream, String prefix,
         String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
-        super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(type, accessMode, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.access = access;
     }
 
@@ -187,26 +187,13 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
         boolean hasParamEdge = false;
         EngineDataAccessId daId = this.getDataAccessId();
         DataInfo di = daId.getAccessedDataInfo();
-        switch (this.getAccess().getMode()) {
-            case R:
-                hasParamEdge = checkInputDependency(currentTask, false, di, isConstraining);
-                break;
-            case RW:
-                hasParamEdge = checkInputDependency(currentTask, false, di, isConstraining);
-                registerOutputValues(currentTask, false, di);
-                break;
-            case W:
-                // Register output values
-                registerOutputValues(currentTask, false, di);
-                break;
-            case C:
-                hasParamEdge = checkInputDependency(currentTask, true, di, isConstraining);
-                registerOutputValues(currentTask, true, di);
-                break;
-            case CV:
-                hasParamEdge = checkInputDependency(currentTask, false, di, isConstraining);
-                registerOutputValues(currentTask, false, di);
-                break;
+        AccessMode mode = this.getAccess().getMode();
+        boolean isConcurrent = (mode == AccessMode.CONCURRENT_UPDATE);
+        if (mode.isRead()) {
+            hasParamEdge = checkInputDependency(currentTask, isConcurrent, di, isConstraining);
+        }
+        if (isConcurrent || mode.isWrite()) {
+            registerOutputValues(currentTask, isConcurrent, di);
         }
         return hasParamEdge;
     }
@@ -270,9 +257,9 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
             LOGGER.debug("Removing writers info for datum " + dataId + " and task " + currentTaskId);
         }
 
-        switch (this.getDirection()) {
-            case OUT:
-            case INOUT:
+        switch (this.getAccessMode()) {
+            case GENERATE:
+            case UPDATE:
                 DataInfo di = dAccId.getAccessedDataInfo();
                 di.completedProducer(task);
                 break;

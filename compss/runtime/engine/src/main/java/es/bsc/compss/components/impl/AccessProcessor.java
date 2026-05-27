@@ -20,11 +20,11 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointBuilder;
 import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
@@ -153,7 +153,7 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
      */
     public int newTask(Application app, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes,
         boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        int numReturns, List<Parameter> parameters, OnFailure onFailure, long timeOut) {
+        int numReturns, List<Parameter> parameters, FailurePolicy onFailure, long timeOut) {
 
         Task currentTask;
 

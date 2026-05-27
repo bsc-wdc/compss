@@ -17,11 +17,11 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
@@ -52,7 +52,7 @@ public class CollectiveParameter extends DependencyParameter<CollectionAccessPar
      * @param app Application performing the access
      * @param type type of collection
      * @param id identifier of the collection
-     * @param direction Direction of the collection
+     * @param accessMode mode the collection is accessed
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
      * @param name Name of the parameter in the user code
@@ -62,19 +62,19 @@ public class CollectiveParameter extends DependencyParameter<CollectionAccessPar
      * @param elements Elements of the collection
      * @see DependencyParameter
      */
-    public static final CollectiveParameter newCP(Application app, DataType type, String id, Direction direction,
+    public static final CollectiveParameter newCP(Application app, DataType type, String id, AccessMode accessMode,
         StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
         ParameterMonitor monitor, List<Parameter> elements) {
 
-        CollectionAccessParams cap = CollectionAccessParams.constructCAP(app, direction, id);
-        return new CollectiveParameter(cap, type, direction, stream, prefix, name, contentType, weight, keepRename,
+        CollectionAccessParams cap = CollectionAccessParams.constructCAP(app, accessMode, id);
+        return new CollectiveParameter(cap, type, accessMode, stream, prefix, name, contentType, weight, keepRename,
             monitor, elements);
     }
 
-    protected CollectiveParameter(CollectionAccessParams cap, DataType type, Direction direction, StdIOStream stream,
+    protected CollectiveParameter(CollectionAccessParams cap, DataType type, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
-        super(cap, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(cap, type, accessMode, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.elements = elements;
     }
 

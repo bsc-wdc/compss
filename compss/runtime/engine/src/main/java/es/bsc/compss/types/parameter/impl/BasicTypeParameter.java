@@ -17,10 +17,10 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
 
@@ -42,7 +42,7 @@ public class BasicTypeParameter extends Parameter implements es.bsc.compss.types
      * Creates a new BasicTypeParameter instance with the given information.
      *
      * @param type Parameter type.
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -51,14 +51,14 @@ public class BasicTypeParameter extends Parameter implements es.bsc.compss.types
      * @param monitor object to notify to changes on the parameter
      * @return new BasicTypeParameter instance
      */
-    public static final BasicTypeParameter newBP(DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, Object value, double weight, String contentType, ParameterMonitor monitor) {
-        return new BasicTypeParameter(type, direction, stream, prefix, name, value, weight, contentType, monitor);
+    public static final BasicTypeParameter newBP(DataType type, AccessMode accessMode, StdIOStream stream,
+        String prefix, String name, Object value, double weight, String contentType, ParameterMonitor monitor) {
+        return new BasicTypeParameter(type, accessMode, stream, prefix, name, value, weight, contentType, monitor);
     }
 
-    private BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    private BasicTypeParameter(DataType type, AccessMode accessMode, StdIOStream stream, String prefix, String name,
         Object value, double weight, String contentType, ParameterMonitor monitor) {
-        super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
+        super(type, accessMode, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
     }
 
@@ -84,7 +84,7 @@ public class BasicTypeParameter extends Parameter implements es.bsc.compss.types
 
     @Override
     public String toString() {
-        return this.value + " " + getType() + " " + getDirection();
+        return this.value + " " + getType() + " " + getAccessMode();
     }
 
     @Override

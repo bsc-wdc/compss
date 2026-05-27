@@ -18,8 +18,8 @@ package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
@@ -53,7 +53,7 @@ public class ObjectMainAccess<V, D extends ObjectData, P extends ObjectAccessPar
      * @return new ObjectAccessParams instance
      */
     public static final <T> ObjectMainAccess<T, ObjectData, ObjectAccessParams<T, ObjectData>>
-        constructOMA(Application app, Direction dir, T value, int code) {
+        constructOMA(Application app, AccessMode dir, T value, int code) {
         ObjectAccessParams<T, ObjectData> oap = ObjectAccessParams.constructObjectAP(app, dir, value, code);
         return new ObjectMainAccess<>(app, oap);
     }

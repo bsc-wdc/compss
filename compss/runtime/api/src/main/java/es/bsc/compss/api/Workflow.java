@@ -16,9 +16,6 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 
 public interface Workflow {
@@ -76,9 +73,9 @@ public interface Workflow {
      * @param parameters Parameter values.
      * @return The task id.
      */
-    int executeTask(String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
-        boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-        Integer numReturns, int parameterCount, Object... parameters);
+    int executeTask(String signature, byte onFailure, int timeOut, boolean isPrioritary, int numNodes, boolean isReduce,
+        int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
+        int parameterCount, Object... parameters);
 
     /**
      * Cancels all tasks belonging to a group of the workflow.
@@ -129,7 +126,7 @@ public interface Workflow {
      * @param stub Local object representing the data
      * @param dataId already existing data with the content
      */
-    void registerData(DataType type, Object stub, String dataId);
+    void registerData(byte type, Object stub, String dataId);
 
     /**
      * Bind the last known version of a file in the runtime system with another dataId.
@@ -164,7 +161,7 @@ public interface Workflow {
      * @param mode Access mode.
      * @return Renaming of the current file version.
      */
-    String openFile(String fileName, Direction mode);
+    String openFile(String fileName, byte mode);
 
     /**
      * Closes the given file {@code fileName}.
@@ -172,7 +169,7 @@ public interface Workflow {
      * @param fileName File version name.
      * @param mode Access mode.
      */
-    void closeFile(String fileName, Direction mode);
+    void closeFile(String fileName, byte mode);
 
     /**
      * Retrieves the last version of file with its original name.

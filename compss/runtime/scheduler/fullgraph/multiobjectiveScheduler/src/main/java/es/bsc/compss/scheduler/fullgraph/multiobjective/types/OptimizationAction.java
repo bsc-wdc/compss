@@ -23,7 +23,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.fullgraph.multiobjective.MOSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -122,8 +122,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return OnFailure.RETRY;
+    public FailurePolicy getOnFailure() {
+        return FailurePolicy.RETRY;
     }
 
     @Override

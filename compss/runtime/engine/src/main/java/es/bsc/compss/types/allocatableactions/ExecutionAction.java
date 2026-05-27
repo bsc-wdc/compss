@@ -28,14 +28,14 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
@@ -401,14 +401,14 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
     public void resultAvailable(Parameter p, String dataName) {
         if (p.isPotentialDependency()) {
             DependencyParameter dp = (DependencyParameter) p;
-            if (dp.getDirection() == Direction.COMMUTATIVE) {
+            if (dp.getAccessMode() == AccessMode.COMMUTATIVE_UPDATE) {
                 EngineDataAccessId placeHolder = dp.getDataAccessId();
                 CommutativeGroupTask cgt = this.getTask().getCommutativeGroup(placeHolder.getDataId());
                 EngineDataAccessId performedAccess = cgt.nextAccess();
                 dp.setDataAccessId(performedAccess);
             }
 
-            p.getMonitor().onCreation(p.getType(), dataName);
+            p.getMonitor().onCreation(dataName);
         }
     }
 
@@ -436,7 +436,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onErrorExecution();
 
-        if (this.task.getOnFailure() == OnFailure.RETRY) {
+        if (this.task.getOnFailure() == FailurePolicy.RETRY) {
             if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
                 LOGGER.warn("Task " + this.task.getId() + " has already been rescheduled; notifying task failure.");
                 ErrorManager
@@ -536,7 +536,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.CANCELED);
         this.ap.notifyTaskEnd(this.task);
-        if (this.task.getOnFailure().equals(OnFailure.IGNORE)) {
+        if (this.task.getOnFailure().equals(FailurePolicy.IGNORE)) {
             return false;
         } else {
             return true;
@@ -612,7 +612,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
     }
 
     @Override
-    public OnFailure getOnFailure() {
+    public FailurePolicy getOnFailure() {
         return this.task.getOnFailure();
     }
 

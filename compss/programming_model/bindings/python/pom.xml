@@ -33,6 +33,7 @@
 	    <sonar.sources>src</sonar.sources>
 	    <!--sonar.skip>true</sonar.skip-->
     </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -42,7 +43,32 @@
                 <executions>
                     <execution>
                         <id>Datatype Generation</id>
-                        <phase/>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>python3</executable>
+                            <arguments>
+                                <argument>${basedir}/generate_enum.py</argument>
+                                <argument>../../../runtime/commons/src/main/java/es/bsc/compss/semantics/data/DataType.java</argument>
+                                <argument>${basedir}/src/pycompss/api/commons/data_type.py</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Datatype Deletion</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>rm</executable>
+                            <arguments>
+                                <argument>-f</argument>
+                                <argument>${basedir}/src/pycompss/api/commons/data_type.py</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

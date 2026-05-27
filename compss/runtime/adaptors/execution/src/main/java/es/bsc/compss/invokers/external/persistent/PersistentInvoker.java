@@ -22,7 +22,7 @@ import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
 import es.bsc.compss.executor.types.ParameterResult;
 import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;

@@ -52,19 +52,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      * 
      * @param constraints Constraints.
      */
-    public CloudMethodResourceDescription(Constraints constraints) {
-        super(constraints);
-
-        this.name = "";
-        this.typeComposition = new HashMap<>();
-        this.image = null;
-    }
-
-    /**
-     * Creates a new CloudMethodResourceDescription from the given constraints.
-     * 
-     * @param constraints Constraints.
-     */
     public CloudMethodResourceDescription(MethodResourceDescription constraints) {
         super(constraints);
 

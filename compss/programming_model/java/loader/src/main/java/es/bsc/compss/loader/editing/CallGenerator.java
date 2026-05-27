@@ -15,9 +15,10 @@
  *
  */
 
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.editing;
 
 import es.bsc.compss.loader.LoaderConstants;
+import es.bsc.compss.loader.runtime.data.access.AccessMode;
 
 public class CallGenerator {
 
@@ -198,11 +199,10 @@ public class CallGenerator {
      *
      * @param itWf name of the variable containing the workflow
      * @param file variable containing the file
-     * @param direction operation performed on the file (IN, OUT, INOUT)
-     * @return
+     * @return instruction to call the openFile method
      */
-    public static String openFile(String itWf, String file, String direction) {
-        return itWf + OPEN_FILE + file + ", " + direction + ")";
+    public static String openFile(String itWf, String file) {
+        return itWf + OPEN_FILE + file + ", (byte)" + AccessMode.UPDATE.getID() + ")";
     }
 
 }

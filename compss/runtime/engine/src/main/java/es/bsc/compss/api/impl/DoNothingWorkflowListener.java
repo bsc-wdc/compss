@@ -16,25 +16,24 @@
  */
 package es.bsc.compss.api.impl;
 
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
-public class DoNothingApplicationMonitor implements ApplicationRunner {
+public class DoNothingWorkflowListener implements WorkflowListener {
 
     private static DoNothingTaskMonitor TASK_MONITOR = new DoNothingTaskMonitor();
 
 
     @Override
-    public void stalledApplication() {
+    public void onSynchronization() {
     }
 
     @Override
-    public void readyToContinue(Semaphore sem) {
+    public void onReadyToContinue(Semaphore sem) {
         if (sem != null) {
             sem.release();
         }
@@ -57,7 +56,7 @@ public class DoNothingApplicationMonitor implements ApplicationRunner {
     }
 
     @Override
-    public DoNothingTaskMonitor getTaskMonitor() {
+    public TaskMonitor getTaskMonitor() {
         return TASK_MONITOR;
     }
 
@@ -88,7 +87,7 @@ public class DoNothingApplicationMonitor implements ApplicationRunner {
         }
 
         @Override
-        public DoNothingParameterMonitor getParameterMonitor(int paramId) {
+        public ParameterMonitor getParameterMonitor(int paramId) {
             return PARAM_MONITOR;
         }
 
@@ -149,7 +148,7 @@ public class DoNothingApplicationMonitor implements ApplicationRunner {
             }
 
             @Override
-            public void onCreation(DataType type, String dataName) {
+            public void onCreation(String dataName) {
                 // Ignore Notification
             }
 

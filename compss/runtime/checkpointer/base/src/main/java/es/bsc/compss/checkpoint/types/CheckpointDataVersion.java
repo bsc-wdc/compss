@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.checkpoint.types;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.info.DataVersion;
 import java.util.LinkedList;
 import java.util.List;

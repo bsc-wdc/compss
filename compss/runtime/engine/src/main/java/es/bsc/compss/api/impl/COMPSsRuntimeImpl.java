@@ -17,9 +17,9 @@
 package es.bsc.compss.api.impl;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
@@ -314,7 +314,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
      */
 
     @Override
-    public Workflow registerWorkflow(String parallelismSource, ApplicationRunner runner) {
+    public Workflow registerWorkflow(String parallelismSource, WorkflowListener runner) {
         return APITracer.traced(APIEvent.REGISTER_APP, () -> {
             LOGGER.info("Thread " + Thread.currentThread().getName() + " registering workflow " //
                 + (parallelismSource != null ? "parallelism source: " + parallelismSource : "") //
@@ -339,23 +339,30 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                 LOGGER.debug("\t - Type          : " + implType);
                 LOGGER.debug("\t - I/O           : " + implIO);
                 LOGGER.debug("\t - Prolog        : ");
-                for (String pro : prolog) {
-                    LOGGER.debug("\t\t -- : " + pro);
+                if (prolog != null) {
+                    for (String pro : prolog) {
+                        LOGGER.debug("\t\t -- : " + pro);
+                    }
                 }
                 LOGGER.debug("\t - Epilog        : ");
-                for (String epi : epilog) {
-                    LOGGER.debug("\t\t -- : " + epi);
+                if (epilog != null) {
+                    for (String epi : epilog) {
+                        LOGGER.debug("\t\t -- : " + epi);
+                    }
                 }
-
                 LOGGER.debug("\t - Container        : ");
-                for (String cont : container) {
-                    LOGGER.debug("\t\t -- : " + cont);
+                if (container != null) {
+                    for (String cont : container) {
+                        LOGGER.debug("\t\t -- : " + cont);
+                    }
+                }
+                LOGGER.debug("\t - ImplTypeArgs  : ");
+                if (implTypeArgs != null) {
+                    for (String implTypeArg : implTypeArgs) {
+                        LOGGER.debug("\t\t Arg: " + implTypeArg);
+                    }
                 }
 
-                LOGGER.debug("\t - ImplTypeArgs  : ");
-                for (String implTypeArg : implTypeArgs) {
-                    LOGGER.debug("\t\t Arg: " + implTypeArg);
-                }
             }
 
             MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
@@ -413,6 +420,66 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
     }
 
     @Override
+    public void registerCoreElement(String ceSignature, String implSignature, MethodResourceDescription implConstraints,
+        String implType, boolean implLocal, boolean implIO, String[] prolog, String[] epilog, String[] container,
+        String... implTypeArgs) {
+        APITracer.traced(APIEvent.REGISTER_CE, (Runnable) () -> {
+            LOGGER.info("Registering CoreElement " + ceSignature);
+
+            if (implIO) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
+                }
+                implConstraints.setIOResources();
+            }
+
+            ExecType pro = null;
+            if (prolog != null && prolog.length > 0) {
+                if (prolog.length != ExecType.ARRAY_LENGTH) {
+                    throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
+                }
+                pro = new ExecType(prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
+                if (!pro.isAssigned()) {
+                    pro = null;
+                }
+            }
+
+            ExecType epi = null;
+            if (epilog != null && epilog.length > 0) {
+                if (epilog.length != ExecType.ARRAY_LENGTH) {
+                    throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
+                }
+                epi = new ExecType(epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+                if (!epi.isAssigned()) {
+                    epi = null;
+                }
+            }
+
+            ContainerDescription cont;
+            if (container != null && container.length > 0 && container[0] != null && !container[0].isEmpty()
+                && !container[0].equals(Constants.UNASSIGNED)) {
+                String engineStr = container[0].toUpperCase();
+                ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
+                cont = new ContainerDescription(engine, container[1], container[2]);
+            } else {
+                cont = null;
+            }
+
+            CoreElementDefinition ced = new CoreElementDefinition();
+            ced.setCeSignature(ceSignature);
+            ImplementationDescription<?, ?> implDef = ImplementationDescription.defineImplementation(implType,
+                implSignature, implLocal, implConstraints, pro, epi, cont, implTypeArgs);
+            ced.addImplementation(implDef);
+
+            td.registerNewCoreElement(ced);
+        });
+    }
+
+    /**
+     * Registers a new CoreElement in the Runtime.
+     *
+     * @param ced The coreElement description.
+     */
     public void registerCoreElement(CoreElementDefinition ced) {
         APITracer.traced(APIEvent.REGISTER_CE, (Runnable) () -> {
             LOGGER.info("Registering CoreElement " + ced.getCeSignature());

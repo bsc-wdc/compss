@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.data.transferable;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.Transferable;
 
 public class WorkersDebugInfoCopyTransferable implements Transferable {

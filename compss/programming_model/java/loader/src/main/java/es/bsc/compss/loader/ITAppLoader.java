@@ -18,7 +18,9 @@ package es.bsc.compss.loader;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.loader.total.ITAppModifier;
+import es.bsc.compss.loader.editing.CustomLoader;
+import es.bsc.compss.loader.editing.ITAppModifier;
+import es.bsc.compss.loader.workflow.JavaWorkflow;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 import java.lang.reflect.Constructor;

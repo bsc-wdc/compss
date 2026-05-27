@@ -45,8 +45,6 @@ import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.worker.COMPSsException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -317,10 +315,9 @@ public class SocketServer extends Server {
          * @throws COMPSsException if the runtime reports a failure.
          */
         private void handleExecuteNestedTask(ExecuteNestedTaskPipeCommand cmd) throws COMPSsException {
-            OnFailure onFailure = OnFailure.valueOf(cmd.getOnFailure());
-            wf.executeTask(cmd.getSignature(), onFailure, cmd.getTimeOut(), cmd.getPrioritary(), cmd.getNumNodes(),
-                cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(), cmd.isDistributed(), cmd.hasTarget(),
-                cmd.getNumReturns(), cmd.getParameterCount(), cmd.getParameters());
+            wf.executeTask(cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getPrioritary(),
+                cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(), cmd.isDistributed(),
+                cmd.hasTarget(), cmd.getNumReturns(), cmd.getParameterCount(), cmd.getParameters());
 
         }
 
@@ -342,7 +339,7 @@ public class SocketServer extends Server {
          * @throws IOException if the response cannot be sent.
          */
         private void handleOpenFile(OpenFilePipeCommand cmd) throws IOException {
-            Direction dir = cmd.getDirection();
+            byte dir = cmd.getAccessMode();
             String location = wf.openFile(cmd.getFile(), dir);
             sendCommand(new SynchPipeCommand(location));
         }
@@ -353,7 +350,7 @@ public class SocketServer extends Server {
          * @param cmd command containing the file identifier and access direction.
          */
         private void handleCloseFile(CloseFilePipeCommand cmd) {
-            wf.closeFile(cmd.getFile(), cmd.getDirection());
+            wf.closeFile(cmd.getFile(), cmd.getAccessMode());
         }
 
         /**

@@ -17,10 +17,10 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.FileData;
@@ -39,7 +39,7 @@ public class FileParameter<D extends FileData, A extends FileAccessParams<D>> ex
      * Creates a new File Parameter.
      *
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -51,18 +51,18 @@ public class FileParameter<D extends FileData, A extends FileAccessParams<D>> ex
      * @param monitor object to notify to changes on the parameter
      * @return creates a new File Parameter
      */
-    public static final FileParameter newFP(Application app, Direction direction, StdIOStream stream, String prefix,
+    public static final FileParameter newFP(Application app, AccessMode accessMode, StdIOStream stream, String prefix,
         String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
         ParameterMonitor monitor) {
-        FileAccessParams fap = FileAccessParams.constructFAP(app, direction, location);
-        return new FileParameter(fap, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename,
-            originalName, monitor);
+        FileAccessParams fap = FileAccessParams.constructFAP(app, accessMode, location);
+        return new FileParameter(fap, DataType.FILE_T, accessMode, stream, prefix, name, contentType, weight,
+            keepRename, originalName, monitor);
     }
 
-    protected FileParameter(A fap, DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    protected FileParameter(A fap, DataType type, AccessMode accessMode, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename, String originalName, ParameterMonitor monitor) {
 
-        super(fap, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(fap, type, accessMode, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.originalName = originalName;
     }
 
@@ -83,7 +83,7 @@ public class FileParameter<D extends FileData, A extends FileAccessParams<D>> ex
     @Override
     public String toString() {
         return "FileParameter with location " + this.getAccess().getLocation() + ", type " + getType() + ", direction "
-            + getDirection() + ", CONTENT TYPE" + getContentType();
+            + getAccessMode() + ", CONTENT TYPE" + getContentType();
     }
 
 }

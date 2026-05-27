@@ -103,8 +103,8 @@ public class CommAppMonitor extends AppMonitor {
     }
 
     @Override
-    public void stalledApplication() {
-        super.stalledApplication();
+    public void onSynchronization() {
+        super.onSynchronization();
     }
 
     @Override

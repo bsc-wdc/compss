@@ -15,9 +15,9 @@
  *
  */
 
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.workflow;
 
-import es.bsc.compss.loader.JavaWorkflow;
+import es.bsc.compss.loader.workflow.data.StreamRegistry;
 import es.bsc.compss.worker.COMPSsException;
 
 public final class APIHandler {

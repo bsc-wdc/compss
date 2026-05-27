@@ -20,9 +20,9 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -47,7 +47,7 @@ public class ReduceTask extends Task {
     private static final ParameterMonitor IGNORE_PARAM = new ParameterMonitor() {
 
         @Override
-        public void onCreation(DataType type, String dataName) {
+        public void onCreation(String dataName) {
             // Ignore Notification
         }
     };
@@ -93,7 +93,7 @@ public class ReduceTask extends Task {
      */
     public ReduceTask(Application app, String signature, boolean isPrioritary, int numNodes, boolean isReduction,
         int reduceChunkSize, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+        List<Parameter> parameters, TaskMonitor monitor, FailurePolicy onFailure, long timeOut) {
 
         super(app, signature, isPrioritary, numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);
@@ -126,7 +126,7 @@ public class ReduceTask extends Task {
 
             this.reduceCollectionIndex = searchFirstCollection(parameters);
             Parameter finalParameter = parameters.get(parameters.size() - 1);
-            if (finalParameter.getDirection() == Direction.OUT && this.reduceCollectionIndex >= 0) {
+            if (finalParameter.getAccessMode() == AccessMode.GENERATE && this.reduceCollectionIndex >= 0) {
                 CollectiveParameter p = (CollectiveParameter) parameters.get(this.reduceCollectionIndex);
                 List<Parameter> colList = p.getElements();
                 if (colList.size() < 2) {
@@ -153,22 +153,22 @@ public class ReduceTask extends Task {
                     SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
                     DataLocation dl = DataLocation.createLocation(Comm.getAppHost(), uri);
 
-                    partialsOut.add(FileParameter.newFP(app, Direction.OUT, finalParameter.getStream(),
+                    partialsOut.add(FileParameter.newFP(app, AccessMode.GENERATE, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
-                    partialsIn.add(FileParameter.newFP(app, Direction.IN, finalParameter.getStream(),
+                    partialsIn.add(FileParameter.newFP(app, AccessMode.READ, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
                     CollectiveParameter cp = CollectiveParameter.newCP(app, DataType.COLLECTION_T,
-                        partialId + "Collection", p.getDirection(), p.getStream(), p.getPrefix(), p.getName(),
+                        partialId + "Collection", p.getAccessMode(), p.getStream(), p.getPrefix(), p.getName(),
                         p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = CollectiveParameter.newCP(app, DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
-                    p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM,
-                    new ArrayList<>());
+                finalCol = CollectiveParameter.newCP(app, DataType.COLLECTION_T, finalId, AccessMode.READ,
+                    p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(),
+                    IGNORE_PARAM, new ArrayList<>());
             } else {
                 ErrorManager
                     .fatal("First parameter for a reduce task must be a collection and last parameter must be OUT "

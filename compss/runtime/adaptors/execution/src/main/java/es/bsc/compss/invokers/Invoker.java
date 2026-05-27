@@ -17,15 +17,16 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.Workflow;
-import es.bsc.compss.api.impl.DoNothingApplicationMonitor;
+import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -56,7 +57,7 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMonitor {
+public abstract class Invoker<W extends Workflow> implements WorkflowListener {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
     protected static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
@@ -460,20 +461,44 @@ public abstract class Invoker<W extends Workflow> extends DoNothingApplicationMo
     protected void handleSimpleInputValue(W wf, InvocationParam p) {
         if (p.getType() == DataType.FILE_T) {
             String originalName = p.getOriginalName();
-            wf.registerData(p.getType(), originalName, p.getSourceDataId());
+            wf.registerData(p.getType().toByte(), originalName, p.getSourceDataId());
         }
     }
 
+    /**
+     * WorkflowListener for subWorkflows: Should do nothing except for notifying main code readiness and stalling.
+     */
     @Override
-    public void stalledApplication() {
+    public void onSynchronization() {
         // Resources should be released so other tasks run in the node
         this.runner.stalledCodeExecution();
     }
 
     @Override
-    public void readyToContinue(Semaphore sem) {
+    public void onReadyToContinue(Semaphore sem) {
         // Resources should be re-acquired to continue the execution
         this.runner.readyToContinueExecution(sem);
+    }
+
+    @Override
+    public void onException(COMPSsException e) {
+    }
+
+    @Override
+    public void onCancellation() {
+    }
+
+    @Override
+    public void onCompletion() {
+    }
+
+    @Override
+    public void onFailure() {
+    }
+
+    @Override
+    public TaskMonitor getTaskMonitor() {
+        return null;
     }
 
     protected void completeNestedApplication(W wf) {

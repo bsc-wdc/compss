@@ -71,11 +71,36 @@
   
   #----------------------------------------------------------------------------------
   # Check PRV file
-  tasksOrderExpected=$'2\n1\n1\n3\n3\n3\n3\n3\n3\n3\n3'
+  tasksOrderExpected=$(cat <<EOF
+initInitialP([OBJECT_T])
+globalTask([OBJECT_T,INT_T])
+globalTask([OBJECT_T,INT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+normalTask([OBJECT_T])
+EOF
+)
   tasksOrder=$(grep "8001131" "${target_log_folder}"/trace/*.prv | grep -v "8001131:0" | tr ":" "\\t" | awk '{ print $NF }')
-  if [ "${tasksOrderExpected}" != "${tasksOrder}" ]; then
+
+  # Get the mapping from core ID to core name from PCF file
+  declare -A coreNameMap
+  while IFS=$'\t' read -r coreId coreName; do
+    coreNameMap[$coreId]="$coreName"
+  done < <(grep -A 5 "8001131" "${target_log_folder}"/trace/*.pcf | tail -n 3 | awk '{print $1"\t"$2}')
+
+  # Convert numeric task order to core names
+  tasksOrderNamed=$(echo "$tasksOrder" | while read -r taskId; do
+    echo "${coreNameMap[$taskId]}"
+  done)
+
+  if [ "${tasksOrderExpected}" != "${tasksOrderNamed}" ]; then
     echo "[ERROR] Obtained trace file is not as expected" | tee -a "${output_file}"
-    echo "[ERROR] GOT ${tasksOrder}" | tee -a "${output_file}"
+    echo "[ERROR] GOT ${tasksOrderNamed}" | tee -a "${output_file}"
     echo "[ERROR] EXPECTED ${tasksOrderExpected}" | tee -a "${output_file}"
     exit 1
   fi

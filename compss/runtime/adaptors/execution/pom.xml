@@ -45,20 +45,22 @@
 			<artifactId>compss-adaptors-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-            <!-- JSON -->
-            <dependency>
-                <groupId>org.json</groupId>
-                <artifactId>json</artifactId>
-                <version>${json.version}</version>
-            </dependency>
-        
-        <!-- Nested tasks -->
-        <!-- Runtime API-->
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>${json.version}</version>
+		</dependency>
+
+		<!-- Nested tasks -->
+		<!-- Runtime API-->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-api</artifactId>
+			<artifactId>compss-runtime-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
 		<!-- Instrumenter -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
@@ -73,12 +75,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- Javassist - Required by StorageInvoker to generate class signatures -->
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-		</dependency>
-		
 		<dependency>
 			<groupId>es.bsc.wdc</groupId>
 			<artifactId>ThreadAffinity</artifactId>

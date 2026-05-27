@@ -22,9 +22,9 @@ import com.google.gson.JsonParser;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -99,10 +99,10 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         Map<String, String> namedParameters = new HashMap<>();
 
         for (Parameter par : taskDescription.getParameters()) {
-            final Direction parameterDirection = par.getDirection();
+            final AccessMode parameterAccessMode = par.getAccessMode();
 
-            if (parameterDirection == Direction.IN || parameterDirection == Direction.INOUT
-                || parameterDirection == Direction.IN_DELETE) {
+            if (parameterAccessMode == AccessMode.READ || parameterAccessMode == AccessMode.UPDATE
+                || parameterAccessMode == AccessMode.READ_AND_DELETE) {
                 switch (par.getType()) {
                     case FILE_T:
                         DependencyParameter fileParam = (DependencyParameter) par;
@@ -144,7 +144,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                         BasicTypeParameter basicTypeParameter = (BasicTypeParameter) par;
                         addParameterToMapOfParameters(namedParameters, par, basicTypeParameter.getValue());
                 }
-            } else if (parameterDirection == Direction.OUT) {
+            } else if (parameterAccessMode == AccessMode.GENERATE) {
                 LOGGER.debug("Out parameter of HTTPCaller: " + par);
             }
         }

@@ -61,15 +61,6 @@ public class DeadlineThread extends Thread {
     }
 
     /**
-     * Returns the maximum deadline interval.
-     * 
-     * @return The maximum deadline interval.
-     */
-    public static long getMaxDeadlineInterval() {
-        return MAX_DEADLINE_INTERVAL;
-    }
-
-    /**
      * Returns the safety interval for VM deletion.
      * 
      * @return The safety interval for VM deletion.
@@ -80,9 +71,9 @@ public class DeadlineThread extends Thread {
 
     @Override
     public void run() {
-        Thread.currentThread()
-            .setName("[Abstract Connector] Connector " + this.ac.getProvider().getName() + " deadline");
-
+        final String threadName = "[Abstract Connector] Connector " + this.ac.getProvider().getName() + " deadline";
+        Thread.currentThread().setName(threadName);
+        LOGGER.debug(threadName + "thread started");
         long sleepTime = INITIAL_SLEEP_TIME;
         while (this.keepGoing) {
             // Sleep until next iteration
@@ -90,7 +81,8 @@ public class DeadlineThread extends Thread {
                 LOGGER.debug("[Abstract Connector] Deadline thread sleeps " + sleepTime + " ms.");
                 Thread.sleep(sleepTime);
             } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
+                // Interrupted.
+                continue;
             }
 
             // Recompute sleep time
@@ -111,8 +103,6 @@ public class DeadlineThread extends Thread {
 
             for (VM vmInfo : vmsAlive) {
                 long timeLeft = timeLeft(vmInfo.getStartTime());
-                // LOGGER.info("MONITOR STATUS DEAD next VM " + vmInfo.ip + " @ " + vmInfo.startTime + " --> " +
-                // timeLeft);
                 if (timeLeft <= DELETE_SAFETY_INTERVAL) {
                     if (vmInfo.isToDelete()) {
                         LOGGER.info("[Abstract Connector] Deleting vm " + vmInfo.getName()
@@ -131,6 +121,7 @@ public class DeadlineThread extends Thread {
                 }
             }
         }
+        LOGGER.debug(threadName + "thread ends");
     }
 
     /**

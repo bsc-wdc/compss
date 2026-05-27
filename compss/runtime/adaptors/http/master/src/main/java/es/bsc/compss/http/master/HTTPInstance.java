@@ -18,11 +18,11 @@ package es.bsc.compss.http.master;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;

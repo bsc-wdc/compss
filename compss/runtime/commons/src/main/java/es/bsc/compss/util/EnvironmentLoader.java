@@ -24,7 +24,7 @@ import java.io.File;
 public class EnvironmentLoader {
 
     private static final String PREFIX_ENV_VAR = "$";
-    private static final String BEGIN_ENV_VAR = "}";
+    private static final String BEGIN_ENV_VAR = "{";
     private static final String END_ENV_VAR = "}";
 
     private static final String PREFIX_ENV_VAR_SCAPED = "\\$";

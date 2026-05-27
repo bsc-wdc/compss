@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.loader;
 
+import es.bsc.compss.loader.runtime.data.DataType;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Container;

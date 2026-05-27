@@ -17,7 +17,7 @@
 
 package es.bsc.compss.executor.types;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import java.util.List;
 
 public abstract class ParameterResult {

@@ -14,11 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.workflow;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Epilog;
@@ -47,26 +47,27 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
-import es.bsc.compss.types.implementations.ExecType;
-import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition.ContainerExecutionType;
-import es.bsc.compss.types.implementations.definition.ContainerDescription;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -74,6 +75,28 @@ public class CEIParser {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String PROCESSORS = "processors";
+
+    private static final String PROC_NAME = "processorname";
+    private static final String COMPUTING_UNITS = "computingunits";
+    private static final String PROC_SPEED = "processorspeed";
+    private static final String PROC_ARCH = "processorarchitecture";
+    private static final String PROC_TYPE = "processortype";
+    private static final String PROC_MEM_SIZE = "processorinternalmemorysize";
+    private static final String PROC_PROP_NAME = "processorpropertyname";
+    private static final String PROC_PROP_VALUE = "processorpropertyvalue";
+
+    private static final String MEM_SIZE = "memorysize";
+    private static final String MEM_TYPE = "memorytype";
+    private static final String STORAGE_SIZE = "storagesize";
+    private static final String STORAGE_TYPE = "storagetype";
+    private static final String STORAGE_BW = "storagebw";
+    private static final String OS_TYPE = "operatingsystemtype";
+    private static final String OS_DISTRIBUTION = "operatingsystemdistribution";
+    private static final String OS_VERSION = "operatingsystemversion";
+    private static final String APP_SOFTWARE = "appsoftware";
+    private static final String HOST_QUEUES = "hostqueues";
+    private static final String WALL_CLOCK_LIMIT = "wallclocklimit";
 
 
     /**
@@ -83,16 +106,15 @@ public class CEIParser {
      * @param ceiName package and name of the Annotated Interface class
      * @return
      */
-    public static List<CoreElementDefinition> parseCoreElements(String ceiName) {
+    public static void registerCoreElements(String ceiName, COMPSsRuntime runtime) {
         Class<?> annotItfClass;
         try {
             annotItfClass = Class.forName(ceiName);
         } catch (Exception e) {
             LOGGER.warn("Could not find class " + ceiName, e);
-            return new ArrayList<>();
+            return;
         }
         int coreCount = annotItfClass.getDeclaredMethods().length;
-        List<CoreElementDefinition> updatedMethods = new ArrayList<>(coreCount);
         if (DEBUG) {
             LOGGER.debug("Detected methods " + coreCount);
         }
@@ -100,31 +122,20 @@ public class CEIParser {
         // Check registered methods
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {
             LOGGER.debug("Method = " + m);
-            CoreElementDefinition ced = parseITFMethod(m);
-            if (!ced.getImplementations().isEmpty()) {
-                updatedMethods.add(ced);
-            }
+            registerITFMethod(m, runtime);
         }
-
-        // Sort them alphabetically to avoid different core colors in the same execution
-        Collections.sort(updatedMethods);
-
-        return updatedMethods;
     }
 
     /**
      * Parses a single ITF Method (can have multiple annotations).
      *
      * @param m Java lang method to parse.
+     * @param runtime Runtime where to register the CE.
      * @return The core element definition.
      */
-    private static CoreElementDefinition parseITFMethod(java.lang.reflect.Method m) {
+    private static void registerITFMethod(java.lang.reflect.Method m, COMPSsRuntime runtime) {
         // Computes the callee method signature and checks parameter annotations
         LOGGER.info("Evaluating method " + m.getName());
-
-        StringBuilder calleeMethodSignature = new StringBuilder();
-        String methodName = m.getName();
-        calleeMethodSignature.append(methodName).append("(");
 
         // Check all annotations are valid
         checkMethodAnnotation(m);
@@ -132,8 +143,14 @@ public class CEIParser {
         // Load if there is any non-native annotation or not
         boolean hasNonNative = checkNonNativeAnnotation(m);
 
+        StringBuilder ceSignatureBuilder = new StringBuilder();
+        String methodName = m.getName();
+        ceSignatureBuilder.append(methodName).append("(");
+
         // Construct signature and check parameters
-        boolean[] hasAnnotations = constructSignatureAndCheckParameters(m, hasNonNative, calleeMethodSignature);
+        boolean[] hasAnnotations = constructSignatureAndCheckParameters(m, hasNonNative, ceSignatureBuilder);
+
+        String ceSignature = ceSignatureBuilder.toString();
         boolean hasStreams = hasAnnotations[0];
         boolean hasPrefixes = hasAnnotations[1];
 
@@ -141,14 +158,7 @@ public class CEIParser {
         if (DEBUG) {
             LOGGER.debug("   * Method method " + methodName + " has " + m.getAnnotations().length + " annotations");
         }
-        CoreElementDefinition ced = new CoreElementDefinition();
-        checkDefinedImplementations(m, calleeMethodSignature, hasStreams, hasPrefixes, ced);
-
-        // Register all implementations
-        ced.setCeSignature(calleeMethodSignature.toString());
-
-        // Returns the assigned methodId
-        return ced;
+        defineImplementation(runtime, m, ceSignature, hasStreams, hasPrefixes);
     }
 
     /**
@@ -436,42 +446,45 @@ public class CEIParser {
     /**
      * Check all the defined implementations of the same method.
      *
+     * @param runtime Runtime where to register the implementation
      * @param m Method.
-     * @param calleeMethodSignature Callee method signature.
+     * @param ceSignature Callee method signature.
      * @param hasStreams Whether the method has StdIO Streams or not.
      * @param hasPrefixes Whether the method has StdIO Prefixes or not.
-     * @param ced The CoreElement definition of the method.
      */
-    private static void checkDefinedImplementations(java.lang.reflect.Method m, StringBuilder calleeMethodSignature,
-        boolean hasStreams, boolean hasPrefixes, CoreElementDefinition ced) {
+    private static void defineImplementation(COMPSsRuntime runtime, java.lang.reflect.Method m, String ceSignature,
+        boolean hasStreams, boolean hasPrefixes) {
 
         /*
          * Global constraints of the method
          */
-        MethodResourceDescription defaultConstraints = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
+        Constraints globalConstraints = null;
         boolean processLocalGeneral = false;
         if (m.isAnnotationPresent(Constraints.class)) {
-            Constraints generalConstraints = m.getAnnotation(Constraints.class);
-            processLocalGeneral = generalConstraints.isLocal();
-            defaultConstraints = new MethodResourceDescription(generalConstraints);
+            globalConstraints = m.getAnnotation(Constraints.class);
+            processLocalGeneral = globalConstraints.isLocal();
         }
 
-        ExecType prolog = null;
+        String[] prolog = null;
         if (m.isAnnotationPresent(Prolog.class)) {
             Prolog pAnnot = m.getAnnotation(Prolog.class);
-            prolog = new ExecType(pAnnot.binary(), pAnnot.params(), pAnnot.failByExitValue());
+            prolog = new String[] { pAnnot.binary(),
+                pAnnot.params(),
+                Boolean.toString(pAnnot.failByExitValue()) };
         }
 
-        ExecType epilog = null;
+        String[] epilog = null;
         if (m.isAnnotationPresent(Epilog.class)) {
             Epilog eAnnot = m.getAnnotation(Epilog.class);
-            epilog = new ExecType(eAnnot.binary(), eAnnot.params(), eAnnot.failByExitValue());
+            epilog = new String[] { eAnnot.binary(),
+                eAnnot.params(),
+                Boolean.toString(eAnnot.failByExitValue()) };
         }
 
         // so far container within other decorators is only supported with Python @mpi and @mpmd_mpi. this is the case
         // where
         // the command doesn't start with the container but with "mpi" or something similar
-        ContainerDescription container = null;
+        String[] container = null;
 
         /*
          * Check all annotations present at the method for versioning
@@ -497,28 +510,10 @@ public class CEIParser {
             }
 
             String declaringClass = methodAnnot.declaringClass();
-            String methodSignature = calleeMethodSignature.toString() + declaringClass;
-
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (methodAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = methodAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register method implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(), methodSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, Lang.JAVA.name(), declaringClass,
-                    methodName);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
+            String methodSignature = ceSignature + declaringClass;
+            addImplementation(runtime, ceSignature, MethodType.METHOD.toString(), methodSignature, processLocalGeneral,
+                globalConstraints, methodAnnot.constraints(), prolog, epilog, container, Lang.JAVA.name(),
+                declaringClass, methodName);
         }
 
         /*
@@ -534,40 +529,25 @@ public class CEIParser {
             }
 
             String declaringClass = hAnno.declaringClass();
-            String methodSignature = calleeMethodSignature.toString() + declaringClass;
+            String httpSignature = ceSignature + declaringClass;
 
-            // Register HTTP implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(), methodSignature,
-                    false, null, prolog, epilog, container, hAnno.serviceName(), hAnno.resource(), hAnno.request(),
-                    hAnno.payload(), hAnno.payloadType(), hAnno.produces(), hAnno.updates(), hAnno.defReturn());
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
+            runtime.registerCoreElement(ceSignature, httpSignature, null, TaskType.HTTP.toString(), false, false,
+                prolog, epilog, container, hAnno.serviceName(), hAnno.resource(), hAnno.request(), hAnno.payload(),
+                hAnno.payloadType(), hAnno.produces(), hAnno.updates(), hAnno.defReturn());
+
         }
 
         /*
          * CONTAINER
          */
         for (Container containerAnnot : m.getAnnotationsByType(Container.class)) {
-            String engine = EnvironmentLoader.loadFromEnvironment(containerAnnot.engine());
-            String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
-            String options = EnvironmentLoader.loadFromEnvironment(containerAnnot.options());
-            String internalExecutionTypeStr = EnvironmentLoader.loadFromEnvironment(containerAnnot.executionType());
-            String internalBinary = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
-            String internalParams = EnvironmentLoader.loadFromEnvironment(containerAnnot.args());
-            String internalFunc = EnvironmentLoader.loadFromEnvironment(containerAnnot.function());
-
-            String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
-            String containerFailByExitValue = EnvironmentLoader.loadFromEnvironment(containerAnnot.failByExitValue());
-
-            // Check parameters
+            final String engine = EnvironmentLoader.loadFromEnvironment(containerAnnot.engine());
+            final String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
             if (image == null || image.isEmpty() || image.equals(Constants.UNASSIGNED)) {
                 ErrorManager.error("Empty image annotation for method " + m.getName());
             }
-
+            final String options = EnvironmentLoader.loadFromEnvironment(containerAnnot.options());
+            String internalExecutionTypeStr = EnvironmentLoader.loadFromEnvironment(containerAnnot.executionType());
             internalExecutionTypeStr = internalExecutionTypeStr.toUpperCase();
             ContainerExecutionType internalExecutionType = null;
             try {
@@ -575,6 +555,13 @@ public class CEIParser {
             } catch (IllegalArgumentException iae) {
                 ErrorManager.error("Invalid container internal execution type for method " + m.getName());
             }
+            final String internalBinary = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
+            final String internalParams = EnvironmentLoader.loadFromEnvironment(containerAnnot.args());
+            final String internalFunc = EnvironmentLoader.loadFromEnvironment(containerAnnot.function());
+
+            final String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
+            final String containerFailByExitValue =
+                EnvironmentLoader.loadFromEnvironment(containerAnnot.failByExitValue());
 
             switch (internalExecutionType) {
                 case CET_BINARY:
@@ -591,30 +578,11 @@ public class CEIParser {
             }
 
             // Load signature
-            String containerSignature = calleeMethodSignature.toString() + ContainerDefinition.SIGNATURE;
-
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (containerAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = containerAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register container implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.CONTAINER.toString(),
-                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, container, engine, image,
-                    options, internalExecutionTypeStr, internalBinary, internalParams, internalFunc, hostDir,
-                    containerFailByExitValue);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-
-            ced.addImplementation(implDef);
+            String containerSignature = ceSignature + ContainerDefinition.SIGNATURE;
+            addImplementation(runtime, ceSignature, MethodType.CONTAINER.toString(), containerSignature,
+                processLocalGeneral, globalConstraints, containerAnnot.constraints(), prolog, epilog, container, engine,
+                image, options, internalExecutionTypeStr, internalBinary, internalParams, internalFunc, hostDir,
+                containerFailByExitValue);
         }
 
         /*
@@ -622,37 +590,17 @@ public class CEIParser {
          */
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
+            if (binary == null || binary.isEmpty() || binary.equals(Constants.UNASSIGNED)) {
+                ErrorManager.error("Empty binary annotation for method " + m.getName());
+            }
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
             String params = EnvironmentLoader.loadFromEnvironment(binaryAnnot.args());
             String failByEVstr = EnvironmentLoader.loadFromEnvironment(binaryAnnot.failByExitValue());
 
-            if (binary == null || binary.isEmpty() || binary.equals(Constants.UNASSIGNED)) {
-                ErrorManager.error("Empty binary annotation for method " + m.getName());
-            }
-
-            String binarySignature = calleeMethodSignature.toString() + BinaryDefinition.SIGNATURE;
-
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (binaryAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = binaryAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register binary implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, binary, workingDir, params,
-                    failByEVstr);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage(), e);
-            }
-
-            ced.addImplementation(implDef);
+            String binarySignature = ceSignature + BinaryDefinition.SIGNATURE;
+            addImplementation(runtime, ceSignature, MethodType.BINARY.toString(), binarySignature, processLocalGeneral,
+                globalConstraints, binaryAnnot.constraints(), prolog, epilog, container, binary, workingDir, params,
+                failByEVstr);
         }
 
         /*
@@ -661,49 +609,31 @@ public class CEIParser {
         for (MPI mpiAnnot : m.getAnnotationsByType(MPI.class)) {
             LOGGER.debug("   * Processing @MPI annotation");
 
-            String binary = EnvironmentLoader.loadFromEnvironment(mpiAnnot.binary());
-            String workingDir = EnvironmentLoader.loadFromEnvironment(mpiAnnot.workingDir());
-            String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
-            String mpiPPN = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processesPerNode());
-            String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
-            String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
-            String params = EnvironmentLoader.loadFromEnvironment(mpiAnnot.args());
-            String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
-
-            if (mpiRunner == null || mpiRunner.isEmpty()) {
-                ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
-            }
+            final String binary = EnvironmentLoader.loadFromEnvironment(mpiAnnot.binary());
             if (binary == null || binary.isEmpty()) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
+
+            final String workingDir = EnvironmentLoader.loadFromEnvironment(mpiAnnot.workingDir());
+            final String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
+            if (mpiRunner == null || mpiRunner.isEmpty()) {
+                ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
+            }
+            final String mpiPPN = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processesPerNode());
+            final String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
+            final String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
+            final String params = EnvironmentLoader.loadFromEnvironment(mpiAnnot.args());
+            final String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Binary: " + binary);
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String mpiSignature = calleeMethodSignature.toString() + MPIDefinition.SIGNATURE;
-
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (mpiAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = mpiAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register service implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, binary, workingDir, mpiRunner, mpiPPN,
-                    mpiFlags, scaleByCUStr, params, failByEVstr);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
+            String mpiSignature = ceSignature + MPIDefinition.SIGNATURE;
+            addImplementation(runtime, ceSignature, MethodType.MPI.toString(), mpiSignature, processLocalGeneral,
+                globalConstraints, mpiAnnot.constraints(), prolog, epilog, container, binary, workingDir, mpiRunner,
+                mpiPPN, mpiFlags, scaleByCUStr, params, failByEVstr);
         }
 
         /*
@@ -712,19 +642,18 @@ public class CEIParser {
         for (Decaf decafAnnot : m.getAnnotationsByType(Decaf.class)) {
             LOGGER.debug("   * Processing @DECAF annotation");
 
-            String dfScript = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfScript());
-            String dfExecutor = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfExecutor());
-            String dfLib = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfLib());
-            String workingDir = EnvironmentLoader.loadFromEnvironment(decafAnnot.workingDir());
-            String mpiRunner = EnvironmentLoader.loadFromEnvironment(decafAnnot.mpiRunner());
-            String failByEVstr = Boolean.toString(decafAnnot.failByExitValue());
-
-            if (mpiRunner == null || mpiRunner.isEmpty()) {
-                ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
-            }
+            final String dfScript = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfScript());
+            final String dfExecutor = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfExecutor());
+            final String dfLib = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfLib());
             if (dfScript == null || dfScript.isEmpty()) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
+            final String workingDir = EnvironmentLoader.loadFromEnvironment(decafAnnot.workingDir());
+            final String mpiRunner = EnvironmentLoader.loadFromEnvironment(decafAnnot.mpiRunner());
+            if (mpiRunner == null || mpiRunner.isEmpty()) {
+                ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
+            }
+            final String failByEVstr = Boolean.toString(decafAnnot.failByExitValue());
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("DF Script: " + dfScript);
@@ -733,28 +662,11 @@ public class CEIParser {
                 LOGGER.debug("mpiRunner: " + mpiRunner);
             }
 
-            String decafSignature = calleeMethodSignature.toString() + DecafDefinition.SIGNATURE;
+            String decafSignature = ceSignature + DecafDefinition.SIGNATURE;
 
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (decafAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = decafAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register service implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.DECAF.toString(), decafSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, dfScript, dfExecutor, dfLib,
-                    workingDir, mpiRunner, failByEVstr);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
+            addImplementation(runtime, ceSignature, MethodType.DECAF.toString(), decafSignature, processLocalGeneral,
+                globalConstraints, decafAnnot.constraints(), prolog, epilog, container, dfScript, dfExecutor, dfLib,
+                workingDir, mpiRunner, failByEVstr);
         }
 
         /*
@@ -783,31 +695,12 @@ public class CEIParser {
                 LOGGER.debug("appArgs: " + appArgs);
             }
 
-            String compssSignature = calleeMethodSignature.toString() + COMPSsDefinition.SIGNATURE;
+            String compssSignature = ceSignature + COMPSsDefinition.SIGNATURE;
+            addImplementation(runtime, ceSignature, MethodType.COMPSs.toString(), compssSignature, processLocalGeneral,
+                globalConstraints, compssAnnot.constraints(), prolog, epilog, container, runcompss, flags, appName,
+                appArgs, workerInMaster, workingDir, failByEVstr);
 
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (compssAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = compssAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register service implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, runcompss, flags, appName, appArgs,
-                    workerInMaster, workingDir, failByEVstr);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-
-            ced.addImplementation(implDef);
         }
-
         /*
          * MultiNode
          */
@@ -827,30 +720,11 @@ public class CEIParser {
             }
 
             String declaringClass = multiNodeAnnot.declaringClass();
-            String methodSignature = calleeMethodSignature.toString() + declaringClass;
+            String methodSignature = ceSignature + declaringClass;
 
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (multiNodeAnnot.constraints() != null) {
-
-                Constraints implConstraintsAnnot = multiNodeAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register method implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(),
-                    methodSignature, implProcessLocal, implConstraints, prolog, epilog, container, Lang.JAVA.name(),
-                    declaringClass, methodName, multiNodeAnnot.processesPerNode());
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
-
+            addImplementation(runtime, ceSignature, MethodType.MULTI_NODE.toString(), methodSignature,
+                processLocalGeneral, globalConstraints, multiNodeAnnot.constraints(), prolog, epilog, container,
+                Lang.JAVA.name(), declaringClass, methodName, multiNodeAnnot.processesPerNode());
         }
 
         /*
@@ -865,27 +739,11 @@ public class CEIParser {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
 
-            String ompssSignature = calleeMethodSignature.toString() + OmpSsDefinition.SIGNATURE;
+            String ompssSignature = ceSignature + OmpSsDefinition.SIGNATURE;
 
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (ompssAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = ompssAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register service implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, binary, workingDir, failByEVstr);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
+            addImplementation(runtime, ceSignature, MethodType.OMPSS.toString(), ompssSignature, processLocalGeneral,
+                globalConstraints, ompssAnnot.constraints(), prolog, epilog, container, binary, workingDir,
+                failByEVstr);
         }
 
         /*
@@ -900,28 +758,309 @@ public class CEIParser {
                 ErrorManager.error("Empty kernel annotation for method " + m.getName());
             }
 
-            String openclSignature = calleeMethodSignature.toString() + OpenCLDefinition.SIGNATURE;
+            String openclSignature = ceSignature + OpenCLDefinition.SIGNATURE;
 
-            // Load specific method constraints if present
-            MethodResourceDescription implConstraints = defaultConstraints;
-            boolean implProcessLocal = processLocalGeneral;
-            if (openclAnnot.constraints() != null) {
-                Constraints implConstraintsAnnot = openclAnnot.constraints();
-                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
-                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
-                implConstraints.mergeMultiConstraints(defaultConstraints);
-            }
-
-            // Register service implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, container, kernel, workingDir);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-
-            ced.addImplementation(implDef);
+            addImplementation(runtime, ceSignature, MethodType.OPENCL.toString(), openclSignature, processLocalGeneral,
+                globalConstraints, openclAnnot.constraints(), prolog, epilog, container, kernel, workingDir);
         }
     }
+
+    private static void addImplementation(COMPSsRuntime runtime, String ceSignature, String implType,
+        String implSignature, boolean defaultIsLocal, Constraints globalConstraints, Constraints implConstraints,
+        String[] prolog, String[] epilog, String[] container, String... typeArgs) {
+        // Merge constraints into a string representation
+        boolean isLocal = defaultIsLocal;
+
+        HashMap<String, Object> constraintsMap = new HashMap<>();
+        if (globalConstraints != null) {
+            populateConstraintsMap(globalConstraints, constraintsMap);
+        }
+        if (implConstraints != null) {
+            isLocal = isLocal || implConstraints.isLocal();
+            populateConstraintsMap(implConstraints, constraintsMap);
+        }
+
+        StringBuilder constraintsBuilder = new StringBuilder();
+        for (Map.Entry<String, Object> entry : constraintsMap.entrySet()) {
+            constraintsBuilder.append(entry.getKey()).append(":").append(entry.getValue().toString()).append(";");
+        }
+
+        String constraints = constraintsBuilder.toString();
+        // Register core element with string-based constraints
+        runtime.registerCoreElement(ceSignature, implSignature, constraints, implType, Boolean.toString(isLocal),
+            "false", prolog, epilog, container, typeArgs);
+    }
+
+
+    private static class Processor {
+
+        private final Map<String, String> attributes = new HashMap<>();
+
+
+        private String getAttribute(String name) {
+            return attributes.get(name);
+        }
+
+        private void setAttribute(String name, String value) {
+            attributes.put(name, value);
+        }
+
+        private boolean isUndefined() {
+            return attributes.isEmpty();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("{");
+            Iterator<Map.Entry<String, String>> entries = attributes.entrySet().iterator();
+            if (entries.hasNext()) {
+                Map.Entry<String, String> entry = entries.next();
+                sb.append(entry.getKey()).append(":").append(entry.getValue());
+                while (entries.hasNext()) {
+                    entry = entries.next();
+                    sb.append(",").append(entry.getKey()).append(":").append(entry.getValue());
+                }
+            }
+            sb.append("}");
+            return sb.toString();
+        }
+    }
+
+    private static class ProcessorList {
+
+        private final List<Processor> processors = new LinkedList<>();
+
+
+        private void addProcessor(Processor proc, String cus) {
+            if (!proc.isUndefined()) {
+                if (cus == null) {
+                    cus = "1";
+                    proc.setAttribute(COMPUTING_UNITS, "1");
+                }
+            }
+
+            if (cus != null) {
+                try {
+                    if (Integer.parseInt(cus) > 0) {
+                        processors.add(proc);
+                    }
+                } catch (NumberFormatException nfe) {
+                    // Env variable value
+                    processors.add(proc);
+                }
+            }
+        }
+
+        private void mergeList(ProcessorList processors2) {
+            for (Processor processor : processors2.processors) {
+                processors.add(processor);
+            }
+        }
+
+        private int getSize() {
+            return processors.size();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("[");
+            Iterator<Processor> procsIter = processors.iterator();
+            if (procsIter.hasNext()) {
+                Processor proc = procsIter.next();
+                sb.append(proc.toString());
+                while (procsIter.hasNext()) {
+                    proc = procsIter.next();
+                    sb.append(",").append(proc.toString());
+                }
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+    }
+
+
+    private static void appendProcessor(es.bsc.compss.types.annotations.Processor p, ProcessorList processors) {
+        Processor proc = new Processor();
+        String cus = null;
+        if (Constants.UNASSIGNED.compareTo(p.computingUnits()) != 0) {
+            cus = p.computingUnits();
+            proc.setAttribute(COMPUTING_UNITS, p.computingUnits());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.name()) != 0) {
+            proc.setAttribute(PROC_NAME, p.name());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.speed()) != 0) {
+            proc.setAttribute(PROC_SPEED, p.speed());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.architecture()) != 0) {
+            proc.setAttribute(PROC_ARCH, p.architecture());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.type()) != 0) {
+            proc.setAttribute(PROC_TYPE, p.type());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.internalMemorySize()) != 0) {
+            proc.setAttribute(PROC_MEM_SIZE, p.internalMemorySize());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.propertyName()) != 0) {
+            proc.setAttribute(PROC_PROP_NAME, p.propertyName());
+        }
+        if (Constants.UNASSIGNED.compareTo(p.propertyValue()) != 0) {
+            proc.setAttribute(PROC_PROP_VALUE, p.propertyValue());
+        }
+        processors.addProcessor(proc, cus);
+    }
+
+    private static void appendProcessor(Constraints constraints, ProcessorList processors) {
+        Processor defaultProcessor = new Processor();
+        String defaultCUs = null;
+        if (Constants.UNASSIGNED.compareTo(constraints.computingUnits()) != 0) {
+            defaultCUs = constraints.computingUnits();
+            defaultProcessor.setAttribute(COMPUTING_UNITS, constraints.computingUnits());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.processorName()) != 0) {
+            defaultProcessor.setAttribute(PROC_NAME, constraints.processorName());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.processorSpeed()) != 0) {
+            defaultProcessor.setAttribute(PROC_SPEED, constraints.processorSpeed());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.processorArchitecture()) != 0) {
+            defaultProcessor.setAttribute(PROC_ARCH, constraints.processorArchitecture());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.processorInternalMemorySize()) != 0) {
+            defaultProcessor.setAttribute(PROC_MEM_SIZE, constraints.processorInternalMemorySize());
+        }
+
+        if (Constants.UNASSIGNED_PROCESSOR_TYPE.compareTo(constraints.processorType()) != 0) {
+            defaultProcessor.setAttribute(PROC_TYPE, constraints.processorType());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.processorPropertyName()) != 0) {
+            defaultProcessor.setAttribute(PROC_PROP_NAME, constraints.processorPropertyName());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.processorPropertyValue()) != 0) {
+            defaultProcessor.setAttribute(PROC_PROP_VALUE, constraints.processorPropertyValue());
+        }
+
+        processors.addProcessor(defaultProcessor, defaultCUs);
+    }
+
+    private static Processor lookForProcessorType(ProcessorList processors, String type) {
+        for (Processor p : processors.processors) {
+            if (type == null) {
+                if (p.getAttribute(PROC_TYPE) == null) {
+                    return p;
+                }
+            } else {
+                if (type.compareTo(p.getAttribute(PROC_TYPE)) == 0) {
+                    return p;
+                }
+
+            }
+        }
+        return null;
+    }
+
+    private static void mergeProcessorLists(ProcessorList processors, ProcessorList oldProcessors) {
+        for (Processor newProc : processors.processors) {
+            Processor oldProc = lookForProcessorType(oldProcessors, newProc.getAttribute(PROC_TYPE));
+            if (oldProc != null) {
+                oldProc.attributes.putAll(newProc.attributes);
+            } else {
+                oldProcessors.processors.add(newProc);
+            }
+        }
+    }
+
+    private static void populateConstraintsMap(Constraints constraints, Map<String, Object> map) {
+        ProcessorList processors = new ProcessorList();
+        for (es.bsc.compss.types.annotations.Processor p : constraints.processors()) {
+            appendProcessor(p, processors);
+        }
+        appendProcessor(constraints, processors);
+
+        ProcessorList oldProcessors = (ProcessorList) map.get(PROCESSORS);
+        if (oldProcessors != null && oldProcessors.getSize() > 0) {
+            mergeProcessorLists(processors, oldProcessors);
+        } else {
+            map.put(PROCESSORS, processors);
+        }
+
+        // Memory
+        if (Constants.UNASSIGNED.compareTo(constraints.memorySize()) != 0) {
+            map.put(MEM_SIZE, constraints.memorySize());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.memoryType()) != 0) {
+            map.put(MEM_TYPE, constraints.memoryType());
+        }
+
+        // Storage
+        if (Constants.UNASSIGNED.compareTo(constraints.storageType()) != 0) {
+            map.put(STORAGE_TYPE, constraints.storageType());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.storageSize()) != 0) {
+            map.put(STORAGE_SIZE, constraints.storageSize());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.storageBW()) != 0) {
+            map.put(STORAGE_BW, constraints.storageBW());
+        }
+
+        // OS
+        if (Constants.UNASSIGNED.compareTo(constraints.operatingSystemType()) != 0) {
+            map.put(OS_TYPE, constraints.operatingSystemType());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.operatingSystemDistribution()) != 0) {
+            map.put(OS_DISTRIBUTION, constraints.operatingSystemDistribution());
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.operatingSystemVersion()) != 0) {
+            map.put(OS_VERSION, constraints.operatingSystemVersion());
+        }
+
+        // Software
+        if (Constants.UNASSIGNED.compareTo(constraints.appSoftware()) != 0) {
+            String oldApps = (String) map.get(APP_SOFTWARE);
+            if (oldApps != null) {
+                Collection<String> software = new HashSet<>();
+                String[] constApps = oldApps.split(",");
+                Collections.addAll(software, constApps);
+                constApps = constraints.appSoftware().split(",");
+                Collections.addAll(software, constApps);
+                String joinedApps = String.join(",", software);
+                map.put(APP_SOFTWARE, joinedApps);
+            } else {
+                map.put(APP_SOFTWARE, constraints.appSoftware());
+            }
+        }
+
+        // HostQueues
+        if (Constants.UNASSIGNED.compareTo(constraints.hostQueues()) != 0) {
+            String oldQueues = (String) map.get(HOST_QUEUES);
+            if (oldQueues != null) {
+                Collection<String> queues = new HashSet<>();
+                String[] constQueues = oldQueues.split(",");
+                Collections.addAll(queues, constQueues);
+                constQueues = constraints.hostQueues().split(",");
+                Collections.addAll(queues, constQueues);
+                String joinedApps = String.join(",", queues);
+                map.put(HOST_QUEUES, joinedApps);
+            } else {
+                map.put(HOST_QUEUES, constraints.hostQueues());
+            }
+        }
+
+        if (Constants.UNASSIGNED.compareTo(constraints.wallClockLimit()) != 0) {
+            map.put(WALL_CLOCK_LIMIT, constraints.wallClockLimit());
+        }
+
+    }
+
 }

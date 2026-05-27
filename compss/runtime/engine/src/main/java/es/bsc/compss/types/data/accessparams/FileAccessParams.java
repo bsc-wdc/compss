@@ -18,7 +18,6 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.DataVersion;
@@ -43,12 +42,13 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
      * @param loc File location.
      * @return new FileAccessParams instance
      */
-    public static final FileAccessParams constructFAP(Application app, Direction dir, DataLocation loc) {
+    public static final FileAccessParams constructFAP(Application app,
+        es.bsc.compss.semantics.data.access.AccessMode dir, DataLocation loc) {
         FileData fd = new FileData(loc);
         return new FileAccessParams(app, fd, dir);
     }
 
-    protected FileAccessParams(Application app, D data, Direction dir) {
+    protected FileAccessParams(Application app, D data, es.bsc.compss.semantics.data.access.AccessMode dir) {
         super(app, data, dir);
     }
 
@@ -74,7 +74,7 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
 
     @Override
     protected void registerValueForVersion(DataVersion dv) {
-        if (mode != AccessMode.W) {
+        if (mode.isRead()) {
             EngineDataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerLocation(renaming, this.getLocation());

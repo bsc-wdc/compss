@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -48,7 +48,7 @@ public class NIOTask implements Externalizable, Invocation {
     private JobHistory history;
     private int transferGroupId;
     private int numReturns;
-    private OnFailure onFailure;
+    private FailurePolicy failurePolicy;
     private long timeOut;
 
     private List<Integer> predecessors;
@@ -84,7 +84,7 @@ public class NIOTask implements Externalizable, Invocation {
      */
     public NIOTask(boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource, boolean hasTarget,
         int numReturns, LinkedList<NIOParam> params, List<String> slaveWorkersNodeNames, int taskId, int jobId,
-        JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut, List<Integer> predecessors,
+        JobHistory hist, int transferGroupId, FailurePolicy failurePolicy, long timeOut, List<Integer> predecessors,
         Integer numSuccessors) {
 
         this.workerDebug = workerDebug;
@@ -92,7 +92,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.parallelismSource = parallelismSource;
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
-        this.onFailure = onFailure;
+        this.failurePolicy = failurePolicy;
         this.timeOut = timeOut;
         this.predecessors = predecessors;
         this.numSuccessors = numSuccessors;
@@ -141,7 +141,7 @@ public class NIOTask implements Externalizable, Invocation {
     public NIOTask(boolean workerDebug, AbstractMethodImplementation impl, String parallelismSource,
         LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
         List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
-        OnFailure onFailure, long timeOut) {
+        FailurePolicy failurePolicy, long timeOut) {
 
         this.workerDebug = workerDebug;
         this.impl = impl;
@@ -150,7 +150,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.arguments = arguments;
         this.target = target;
         this.results = results;
-        this.onFailure = onFailure;
+        this.failurePolicy = failurePolicy;
         this.timeOut = timeOut;
 
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
@@ -245,13 +245,13 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return this.onFailure;
+    public FailurePolicy getOnFailure() {
+        return this.failurePolicy;
     }
 
     @Override
     public boolean producesEmptyResultsOnFailure() {
-        return this.onFailure != OnFailure.RETRY && this.onFailure != OnFailure.FAIL;
+        return this.failurePolicy != FailurePolicy.RETRY && this.failurePolicy != FailurePolicy.FAIL;
     }
 
     @Override
@@ -318,7 +318,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.jobId = in.readInt();
         this.history = (JobHistory) in.readObject();
         this.transferGroupId = in.readInt();
-        this.onFailure = (OnFailure) in.readObject();
+        this.failurePolicy = (FailurePolicy) in.readObject();
         this.timeOut = in.readLong();
         this.predecessors = (List<Integer>) in.readObject();
         this.numSuccessors = (Integer) in.readObject();
@@ -342,7 +342,7 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeInt(this.jobId);
         out.writeObject(this.history);
         out.writeInt(this.transferGroupId);
-        out.writeObject(this.onFailure);
+        out.writeObject(this.failurePolicy);
         out.writeLong(this.timeOut);
         out.writeObject(this.predecessors);
         out.writeObject(this.numSuccessors);

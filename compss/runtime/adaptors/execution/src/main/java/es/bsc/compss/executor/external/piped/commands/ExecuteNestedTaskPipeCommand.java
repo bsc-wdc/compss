@@ -36,7 +36,7 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         // IS_REDUCE REDUCE_CHUNK IS_REPLICATED IS_DISTRIBUTED HAS_TARGET NUM_RETURNS
         // PARAMETER_COUNT PARAMENTERS
         this.signature = command[1];
-        this.onFailure = command[2];
+        this.onFailure = Byte.parseByte(command[2]);
         this.timeout = Integer.parseInt(command[3]);
         this.prioritary = Boolean.parseBoolean(command[4]);
         this.numNodes = Integer.parseInt(command[5]);
@@ -53,7 +53,6 @@ public class ExecuteNestedTaskPipeCommand extends ExecuteNestedTaskExternalComma
         }
         String params = cmd.substring(taskCharNum + 13); // 14 cause of the spaces
         this.parameters = processParameters(params);
-
     }
 
     @Override

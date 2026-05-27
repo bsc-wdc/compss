@@ -16,12 +16,10 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-import es.bsc.compss.types.annotations.parameter.Direction;
-
 public class OpenFileExternalCommand implements ExternalCommand {
 
     protected String file;
-    protected Direction direction;
+    protected byte accessMode;
 
 
     @Override
@@ -31,15 +29,15 @@ public class OpenFileExternalCommand implements ExternalCommand {
 
     @Override
     public String getAsString() {
-        return CommandType.OPEN_FILE.name() + " " + file + " " + direction;
+        return CommandType.OPEN_FILE.name() + " " + file + " " + accessMode;
     }
 
     public String getFile() {
         return file;
     }
 
-    public Direction getDirection() {
-        return direction;
+    public byte getAccessMode() {
+        return accessMode;
     }
 
 }

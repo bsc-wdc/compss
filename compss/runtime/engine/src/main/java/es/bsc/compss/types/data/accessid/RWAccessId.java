@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.data.accessid;
 
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId.WritingDataAccessId;
@@ -57,8 +58,8 @@ public class RWAccessId extends EngineDataAccessId implements ReadingDataAccessI
     }
 
     @Override
-    public Direction getDirection() {
-        return Direction.RW;
+    public AccessMode getAccessMode() {
+        return AccessMode.UPDATE;
     }
 
     @Override

@@ -73,53 +73,7 @@ jmethodID mid_wf_deleteBindingObject;
 jclass clsOnFailure;
 jmethodID midOnFailureCon;
 
-typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.DataType class */
-    jobject CHAR_T;
-    jobject BOOLEAN_T;
-    jobject SHORT_T;
-    jobject INT_T;
-    jobject LONG_T;
-    jobject FLOAT_T;
-    jobject DOUBLE_T;
-    jobject FILE_T;
-    jobject DIRECTORY_T;
-    jobject EXTERNAL_STREAM_T;
-    jobject EXTERNAL_PSCO_T;
-    jobject STRING_T;
-    jobject STRING_64_T;
-    jobject BINDING_OBJECT_T;
-    jobject COLLECTION_T;
-    jobject DICT_COLLECTION_T;
-    jobject NULL_T;
-}ParamType;
-ParamType par_type;
-
-typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.Direction class */
-    jobject IN;
-    jobject IN_DELETE;
-    jobject OUT;
-    jobject INOUT;
-    jobject CONCURRENT;
-    jobject COMMUTATIVE;
-} ParamDirections;
-ParamDirections par_dir;
-
-typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
-    jobject STDIN;
-    jobject STDOUT;
-    jobject STDERR;
-    jobject UNSPECIFIED;
-} StdStream;
-StdStream std_stream;
-
-typedef struct {                        /* Instances of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
-    jobject RETRY;
-    jobject FAIL;
-    jobject IGNORE;
-    jobject CANCEL_SUCCESSORS;
-} OnFailure;
-OnFailure onFailure;
-
+jobject BYTE_CACHE[256];
 
 jstring jobjParPrefixEMPTY;         /* Instance of the es.bsc.compss.types.annotations.Constants.PREFIX_EMPTY */
 
@@ -235,6 +189,27 @@ void init_basic_jni_types(ThreadStatus* status) {
     debug_printf ("[BINDING-COMMONS] - @Init JNI Types DONE\n");
 }
 
+void init_byte_object_cache(ThreadStatus* status) {
+    JNIEnv* env = status->localJniEnv;
+
+    jclass clsByte = NULL;
+    clsByte = env->FindClass("java/lang/Byte");
+    check_exception(status, "Cannot load Byte class");
+
+    jmethodID midByteCon = NULL;
+    midByteCon = env->GetStaticMethodID(clsByte, "valueOf", "(B)Ljava/lang/Byte;");
+    check_exception(status, "Cannot get Byte constructor");
+
+
+    for (int i = 0; i < 256; i++) {
+        jbyte v = (jbyte)i;
+        jobject obj = env->CallStaticObjectMethod(clsByte, midByteCon, v);
+        check_exception(status, "Cannot create Byte object");
+        BYTE_CACHE[i] = env->NewGlobalRef(obj);
+        env->DeleteLocalRef(obj);
+    }
+}
+
 jobject init_param_field(ThreadStatus* status, jclass clsParField, jmethodID midParFieldCon, const char* field, const char* value) {
     char err_msg[256];
 
@@ -248,102 +223,6 @@ jobject init_param_field(ThreadStatus* status, jclass clsParField, jmethodID mid
     return jobjParType;
 }
 
-
-void init_param_types(ThreadStatus* status){
-
-    jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
-    clsParType = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
-    check_exception(status, "Cannot load DataType class");
-
-    jmethodID midParTypeCon = NULL; /* ID of the es.bsc.compss.api.COMPSsRuntime$DataType class constructor method */
-    midParTypeCon = status->localJniEnv->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/DataType;");
-    check_exception(status, "Cannot get DataType constructor");
-
-    par_type.CHAR_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "CHAR_T");
-    par_type.BOOLEAN_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "BOOLEAN_T");
-    par_type.SHORT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "SHORT_T");
-    par_type.INT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "INT_T");
-    par_type.LONG_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "LONG_T");
-    par_type.FLOAT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "FLOAT_T");
-    par_type.DOUBLE_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "DOUBLE_T");
-    par_type.FILE_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "FILE_T");
-    par_type.DIRECTORY_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "DIRECTORY_T");
-    par_type.EXTERNAL_STREAM_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "EXTERNAL_STREAM_T");
-    par_type.EXTERNAL_PSCO_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "EXTERNAL_PSCO_T");
-    par_type.STRING_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "STRING_T");
-    par_type.STRING_64_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "STRING_64_T");
-    par_type.BINDING_OBJECT_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "BINDING_OBJECT_T");
-    par_type.COLLECTION_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "COLLECTION_T");
-    par_type.DICT_COLLECTION_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "DICT_COLLECTION_T");
-    par_type.NULL_T = init_param_field(status, clsParType, midParTypeCon, "DataType", "NULL_T");
-}
-
-void init_param_directions(ThreadStatus* status) {
-
-    jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
-    jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
-
-    clsParDir = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/Direction");
-    check_exception(status, "Cannot find Direction Class");
-    midParDirCon = status->localJniEnv->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Direction;");
-    check_exception(status, "Cannot find Direction constructor");
-
-    par_dir.IN = init_param_field(status, clsParDir, midParDirCon, "Direction", "IN");
-    par_dir.IN_DELETE = init_param_field(status, clsParDir, midParDirCon, "Direction", "IN_DELETE");
-    par_dir.OUT = init_param_field(status, clsParDir, midParDirCon, "Direction", "OUT");
-    par_dir.INOUT = init_param_field(status, clsParDir, midParDirCon, "Direction", "INOUT");
-    par_dir.CONCURRENT = init_param_field(status, clsParDir, midParDirCon, "Direction", "CONCURRENT");
-    par_dir.COMMUTATIVE = init_param_field(status, clsParDir, midParDirCon, "Direction", "COMMUTATIVE");
-}
-
-void init_std_streams(ThreadStatus* status) {
-    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
-    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
-
-    clsParStream = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/StdIOStream");
-    check_exception(status, "Cannot find StdIOStream class");
-    midParStreamCon = status->localJniEnv->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
-    check_exception(status, "Cannot find StdIOStream constructor");
-
-    std_stream.STDIN = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "STDIN");
-    std_stream.STDOUT = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "STDOUT");
-    std_stream.STDERR = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "STDERR");
-    std_stream.UNSPECIFIED = init_param_field(status, clsParStream, midParStreamCon, "StdIOStream", "UNSPECIFIED");   
-}
-
-
-void init_on_failure(ThreadStatus* status) {
-    jclass clsParFailure;        /* es.bsc.compss.types.annotations.parameter.OnFailure class */
-    jmethodID midParFailureCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
-
-    clsParFailure = status->localJniEnv->FindClass("es/bsc/compss/types/annotations/parameter/OnFailure");
-    check_exception(status, "Cannot find OnFailure class");
-    midParFailureCon = status->localJniEnv->GetStaticMethodID(clsParFailure, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/OnFailure;");
-    check_exception(status, "Cannot find OnFailure constructor");
-
-    onFailure.RETRY = init_param_field(status, clsParFailure, midParFailureCon, "OnFailure", "RETRY");
-    onFailure.FAIL = init_param_field(status, clsParFailure, midParFailureCon, "OnFailure", "FAIL");
-    onFailure.IGNORE = init_param_field(status, clsParFailure, midParFailureCon, "OnFailure", "IGNORE");
-    onFailure.CANCEL_SUCCESSORS = init_param_field(status, clsParFailure, midParFailureCon, "OnFailure", "CANCEL_SUCCESSORS");   
-}
-
-jobject getOnFailure(const char* value) {
-
-    if (value == NULL || strcasecmp(value, "RETRY") == 0)
-        return onFailure.RETRY;
-
-    if (strcasecmp(value, "FAIL") == 0)
-        return onFailure.FAIL;
-
-    if (strcasecmp(value, "IGNORE") == 0)
-        return onFailure.IGNORE;
-
-    if (strcasecmp(value, "CANCEL_SUCCESSORS") == 0)
-        return onFailure.CANCEL_SUCCESSORS;
-
-    return onFailure.RETRY;  // safe default
-}
-
 /**
  * Initialises the COMPSs related types.
  */
@@ -353,7 +232,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // JNI API method calls
     debug_printf ("[BINDING-COMMONS] - @Init JNI Methods\n");
 
-    midRegWf = status->localJniEnv->GetMethodID(clsITimpl, "registerWorkflow", "(Ljava/lang/String;Les/bsc/compss/api/ApplicationRunner;)Les/bsc/compss/api/Workflow;");
+    midRegWf = status->localJniEnv->GetMethodID(clsITimpl, "registerWorkflow", "(Ljava/lang/String;Les/bsc/compss/api/WorkflowListener;)Les/bsc/compss/api/Workflow;");
     check_exception(status, "Cannot find registerWorkflow method");
 
     // getApplicationDirectory method
@@ -381,27 +260,6 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find OnFailure Class");
     midOnFailureCon = status->localJniEnv->GetStaticMethodID(clsOnFailure, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/OnFailure;");
     check_exception(status, "Cannot find OnFailure constructor");
-
-    // Task On Failure Behavior
-    debug_printf ("[BINDING-COMMONS] - @Init JNI OnFailure Types\n");
-    init_on_failure(status);
-    debug_printf ("[BINDING-COMMONS] - @Init JNI OnFailure Types\n");
-
-    // Parameter directions
-    debug_printf ("[BINDING-COMMONS] - @Init JNI Parameter Types\n");
-    init_param_types(status);
-    debug_printf ("[BINDING-COMMONS] - @Init JNI Parameter Types DONE\n");
-
-    // Parameter directions
-    debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types\n");
-    init_param_directions(status);
-    debug_printf ("[BINDING-COMMONS] - @Init JNI Direction Types DONE\n");
-
-
-    // Parameter streams
-    debug_printf ("[BINDING-COMMONS] - @Init JNI Stream Types\n");
-    init_std_streams(status);
-    debug_printf ("[BINDING-COMMONS] - @Init JNI Stream Types\n");
 
     // Parameter prefix empty
     debug_printf ("[BINDING-COMMONS] - @Init JNI Parameter Prefix\n");
@@ -455,7 +313,6 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     void *parWeight	    =           params[pw];
     int parKeepRename   = *(int*)   params[pkr];
 
-    jobject jobjParType = NULL;
     jobject jobjParVal = NULL;
 
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DATA_TYPE: %d\n", (enum datatype) parType);
@@ -463,104 +320,87 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
     switch ( (enum datatype) parType) {
         case char_dt:
         case wchar_dt:
-            jobjParType = par_type.CHAR_T;
             jobjParVal = env->NewObject(clsCharacter, midCharCon, (jchar)*(char*)parVal);
             check_exception(status, "Cannot instantiate new char object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Char: %c\n", *(char*)parVal);
             break;
         case boolean_dt:
-            jobjParType = par_type.BOOLEAN_T;
             jobjParVal = env->NewObject(clsBoolean, midBoolCon, (jboolean)*(int*)parVal);
             check_exception(status, "Cannot instantiate new boolean object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Bool: %d\n", *(int*)parVal);
             break;
         case short_dt:
-            jobjParType = par_type.SHORT_T;
             jobjParVal = env->NewObject(clsShort, midShortCon, (jshort)*(short*)parVal);
             check_exception(status, "Cannot instantiate new short object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Short: %hu\n", *(short*)parVal);
             break;
         case int_dt:
-            jobjParType = par_type.INT_T;
             jobjParVal = env->NewObject(clsInteger, midIntCon, (jint)*(int*)parVal);
             check_exception(status, "Cannot instantiate new int object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Int: %d\n", *(int*)parVal);
             break;
         case long_dt:
-            jobjParType = par_type.LONG_T;
             jobjParVal = env->NewObject(clsLong, midLongCon, (jlong)*(long*)parVal);
             check_exception(status, "Cannot instantiate new long object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Long: %ld\n", *(long*)parVal);
             break;
         case longlong_dt:
         case float_dt:
-            jobjParType = par_type.FLOAT_T;
             jobjParVal = env->NewObject(clsFloat, midFloatCon, (jfloat)*(float*)parVal);
             check_exception(status, "Cannot instantiate new float object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Float: %f\n", *(float*)parVal);
             break;
         case double_dt:
-            jobjParType = par_type.DOUBLE_T;
             jobjParVal = env->NewObject(clsDouble, midDoubleCon, (jdouble)*(double*)parVal);
             check_exception(status, "Cannot instantiate new double object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Double: %f\n", *(double*)parVal);
             break;
         case file_dt:
-            jobjParType = par_type.FILE_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for file)");
             debug_printf ("[BINDING-COMMONS] - @process_param - File: %s\n", *(char **)parVal);
             break;
         case directory_dt:
-            jobjParType = par_type.DIRECTORY_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for directory)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Directory: %s\n", *(char **)parVal);
             break;
         case external_stream_dt:
-            jobjParType = par_type.EXTERNAL_STREAM_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for stream)");
             debug_printf ("[BINDING-COMMONS] - @process_param - External Stream: %s\n", *(char **)parVal);
             break;
         case external_psco_dt:
-            jobjParType = par_type.EXTERNAL_PSCO_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for psco)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Persistent: %s\n", *(char **)parVal);
             break;
         case string_dt:
-            jobjParType = par_type.STRING_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object");
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
             break;
         case string_64_dt:
-            jobjParType = par_type.STRING_64_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object");
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
             break;
         case binding_object_dt:
-            jobjParType = par_type.BINDING_OBJECT_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for binding object)");
             debug_printf ("[BINDING-COMMONS] - @process_param - BindingObject: %s\n", *(char **)parVal);
             break;
         case collection_dt:
-            jobjParType = par_type.COLLECTION_T;
             jobjParVal = env->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for collection)");
             debug_printf ("[BINDING-COMMONS] - @process_param - Collection: %s\n", *(char **)parVal);
             break;
         case dict_collection_dt:
-            jobjParType = par_type.DICT_COLLECTION_T;
             jobjParVal = env-> NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for dictionary collection)");
             debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Dictionary Collection: %s\n", *(char **)parVal);
             break;
         case null_dt:
-            jobjParType = par_type.NULL_T;
             jobjParVal = env-> NewStringUTF("NULL");
             check_exception(status, "Cannot instantiate new null object");
             debug_printf ("[BINDING-COMMONS] - @process_param - Null: NULL\n");
@@ -574,50 +414,16 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
 
     // Sets the parameter value and type
     env->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
-    env->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
+    env->SetObjectArrayElement(jobjOBJArr, pt, BYTE_CACHE[parType]);
 
     // Add param direction
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM DIRECTION: %d\n", (enum direction) parDirect);
-    switch ((enum direction) parDirect) {
-        case in_dir:
-            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN);
-            break;
-        case out_dir:
-            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.OUT);
-            break;
-        case inout_dir:
-            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.INOUT);
-            break;
-        case concurrent_dir:
-            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.CONCURRENT);
-            break;
-        case commutative_dir:
-            env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.COMMUTATIVE);
-            break;
-        case in_delete_dir:
-        	env->SetObjectArrayElement(jobjOBJArr, pd, par_dir.IN_DELETE);
-        	break;
-        default:
-            break;
-    }
+    env->SetObjectArrayElement(jobjOBJArr, pd, BYTE_CACHE[parDirect]);
 
     // Add param stream
     debug_printf ("[BINDING-COMMONS] - @process_param - ENUM STD IO STREAM: %d\n", (enum io_stream) parIOStream);
-    switch ((enum io_stream) parIOStream) {
-        case STD_IN:
-            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDIN);
-            break;
-        case STD_OUT:
-            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDOUT);
-            break;
-        case STD_ERR:
-            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.STDERR);
-            break;
-        default:
-            env->SetObjectArrayElement(jobjOBJArr, ps, std_stream.UNSPECIFIED);
-            break;
-    }
-
+    env->SetObjectArrayElement(jobjOBJArr, ps, BYTE_CACHE[parIOStream]);
+    
     // Add param prefix
     debug_printf ("[BINDING-COMMONS] - @process_param - PREFIX: %s\n", *(char**)parPrefix);
     jstring jobjParPrefix = env->NewStringUTF(*(char**)parPrefix);
@@ -760,7 +566,7 @@ void JNI_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
 static void JNI_WF_executeTaskCommon(
         CompssWorkflow* self,
         const char* signature,
-        char* onFailure,
+        int onFailure,
         int timeout,
         int priority,
         int numNodes,
@@ -787,7 +593,7 @@ static void JNI_WF_executeTaskCommon(
 
     jstring jSignature  = env->NewStringUTF(signature ? signature : "");
 
-    jobject jOnFailure = getOnFailure(onFailure);
+    jbyte jOnFailure = (jbyte) onFailure;
 
     jobject numReturnsInteger = env->NewObject(clsInteger, midIntCon, numReturns);
     check_exception(status, "Exception converting numReturns to integer");
@@ -828,7 +634,7 @@ static void JNI_WF_executeTaskCommon(
     debug_printf("[BINDING-COMMONS] - @JNI_WF_executeTask - Task processed.\n");
 }
 
-void JNI_WF_executeTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+void JNI_WF_executeTask(CompssWorkflow* self, char* signature, int onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
     debug_printf ("[BINDING-COMMONS] - @JNI_ExecuteTask - Processing task execution in bindings-common. \n");
     JNI_WF_executeTaskCommon(
@@ -850,7 +656,7 @@ void JNI_WF_executeTask(CompssWorkflow* self, char* signature, char* onFailure, 
 }
 
 
-void JNI_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
+void JNI_WF_executeHttpTask(CompssWorkflow* self, char* signature, int onFailure, int timeout, int priority, int numNodes, int reduce,
                          int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
     JNIWorkflow* wf = (JNIWorkflow*) self;
     debug_printf ("[BINDING-COMMONS] - @JNI_WF_executeHttpTask - HTTP task execution in bindings-common. \n");
@@ -1053,34 +859,16 @@ void JNI_WF_openFile(CompssWorkflow* self, char* fileName, int mode, char** buf)
     ThreadStatus* status = access_request();
     JNIEnv* env = status->localJniEnv;
 
-    jobject direction = NULL;
-    switch ((enum direction) mode) {
-        case in_dir:
-            direction = par_dir.IN;
-            break;
-        case out_dir:
-            direction = par_dir.OUT;
-            break;
-        case inout_dir:
-            direction = par_dir.INOUT;
-            break;
-        case concurrent_dir:
-            direction = par_dir.CONCURRENT;
-            break;
-        case commutative_dir:
-            direction = par_dir.COMMUTATIVE;
-            break;
-        default:
-            break;
-    }
-    if (direction != NULL){
+    jbyte directionByte = (jbyte) mode;
+
+    if (mode != null_dir){
         // Parse fileName
         jstring filename_str = env->NewStringUTF(fileName);
         check_exception(status, "Error getting String UTF");
         jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow,
                                                         mid_wf_openFile,
                                                         filename_str,
-                                                        direction);
+                                                        directionByte);
         check_exception(status, "Exception calling runtime openFile");
         env->DeleteLocalRef(filename_str);
 
@@ -1136,34 +924,15 @@ void JNI_WF_closeFile(CompssWorkflow* self, char* fileName, int mode) {
     ThreadStatus* status = access_request();
     JNIEnv* env = status->localJniEnv;
 
-    jobject direction = NULL;
-    switch ((enum direction) mode) {
-        case in_dir:
-            direction = par_dir.IN;
-            break;
-        case out_dir:
-            direction = par_dir.OUT;
-            break;
-        case inout_dir:
-            direction = par_dir.INOUT;
-            break;
-        case concurrent_dir:
-            direction = par_dir.CONCURRENT;
-            break;
-        case commutative_dir:
-            direction = par_dir.COMMUTATIVE;
-            break;
-        default:
-            break;
-    }
-    if (direction != NULL){
+    jbyte directionByte = (jbyte) mode;
+    if (mode != null_dir){
         // Parse fileName
         jstring filename_str = env->NewStringUTF(fileName);
         check_exception(status, "Error getting String UTF");
         jstring jstr = (jstring)env->CallObjectMethod(wf->jWorkflow,
                                                         mid_wf_closeFile,
                                                         filename_str,
-                                                        direction);
+                                                        directionByte);
         check_exception(status, "Exception calling runtime closeFile");
         env->DeleteLocalRef(filename_str);
     }
@@ -1257,7 +1026,7 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         mid_wf_closeTaskGroup = env->GetMethodID(clsWorkflow, "closeTaskGroup", "(Ljava/lang/String;)V");
         check_exception(status, "Cannot find the Workflow.closeTaskGroup method");
 
-        mid_wf_execute = env->GetMethodID(clsWorkflow, "executeTask", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/OnFailure;IZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+        mid_wf_execute = env->GetMethodID(clsWorkflow, "executeTask", "(Ljava/lang/String;BIZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
         check_exception(status, "Cannot find executeTask");
 
         mid_wf_cancelTaskGroup = env->GetMethodID(clsWorkflow, "cancelTaskGroup", "(Ljava/lang/String;)V");
@@ -1284,11 +1053,11 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find Workflow.deleteBindingObject");
         mid_wf_isFileAccessed = env->GetMethodID(clsWorkflow,  "isFileAccessed", "(Ljava/lang/String;)Z");
         check_exception(status, "Cannot find Workflow.isFileAccessed");
-        mid_wf_openFile = env->GetMethodID(clsWorkflow, "openFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)Ljava/lang/String;");
+        mid_wf_openFile = env->GetMethodID(clsWorkflow, "openFile", "(Ljava/lang/String;B)Ljava/lang/String;");
         check_exception(status, "Cannot find Workflow.openFile");
         mid_wf_getFile = env->GetMethodID(clsWorkflow, "getFile", "(Ljava/lang/String;)V");
         check_exception(status, "Cannot find Workflow.getFile");
-        mid_wf_closeFile = env->GetMethodID(clsWorkflow, "closeFile", "(Ljava/lang/String;Les/bsc/compss/types/annotations/parameter/Direction;)V");
+        mid_wf_closeFile = env->GetMethodID(clsWorkflow, "closeFile", "(Ljava/lang/String;B)V");
         check_exception(status, "Cannot find Workflow.closeFile");
         mid_wf_deleteFile = env->GetMethodID(clsWorkflow, "deleteFile", "(Ljava/lang/String;ZZ)Z");
         check_exception(status, "Cannot find Workflow.deleteFile");
@@ -1398,6 +1167,9 @@ void JNI_On() {
         print_error("[BINDING-COMMONS] - @JNI_On - Unable to find the start method\n");
         exit(1);
     }
+
+    // Init Byte object cache
+    init_byte_object_cache(status);
 
     // Init basic JNI types
     init_basic_jni_types(status);

@@ -14,11 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.editing;
 
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
+import es.bsc.compss.loader.workflow.APIHandler;
+import es.bsc.compss.loader.workflow.data.COMPSsFile;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import java.io.File;
@@ -448,8 +450,7 @@ public class ITAppEditor extends ExprEditor {
                             if (!className.equals(PrintStream.class.getName())
                                 && !className.equals(StringBuilder.class.getName())) {
                                 String taskFile = CallGenerator.isTaskFile(parId);
-                                String apiOpenFile =
-                                    CallGenerator.openFile(this.itWfVar, parId, DATA_DIRECTION + ".INOUT");
+                                String apiOpenFile = CallGenerator.openFile(this.itWfVar, parId);
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ");
                             }
                             // If the call is inside a PrintStream or StringBuilder, only synchronize objects files

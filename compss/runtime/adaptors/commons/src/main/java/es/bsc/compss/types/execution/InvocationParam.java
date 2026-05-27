@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.types.execution;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import java.util.List;
 
 public interface InvocationParam {

@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.types.resources;
 
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.components.Processor;
@@ -32,7 +30,6 @@ import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 
 public class MethodResourceDescription extends WorkerResourceDescription {
 
@@ -55,6 +52,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     private static final String PROC_MEM_SIZE = "processorinternalmemorysize";
     private static final String PROC_PROP_NAME = "processorpropertyname";
     private static final String PROC_PROP_VALUE = "processorpropertyvalue";
+
     private static final String MEM_SIZE = "memorysize";
     private static final String MEM_TYPE = "memorytype";
     private static final String STORAGE_SIZE = "storagesize";
@@ -131,278 +129,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * Creates a MethodResourceDescription representing a set of constraints. The constraints are validated and loaded
-     * through this process. If any error occurs an exception is raised to the user through the ErrorManager.
-     *
-     * @param constraints Java constraints.
-     */
-    public MethodResourceDescription(Constraints constraints) {
-        super();
-
-        /*
-         * No constraints are defined
-         */
-        if (constraints == null) {
-            // We leave the default values and add a single CU
-            Processor p = new Processor();
-            p.setComputingUnits(ONE_INT);
-            this.addProcessor(p);
-
-            return;
-        }
-
-        /*
-         * Otherwise we parse each possible constraint
-         */
-        // Parse processors - When coming from Constraints only one processor is available
-        es.bsc.compss.types.annotations.Processor[] processorsConstraints = constraints.processors();
-        if (processorsConstraints != null && processorsConstraints.length > 0) {
-            for (es.bsc.compss.types.annotations.Processor pC : processorsConstraints) {
-                Processor p = getProcessorFromProcessorsConstraint(pC);
-                if (p != null) {
-                    if (p.hasUnassignedCUs()) {
-                        p.setComputingUnits(ONE_INT);
-
-                    }
-                    if (p.getComputingUnits() > 0) {
-                        this.addProcessor(p);
-                    }
-                }
-            }
-        }
-
-        if (containsProcessorsProperties(constraints)) {
-            Processor p = new Processor();
-            String procName = constraints.processorName();
-            procName = EnvironmentLoader.loadFromEnvironment(procName);
-            if (procName != null && !procName.equals(UNASSIGNED_STR)) {
-                p.setName(procName);
-            }
-
-            String cuSTR = constraints.computingUnits();
-            cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
-
-            // When loading from constraints, always use at least one computing unit
-            int cu =
-                (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
-            p.setComputingUnits(cu);
-
-            String speedSTR = constraints.processorSpeed();
-            speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
-            float speed =
-                (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
-                    : UNASSIGNED_FLOAT;
-            if (speed != UNASSIGNED_FLOAT) {
-                p.setSpeed(speed);
-            }
-
-            String arch = constraints.processorArchitecture();
-            arch = EnvironmentLoader.loadFromEnvironment(arch);
-            if (arch != null && !arch.equals(UNASSIGNED_STR)) {
-                p.setArchitecture(arch);
-            }
-
-            String type = constraints.processorType();
-            type = EnvironmentLoader.loadFromEnvironment(type);
-            if (type != null) {
-                p.setType(type);
-            }
-
-            String internalMemorySTR = constraints.processorInternalMemorySize();
-            internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
-            float internalMemory =
-                (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
-                    ? Float.valueOf(internalMemorySTR)
-                    : UNASSIGNED_FLOAT;
-            if (internalMemory != UNASSIGNED_FLOAT) {
-                p.setInternalMemory(internalMemory);
-            }
-
-            String propName = constraints.processorPropertyName();
-            propName = EnvironmentLoader.loadFromEnvironment(propName);
-            if (propName != null && !propName.equals(UNASSIGNED_STR)) {
-                p.setPropName(propName);
-            }
-
-            String propvalue = constraints.processorPropertyValue();
-            propvalue = EnvironmentLoader.loadFromEnvironment(propvalue);
-            if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
-                p.setPropValue(propvalue);
-            }
-            if (p.hasUnassignedCUs()) {
-                p.setComputingUnits(ONE_INT);
-            }
-            if (cu > 0) {
-                this.addProcessor(p);
-            }
-        }
-
-        if (this.totalCPUs == 0) {
-            Processor p = new Processor();
-            p.setComputingUnits(ONE_INT);
-            this.addProcessor(p);
-        }
-
-        // Parse software
-        String software = constraints.appSoftware();
-        software = EnvironmentLoader.loadFromEnvironment(software);
-        if (software != null && !software.equals(UNASSIGNED_STR)) {
-            for (String value : software.split(",")) {
-                this.appSoftware.add(value.trim().toUpperCase());
-            }
-        }
-
-        // Parse queues
-        String queues = constraints.hostQueues();
-        queues = EnvironmentLoader.loadFromEnvironment(queues);
-        if (queues != null && !queues.equals(UNASSIGNED_STR)) {
-            for (String value : queues.split(",")) {
-                this.hostQueues.add(value.trim().toUpperCase());
-            }
-        }
-
-        // Parse memory, storage and OS constraints
-        String memorySizeSTR = constraints.memorySize();
-        memorySizeSTR = EnvironmentLoader.loadFromEnvironment(memorySizeSTR);
-        float memorySize = (memorySizeSTR != null && !memorySizeSTR.isEmpty() && !memorySizeSTR.equals(UNASSIGNED_STR))
-            ? Float.valueOf(memorySizeSTR)
-            : UNASSIGNED_FLOAT;
-        if (memorySize != UNASSIGNED_FLOAT) {
-            this.memorySize = memorySize;
-        }
-        String memoryType = constraints.memoryType();
-        memoryType = EnvironmentLoader.loadFromEnvironment(memoryType);
-        if (memoryType != null && !memoryType.equals(UNASSIGNED_STR)) {
-            this.memoryType = memoryType;
-        }
-
-        String storageSizeSTR = constraints.storageSize();
-        storageSizeSTR = EnvironmentLoader.loadFromEnvironment(storageSizeSTR);
-        float storageSize =
-            (storageSizeSTR != null && !storageSizeSTR.isEmpty() && !storageSizeSTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(storageSizeSTR)
-                : UNASSIGNED_FLOAT;
-        if (storageSize != UNASSIGNED_FLOAT) {
-            this.storageSize = storageSize;
-        }
-        String storageType = constraints.storageType();
-        storageType = EnvironmentLoader.loadFromEnvironment(storageType);
-        if (storageType != null && !storageType.equals(UNASSIGNED_STR)) {
-            this.storageType = storageType;
-        }
-        String storageBWSTR = constraints.storageBW();
-        storageBWSTR = EnvironmentLoader.loadFromEnvironment(storageBWSTR);
-        int storageBW = (storageBWSTR != null && !storageBWSTR.isEmpty() && !storageBWSTR.equals(UNASSIGNED_STR))
-            ? Integer.valueOf(storageBWSTR)
-            : UNASSIGNED_INT;
-        if (storageBW != UNASSIGNED_INT) {
-            this.storageBW = storageBW;
-        }
-
-        String operatingSystemType = constraints.operatingSystemType();
-        operatingSystemType = EnvironmentLoader.loadFromEnvironment(operatingSystemType);
-        if (operatingSystemType != null && !operatingSystemType.equals(UNASSIGNED_STR)) {
-            this.operatingSystemType = operatingSystemType;
-        }
-        String operatingSystemDistribution = constraints.operatingSystemDistribution();
-        operatingSystemDistribution = EnvironmentLoader.loadFromEnvironment(operatingSystemDistribution);
-        if (operatingSystemDistribution != null && !operatingSystemDistribution.equals(UNASSIGNED_STR)) {
-            this.operatingSystemDistribution = operatingSystemDistribution;
-        }
-        String operatingSystemVersion = constraints.operatingSystemVersion();
-        operatingSystemVersion = EnvironmentLoader.loadFromEnvironment(operatingSystemVersion);
-        if (operatingSystemVersion != null && !operatingSystemVersion.equals(UNASSIGNED_STR)) {
-            this.operatingSystemVersion = operatingSystemVersion;
-        }
-
-        String wallClockLimitSTR = constraints.wallClockLimit();
-        wallClockLimitSTR = EnvironmentLoader.loadFromEnvironment(wallClockLimitSTR);
-        int wallClockLimit =
-            (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty() && !wallClockLimitSTR.equals(UNASSIGNED_STR))
-                ? Integer.valueOf(wallClockLimitSTR)
-                : UNASSIGNED_INT;
-        if (wallClockLimit != UNASSIGNED_INT) {
-            this.wallClockLimit = wallClockLimit;
-        }
-
-        // Prices don't come from constraints
-    }
-
-    private boolean containsProcessorsProperties(Constraints constraints) {
-        return (!constraints.processorName().equals(Constants.UNASSIGNED)
-            || !constraints.processorArchitecture().equals(Constants.UNASSIGNED)
-            || !constraints.processorType().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
-            || !constraints.processorSpeed().equals(Constants.UNASSIGNED)
-            || !constraints.processorInternalMemorySize().equals(Constants.UNASSIGNED)
-            || !constraints.processorPropertyName().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
-            || !constraints.processorPropertyValue().equals(Constants.UNASSIGNED_PROCESSOR_TYPE));
-
-    }
-
-    private Processor
-        getProcessorFromProcessorsConstraint(es.bsc.compss.types.annotations.Processor processorConstraints) {
-        Processor p = new Processor();
-        String procName = processorConstraints.name();
-        if (procName != null && !procName.equals(UNASSIGNED_STR)) {
-            procName = EnvironmentLoader.loadFromEnvironment(procName);
-            p.setName(procName);
-        }
-
-        String cuSTR = processorConstraints.computingUnits();
-        cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
-
-        // When loading from constraints, always use at least one computing unit
-        int cu =
-            (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
-        p.setComputingUnits(cu);
-
-        String speedSTR = processorConstraints.speed();
-        speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
-        float speed =
-            (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
-                : UNASSIGNED_FLOAT;
-        if (speed != UNASSIGNED_FLOAT) {
-            p.setSpeed(speed);
-        }
-
-        String arch = processorConstraints.architecture();
-        arch = EnvironmentLoader.loadFromEnvironment(arch);
-        if (arch != null && !arch.equals(UNASSIGNED_STR)) {
-            p.setArchitecture(arch);
-        }
-
-        String type = processorConstraints.type();
-        type = EnvironmentLoader.loadFromEnvironment(type);
-        if (type != null) {
-            p.setType(type);
-        }
-
-        String internalMemorySTR = processorConstraints.internalMemorySize();
-        internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
-        float internalMemory =
-            (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(internalMemorySTR)
-                : UNASSIGNED_FLOAT;
-        if (internalMemory != UNASSIGNED_FLOAT) {
-            p.setInternalMemory(internalMemory);
-        }
-
-        String propName = processorConstraints.propertyName();
-        propName = EnvironmentLoader.loadFromEnvironment(propName);
-        if (propName != null && !propName.equals(UNASSIGNED_STR)) {
-            p.setPropName(propName);
-        }
-
-        String propvalue = processorConstraints.propertyValue();
-        propvalue = EnvironmentLoader.loadFromEnvironment(propvalue);
-        if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
-            p.setPropValue(propvalue);
-        }
-
-        return p;
-    }
-
-    /**
      * Creates a new MethodResourceDescription from the given Python description.
      *
      * @param description Python description.
@@ -411,7 +137,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         super();
 
         // Warning: When coming from constrains, only 1 PROCESSOR is available with at least 1 CU
-        Processor proc = new Processor();
+        Processor defaultProc = new Processor();
         if (description != null && !description.isEmpty()) {
             String[] constraints = description.split(";");
             for (String c : constraints) {
@@ -425,34 +151,34 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 if (key.equals(PROCESSORS)) {
                     treatProcessorsList(val);
                 } else {
-                    addConstraints(key, val, proc);
+                    addConstraints(key, val, defaultProc);
                 }
             }
         }
 
-        if (proc.isCPU()) {
-            if (proc.isModified()) {
-                if (proc.hasUnassignedCUs()) {
-                    proc.setComputingUnits(ONE_INT);
+        if (defaultProc.isCPU()) {
+            if (defaultProc.isModified()) {
+                if (defaultProc.hasUnassignedCUs()) {
+                    defaultProc.setComputingUnits(ONE_INT);
                 }
-                if (proc.getComputingUnits() > 0) {
-                    this.addProcessor(proc);
+                if (defaultProc.getComputingUnits() > 0) {
+                    this.addProcessor(defaultProc);
                 }
             } else {
                 if (this.totalCPUs == 0) {
                     // if processor has not been modified it must be added only if there are no CPU constraints already
                     // defined
-                    proc.setComputingUnits(ONE_INT);
-                    this.addProcessor(proc);
+                    defaultProc.setComputingUnits(ONE_INT);
+                    this.addProcessor(defaultProc);
                 }
             }
         } else {
             // If it is not CPU it must be added
-            if (proc.hasUnassignedCUs()) {
-                proc.setComputingUnits(ONE_INT);
+            if (defaultProc.hasUnassignedCUs()) {
+                defaultProc.setComputingUnits(ONE_INT);
             }
-            if (proc.getComputingUnits() > 0) {
-                this.addProcessor(proc);
+            if (defaultProc.getComputingUnits() > 0) {
+                this.addProcessor(defaultProc);
             }
             if (this.totalCPUs == 0) {
                 // Task require to use at least a CPU
@@ -467,16 +193,50 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     private void treatProcessorsList(String processors) {
         // Format [{processor constraints}, {processor constraints}]
         if (processors.startsWith("[") && processors.endsWith("]")) {
-            int procStartIndex = processors.indexOf("{");
-            int procEndIndex = processors.indexOf("}");
-            while (procStartIndex > 0) {
-                if (procEndIndex > 0 && procEndIndex > procStartIndex) {
-                    treatProcessorInList(processors.substring(procStartIndex + 1, procEndIndex));
-                    procStartIndex = processors.indexOf("{", procEndIndex);
-                    procEndIndex = processors.indexOf("}", procStartIndex);
-                } else {
+            int procIdx = 0;
+            while ((procIdx = processors.indexOf('{', procIdx)) >= 0) {
+                procIdx++; // Move past the opening brace
+                int braceCount = 1;
+                Processor proc = new Processor();
+
+                // Single pass: parse processor while finding its end
+                int constraintStart = procIdx;
+                while (procIdx < processors.length() && braceCount > 0) {
+                    char c = processors.charAt(procIdx);
+                    if (c == '{') {
+                        braceCount++;
+                    } else if (c == '}') {
+                        braceCount--;
+                        if (braceCount == 0) {
+                            // Process the last constraint
+                            String constraint = processors.substring(constraintStart, procIdx).trim();
+                            if (!constraint.isEmpty()) {
+                                parseConstraint(constraint, proc);
+                            }
+                            break;
+                        }
+                    } else if (c == ',' && braceCount == 1) {
+                        // End of a constraint at processor level (comma inside ${...} won't reach here)
+                        String constraint = processors.substring(constraintStart, procIdx).trim();
+                        if (!constraint.isEmpty()) {
+                            parseConstraint(constraint, proc);
+                        }
+                        constraintStart = procIdx + 1;
+                    }
+                    procIdx++;
+                }
+
+                if (braceCount != 0) {
                     ErrorManager.error("ERROR: Unrecognised processor definition (processors)");
                     return;
+                }
+
+                // CU must be 1 if not defined
+                if (proc.hasUnassignedCUs()) {
+                    proc.setComputingUnits(ONE_INT);
+                }
+                if (proc.getComputingUnits() > 0) {
+                    this.addProcessor(proc);
                 }
             }
         } else {
@@ -485,78 +245,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
     }
 
-    private void treatProcessorInList(String processor) {
-        String[] processorConstraints = processor.split(",");
-        Processor proc = new Processor();
-        for (int j = 0; j < processorConstraints.length; ++j) {
-            String key = processorConstraints[j].split(":")[0].trim();
-            String val = processorConstraints[j].split(":")[1].trim();
-            addConstraints(key, val, proc);
+    private void parseConstraint(String constraint, Processor proc) {
+        int colonIndex = constraint.indexOf(':');
+        if (colonIndex < 0) {
+            return;
         }
-        // CU must be 1 if not defined
-        if (proc.hasUnassignedCUs()) {
-            proc.setComputingUnits(ONE_INT);
-        }
-        if (proc.getComputingUnits() > 0) {
-            this.addProcessor(proc);
-        }
-    }
-
-    /**
-     * Creates a new MethodResourceDescription from the given C constraints.
-     *
-     * @param constraints C constraints.
-     * @param processorString C processor definition.
-     */
-    public MethodResourceDescription(String[] constraints, String processorString) {
-        super();
-
-        Processor proc = new Processor();
-        if (processorString != null && !processorString.isEmpty()) {
-            String[] processors = StringUtils.split(processorString, "@");
-            for (int i = 0; i < processors.length; i++) {
-                processors[i] = processors[i].replace("Processor(", "");
-                processors[i] = processors[i].replaceAll("[,()]", "");
-
-                String[] processorConstraints = processors[i].split(" ");
-                Processor currentProc = new Processor();
-                for (int j = 0; j < processorConstraints.length; ++j) {
-                    String key = processorConstraints[j].split("=")[0].trim();
-                    String val = processorConstraints[j].split("=")[1].trim();
-                    addConstraints(key, val, currentProc);
-                }
-                if (currentProc.hasUnassignedCUs()) {
-                    currentProc.addComputingUnits(ONE_INT);
-                }
-                if (currentProc.getComputingUnits() > 0) {
-                    this.addProcessor(currentProc);
-                }
-            }
-        } else {
-            // If no specific processor is requested, a single processor will be used with at least 1 CU
-            proc.setComputingUnits(ONE_INT);
-        }
-
-        // Don't add constraints if there only was processor info
-        if (constraints.length != 1 || !"".equals(constraints[0])) {
-            for (String c : constraints) {
-                String key = c.split("=")[0].trim();
-                String val = c.split("=")[1].trim();
-                addConstraints(key, val, proc);
-            }
-        }
-
-        // Add the information retrieved from the processor constraints
-        if (processorString == null || processorString.isEmpty()) {
-            this.addProcessor(proc); // Increases the totalCUs
-        }
-
-        if (this.totalCPUs == 0) {
-            Processor p = new Processor();
-            p.setComputingUnits(ONE_INT);
-            this.addProcessor(p);
-        }
-
+        String key = constraint.substring(0, colonIndex).trim().replaceAll("_", "");
+        String val = constraint.substring(colonIndex + 1).trim();
+        addConstraints(key, val, proc);
     }
 
     /**

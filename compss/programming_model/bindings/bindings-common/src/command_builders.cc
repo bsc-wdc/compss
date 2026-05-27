@@ -201,7 +201,7 @@ std::string build_get_master_working_dir_command() {
 }
 
 std::string build_execute_task_command(const char* signature,
-                                        const char* onFailure,
+                                        int onFailure,
                                         int timeout,
                                         int priority,
                                         int numNodes,

@@ -18,7 +18,7 @@ package es.bsc.compss.invokers.test.utils;
 
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;

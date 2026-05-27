@@ -17,10 +17,10 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.DirectoryData;
@@ -37,7 +37,7 @@ public class DirectoryParameter extends FileParameter<DirectoryData, DirectoryAc
      * Creates a new Directory Parameter.
      *
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -49,27 +49,27 @@ public class DirectoryParameter extends FileParameter<DirectoryData, DirectoryAc
      * @param monitor object to notify to changes on the parameter
      * @return new Directory Parameter instance
      */
-    public static final DirectoryParameter newDP(Application app, Direction direction, StdIOStream stream,
+    public static final DirectoryParameter newDP(Application app, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, DataLocation location,
         String originalName, ParameterMonitor monitor) {
-        DirectoryAccessParams dap = DirectoryAccessParams.constructDAP(app, direction, location);
-        return new DirectoryParameter(dap, direction, stream, prefix, name, contentType, weight, keepRename,
+        DirectoryAccessParams dap = DirectoryAccessParams.constructDAP(app, accessMode, location);
+        return new DirectoryParameter(dap, accessMode, stream, prefix, name, contentType, weight, keepRename,
             originalName, monitor);
     }
 
-    protected DirectoryParameter(DirectoryAccessParams dap, Direction direction, StdIOStream stream, String prefix,
+    protected DirectoryParameter(DirectoryAccessParams dap, AccessMode accessMode, StdIOStream stream, String prefix,
         String name, String contentType, double weight, boolean keepRename, String originalName,
         ParameterMonitor monitor) {
 
-        super(dap, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, originalName,
-            monitor);
+        super(dap, DataType.DIRECTORY_T, accessMode, stream, prefix, name, contentType, weight, keepRename,
+            originalName, monitor);
 
     }
 
     @Override
     public String toString() {
         return "DirectoryParameter with location " + this.getLocation() + ", type " + getType() + ", direction "
-            + getDirection();
+            + getAccessMode();
     }
 
 }

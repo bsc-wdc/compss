@@ -17,9 +17,9 @@
 package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
@@ -48,7 +48,7 @@ public class BindingObjectMainAccess
      * @param hashCode Hashcode of the associated BindingObject.
      * @return new BindingObjectAccessParams instance
      */
-    public static final BindingObjectMainAccess constructBOMA(Application app, Direction dir, BindingObject bo,
+    public static final BindingObjectMainAccess constructBOMA(Application app, AccessMode dir, BindingObject bo,
         int hashCode) {
         BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, dir, bo, hashCode);
         return new BindingObjectMainAccess(app, boap);

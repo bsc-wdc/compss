@@ -22,7 +22,7 @@ from typing import List, Any
 class Parameter:
     name: str
     method: str
-    direction: str
+    accessMode: str
     dtype: List[str]
 
     is_array: bool = False

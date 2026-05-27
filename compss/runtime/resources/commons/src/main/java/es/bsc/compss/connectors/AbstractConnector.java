@@ -174,23 +174,18 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         if (this.terminate) {
             return false;
         }
-        LOGGER
-            .info("[Abstract Connector] Requesting a resource creation " + name + " : " + rR.getRequested().toString());
+        LOGGER.info("[Abstract Connector] Requesting a resource creation " + name + " : " + rR.getRequested());
         // Check if we can reuse one of the vms put to delete (but not yet destroyed)
         VM vmInfo = tryToReuseVM(rR.getRequested());
+        CreationThread ct;
         if (vmInfo != null) {
             LOGGER.info("[Abstract Connector] Reusing VM: " + vmInfo);
-            CreationThread ct = new CreationThread((Operations) this, vmInfo.getName(), rR.getProvider(), rR, vmInfo);
-            ct.start();
-            return true;
+            ct = new CreationThread(this, vmInfo.getName(), rR.getProvider(), rR, vmInfo);
+        } else {
+            ct = new CreationThread(this, name, rR.getProvider(), rR, null);
+
         }
-        try {
-            CreationThread ct = new CreationThread((Operations) this, name, rR.getProvider(), rR, null);
-            ct.start();
-        } catch (Exception e) {
-            LOGGER.info("[Abstract Connector] ResourceRequest failed", e);
-            return false;
-        }
+        ct.start();
         return true;
     }
 
@@ -240,7 +235,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         // Ask the deadline to terminate and wait
         this.dead.terminate();
         try {
-            Thread.sleep(DeadlineThread.getMaxDeadlineInterval());
+            this.dead.join();
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
         }
@@ -257,20 +252,22 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             }
         }
 
-        // CLean ip2vm
+        // Clean ip2vm
         synchronized (this.ip2vm) {
             for (VM vm : this.ip2vm.values()) {
                 LOGGER.info("[Abstract Connector] Retrieving data from VM " + vm.getName());
-                vm.getWorker().disableExecution();
-                vm.getWorker().retrieveTracingAndDebugData();
-                Semaphore sem = new Semaphore(0);
-                ShutdownListener sl = new ShutdownListener(sem);
-                vm.getWorker().stop(sl);
-                sl.enable();
-                try {
-                    sem.acquire();
-                } catch (Exception e) {
-                    LOGGER.error("ERROR: Exception raised on worker shutdown");
+                if (vm.getWorker() != null) {
+                    vm.getWorker().disableExecution();
+                    vm.getWorker().retrieveTracingAndDebugData();
+                    Semaphore sem = new Semaphore(0);
+                    ShutdownListener sl = new ShutdownListener(sem);
+                    vm.getWorker().stop(sl);
+                    sl.enable();
+                    try {
+                        sem.acquire();
+                    } catch (Exception e) {
+                        LOGGER.error("ERROR: Exception raised on worker shutdown");
+                    }
                 }
                 try {
                     destroy(vm);
@@ -316,7 +313,13 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     @Override
     public VM waitCreation(Object envId, CloudMethodResourceDescription requested) throws ConnectorException {
+        if (this.terminate) {
+            throw new ConnectorException("Connector already terminated");
+        }
         CloudMethodResourceDescription granted = waitUntilCreation(envId, requested);
+        if (this.terminate) {
+            throw new ConnectorException("Connector already terminated");
+        }
         VM vm = new VM(envId, granted);
         vm.setRequestTime(this.powerOnVMTimestamp.remove(envId));
         LOGGER.info("[Abstract Connector] Virtual machine created: " + vm);
@@ -393,24 +396,27 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         return numSlots;
     }
 
-    private void addMachine(VM vmInfo) {
+    private void addMachine(VM vmInfo) throws ConnectorException {
         String ip = vmInfo.getName();
         synchronized (this.ip2vm) {
-            this.ip2vm.put(ip, vmInfo);
-        }
-        synchronized (this.vmsAlive) {
-            this.vmsAlive.add(vmInfo);
+            synchronized (this.vmsAlive) {
+                if (this.terminate) {
+                    throw new ConnectorException("Connector already terminated");
+                }
+                this.ip2vm.put(ip, vmInfo);
+                this.vmsAlive.add(vmInfo);
+            }
         }
     }
 
     private void removeMachine(VM vmInfo) {
         synchronized (this.ip2vm) {
-            this.ip2vm.remove(vmInfo.getName());
+            synchronized (this.vmsAlive) {
+                this.ip2vm.remove(vmInfo.getName());
+                this.vmsAlive.remove(vmInfo);
+            }
         }
 
-        synchronized (this.vmsAlive) {
-            this.vmsAlive.remove(vmInfo);
-        }
         LOGGER.debug("[Abstract Connector] VM removed in the connector");
     }
 

@@ -19,7 +19,6 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.params.BindingObjectData;
@@ -41,12 +40,13 @@ public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject,
      * @param hashCode Hashcode of the associated BindingObject.
      * @return new BindingObjectAccessParams instance
      */
-    public static final BindingObjectAccessParams constructBOAP(Application app, Direction dir, BindingObject bo,
-        int hashCode) {
+    public static final BindingObjectAccessParams constructBOAP(Application app,
+        es.bsc.compss.semantics.data.access.AccessMode dir, BindingObject bo, int hashCode) {
         return new BindingObjectAccessParams(app, dir, bo, hashCode);
     }
 
-    private BindingObjectAccessParams(Application app, Direction dir, BindingObject bo, int hashCode) {
+    private BindingObjectAccessParams(Application app, es.bsc.compss.semantics.data.access.AccessMode dir,
+        BindingObject bo, int hashCode) {
         super(app, new BindingObjectData(hashCode), dir, bo);
     }
 
@@ -61,7 +61,7 @@ public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject,
 
     @Override
     public void registerValueForVersion(DataVersion dv) {
-        if (mode != AccessMode.W) {
+        if (mode.isRead()) {
             EngineDataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerBindingObject(renaming, getBindingObject());

@@ -22,16 +22,15 @@ import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.types.SharedRemoteDataLocation;
-import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.SharedDisk;
@@ -47,7 +46,7 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class AppMonitor implements ApplicationRunner {
+public abstract class AppMonitor implements WorkflowListener {
 
     private Workflow wf;
     private TaskResult[] taskResults;
@@ -132,12 +131,12 @@ public abstract class AppMonitor implements ApplicationRunner {
     }
 
     @Override
-    public void stalledApplication() {
+    public void onSynchronization() {
         // No need to do anything
     }
 
     @Override
-    public void readyToContinue(Semaphore sem) {
+    public void onReadyToContinue(Semaphore sem) {
         // No need to do anything
     }
 
@@ -454,7 +453,7 @@ public abstract class AppMonitor implements ApplicationRunner {
         public class ParameterUpdater implements ParameterMonitor {
 
             @Override
-            public void onCreation(DataType type, String dataName) {
+            public void onCreation(String dataName) {
                 if (dataName.compareTo(externalDataId) != 0) {
                     try {
                         Comm.linkData(externalDataId, dataName);

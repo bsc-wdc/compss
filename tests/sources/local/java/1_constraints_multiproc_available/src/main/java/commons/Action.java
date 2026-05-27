@@ -2,13 +2,13 @@
 package commons;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.CoreElement;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -180,8 +180,8 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return OnFailure.RETRY;
+    public FailurePolicy getOnFailure() {
+        return FailurePolicy.RETRY;
     }
 
     @Override

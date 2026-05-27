@@ -25,7 +25,7 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId.ReadingDataAccessId;
@@ -256,8 +256,8 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return OnFailure.IGNORE;
+    public FailurePolicy getOnFailure() {
+        return FailurePolicy.IGNORE;
     }
 
     @Override

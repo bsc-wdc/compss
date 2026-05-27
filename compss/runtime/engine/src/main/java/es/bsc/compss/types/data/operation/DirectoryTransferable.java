@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.data.operation;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.semantics.data.DataType;
 
 public class DirectoryTransferable extends FileTransferable {
 

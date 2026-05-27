@@ -17,8 +17,8 @@
 package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
@@ -47,7 +47,7 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
      * @param loc File location.
      * @return new FileMainAccess instance
      */
-    public static FileMainAccess<FileData, FileAccessParams<FileData>> constructFMA(Application app, Direction dir,
+    public static FileMainAccess<FileData, FileAccessParams<FileData>> constructFMA(Application app, AccessMode dir,
         DataLocation loc) {
         FileAccessParams<FileData> f = FileAccessParams.constructFAP(app, dir, loc);
         return new FileMainAccess(app, f);

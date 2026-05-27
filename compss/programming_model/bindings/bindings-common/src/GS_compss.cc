@@ -173,12 +173,30 @@ void GS_CloseTaskGroup(char* groupName, long appId){
 	}
 }
 
+
+int getOnFailure(const char* value) {
+    if (value == NULL || strcasecmp(value, "RETRY") == 0)
+        return failure_policy::RETRY;
+
+    if (strcasecmp(value, "FAIL") == 0)
+        return failure_policy::FAIL;
+
+    if (strcasecmp(value, "IGNORE") == 0)
+        return failure_policy::IGNORE;
+
+    if (strcasecmp(value, "CANCEL_SUCCESSORS") == 0)
+        return failure_policy::CANCEL_SUCCESSORS;
+
+    return failure_policy::RETRY;  // safe default
+}
+
 void GS_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
                        int distributed, int hasTarget, int numReturns, int numParams, void** params) {
 	if (workflow == NULL) {
 		registerWorkflow();
     }
-	workflow->executeTask(workflow, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+	int onFailurePolicy = getOnFailure(onFailure);
+	workflow->executeTask(workflow, signature, onFailurePolicy, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 }
 
 void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize, int replicated,
@@ -186,7 +204,8 @@ void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeou
 	if (workflow == NULL) {
 		registerWorkflow();
     }
-    workflow->executeHttpTask(workflow, signature, onFailure, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
+	int onFailurePolicy = getOnFailure(onFailure);
+    workflow->executeHttpTask(workflow, signature, onFailurePolicy, timeout, priority, numNodes, reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, numParams, params);
 }
 
 void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){

@@ -18,9 +18,9 @@ package es.bsc.compss.agent.rest.types;
 
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
@@ -32,7 +32,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
 
     private int paramId;
     private ApplicationParameterValue value;
-    private Direction direction;
+    private AccessMode accessMode;
     private DataType type;
     private StdIOStream stdIOStream;
     private String prefix;
@@ -50,16 +50,16 @@ public class ApplicationParameterImpl implements ApplicationParameter {
      * Constructs an ApplicationParameterImpl setting up all its characteristics.
      *
      * @param val Actual value of the parameter
-     * @param dir directionality of the parameter
+     * @param mode operation mode of the parameter
      * @param type type of data of the parameter
      * @param stream stream to redirect to the parameter
      * @param prefix prefix to attach to the parameter
      * @param paramName name of the parameter
      */
-    public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream, String prefix,
+    public ApplicationParameterImpl(Object val, AccessMode mode, DataType type, StdIOStream stream, String prefix,
         String paramName, String contentType, double weight, boolean keepRename) {
         this.value = ApplicationParameterValue.createParameterValue(val);
-        this.direction = dir;
+        this.accessMode = mode;
         this.stdIOStream = stream;
         this.type = type;
         this.prefix = prefix;
@@ -79,12 +79,12 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     }
 
     @Override
-    public Direction getDirection() {
-        return direction;
+    public AccessMode getAccessMode() {
+        return accessMode;
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = direction;
+    public void setAccessMode(AccessMode accessMode) {
+        this.accessMode = accessMode;
     }
 
     @Override

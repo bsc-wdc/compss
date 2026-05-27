@@ -17,11 +17,11 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
@@ -35,7 +35,7 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
 
     // Parameter fields
     private DataType type;
-    private final Direction direction;
+    private final AccessMode accessMode;
     private final StdIOStream stream;
     private final String prefix;
     private final String name;
@@ -49,7 +49,7 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
      * Creates a new Parameter instance from the given values.
      *
      * @param type Parameter type.
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -59,10 +59,10 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
      *            the value recovers its original name
      * @param monitor object to notify to changes on the parameter
      */
-    protected Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    protected Parameter(DataType type, AccessMode accessMode, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         this.type = type;
-        this.direction = direction;
+        this.accessMode = accessMode;
         this.stream = stream;
         if (prefix == null || prefix.isEmpty()) {
             this.prefix = Constants.PREFIX_EMPTY;
@@ -93,8 +93,8 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
     }
 
     @Override
-    public Direction getDirection() {
-        return this.direction;
+    public AccessMode getAccessMode() {
+        return this.accessMode;
     }
 
     @Override

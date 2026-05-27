@@ -17,18 +17,17 @@
 package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.components.monitor.impl.EdgeType;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.params.DataOwner;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -50,34 +49,30 @@ public abstract class StandardDataInfo<T extends DataParams> extends DataInfo<T>
     }
 
     @Override
-    public final EngineDataAccessId willAccess(AccessParams.AccessMode mode) {
+    public final EngineDataAccessId willAccess(AccessMode mode) {
         EngineDataAccessId daId = null;
-        switch (mode) {
-            case C:
-            case R:
+        boolean isRead = mode.isRead();
+        boolean isWrite = mode.isWrite();
+        if (isRead && isWrite) {
+            this.currentVersionWillBeRead();
+            DataVersion readInstance = this.currentVersion;
+            newVersion();
+            this.currentVersionWillBeWritten();
+            DataVersion writtenInstance = this.currentVersion;
+            if (readInstance != null) {
+                daId = new RWAccessId(this, readInstance, writtenInstance);
+            } else {
+                ErrorManager.warn("Previous instance for data" + this.dataId + " is null.");
+            }
+        } else {
+            if (isRead) {
                 this.currentVersionWillBeRead();
                 daId = new RAccessId(this, this.currentVersion);
-                break;
-
-            case W:
+            } else { // isWrite
                 newVersion();
                 this.currentVersionWillBeWritten();
                 daId = new WAccessId(this, this.currentVersion);
-                break;
-
-            case CV:
-            case RW:
-                this.currentVersionWillBeRead();
-                DataVersion readInstance = this.currentVersion;
-                newVersion();
-                this.currentVersionWillBeWritten();
-                DataVersion writtenInstance = this.currentVersion;
-                if (readInstance != null) {
-                    daId = new RWAccessId(this, readInstance, writtenInstance);
-                } else {
-                    ErrorManager.warn("Previous instance for data" + this.dataId + " is null.");
-                }
-                break;
+            }
         }
         return daId;
     }
@@ -116,7 +111,7 @@ public abstract class StandardDataInfo<T extends DataParams> extends DataInfo<T>
             Application app = task.getApplication();
             if (lastWriter instanceof CommutativeGroupTask) {
                 CommutativeGroupTask group = (CommutativeGroupTask) lastWriter;
-                if (dp.getDirection() == Direction.COMMUTATIVE && !group.isClosed()) {
+                if (dp.getAccessMode() == AccessMode.COMMUTATIVE_UPDATE && !group.isClosed()) {
                     Integer coreId = task.getTaskDescription().getCoreElement().getCoreId();
                     CommutativeIdentifier comId = new CommutativeIdentifier(coreId, dataId);
                     if (CommutativeIdentifier.equals(group.getCommutativeIdentifier(), comId)) {
@@ -175,7 +170,7 @@ public abstract class StandardDataInfo<T extends DataParams> extends DataInfo<T>
         } else {
             int dataId = dp.getDataAccessId().getDataId();
             LOGGER.info("Setting writer for data " + dataId);
-            if (dp.getDirection() == Direction.COMMUTATIVE) {
+            if (dp.getAccessMode() == AccessMode.COMMUTATIVE_UPDATE) {
                 Integer coreId = t.getTaskDescription().getCoreElement().getCoreId();
                 CommutativeIdentifier comId = new CommutativeIdentifier(coreId, dataId);
 

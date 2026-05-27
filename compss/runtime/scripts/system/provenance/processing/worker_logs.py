@@ -68,7 +68,7 @@ def update_tasks_from_worker_logs(log_files: list[str], tasks: dict[int, Task]) 
 
                     if "PARAMETER" in log_dict:
                         # Note: - We only extract the parameter content from here, because the rest of the data
-                        #         (type, direction, ...) are not necessarily accurate
+                        #         (type, accessMode, ...) are not necessarily accurate
                         #       - The content should not be updated in case of real files
                         #         since these already contain the normalized path
 

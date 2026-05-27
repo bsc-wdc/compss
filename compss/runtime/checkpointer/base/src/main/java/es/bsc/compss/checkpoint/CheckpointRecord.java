@@ -26,10 +26,10 @@ import es.bsc.compss.checkpoint.types.request.ap.CheckpointerDataCopyFailedReque
 import es.bsc.compss.checkpoint.types.request.ap.CheckpointerSaveLastDataVersionsRequest;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.DataAccessId.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
@@ -248,7 +248,7 @@ public class CheckpointRecord {
                         cpi = new CheckpointData();
                         dataInfo.put(outDataId, cpi);
                     } else {
-                        if (paramId.getDirection() == Direction.RW) {
+                        if (paramId.getAccessMode() == AccessMode.UPDATE) {
                             // If we have a previous data from the INOUT decrease the readers
                             DataVersion prevDV = cpi.getLastCheckpointedVersion();
                             if (prevDV != null) {

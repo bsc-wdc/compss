@@ -74,7 +74,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
             line_record = line.rstrip().split(" ")
 
             if line_record[0] == "parameter":
-                param_name, param_type, param_value, direction = (
+                param_name, param_type, param_value, accessMode = (
                     line_record[1],
                     line_record[2],
                     line_record[3],
@@ -86,13 +86,13 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                 if param_name not in task_params:
                     task_params[param_name] = {
                         "type": param_type,
-                        "direction": direction,
+                        "accessMode": accessMode,
                         "value": param_value,
                         "array": False,
                     }
 
             if line_record[0] == "file":
-                param_name, param_type, param_value, direction = (
+                param_name, param_type, param_value, accessMode = (
                     line_record[1],
                     line_record[2],
                     line_record[3],
@@ -108,7 +108,7 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                 if param_name not in task_params:
                     task_params[param_name] = {
                         "type": param_type,
-                        "direction": direction,
+                        "accessMode": accessMode,
                         "value": param_value,
                         "array": False,
                     }
@@ -177,12 +177,12 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                 raw_params = line_record[3].split("::") if line_record[3] else []
 
                 for p in raw_params:
-                    pname, ptype, direction = p.split(".")
+                    pname, ptype, accessMode = p.split(".")
                     pname = pname.replace("#kwarg_", "")
                     if pname not in task_params:
                         task_params[pname] = {
                             "type": ptype,
-                            "direction": direction,
+                            "accessMode": accessMode,
                             "value": "",
                             "array": False,
                         }
@@ -190,11 +190,11 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                 for pname, p_dict in task_params.items():
                     ptype = p_dict["type"]
                     ptype = map_datatype(ptype)
-                    direction = p_dict["direction"]
+                    accessMode = p_dict["accessMode"]
                     pvalue = p_dict["value"]
                     parray = p_dict["array"]
 
-                    if direction in {
+                    if accessMode in {
                         "IN",
                         "INOUT",
                         "IN_DELETE",
@@ -204,17 +204,17 @@ def process_master_log(dp_log: Path) -> typing.Tuple[list, list, list]:
                         current_task.in_params[pname] = Parameter(
                             name=pname,
                             method=method_name,
-                            direction="IN",
+                            accessMode="IN",
                             dtype=ptype,
                             value=pvalue,
                             is_array=parray,
                         )
 
-                    if direction in {"OUT", "INOUT", "CONCURRENT", "COMMUTATIVE"}:
+                    if accessMode in {"OUT", "INOUT", "CONCURRENT", "COMMUTATIVE"}:
                         current_task.out_params[pname] = Parameter(
                             name=pname,
                             method=method_name,
-                            direction="OUT",
+                            accessMode="OUT",
                             dtype=ptype,
                             value=pvalue,
                             is_array=parray,

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.workflow;
 
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.Workflow;

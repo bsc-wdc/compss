@@ -18,9 +18,9 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointGroup;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
@@ -72,7 +72,7 @@ public class Task extends AbstractTask {
 
 
     private Task(Application app, TaskMonitor monitor, String signature, boolean isPrioritary, int numNodes,
-        boolean isReduction, boolean isReplicated, boolean isDistributed, OnFailure onFailure, long timeOut,
+        boolean isReduction, boolean isReplicated, boolean isDistributed, FailurePolicy onFailure, long timeOut,
         boolean hasTarget, int numReturns, List<Parameter> parameters) {
         super(app, nextTaskId.getAndIncrement());
         this.taskMonitor = monitor;
@@ -105,7 +105,7 @@ public class Task extends AbstractTask {
      */
     public Task(Application app, String signature, boolean isPrioritary, int numNodes, boolean isReduction,
         boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+        TaskMonitor monitor, FailurePolicy onFailure, long timeOut) {
 
         this(app, monitor,
             // Signature
@@ -130,7 +130,7 @@ public class Task extends AbstractTask {
      * @param timeOut Time for a task timeOut.
      */
     public Task(Application app, String signature, boolean isPrioritary, boolean hasTarget, int numReturns,
-        List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure, long timeOut) {
+        List<Parameter> parameters, TaskMonitor monitor, FailurePolicy onFailure, long timeOut) {
 
         this(app, monitor,
             // Signature
@@ -380,7 +380,7 @@ public class Task extends AbstractTask {
     public boolean hasCommutativeParams() {
         for (Parameter p : this.getTaskDescription().getParameters()) {
             if (p.isPotentialDependency()) {
-                if (p.getDirection() == Direction.COMMUTATIVE) {
+                if (p.getAccessMode() == AccessMode.COMMUTATIVE_UPDATE) {
                     return true;
                 }
             }
@@ -393,7 +393,7 @@ public class Task extends AbstractTask {
      *
      * @return The on-failure mechanisms.
      */
-    public OnFailure getOnFailure() {
+    public FailurePolicy getOnFailure() {
         return this.taskDescription.getOnFailure();
     }
 
@@ -472,13 +472,13 @@ public class Task extends AbstractTask {
 
         switch (taskState) {
             case FAILED:
-                OnFailure onFailure = this.getOnFailure();
-                if (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL) {
+                FailurePolicy failurePolicy = this.getOnFailure();
+                if (failurePolicy == FailurePolicy.RETRY || failurePolicy == FailurePolicy.FAIL) {
                     // Raise error
                     ErrorManager.error(TASK_FAILED + this);
                     return;
                 }
-                if (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS) {
+                if (failurePolicy == FailurePolicy.IGNORE || failurePolicy == FailurePolicy.CANCEL_SUCCESSORS) {
                     // Show warning
                     ErrorManager.warn(TASK_FAILED + this);
                 }
@@ -498,8 +498,8 @@ public class Task extends AbstractTask {
 
         // When a task can have internal temporal parameters,
         // the not used ones have to be updated to perform the data delete
-        if ((this.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (this.getStatus() == TaskState.FAILED))
-            || (this.getStatus() == TaskState.CANCELED && this.getOnFailure() != OnFailure.IGNORE)) {
+        if ((this.getOnFailure() == FailurePolicy.CANCEL_SUCCESSORS && (this.getStatus() == TaskState.FAILED))
+            || (this.getStatus() == TaskState.CANCELED && this.getOnFailure() != FailurePolicy.IGNORE)) {
             cancelParams();
         } else {
             commitParams();

@@ -17,10 +17,10 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 import es.bsc.compss.types.data.params.StreamData;
 
@@ -37,7 +37,7 @@ public class StreamParameter<V extends Object, A extends StreamAccessParams<V, D
      * Creates a new Stream Parameter.
      * 
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -47,23 +47,23 @@ public class StreamParameter<V extends Object, A extends StreamAccessParams<V, D
      * @return new StreamParam instance
      */
     public static <V extends Object> StreamParameter<V, StreamAccessParams<V, StreamData>, StreamData> newSP(
-        Application app, Direction direction, StdIOStream stream, String prefix, String name, V value, int hashCode,
+        Application app, AccessMode accessMode, StdIOStream stream, String prefix, String name, V value, int hashCode,
         ParameterMonitor monitor) {
         StreamAccessParams<V, StreamData> sap;
-        sap = StreamAccessParams.constructStreamAP(app, direction, value, hashCode);
-        return new StreamParameter(sap, DataType.STREAM_T, direction, stream, prefix, name, monitor);
+        sap = StreamAccessParams.constructStreamAP(app, accessMode, value, hashCode);
+        return new StreamParameter(sap, DataType.STREAM_T, accessMode, stream, prefix, name, monitor);
     }
 
-    protected StreamParameter(A streamAP, DataType type, Direction direction, StdIOStream stream, String prefix,
+    protected StreamParameter(A streamAP, DataType type, AccessMode accessMode, StdIOStream stream, String prefix,
         String name, ParameterMonitor monitor) {
-        super(streamAP, type, direction, stream, prefix, name, "null", 1.0, monitor);
+        super(streamAP, type, accessMode, stream, prefix, name, "null", 1.0, monitor);
 
     }
 
     @Override
     public String toString() {
         return "StreamParameter with hash code " + this.getCode() + ", type " + getType() + ", direction "
-            + getDirection();
+            + getAccessMode();
     }
 
 }

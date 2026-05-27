@@ -17,10 +17,10 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.ExternalStreamData;
@@ -40,7 +40,7 @@ public class ExternalStreamParameter
      * Creates a new Stream Parameter.
      * 
      * @param app Application performing the access
-     * @param direction Parameter direction.
+     * @param accessMode Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -49,15 +49,15 @@ public class ExternalStreamParameter
      * @param monitor object to notify to changes on the parameter
      * @return new ExternalStreamParameter instance
      */
-    public static final ExternalStreamParameter newESP(Application app, Direction direction, StdIOStream stream,
+    public static final ExternalStreamParameter newESP(Application app, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, DataLocation location, String originalName, ParameterMonitor monitor) {
-        ExternalStreamAccessParams esap = ExternalStreamAccessParams.constructESAP(app, direction, location);
-        return new ExternalStreamParameter(esap, direction, stream, prefix, name, originalName, monitor);
+        ExternalStreamAccessParams esap = ExternalStreamAccessParams.constructESAP(app, accessMode, location);
+        return new ExternalStreamParameter(esap, accessMode, stream, prefix, name, originalName, monitor);
     }
 
-    private ExternalStreamParameter(ExternalStreamAccessParams esap, Direction direction, StdIOStream stream,
+    private ExternalStreamParameter(ExternalStreamAccessParams esap, AccessMode accessMode, StdIOStream stream,
         String prefix, String name, String originalName, ParameterMonitor monitor) {
-        super(esap, DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, monitor);
+        super(esap, DataType.EXTERNAL_STREAM_T, accessMode, stream, prefix, name, monitor);
         this.originalName = originalName;
     }
 
@@ -72,7 +72,7 @@ public class ExternalStreamParameter
 
     @Override
     public String toString() {
-        return "ExternalStreamParameter with location " + this.getLocation() + ", direction " + getDirection();
+        return "ExternalStreamParameter with location " + this.getLocation() + ", direction " + getAccessMode();
     }
 
 }

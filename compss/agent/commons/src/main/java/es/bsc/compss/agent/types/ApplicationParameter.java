@@ -16,8 +16,9 @@
  */
 package es.bsc.compss.agent.types;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.data.access.AccessMode;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 
 public interface ApplicationParameter {
 
@@ -36,18 +37,18 @@ public interface ApplicationParameter {
     public DataType getType();
 
     /**
-     * Returns the direction of the parameter.
+     * Returns the access mode of the parameter.
      *
-     * @return direction of the parameter
+     * @return access mode of the parameter
      */
-    public Direction getDirection();
+    public AccessMode getAccessMode();
 
     /**
      * Returns the StdIOStream to redirect to the parameter.
      *
      * @return stdIOStream to redirect to the parameter
      */
-    public Object getStdIOStream();
+    public StdIOStream getStdIOStream();
 
     /**
      * Returns the prefix to apply to the parameter value.

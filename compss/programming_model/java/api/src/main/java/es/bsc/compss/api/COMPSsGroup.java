@@ -28,8 +28,7 @@ public class COMPSsGroup implements AutoCloseable {
     }
 
     public COMPSsGroup(String groupName) {
-        this.groupName = groupName;
-        this.barrier = true;
+        this(groupName, true);
     }
 
     @Override

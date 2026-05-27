@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.gos.worker;
 
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.task.FailurePolicy;
+import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
@@ -45,7 +45,7 @@ public class GOSInvocation implements Invocation {
     private final int jobId;
     private final int taskId;
     private final JobHistory history;
-    private final OnFailure onFailure;
+    private final FailurePolicy failurePolicy;
     private final long timeout;
 
     private final List<String> hostnames;
@@ -80,7 +80,7 @@ public class GOSInvocation implements Invocation {
         this.history = JobHistory.valueOf(args[appArgsIdx++]);
 
         this.timeout = Long.parseLong(args[appArgsIdx++]);
-        this.onFailure = OnFailure.valueOf(args[appArgsIdx++]);
+        this.failurePolicy = FailurePolicy.valueOf(args[appArgsIdx++]);
 
         this.debug = enableDebug;
 
@@ -389,8 +389,8 @@ public class GOSInvocation implements Invocation {
     }
 
     @Override
-    public OnFailure getOnFailure() {
-        return onFailure;
+    public FailurePolicy getOnFailure() {
+        return failurePolicy;
     }
 
     @Override

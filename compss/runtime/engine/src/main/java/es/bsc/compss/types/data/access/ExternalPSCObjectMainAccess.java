@@ -17,8 +17,8 @@
 package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
@@ -39,7 +39,7 @@ public class ExternalPSCObjectMainAccess
      * @param hashCode Hashcode of the associated External PSCO
      * @return new ExternalPSCObjectAccessParams instance
      */
-    public static final ExternalPSCObjectMainAccess constructEPOMA(Application app, Direction dir, String pscoId,
+    public static final ExternalPSCObjectMainAccess constructEPOMA(Application app, AccessMode dir, String pscoId,
         int hashCode) {
         ExternalPSCObjectAccessParams epoap = ExternalPSCObjectAccessParams.constructEPOAP(app, dir, pscoId, hashCode);
         return new ExternalPSCObjectMainAccess(app, epoap);

@@ -17,8 +17,8 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.DataVersion;
@@ -32,35 +32,6 @@ import org.apache.logging.log4j.Logger;
  * Description of the access parameters to an object, file, stream, or binding-object.
  */
 public abstract class AccessParams<D extends DataParams> implements Serializable {
-
-    public enum AccessMode {
-
-        R(true, false), // Read
-        W(false, true), // Write
-        RW(true, true), // ReadWrite
-        C(true, false), // Concurrent
-        CV(true, true) // Commutative
-        ;
-
-
-        private final boolean read;
-        private final boolean write;
-
-
-        AccessMode(boolean read, boolean write) {
-            this.read = read;
-            this.write = write;
-        }
-
-        public final boolean isRead() {
-            return this.read;
-        }
-
-        public boolean isWrite() {
-            return write;
-        }
-    }
-
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -76,40 +47,17 @@ public abstract class AccessParams<D extends DataParams> implements Serializable
     protected final AccessMode mode;
 
 
-    private static AccessMode getAccessMode(Direction d) {
-        AccessMode am = AccessMode.R;
-        switch (d) {
-            case IN:
-            case IN_DELETE:
-                am = AccessParams.AccessMode.R;
-                break;
-            case OUT:
-                am = AccessParams.AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessParams.AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessParams.AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessParams.AccessMode.CV;
-                break;
-        }
-        return am;
-    }
-
     /**
      * Creates a new AccessParams instance.
      *
      * @param app Application accessing the data
      * @param data Data being accessed
-     * @param dir operation performed.
+     * @param mode operation performed.
      */
-    protected AccessParams(Application app, D data, Direction dir) {
+    protected AccessParams(Application app, D data, AccessMode mode) {
         this.app = app;
         this.data = data;
-        this.mode = getAccessMode(dir);
+        this.mode = mode;
     }
 
     /**

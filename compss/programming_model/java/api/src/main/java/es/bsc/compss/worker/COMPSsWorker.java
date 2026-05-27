@@ -31,24 +31,14 @@ public class COMPSsWorker {
      * 
      * @throws Exception While waiting for the cancellation point.
      */
-    public static final void cancellationPoint() throws Exception {
+    public static void cancellationPoint() throws Exception {
         String taskIdStr = System.getProperty(COMPSS_TASK_ID);
         if (taskIdStr != null) {
             CancelReason exceptionReason = TASKS_TO_CANCEL.get(Integer.parseInt(taskIdStr));
             if (exceptionReason != null) {
-                // Treat exception
-                switch (exceptionReason) {
-                    case COMPSS_EXCEPTION:
-                        // Print on the job console
-                        System.out.println("Task " + taskIdStr + " cancelled because a COMPSs Exception occured.");
-                        // Throw exception
-                        throw new Exception("Task " + taskIdStr + " has been canceled.");
-                    case TIMEOUT:
-                        // Print on the job console
-                        System.out.println("Task " + taskIdStr + " has timed out.");
-                        // Throw exception
-                        throw new Exception("Task " + taskIdStr + " timed out.");
-                }
+                String errMsg = "Task " + taskIdStr + " " + exceptionReason.getCauseDescription();
+                System.out.println(errMsg);
+                throw new Exception(errMsg);
             }
         }
     }
@@ -58,7 +48,7 @@ public class COMPSsWorker {
      * 
      * @param taskId Task Id.
      */
-    protected static final void setCancelled(int taskId, CancelReason reason) {
+    protected static void setCancelled(int taskId, CancelReason reason) {
         TASKS_TO_CANCEL.put(taskId, reason);
     }
 }

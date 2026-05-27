@@ -133,7 +133,7 @@ void PIPE_WF_closeTaskGroup(CompssWorkflow* self, const char* groupName) {
     debug_printf("[BINDING-COMMONS] - @PIPE_CloseTaskGroup - Task group %s closed.\n", groupName);
 }
 
-void PIPE_WF_executeTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
+void PIPE_WF_executeTask(CompssWorkflow* self, char* signature, int onFailure, int timeout, int priority, int numNodes, int reduce, int reduceChunkSize,
                         int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTask - Processing task execution in bindings-common. \n");
 
@@ -160,7 +160,7 @@ void PIPE_WF_executeTask(CompssWorkflow* self, char* signature, char* onFailure,
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTask - Task processed.\n");
 }
 
-void PIPE_WF_executeHttpTask(CompssWorkflow* self, char* signature, char* onFailure, int timeout, int priority, int numNodes, int reduce,
+void PIPE_WF_executeHttpTask(CompssWorkflow* self, char* signature, int onFailure, int timeout, int priority, int numNodes, int reduce,
                          int reduceChunkSize, int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteHttpTask - HTTP task execution in bindings-common. \n");
     debug_printf ("[BINDING-COMMONS] NOT YET IMPLEMENTED")

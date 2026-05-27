@@ -14,9 +14,10 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.workflow.data;
 
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.loader.runtime.data.access.AccessMode;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.util.ErrorManager;
@@ -672,8 +673,8 @@ public class StreamRegistry {
                 LOGGER.debug("First stream on the list for file " + path + " with direction " + direction);
             }
 
+            AccessMode mode;
             // Obtain the renaming
-            String renaming = null;
             switch (direction) {
                 case IN:
                 case IN_DELETE:
@@ -683,19 +684,22 @@ public class StreamRegistry {
                      * Integrated Toolkit keeping track of this operation. Forthcoming streams on the same file will use
                      * this copy in the tmp dir //renaming = itApi.getFile(path, tempDirPath);
                      */
-                    renaming = wf.openFile(path, Direction.IN);
+                    mode = AccessMode.READ;
                     break;
                 case OUT:
                     // Must ask the IT to open the file in W mode
-                    renaming = wf.openFile(path, Direction.OUT);
+                    mode = AccessMode.GENERATE;
                     break;
                 case COMMUTATIVE:
                 case INOUT:
                     // Must ask the IT to open the file in RW mode
-                    renaming = wf.openFile(path, Direction.INOUT);
+                    mode = AccessMode.UPDATE;
                     break;
+                default:
+                    mode = null;
             }
 
+            String renaming = wf.openFile(path, mode.getID());
             // Create the list of streams
             list = new StreamList(renaming, direction);
             synchronized (FILE_TO_STREAMS) {
@@ -811,11 +815,11 @@ public class StreamRegistry {
             }
 
             if (list.isFirstStreamInput() && list.getWritten() && list.getAppend()) {
-                wf.closeFile(filePath, Direction.INOUT);
+                wf.closeFile(filePath, AccessMode.UPDATE.getID());
             } else if (list.isFirstStreamInput() && list.getWritten() && !list.getAppend()) {
-                wf.closeFile(filePath, Direction.OUT);
+                wf.closeFile(filePath, AccessMode.GENERATE.getID());
             } else if (list.isFirstStreamInput() && !list.getWritten()) {
-                wf.closeFile(filePath, Direction.IN);
+                wf.closeFile(filePath, AccessMode.READ.getID());
             }
             if (list.isEmpty()) {
                 synchronized (FILE_TO_STREAMS) {

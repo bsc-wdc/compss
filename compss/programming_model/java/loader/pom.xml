@@ -35,12 +35,7 @@
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-runtime-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <!-- COMPSs PM classes -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-commons</artifactId>
-            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Storage -->
@@ -48,6 +43,7 @@
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-storage</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 		<!-- Javassist - Class Editing -->
@@ -70,6 +66,50 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>Semantics Generation</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>false</skip>
+                            <executable>python3</executable>
+                            <arguments>
+                                <argument>${basedir}/handle_semantics.py</argument>
+                                <argument>${basedir}/../../../runtime/commons/src/main/java/es/bsc/compss/semantics/</argument>
+                                <argument>${project.build.directory}/generated-sources/</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

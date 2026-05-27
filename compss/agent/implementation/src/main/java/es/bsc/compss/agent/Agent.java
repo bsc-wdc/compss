@@ -31,11 +31,11 @@ import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ErrorHandler;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -178,7 +178,7 @@ public class Agent {
      * @throws AgentException could not retrieve the value of some parameter
      */
     public static long runTask(CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
-        ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
+        ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, FailurePolicy onFailure)
         throws AgentException {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(AgentEvent.AGENT_RUN_TASK);
@@ -232,12 +232,13 @@ public class Agent {
                 addTaskParameter(value, param, position, params);
                 position += PARAM_LENGTH;
             }
-
-            onFailure = OnFailure.FAIL;
+            if (onFailure == null) {
+                onFailure = FailurePolicy.FAIL;
+            }
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
             wf.executeTask(ced.getCeSignature(), // Method to call
-                onFailure, // On failure behavior
+                onFailure.toByte(), // On failure behavior
                 0, // Time out of the task
                 false, // isPriority
                 numNodes, // Number of nodes
@@ -291,7 +292,7 @@ public class Agent {
                     stub = paramValue;
                 }
                 addRemoteData(remote);
-                wf.registerData(subParam.getType(), stub, remote.getRenaming());
+                wf.registerData(subParam.getType().toByte(), stub, remote.getRenaming());
             }
         }
         return sb.toString();
@@ -318,26 +319,25 @@ public class Agent {
 
             if (remote != null) {
                 addRemoteData(remote);
-                wf.registerData(param.getType(), stub, remote.getRenaming());
+                wf.registerData(param.getType().toByte(), stub, remote.getRenaming());
             }
         }
         return stub;
     }
 
     private static void processParameter(Workflow wf, ApplicationParameter param, int position, Object[] arguments)
-        throws AgentException, Exception {
+        throws Exception {
 
         Object value = processParamValue(wf, position, param);
         addTaskParameter(value, param, position, arguments);
     }
 
-    private static void addTaskParameter(Object value, ApplicationParameter param, int position, Object[] arguments)
-        throws AgentException, Exception {
+    private static void addTaskParameter(Object value, ApplicationParameter param, int position, Object[] arguments) {
 
         arguments[position] = value;
-        arguments[position + 1] = param.getType();
-        arguments[position + 2] = param.getDirection();
-        arguments[position + 3] = param.getStdIOStream();
+        arguments[position + 1] = param.getType().toByte();
+        arguments[position + 2] = param.getAccessMode().toByte();
+        arguments[position + 3] = param.getStdIOStream().toByte();
         arguments[position + 4] = param.getPrefix();
         arguments[position + 5] = param.getParamName();
         arguments[position + 6] = param.getContentType();

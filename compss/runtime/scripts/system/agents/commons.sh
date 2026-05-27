@@ -156,7 +156,7 @@ get_parameters(){
   for param in "$@"; do
     PARAMETERS="${PARAMETERS}
       <params paramId=\"${param_id}\">
-        <direction>IN</direction>
+        <accessMode>READ</accessMode>
         <paramName></paramName>
         <prefix></prefix>
         <contentType></contentType>
@@ -187,7 +187,7 @@ get_parameters_as_array(){
   shift 1
   PARAMETERS="<parameters>
       <params paramId=\"0\">
-        <direction>IN</direction>
+        <accessMode>READ</accessMode>
         <paramName>args</paramName>
         <prefix></prefix>
         <contentType></contentType>

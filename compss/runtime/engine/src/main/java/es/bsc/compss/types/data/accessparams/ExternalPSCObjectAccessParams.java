@@ -18,7 +18,6 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.params.ExternalPSCObjectData;
@@ -40,12 +39,13 @@ public class ExternalPSCObjectAccessParams extends ObjectAccessParams<String, Ex
      * @param hashCode Hashcode of the associated External PSCO
      * @return new ExternalPSCObjectAccessParams instance
      */
-    public static final ExternalPSCObjectAccessParams constructEPOAP(Application app, Direction dir, String pscoId,
-        int hashCode) {
+    public static final ExternalPSCObjectAccessParams constructEPOAP(Application app,
+        es.bsc.compss.semantics.data.access.AccessMode dir, String pscoId, int hashCode) {
         return new ExternalPSCObjectAccessParams(app, dir, pscoId, hashCode);
     }
 
-    private ExternalPSCObjectAccessParams(Application app, Direction dir, String pscoId, int hashCode) {
+    private ExternalPSCObjectAccessParams(Application app, es.bsc.compss.semantics.data.access.AccessMode dir,
+        String pscoId, int hashCode) {
         super(app, new ExternalPSCObjectData(hashCode), dir, pscoId);
     }
 
@@ -60,7 +60,7 @@ public class ExternalPSCObjectAccessParams extends ObjectAccessParams<String, Ex
 
     @Override
     protected void registerValueForVersion(DataVersion dv) {
-        if (mode != AccessMode.W) {
+        if (mode.isRead()) {
             EngineDataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerExternalPSCO(renaming, this.getPSCOId());

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.execution;
 
-import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobHistory;
@@ -91,7 +91,7 @@ public interface Invocation {
      */
     public List<String> getSlaveNodesNames();
 
-    public OnFailure getOnFailure();
+    public FailurePolicy getOnFailure();
 
     public boolean producesEmptyResultsOnFailure();
 

@@ -14,13 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.editing;
 
+import es.bsc.compss.loader.runtime.SemanticConverter;
+import es.bsc.compss.loader.runtime.data.DataType;
+import es.bsc.compss.loader.runtime.task.FailurePolicy;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.SchedulerHints;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -62,9 +64,6 @@ public class TaskCall {
     private static final String SIGNATURE_BUILDER = SignatureBuilder.class.getCanonicalName();
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_TYPE_PSCO = DATA_TYPES + "." + DataType.PSCO_T.name();
-    private static final String DATA_TYPE_OBJECT = DATA_TYPES + "." + DataType.OBJECT_T.name();
-    private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
-    private static final String DATA_STREAM = StdIOStream.class.getCanonicalName();
 
     final String itWfVar;
 
@@ -110,7 +109,7 @@ public class TaskCall {
         }
         this.isDistributed = isDistributed;
         this.isReplicated = isReplicated;
-        String parDirection = "INOUT";
+        Direction parDirection = Direction.INOUT;
 
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         OnFailure onFailure = OnFailure.RETRY;
@@ -123,7 +122,7 @@ public class TaskCall {
             isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
             onFailure = methodAnnot.onFailure();
             timeOut = Integer.valueOf(methodAnnot.timeOut());
-            parDirection = methodAnnot.targetDirection().name();
+            parDirection = methodAnnot.targetDirection();
         } else if (itfMethod.isAnnotationPresent(Binary.class)) {
             Binary binaryAnnot = itfMethod.getAnnotation(Binary.class);
             isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
@@ -174,7 +173,7 @@ public class TaskCall {
             numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
                 ? Integer.valueOf(numNodesSTR)
                 : Constants.SINGLE_NODE;
-            parDirection = multiNodeAnnot.targetDirection().name();
+            parDirection = multiNodeAnnot.targetDirection();
         } else if (itfMethod.isAnnotationPresent(OmpSs.class)) {
             OmpSs ompssAnnot = itfMethod.getAnnotation(OmpSs.class);
             isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(ompssAnnot.priority()));
@@ -228,7 +227,8 @@ public class TaskCall {
         cmd.append("}),");
 
         // Add the onFailure behavior
-        cmd.append(OnFailure.class.getCanonicalName() + "." + onFailure).append(',');
+        FailurePolicy failPol = SemanticConverter.getFailurePolicy(onFailure);
+        cmd.append("(byte)").append(failPol.getID()).append(',');
         // Add the timeOut time
         cmd.append(timeOut).append(",");
 
@@ -316,12 +316,12 @@ public class TaskCall {
         return postCall.toString();
     }
 
-    private String buildParameter(String parValue, String parType, String direction, String stream, String prefix,
-        String name, String contentType, String weight, boolean keepRename) {
+    private String buildParameter(String parValue, String parType, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, String weight, boolean keepRename) {
         return parValue + ',' + // value
-            parType + ',' + // type
-            DATA_DIRECTION + "." + direction + ',' + // direction
-            DATA_STREAM + "." + stream + ',' + // stream
+            "Byte.valueOf(" + parType + ".getID())," + // type
+            "Byte.valueOf((byte)" + SemanticConverter.getAccessMode(direction).getID() + ")," + // access mode
+            "Byte.valueOf((byte)" + SemanticConverter.getStdIOStream(stream).getID() + ")," + // stream
             "\"" + prefix + "\"" + ',' + // prefix
             "\"" + name + "\"," + // param name
             "\"" + contentType + "\"" + ',' + // content
@@ -329,13 +329,13 @@ public class TaskCall {
             "new Boolean(" + keepRename + ")"; // keep rename
     }
 
-    private String buildParameter(String parValue, String parType, String direction, String contentType) {
-        return buildParameter(parValue, parType, direction, "UNSPECIFIED", Constants.PREFIX_EMPTY, "", contentType,
-            "1.0", false);
+    private String buildParameter(String parValue, String parType, Direction direction, String contentType) {
+        return buildParameter(parValue, parType, direction, StdIOStream.UNSPECIFIED, Constants.PREFIX_EMPTY, "",
+            contentType, "1.0", false);
     }
 
     private String buildOutParameter(String parValue, String parType, String contentType) {
-        return buildParameter(parValue, parType, "OUT", contentType);
+        return buildParameter(parValue, parType, Direction.OUT, contentType);
     }
 
 
@@ -417,8 +417,8 @@ public class TaskCall {
             }
             this.type = parType;
             this.paramPreparation = paramPreparation;
-            this.paramDesc = buildParameter(parVal, parType, par.direction().name(), par.stream().name(), par.prefix(),
-                par.name(), parContent, par.weight(), par.keepRename());
+            this.paramDesc = buildParameter(parVal, parType, par.direction(), par.stream(), par.prefix(), par.name(),
+                parContent, par.weight(), par.keepRename());
             this.paramCleanup = paramCleanup;
         }
 
@@ -448,7 +448,7 @@ public class TaskCall {
         private final String targetDescription;
 
 
-        public TargetInformation(Method declaredMethod, String parDirection) {
+        public TargetInformation(Method declaredMethod, Direction parDirection) {
             String tgtVal = "$0";
             String tgtType = CHECK_SCO_TYPE + "$0)";
 

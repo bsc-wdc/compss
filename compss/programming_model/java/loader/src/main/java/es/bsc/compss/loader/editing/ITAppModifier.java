@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.loader.total;
+package es.bsc.compss.loader.editing;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.loader.LoaderConstants;
@@ -184,7 +184,9 @@ public final class ITAppModifier {
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API_IMPL);
         cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
-        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_EDIT);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_WF);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_WF_DATA);
         return cp;
     }
 
@@ -279,16 +281,6 @@ public final class ITAppModifier {
          * Inserts method to register the CoreElements
          */
         methodBody = new StringBuilder();
-        methodBody.append("public static void registerCoreElements() { ")//
-            .append("java.util.List ceds = ").append(LoaderConstants.CLASS_CEI_PARSER).append(".parseCoreElements(\"")//
-            .append(annotItf.getCanonicalName()).append("\");") //
-            .append("for (int i=0; i < ceds.size(); i++) {") //
-            .append(itApiVar).append(".registerCoreElement((es.bsc.compss.types.CoreElementDefinition)ceds.get(i));") //
-            .append("}") //
-            .append("}");
-
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
 
         /*
          * Insert method initialize the workflow (workflows if per-Thread Workflows is enabled).
@@ -315,7 +307,11 @@ public final class ITAppModifier {
         } else {
             methodBody.append(itWfVar).append(" = wf;");
         }
-        methodBody.append("registerCoreElements();");
+
+        // CEIParser registerCoreElements
+        methodBody.append(LoaderConstants.CLASS_CEI_PARSER).append(".registerCoreElements(\"")//
+            .append(annotItf.getCanonicalName()).append("\",").append(itApiVar).append(");"); //
+
         methodBody.append("return wf;");
         methodBody.append("}");
         m = CtNewMethod.make(methodBody.toString(), appClass);

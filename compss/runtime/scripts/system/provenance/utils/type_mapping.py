@@ -123,7 +123,7 @@ def map_datatype(custom_type: str) -> str:
 
 
 def map_direction(custom_type: str) -> str:
-    """ Maps COMPSs direction codes to their human-readable form. """
+    """ Maps COMPSs accessMode codes to their human-readable form. """
     return DIRECTION_MAP.get(custom_type, custom_type)  # Default fallback is the original value
 
 

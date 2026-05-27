@@ -281,6 +281,9 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
     public void onTaskCreation(Task t) {
         // Check if throttle is exceeded and wait until throttle is correct.
         THROTTLE.acquireUninterruptibly();
+        if (this.totalTaskCount == 0) {
+            this.GH.appStarted(this.id);
+        }
         this.totalTaskCount++;
         getTaskMonitor().onCreation();
     }
@@ -340,6 +343,7 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
                 }
             }
         }
+        this.GH.taskFinished(task);
     }
 
     /**
@@ -387,7 +391,7 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
      */
     public final void reachesBarrier(Barrier barrier) {
         doBarrier(barrier);
-        this.GH.barrier(this.nameToData, this.codeToData, this.collectionToData);
+        this.GH.barrier(this.id, this.nameToData, this.codeToData, this.collectionToData);
     }
 
     /**
@@ -397,7 +401,7 @@ public class Application implements ApplicationTaskMonitor, DataOwner {
      */
     public final void endReached(Barrier barrier) {
         doBarrier(barrier);
-        this.GH.endApp();
+        this.GH.endApp(this.id);
     }
 
     private void doBarrier(Barrier barrier) {

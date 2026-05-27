@@ -45,6 +45,8 @@ public class RuntimeMonitor implements Runnable {
     // Monitor properties
     private static final boolean MONITOR_ENABLED =
         System.getProperty(COMPSsConstants.MONITOR) != null && !System.getProperty(COMPSsConstants.MONITOR).equals("0");
+    private static final boolean MONITOR_TRACING_ENABLED = System.getProperty(COMPSsConstants.TRACING_MONITOR) != null
+        && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_MONITOR));
     private static final String MONITOR_DIR_PATH = LoggerManager.getLogDir() + "monitor" + File.separator;
 
 
@@ -104,7 +106,9 @@ public class RuntimeMonitor implements Runnable {
     public RuntimeMonitor(AccessProcessor ap, TaskDispatcher td) {
         this.td = td;
         this.ap = ap;
-        if (GraphGenerator.isEnabled()) {
+        if (MONITOR_TRACING_ENABLED) {
+            this.gh = new MonitorGraph();
+        } else if (GraphGenerator.isEnabled()) {
             if (!new File(MONITOR_DIR_PATH).mkdir()) {
                 ErrorManager.error(ERROR_MONITOR_DIR);
             }
@@ -199,7 +203,7 @@ public class RuntimeMonitor implements Runnable {
                 LOGGER.error("Error clearing monitor.xml execution files");
             }
         }
-        if (GraphGenerator.isEnabled()) {
+        if (MONITOR_ENABLED || GraphGenerator.isEnabled()) {
             LOGGER_API.debug("Stopping Graph generation...");
             this.gh.removeCurrentGraph();
         }

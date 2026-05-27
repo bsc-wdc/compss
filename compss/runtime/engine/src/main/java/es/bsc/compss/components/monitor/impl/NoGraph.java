@@ -37,6 +37,11 @@ public class NoGraph implements GraphHandler {
     }
 
     @Override
+    public final void appStarted(long appId) {
+        // Do nothing
+    }
+
+    @Override
     public final void openTaskGroup(String groupName) {
         // Do nothing
     }
@@ -87,6 +92,11 @@ public class NoGraph implements GraphHandler {
     }
 
     @Override
+    public final void taskFinished(Task task) {
+        // Do nothing
+    }
+
+    @Override
     public final void endTaskAnalysis(Task task, boolean taskHasEdge) {
         // Do nothing
     }
@@ -102,13 +112,13 @@ public class NoGraph implements GraphHandler {
     }
 
     @Override
-    public void barrier(Map<String, FileInfo> files, Map<Integer, DataInfo> objects,
+    public void barrier(long appId, Map<String, FileInfo> files, Map<Integer, DataInfo> objects,
         Map<String, CollectionInfo> collections) {
         // Do nothing
     }
 
     @Override
-    public final void endApp() {
+    public final void endApp(long appId) {
         // Do nothing
     }
 

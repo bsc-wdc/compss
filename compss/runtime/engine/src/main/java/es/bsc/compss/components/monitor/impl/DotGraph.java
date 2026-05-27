@@ -56,6 +56,11 @@ public class DotGraph implements GraphHandler {
     }
 
     @Override
+    public void appStarted(long appId) {
+        // Do nothing
+    }
+
+    @Override
     public void openTaskGroup(String groupName) {
         this.gm.addTaskGroupToGraph(groupName);
     }
@@ -198,6 +203,11 @@ public class DotGraph implements GraphHandler {
     }
 
     @Override
+    public void taskFinished(Task task) {
+        // Do nothing
+    }
+
+    @Override
     public void endTaskAnalysis(Task task, boolean taskHasEdge) {
         if (!taskHasEdge) {
             // If the graph must be written and the task has no edge due to its parameters,
@@ -210,7 +220,7 @@ public class DotGraph implements GraphHandler {
     }
 
     @Override
-    public void endApp() {
+    public void endApp(long appId) {
         this.gm.closeCommutativeGroups();
         this.gm.commitGraph(true);
     }
@@ -258,7 +268,7 @@ public class DotGraph implements GraphHandler {
     }
 
     @Override
-    public void barrier(Map<String, FileInfo> files, Map<Integer, DataInfo> objects,
+    public void barrier(long appId, Map<String, FileInfo> files, Map<Integer, DataInfo> objects,
         Map<String, CollectionInfo> collections) {
         // Addition of missing commutative groups to graph
         this.gm.closeCommutativeGroups();

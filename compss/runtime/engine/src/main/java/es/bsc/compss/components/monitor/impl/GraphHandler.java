@@ -33,6 +33,8 @@ import java.util.Map;
  **/
 public interface GraphHandler {
 
+    void appStarted(long appId);
+
     void openTaskGroup(String groupName);
 
     void closeTaskGroup();
@@ -83,6 +85,8 @@ public interface GraphHandler {
      */
     public void addStreamDependency(AbstractTask task, Integer streamDataId, boolean isWrite);
 
+    void taskFinished(Task task);
+
     void endTaskAnalysis(Task task, boolean taskHasEdge);
 
     /**
@@ -97,9 +101,10 @@ public interface GraphHandler {
 
     void groupBarrier(BarrierGroupRequest barrier);
 
-    void barrier(Map<String, FileInfo> files, Map<Integer, DataInfo> objects, Map<String, CollectionInfo> collections);
+    void barrier(long appId, Map<String, FileInfo> files, Map<Integer, DataInfo> objects,
+        Map<String, CollectionInfo> collections);
 
-    void endApp();
+    void endApp(long appId);
 
     BufferedWriter getAndOpenCurrentGraph();
 

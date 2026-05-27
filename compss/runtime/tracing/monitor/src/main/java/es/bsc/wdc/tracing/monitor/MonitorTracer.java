@@ -71,7 +71,6 @@ public class MonitorTracer implements TracingBackend {
     private final String masterName;
     private final String nodeName;
     private final EventSink monitoredSink;
-    private final EventSink graphSink;
     private final OtelMetrics metrics;
 
     private final Map<Integer, Map<Integer, String>> eventLabels = new HashMap<>();
@@ -109,10 +108,6 @@ public class MonitorTracer implements TracingBackend {
         String monitoredEP = System.getProperty(Constants.ENV_EVENTS_API, Constants.DEFAULT_EVENTS_API);
         this.monitoredSink = new EventSink(monitoredEP);
         this.monitoredSink.start();
-
-        String graphEP = System.getProperty(Constants.ENV_GRAPH_API, Constants.DEFAULT_GRAPH_API);
-        this.graphSink = new EventSink(graphEP);
-        this.graphSink.start();
     }
 
     @Override
@@ -237,7 +232,6 @@ public class MonitorTracer implements TracingBackend {
     @Override
     public void fini() {
         this.monitoredSink.stop();
-        this.graphSink.stop();
     }
 
     @Override

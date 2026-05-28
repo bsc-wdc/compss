@@ -37,6 +37,11 @@
 
   expectedTime=1000s
 
+  # Reduce SSH retry timeout: the failing worker (COMPSsWorker_02) has an unresolvable
+  # hostname by design, so DNS fails immediately. The default 160s retry window burns
+  # ~160s per run for no reason; 10s is ample to observe and record the failure.
+  export COMPSS_SSH_TIMEOUT=10000
+
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
     --project="${base_app_dir}"/project.xml \

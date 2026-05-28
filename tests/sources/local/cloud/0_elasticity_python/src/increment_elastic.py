@@ -40,8 +40,13 @@ def main_program():
     for i in range(numTasks):
         printCounterValue(FILENAME + str(i), i)
     print("** Application values OK **")
+
+    # PyCOMPSs has no public API to poll worker count, so a fixed wait is the
+    # only way to give the runtime time to destroy elastic VMs before the
+    # result script checks runtime.log.
     print("Waiting for VMs to be destroyed")
-    time.sleep(60)
+    import time
+    time.sleep(20)
     print("Application ends")
 
 
@@ -81,9 +86,11 @@ def increment(filePath):
     value = fis.read()
     fis.close()
 
-    # Sleep to increase task size
+    # Sleep long enough for the scheduler to detect overload and provision VMs.
+    # The dummy connector takes ~15 s to create a VM; 5 s per task is sufficient
+    # to keep the queue full while scale-up happens.
     import time
-    time.sleep(30)  # Seconds
+    time.sleep(5)  # Seconds
 
     # Write value
     fos = open(filePath, 'w')

@@ -9,11 +9,39 @@ import java.io.FileOutputStream;
 public class SimpleExtAdaptation {
 
     private static final String counterName = "counter";
-    // private static int EXTRA_WAIT;
+
+    /**
+     * Polls until {@code ResourceManager.getAllWorkers().size() == expected} or the
+     * deadline is reached, checking every second.  Fails fast and exits on timeout.
+     *
+     * @param expected  target worker count
+     * @param timeoutMs maximum milliseconds to wait
+     * @param label     description printed in failure/success messages
+     */
+    private static void waitForWorkerCount(int expected, long timeoutMs, String label)
+        throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        int current;
+        do {
+            current = ResourceManager.getAllWorkers().size();
+            if (current == expected) {
+                System.out.println("** " + label + " OK (workers=" + current + ") **");
+                return;
+            }
+            Thread.sleep(1_000);
+        } while (System.currentTimeMillis() < deadline);
+        // One last check after the deadline expires
+        current = ResourceManager.getAllWorkers().size();
+        if (current != expected) {
+            System.out.println("FAIL: " + label + " timed out: expected " + expected
+                + " workers, got " + current);
+            System.exit(-1);
+        }
+        System.out.println("** " + label + " OK (workers=" + current + ") **");
+    }
 
 
     public static void main(String[] args) {
-        // Check parameters parameters
         if (args.length != 5) {
             System.out.println("[ERROR] Incorrect number of parameters");
             System.out.println("    Usage simple <initVal> <increment> <minVM> <maxVM> <creationTime>");
@@ -23,7 +51,6 @@ public class SimpleExtAdaptation {
         FileOutputStream fos;
         FileInputStream fis;
         try {
-            // Get parameters
             int initialValue = Integer.parseInt(args[0]);
             int increment = Integer.parseInt(args[1]);
             int minVM = Integer.parseInt(args[2]);
@@ -42,46 +69,17 @@ public class SimpleExtAdaptation {
                 System.out.println("** Initial Resource detection  OK **");
             }
 
-            // Wait to have initial VMs loaded
-            System.out.println("[LOG] Creating minimal number of VM's. Waiting...");
-            for (int i = 0; i < minVM; i++) {
-                try {
-                    Thread.sleep(creationTime * 1000);
-                } catch (InterruptedException e) {
-                    System.out.println("FAIL: Cannot sleep current thread");
-                    e.printStackTrace();
-                    System.exit(-1);
-                }
-            }
+            // Poll until the initial minVM VMs are ready
+            System.out.println("[LOG] Waiting for minimal number of VMs (" + minVM + ")...");
+            waitForWorkerCount(minVM, creationTime * 2000L, "Initial VM creation");
 
-            // Check number of initial VMs
-            System.out.println("[LOG] Checking initial number of VMs " + minVM);
-            currentRes = ResourceManager.getAllWorkers().size();
-            if (currentRes != minVM) {
-                System.out.println("FAIL: Initial VMs incorrect " + currentRes + " (" + minVM + ")");
-                System.exit(-1);
-            } else {
-                System.out.println("** Initial VM creation  OK **");
-            }
-            System.out.println("[LOG] Creating manually an extra VMs. Waiting...");
-            try {
-                Thread.sleep(creationTime * 1100);
-            } catch (InterruptedException e) {
-                System.out.println("FAIL: Cannot sleep current thread");
-                e.printStackTrace();
-                System.exit(-1);
-            }
+            // Poll until the externally-added VMs reach maxVM, then wait briefly
+            // for all NIO workers to finish their handshake before submitting tasks.
+            System.out.println("[LOG] Waiting for externally-added VMs (" + maxVM + ")...");
+            waitForWorkerCount(maxVM, creationTime * 2000L, "Extra VM creation");
+            Thread.sleep(5_000);
 
-            System.out.println("[LOG] Checking extra number of VMs " + maxVM);
-            currentRes = ResourceManager.getAllWorkers().size();
-            if (currentRes != maxVM) {
-                System.out.println("FAIL: Max VMs incorrect " + currentRes + " (" + maxVM + ")");
-                System.exit(-1);
-            } else {
-                System.out.println("** Extra VM creation  OK **");
-            }
-
-            // Execute increment
+            // Execute increment tasks
             System.out.println("[LOG] Sending increment executions");
             for (int i = 0; i < increment; i++) {
                 fos = new FileOutputStream(counterName + i);
@@ -90,34 +88,28 @@ public class SimpleExtAdaptation {
                 SimpleImpl.increment(counterName + i);
             }
 
-            // Open the file and print final counter value (should be 2)
+            // Sync results and verify correctness
             for (int i = 0; i < increment; i++) {
                 fis = new FileInputStream(counterName + i);
                 int finalValue = fis.read();
                 int expected = initialValue + 1;
-                System.out
-                    .println("[LOG] Final counter" + i + " value is " + finalValue + " (expected: " + expected + ")");
+                System.out.println("[LOG] Final counter" + i + " value is " + finalValue
+                    + " (expected: " + expected + ")");
                 fis.close();
                 if (finalValue != expected) {
                     System.out.println("FAIL: Incorrect final value at counter" + i);
                     System.exit(-1);
                 }
-
             }
+
             System.out.println("** Application values OK **");
-            long sleepTime = creationTime * 1500;
-            System.out.println("Waiting " + sleepTime + " ms for the elastic VMs to be removed");
-            Thread.sleep(sleepTime);
 
-            // Check number of initial VMs
-            System.out.println("[LOG] Checking if VM has been removed");
-            currentRes = ResourceManager.getAllWorkers().size();
-            if (currentRes != minVM) {
-                System.out.println("VM not removed " + currentRes + " (" + minVM + ")");
-                System.exit(-1);
-            } else {
-                System.out.println("** Intermediate VM destruction  OK **");
-            }
+            // Poll until the scheduler has scaled back to minVM after external REMOVE commands,
+            // then pause briefly so applyPolicies logs currentVMs==minVM before exit.
+            System.out.println("[LOG] Waiting for scale-down to " + minVM + " VMs...");
+            waitForWorkerCount(minVM, creationTime * 3000L, "Intermediate VM destruction");
+            Thread.sleep(5_000);
+
         } catch (Exception ioe) {
             System.out.println("[ERROR] Exception found");
             ioe.printStackTrace();

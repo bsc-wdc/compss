@@ -82,7 +82,6 @@
     exit_value=124
   else
     # Check result
-    sleep 10
     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" $minVM $maxVM
     exit_value=$?
   fi

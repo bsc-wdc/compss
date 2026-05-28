@@ -15,6 +15,7 @@
   # Copy files
   cp "${source_base_dir}"/execution "${target_base_dir}"/execution
   cp "${source_base_dir}"/result "${target_base_dir}"/result
+  cp "${source_base_dir}"/../../../../scripts/stream_common.sh "${target_base_dir}"/stream_common.sh
 
   cp -r "${source_base_dir}"/src "${target_base_dir}"
 

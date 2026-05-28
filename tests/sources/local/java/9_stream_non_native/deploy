@@ -14,6 +14,7 @@
 
   cp "${source_base_dir}"/execution "${target_base_dir}"/execution
   cp "${source_base_dir}"/result "${target_base_dir}"/result
-  
+  cp "${source_base_dir}"/../../../../scripts/stream_common.sh "${target_base_dir}"/stream_common.sh
+
   # Copy script
   cp "${source_base_dir}"/src/main/binary/write_files.sh "${target_base_dir}"/write_files.sh

@@ -21,8 +21,8 @@
 
   #----------------------------------------------------------------------------------
   # Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
+  rm -rf /tmp/COMPSsWorker01 /tmp/COMPSsWorker02 2>/dev/null || true
+  mkdir -p /tmp/COMPSsWorker01 /tmp/COMPSsWorker02
 
   #----------------------------------------------------------------------------------
   # Create storage Conf
@@ -50,8 +50,9 @@ EOF
   error_log="${target_log_folder}/test_psco_streams_0${retry_num}.errorlog"
   expectedTime=150s
 
-  # Add a little sleep to allow OS free Storage structures
-  sleep 15s 
+  # shellcheck source=stream_common.sh
+  source "$(dirname "${BASH_SOURCE[0]}")/stream_common.sh"
+  wait_for_port_release 49049 || exit 1
 
   # shellcheck disable=SC2086
   timeout --signal=2 --kill-after=10s $expectedTime "${COMPSs_exec}" \
@@ -69,11 +70,12 @@ EOF
     --classpath="${base_app_dir}/${jar_name}":${storageImplPath} \
     \
     "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  compss_exit=$?
 
   # Copy LOG files
   cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   # Check timeout
-  if [[ "$?" = "124" ]]; then
+  if [[ "$compss_exit" = "124" ]]; then
     # Report time out
     echo "[WARNING] Java Application timed out" >> "${output_log}"
     exit_value=124

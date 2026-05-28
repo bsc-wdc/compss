@@ -20,12 +20,16 @@
 
   #----------------------------------------------------------------------------------
   # Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
+  rm -rf /tmp/COMPSsWorker01 2>/dev/null || true
+  mkdir -p /tmp/COMPSsWorker01
 
   #----------------------------------------------------------------------------------
   # Run application
   echo
   echo "*** RUNNING PYTHON APPLICATION STREAM NON NATIVE"
+
+  # shellcheck source=stream_common.sh
+  source "$(dirname "${BASH_SOURCE[0]}")/stream_common.sh"
 
   for python_interpreter in ${execution_envs}; do
     if [ "${python_interpreter}" == "python3" ]; then
@@ -37,8 +41,7 @@
       mkdir -p "${exec_target_log_folder}"
       expectedTime=80s
 
-      # Wait for system sockets to close
-      sleep 15s
+      wait_for_port_release 49049 || exit 1
 
       export WRITE_BINARY="${base_app_dir}/src/scripts/write_files.sh"
 
@@ -60,11 +63,12 @@
         --specific_log_dir="${specific_log_dir}" \
         \
         "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+      compss_exit=$?
 
       # Copy LOG files
       cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
       # Check timeout
-      if [[ "$?" = "124" ]]; then
+      if [[ "$compss_exit" = "124" ]]; then
         # Report time out
         echo "[WARNING] Python Application timed out" >> "${output_log}"
         exit_value=124

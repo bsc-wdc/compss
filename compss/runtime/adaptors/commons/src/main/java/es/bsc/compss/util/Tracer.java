@@ -572,6 +572,10 @@ public abstract class Tracer {
      * @param packagePath Path where to store the package with all the tracing information
      */
     public static void generatePackage(String packagePath) {
+        if (!EXTRAE_ENABLED) {
+            return;
+        }
+
         if (DEBUG) {
             LOGGER.debug("[Tracer] Generating trace package of " + nodeName);
         }

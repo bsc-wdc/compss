@@ -519,7 +519,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             LOGGER.debug("Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
             return;
         }
-        if (Tracer.isActivated() || CACHE_PROFILING_ENABLED) {
+        if (Tracer.isExtraeActivated() || CACHE_PROFILING_ENABLED) {
             generateAndRetrieveWorkerAnalysis();
         }
 

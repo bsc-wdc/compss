@@ -1521,6 +1521,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * / Generates the tracing files in the Analysis folder.
      */
     public void generateTracingFiles() {
+        if (!NIOTracer.isExtraeActivated()) {
+            return;
+        }
+
         NIOTracer.fini();
 
         String packagePath = this.getAnalysisDir();

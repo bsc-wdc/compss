@@ -95,6 +95,9 @@ public class TaskScheduler {
     // Map of available workers and its resource schedulers
     protected final WorkersMap workers;
 
+    // Consecutive startup failure count per worker; cleared on successful start, removed on permanent eviction
+    private final Map<Worker<?>, Integer> startupStrikes = new HashMap<>();
+
     // List of blocked actions
     private final ActionSet blockedActions;
 
@@ -940,14 +943,27 @@ public class TaskScheduler {
         StartWorkerAction<T> action = new StartWorkerAction<>(si, this.orchestrator, ui);
         ActionListener<StartWorkerAction<T>> listener = new ActionListenerAdapter<StartWorkerAction<T>>() {
             @Override
+            public void onActionCompleted(StartWorkerAction<T> action) {
+                startupStrikes.remove(ui.getResource());
+            }
+
+            @Override
             public void onActionFailed(StartWorkerAction<T> action) {
-                removeResource(ui);
                 Worker<?> wNode = ui.getResource();
-                ResourceDescription rd = wNode.getDescription();
-                rd.reduce(rd);
-                ui.getResource().updatedFeatures();
-                SchedulingInformation.changesOnWorker(ui);
-                ResourceManager.removeWorker(wNode);
+                int strikes = startupStrikes.merge(wNode, 1, Integer::sum);
+                if (strikes < 3) {
+                    LOGGER.warn("Worker " + wNode.getName() + " failed to start (strike " + strikes + "/3). Retrying.");
+                    startWorker(ui);
+                } else {
+                    LOGGER.error("Worker " + wNode.getName() + " failed to start 3 times. Removing permanently.");
+                    startupStrikes.remove(wNode);
+                    removeResource(ui);
+                    ResourceDescription rd = wNode.getDescription();
+                    rd.reduce(rd);
+                    wNode.updatedFeatures();
+                    SchedulingInformation.changesOnWorker(ui);
+                    ResourceManager.removeWorker(wNode);
+                }
             }
         };
         action.addListener(listener);
@@ -1241,8 +1257,7 @@ public class TaskScheduler {
      * @param resource New worker.
      */
     protected <T extends WorkerResourceDescription> void workerDetected(ResourceScheduler<T> resource) {
-        // There are no internal structures worker-related. No need to do
-        // anything.
+        // There are no internal structures worker-related. No need to do anything.
     }
 
     /**

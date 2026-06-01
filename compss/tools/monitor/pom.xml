@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-tools</artifactId>
-        <version>3.4.post2605</version>
+        <version>3.4.post2606</version>
     </parent>
 
 	<!-- PROJECT INFORMATION -->

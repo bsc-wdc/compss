@@ -17,15 +17,15 @@
 package es.bsc.compss.types.fake;
 
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceType;
-import es.bsc.compss.types.resources.Worker;
 
-public class FakeWorker extends Worker<MethodResourceDescription> {
+public class FakeWorker extends DynamicMethodWorker {
 
     public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
-        super("a", description, new FakeNode(null), limitOfTasks, null);
+        super("a", description, new FakeNode(null), limitOfTasks, 0, 0, 0, null);
     }
 
     @Override
@@ -41,11 +41,6 @@ public class FakeWorker extends Worker<MethodResourceDescription> {
     @Override
     public String getMonitoringData(String prefix) {
         return "";
-    }
-
-    @Override
-    public boolean canFeaturesChange() {
-        return true;
     }
 
     @Override

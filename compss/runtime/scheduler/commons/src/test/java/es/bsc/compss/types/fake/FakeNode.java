@@ -16,8 +16,9 @@
  */
 package es.bsc.compss.types.fake;
 
+import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.semantics.data.DataType;
-import es.bsc.compss.types.COMPSsNode;
+import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.LogicalData;
@@ -36,10 +37,40 @@ import es.bsc.compss.types.uri.SimpleURI;
 import java.util.List;
 import java.util.Set;
 
-public class FakeNode extends COMPSsNode {
+public class FakeNode extends COMPSsWorker {
 
     public FakeNode(NodeMonitor monitor) {
         super(monitor);
+    }
+
+    @Override
+    public String getUser() {
+        return "";
+    }
+
+    @Override
+    public String getClasspath() {
+        return "";
+    }
+
+    @Override
+    public String getPythonpath() {
+        return "";
+    }
+
+    @Override
+    public void updateTaskCount(int processorCoreCount) {
+
+    }
+
+    @Override
+    public void announceDestruction() throws AnnounceException {
+
+    }
+
+    @Override
+    public void announceCreation() throws AnnounceException {
+
     }
 
     @Override

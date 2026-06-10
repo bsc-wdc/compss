@@ -181,6 +181,7 @@ docker_build:
     - echo "Image successfully built"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 tests:
   stage: tests
@@ -239,6 +240,7 @@ tests:
     expire_in: 7 days
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 # Deletes the per-pipeline ci image tag from the registry after tests complete
 # to prevent unbounded registry growth. Runs even if tests failed.
@@ -270,4 +272,6 @@ cleanup_registry:
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always

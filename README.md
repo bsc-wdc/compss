@@ -14,8 +14,8 @@
   <a href='https://eu.badgr.com/public/assertions/DyM-w_V-SEKU64D90AsrEA'>
   <img src='https://api.eu.badgr.io/public/assertions/DyM-w_V-SEKU64D90AsrEA/image' alt="SQAaaS silver badge achieved" height="75px"/>
   </a>
-  <a href='https://compss.bsc.es/jenkins/job/COMPSs_Framework_Create_Release/'>
-  <img src='https://compss.bsc.es/jenkins/buildStatus/icon?job=COMPSs_Framework_Create_Release' alt="Build Status">
+  <a href='https://gitlab.bsc.es/wdc/compss/framework/-/pipelines'>
+  <img src='https://gitlab.bsc.es/wdc/compss/framework/badges/trunk/pipeline.svg' alt="Build Status">
   </a>
   <a href='https://compss-doc.readthedocs.io/en/stable/?badge=stable'>
   <img src='https://readthedocs.org/projects/compss-doc/badge/?version=stable' alt='Documentation Status' />

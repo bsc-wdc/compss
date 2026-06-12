@@ -54,7 +54,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -62,6 +61,7 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -379,11 +379,6 @@ public class GOSWorker implements InvocationContext {
     @Override
     public String getHostName() {
         return this.hostName;
-    }
-
-    @Override
-    public long getTracingHostID() {
-        return Integer.parseInt(tracingParams[tracingParams.length - 1]);
     }
 
     @Override

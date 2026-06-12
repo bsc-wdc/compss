@@ -22,8 +22,8 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.request.ap.CheckpointerRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.CheckpointEvent;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
+import es.bsc.wdc.tracing.Tracer;
 
 public abstract class CheckpointerRequestImpl extends CheckpointerRequest {
 

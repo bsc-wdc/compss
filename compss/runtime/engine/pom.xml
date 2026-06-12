@@ -151,28 +151,28 @@
 				</executions>
 			</plugin>
 
-            <!-- Add manifest -->
-            <plugin>
-   <groupId>org.apache.maven.plugins</groupId>
-   <artifactId>maven-jar-plugin</artifactId>
-   <version>2.4</version>
-   <configuration>
-      <archive>
-         <manifest>
-            <addClasspath>true</addClasspath>
-            <classpathPrefix>lib/</classpathPrefix>
-            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-         </manifest>
-         <manifestEntries>
-            <Premain-Class>es.bsc.compss.util.Classpath</Premain-Class>
-            <Agent-Class>es.bsc.compss.util.Classpath</Agent-Class>
-            <Can-Redefine-Classes>false</Can-Redefine-Classes>
-            <Can-Retransform-Classes>true</Can-Retransform-Classes>
-         </manifestEntries>
-       </archive>
-   </configuration>
-</plugin>
+			<!-- Add manifest -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Premain-Class>es.bsc.compss.util.Classpath</Premain-Class>
+							<Agent-Class>es.bsc.compss.util.Classpath</Agent-Class>
+							<Can-Redefine-Classes>false</Can-Redefine-Classes>
+							<Can-Retransform-Classes>true</Can-Retransform-Classes>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
 
 			<!-- Create jar with dependencies -->
 			<plugin>
@@ -187,6 +187,10 @@
 						</goals>
 						<configuration>
 							<finalName>${project.artifactId}</finalName>
+							<transformers>
+								<!-- Merge META-INF/services entries -->
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+							</transformers>
 							<filters>
 								<filter>
 									<artifact>*:*</artifact>

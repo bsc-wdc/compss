@@ -26,11 +26,7 @@ public class COMPSsPaths {
 
     private static final String COMPSs_HOME = System.getenv(COMPSsConstants.COMPSS_HOME) + File.separator;
 
-    private static final String REL_BINDINGS_DIR = "Bindings" + File.separator;
-
     private static final String REL_RUNTIME_DIR = "Runtime" + File.separator;
-
-    private static final String REL_SCRIPTS_DIR = REL_RUNTIME_DIR + "scripts" + File.separator;
 
     private static final String REL_CONFIG_DIR = REL_RUNTIME_DIR + "configuration" + File.separator;
     private static final String REL_CONFIG_XML_DIR = REL_CONFIG_DIR + "xml" + File.separator;
@@ -45,9 +41,6 @@ public class COMPSsPaths {
 
     private static final String GAT_LOC = System.getenv(COMPSsConstants.GAT_LOC);
     public static final String GAT_ADAPTOR_LOCATION = GAT_LOC + File.separator + "lib" + File.separator + "adaptors";
-
-    public static final String REL_DEPS_DIR = "Dependencies" + File.separator;
-    public static final String REL_DEPS_EXTRAE_DIR = REL_DEPS_DIR + "extrae" + File.separator;
 
 
     /**

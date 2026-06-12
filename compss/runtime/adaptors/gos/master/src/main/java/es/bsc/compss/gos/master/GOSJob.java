@@ -54,7 +54,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.tracing.CoreEvent;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

@@ -65,7 +65,7 @@ public class ExternalStreamHandler {
         ProcessBuilder builder = new ProcessBuilder(cmd);
 
         // Setup process environment -- Tracing entries
-        Tracer.prepareSubProcessEnvironment(builder.environment(), false);
+        es.bsc.wdc.tracing.Tracer.prepareSubProcessEnvironment(builder.environment(), false);
 
         // Execute command
         Process process;

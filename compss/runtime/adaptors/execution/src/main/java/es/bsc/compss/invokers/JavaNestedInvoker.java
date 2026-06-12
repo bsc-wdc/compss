@@ -28,8 +28,8 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
+import es.bsc.wdc.tracing.Tracer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 

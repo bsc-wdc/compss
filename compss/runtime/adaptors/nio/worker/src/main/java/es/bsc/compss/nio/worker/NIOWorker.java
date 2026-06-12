@@ -81,11 +81,13 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TransferType;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
+import es.bsc.wdc.tracing.ConfigManager;
+import es.bsc.wdc.tracing.Tracer;
+import es.bsc.wdc.tracing.extrae.ExtraeTracerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -192,7 +194,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param limitOfTasks Limit of simultaneous tasks.
      * @param ioExecNum Number of IO Executors.
      * @param appUuid Application UUID.
-     * @param traceFlag Tracing flag.
      * @param traceHost Tracing host name.
      * @param storageConf Storage configuration file path.
      * @param executionType Task execution type.
@@ -209,10 +210,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
         int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
-        String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
-        String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
-        boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
-        PythonParams pyParams, CParams cParams, RParams rParams, String lang, boolean ear, boolean dataProvenance) {
+        String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceHost,
+        String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir,
+        String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams, RParams rParams, String lang,
+        boolean ear, boolean dataProvenance) {
 
         super(snd, rcv, masterPort);
 
@@ -226,8 +227,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         } catch (Exception e) {
             WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: {}", hostName);
         }
-        this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
-        NIOTracer.init(this.tracingId, hostName, installDir, this.tracingTaskDependencies);
+
+        NIOTracer.init();
 
         // Set attributes
         this.deploymentId = appUuid;
@@ -958,11 +959,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public long getTracingHostID() {
-        return Long.parseLong(NIOTracer.getHostID());
-    }
-
-    @Override
     public String getAppDir() {
         return this.appDir;
     }
@@ -1280,13 +1276,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         System.setProperty(COMPSsConstants.DEPLOYMENT_ID, appUuid);
 
         // Configure tracing
-        System.setProperty(COMPSsConstants.TRACING, traceFlag);
-        System.setProperty(COMPSsConstants.TRACING_EXTRAE, traceExtraeFlag);
-        System.setProperty(COMPSsConstants.TRACING_MONITOR, traceMonitorFlag);
-        System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
-        System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, workingDir);
-
-        System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES, traceTaskDependencies);
+        System.setProperty(ConfigManager.TRACING_INSTALL_DIR, installDir);
+        System.setProperty(ConfigManager.TRACING_HOST_ID, traceHost);
+        System.setProperty(ConfigManager.TRACING_HOST_NAME, workerIP);
+        System.setProperty(ConfigManager.TRACING_TASK_DEPENDENCIES, traceTaskDependencies);
+        // Configure tracing -> Extrae
+        System.setProperty(ConfigManager.TRACING_EXTRAE, traceExtraeFlag);
+        System.setProperty(ExtraeTracerFactory.WORKER_CONFIG_FILE, extraeFile);
+        System.setProperty(ExtraeTracerFactory.WORKING_DIR, workingDir);
+        // Configure tracing -> Monitor
+        System.setProperty(ConfigManager.TRACING_MONITOR, traceMonitorFlag);
 
         /*
          * ***********************************************************************************************************
@@ -1295,9 +1294,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // todo: nm: pass the lang to the nio constructor
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
-            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
-            traceHost, traceTaskDependencies, storageConf, executionType, persistentC, workingDir, installDir, appDir,
-            javaParams, pyParams, cParams, rParams, lang, ear, dataProvenance);
+            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceHost,
+            storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams, cParams,
+            rParams, lang, ear, dataProvenance);
 
         // Initialize the Transfer Manager
         WORKER_LOGGER.debug("  Initializing the TransferManager structures...");

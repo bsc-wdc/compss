@@ -32,7 +32,6 @@
     <!-- PROPERTIES -->
     <properties>
         <!-- BSC Components versions -->
-        <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
         <comm.version>2.0.0+a16fae6</comm.version>
         <conn.version>1.8-13</conn.version>
         <java-affinity.version>0.0.2-3</java-affinity.version>
@@ -63,13 +62,6 @@
     <!-- DEPENDENCIES -->
     <dependencyManagement>
         <dependencies>
-            <!-- Extrae -->
-            <dependency>
-                <groupId>es.bsc.cepbatools</groupId>
-                <artifactId>extrae</artifactId>
-                <version>${cepbatools-extrae.version}</version>
-            </dependency>
-
             <!-- comm -->
             <dependency>
                 <groupId>es.bsc.comm</groupId>

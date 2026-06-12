@@ -40,6 +40,5 @@
         <module>scheduler</module>
         <module>engine</module>
         <module>checkpointer</module>
-        <module>tracing</module>
     </modules>
 </project>

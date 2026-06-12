@@ -23,7 +23,7 @@ public class COMPSsConstants {
     /**
      * Accepted Execution modes.
      */
-    public static enum TaskExecution {
+    public enum TaskExecution {
         COMPSS, // Internal Execution
         STORAGE // External execution
     }
@@ -31,20 +31,12 @@ public class COMPSsConstants {
     /**
      * Languages.
      */
-    public static enum Lang {
+    public enum Lang {
         JAVA, // For Java applications
         C, // For C or C++ applications
         PYTHON, // For Python applications
         R, // For R applications
         UNKNOWN // For Services
-    }
-
-    /**
-     * Python Interpreters.
-     */
-    public static enum Pythons {
-        python, // For systemwide python interpreter
-        python3 // For python 3 interpreter
     }
 
 
@@ -96,7 +88,6 @@ public class COMPSsConstants {
 
     public static final String SCHEDULER = "compss.scheduler";
     public static final String SCHEDULER_CONFIG_FILE = "compss.scheduler.config";
-    public static final String PRESCHED = "compss.presched";
     public static final String GRAPH = "compss.graph";
     public static final String MONITOR = "compss.monitor";
     public static final String INPUT_PROFILE = "compss.profile.input";
@@ -105,11 +96,6 @@ public class COMPSsConstants {
 
     public static final String DATA_PROVENANCE = "compss.data_provenance";
 
-    public static final String TRACING = "compss.tracing";
-    public static final String TRACING_EXTRAE = "compss.tracing.extrae";
-    public static final String TRACING_TASK_DEPENDENCIES = "compss.tracing.task.dependencies";
-    public static final String EXTRAE_WORKING_DIR = "compss.extrae.working_dir";
-    public static final String EXTRAE_CONFIG_FILE = "compss.extrae.file";
     public static final String TRACING_MONITOR = "compss.tracing.monitor";
 
     public static final String WORKER_CP = "compss.worker.cp";
@@ -128,7 +114,6 @@ public class COMPSsConstants {
     public static final String COMM_ADAPTOR = "compss.comm";
     public static final String CONN = "compss.conn";
 
-    public static final String SERVICE_ADAPTOR = "es.bsc.compss.ws.master.WSAdaptor";
     public static final String HTTP_ADAPTOR = "es.bsc.compss.http.master.HTTPAdaptor";
 
     // GAT
@@ -172,7 +157,6 @@ public class COMPSsConstants {
     // System properties for Instrumentation flags
     public static final String COMPSS_TO_FILE = "compss.to.file";
     public static final String COMPSS_IS_WS = "compss.is.ws";
-    public static final String COMPSS_IS_MAINCLASS = "compss.is.mainclass";
 
     // Properties for locating the compss.properties file
     public static final String COMPSS_CONFIG = "compss.properties";
@@ -183,16 +167,13 @@ public class COMPSsConstants {
     public static final String LOG4J = "log4j.configurationFile";
 
     // Docker execution related variable names
-    public static final String COMPSS_IMAGE = "COMPSS_IMAGE";
     public static final String COMPSS_CONTAINER = "COMPSS_CONTAINER";
 
     public static final String COMPSS_CONTAINER_ENGINE = "COMPSS_CONTAINER_ENGINE";
     public static final String MASTER_CONTAINER_IMAGE = "MASTER_CONTAINER_IMAGE";
-    public static final String MASTER_CONTAINER_OPTIONS = "MASTER_CONTAINER_OPTIONS";
     public static final String NESTED_CONTAINER_OPTIONS = "NESTED_CONTAINER_OPTIONS";
     public static final String MPI_RUNNER_SCRIPT = "MPI_RUNNER_SCRIPT";
     public static final String COMPSS_THROTTLE_MAX_TASKS = "COMPSS_THROTTLE_MAX_TASKS";
-    public static final String COMPSS_THROTTLE_INTERVAL = "COMPSS_THROTTLE_INTERVAL";
 
 
     /**

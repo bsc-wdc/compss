@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.types.tracing;
 
-import es.bsc.compss.util.Tracer;
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
 import es.bsc.wdc.tracing.ExtensibleEventType;
+import es.bsc.wdc.tracing.Tracer;
 import java.util.LinkedList;
 
 public class CoreEvent implements Event {

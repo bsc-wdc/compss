@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.types.tracing;
 
-import es.bsc.compss.util.Tracer;
 import es.bsc.wdc.tracing.EventType;
+import es.bsc.wdc.tracing.Tracer;
 import java.util.ArrayList;
 
 public final class TransferType {

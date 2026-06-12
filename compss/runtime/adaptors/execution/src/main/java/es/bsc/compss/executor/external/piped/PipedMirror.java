@@ -40,7 +40,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -232,7 +232,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
 
         cmd.append(Tracer.isExtraeActivated()).append(TOKEN_SEP);
-        cmd.append(Tracer.getExtraeOutputDir()).append(getMirrorName()).append(File.separator).append(TOKEN_SEP);
+        cmd.append(Tracer.getTracerOutputDir()).append(getMirrorName()).append(File.separator).append(TOKEN_SEP);
         cmd.append(getPipeBuilderContext());
 
         // General Args are of the form: controlPipeW controlPipeR workerPipeW workerPipeR 2 pipeW1 pipeW2 2 pipeR1

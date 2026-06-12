@@ -47,7 +47,7 @@ import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.tracing.CheckpointEvent;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;

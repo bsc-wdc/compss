@@ -41,13 +41,12 @@ import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -63,8 +62,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -329,10 +326,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         return this.node.getCompletePath(type, name);
     }
 
-    public String getOutputDataTargetPath(String tgtName, DependencyParameter param) {
-        return this.node.getOutputDataTarget(tgtName, param);
-    }
-
     @Override
     public void retrieveUniqueDataValues() {
         if (this.isLost) {
@@ -412,38 +405,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         }
     }
 
-    private Boolean isCompressedFile(Set<String> files) {
-        if (files == null) {
-            return false;
-        }
-        if (files.isEmpty()) {
-            return false;
-        }
-        if (files.size() == 1) {
-            String path = files.iterator().next();
-            return path.endsWith(".tar.gz");
-        }
-        return false;
-    }
-
-    private void decompressAndDelete(String tarFile, String targetFolder) {
-        if (DEBUG) {
-            LOGGER.debug("Decompressing tar: " + tarFile + "; to: " + targetFolder);
-        }
-        StringBuilder cmd = new StringBuilder();
-        cmd.append("tar -xf " + tarFile + " -C " + targetFolder + " && ");
-        cmd.append("rm -rf " + tarFile);
-        LOGGER.debug("Executing: " + cmd);
-        try {
-            new ProcessBuilder("/bin/bash", "-c", cmd.toString()).inheritIO().start().waitFor();
-        } catch (InterruptedException | IOException e) {
-            LOGGER.warn("Could not decompress: " + tarFile + "; to: " + targetFolder, e);
-        }
-    }
-
     private void copyTracingFilesToTracingFolder() {
         Path sourceDirectory = Paths.get(this.getAnalysisFolder());
-        Path targetDirectory = Paths.get(Tracer.getExtraeOutputDir());
+        Path targetDirectory = Paths.get(Tracer.getTracerOutputDir());
 
         try (DirectoryStream<Path> directoryStream =
             Files.newDirectoryStream(sourceDirectory, "*" + Tracer.PACKAGE_SUFFIX)) {
@@ -456,7 +420,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         } catch (IOException e) {
             LOGGER.warn("Could not copy tracing files from " + sourceDirectory + " to: " + targetDirectory);
         }
-
     }
 
     private void generateAndRetrieveWorkerAnalysis() {
@@ -476,13 +439,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             LOGGER.debug("Tracing files obtained for " + this.getName());
         }
 
-        // This code is for when the workers send on compressed file.
-        // if (isCompressedFile(analysisFiles)) {
-        // String remoteCompressedFile = analysisFiles.iterator().next();
-        // String compressedFileName = Paths.get(remoteCompressedFile).getFileName().toString();
-        // String localCompressedFile = this.getAnalysisFolder() + File.separator + compressedFileName;
-        // decompressAndDelete(localCompressedFile, this.getAnalysisFolder());
-        // }
         copyTracingFilesToTracingFolder();
 
     }
@@ -503,14 +459,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         if (DEBUG) {
             LOGGER.debug("Log files obtained for " + this.getName());
         }
-
-        // This code is for when the workers send on compressed file.
-        // if (isCompressedFile(logFiles)) {
-        // String remoteCompressedFile = logFiles.iterator().next();
-        // String compressedFileName = Paths.get(remoteCompressedFile).getFileName().toString();
-        // String localCompressedFile = this.getLogFolder() + File.separator + compressedFileName;
-        // decompressAndDelete(localCompressedFile, this.getLogFolder());
-        // }
     }
 
     @Override
@@ -639,38 +587,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             }
 
             LOGGER.debug("Worker files from resource " + getName() + "received");
-        }
-    }
-
-    /**
-     * Returns the paths to the files from a folder files.
-     * 
-     * @param folderPath folder path to the files
-     * @return Set the paths of the files in that folder
-     */
-    private Set<String> getFilesPathFromFolder(String folderPath) {
-
-        Set<String> pathSet = Stream.of(new File(folderPath).listFiles()).filter(file -> !file.isDirectory())
-            .map(File::getName).collect(Collectors.toSet());
-        return pathSet;
-    }
-
-    private void copyTracingFiles() {
-        String folderPath = this.getAnalysisFolder();
-        Set<String> files = getFilesPathFromFolder(folderPath);
-
-        LOGGER.debug("Copying files" + files.toString() + " from folder " + folderPath.toString() + " to folder "
-            + Tracer.getExtraeOutputDir());
-        for (String fileName : files) {
-            if (fileName.endsWith(Tracer.PACKAGE_SUFFIX)) {
-                Path src = Paths.get(folderPath + File.separator + fileName);
-                Path tgt = Paths.get(Tracer.getExtraeOutputDir() + File.separator + this.getName() + fileName);
-                try {
-                    Files.copy(src, tgt);
-                } catch (IOException e) {
-                    LOGGER.error("Failed to copy tracing files inside master folders", e);
-                }
-            }
         }
     }
 

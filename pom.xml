@@ -232,6 +232,7 @@
     <!-- SUB-MODULES -->
     <modules>
         <module>compss</module>
+        <module>observability</module>
         <module>utils/storage</module>
     </modules>
 </project>

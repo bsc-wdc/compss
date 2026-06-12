@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.types.tracing.binding;
 
-import es.bsc.compss.util.Tracer;
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
+import es.bsc.wdc.tracing.Tracer;
 import java.util.Arrays;
 import java.util.List;
 

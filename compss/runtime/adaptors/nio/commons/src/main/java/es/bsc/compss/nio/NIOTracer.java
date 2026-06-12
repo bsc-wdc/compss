@@ -19,7 +19,7 @@ package es.bsc.compss.nio;
 import static java.lang.Math.abs;
 
 import es.bsc.compss.types.tracing.TransferType;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 
 public class NIOTracer extends Tracer {
 
@@ -47,8 +47,8 @@ public class NIOTracer extends Tracer {
             }
         }
 
-        if (DEBUG) {
-            LOGGER.debug((dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = ["
+        if (debug) {
+            logger.debug((dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = ["
                 + data + " , " + transferID + "]");
         }
     }

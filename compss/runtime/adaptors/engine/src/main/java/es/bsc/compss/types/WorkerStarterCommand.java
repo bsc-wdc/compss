@@ -21,6 +21,7 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.conn.types.StarterCommand;
+import es.bsc.wdc.tracing.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -324,18 +325,9 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         }
 
         // Configure tracing
-        this.tracing = System.getProperty(COMPSsConstants.TRACING);
-        if (this.tracing == null || this.tracing.isEmpty() || this.tracing.equals("null")) {
-            this.tracing = COMPSsDefaults.TRACING;
-        }
-        this.tracingExtrae = System.getProperty(COMPSsConstants.TRACING_EXTRAE);
-        if (this.tracingExtrae == null || this.tracingExtrae.isEmpty() || this.tracingExtrae.equals("null")) {
-            this.tracingExtrae = COMPSsDefaults.TRACING;
-        }
-        this.tracingMonitor = System.getProperty(COMPSsConstants.TRACING_MONITOR);
-        if (this.tracingMonitor == null || this.tracingMonitor.isEmpty() || this.tracingMonitor.equals("null")) {
-            this.tracingMonitor = COMPSsDefaults.TRACING;
-        }
+        this.tracing = Boolean.toString(Tracer.isActivated());
+        this.tracingExtrae = Boolean.toString(Tracer.isExtraeActivated());
+        this.tracingMonitor = Boolean.toString(Tracer.isMonitorActivated());
 
         this.lang = System.getProperty(COMPSsConstants.LANG);
 

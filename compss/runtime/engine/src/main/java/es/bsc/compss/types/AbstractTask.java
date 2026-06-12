@@ -21,7 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;

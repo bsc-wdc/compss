@@ -209,7 +209,7 @@ TracingInterface setup_JNI_tracing(){
 
     // Obtain Tracer class
     debug_printf ("[BINDING-COMMONS] - @JNI_On - Obtaining Tracer class\n");  
-    jclass clsLocal = status->localJniEnv->FindClass("es/bsc/compss/util/Tracer");
+    jclass clsLocal = status->localJniEnv->FindClass("es/bsc/wdc/tracing/Tracer");
     check_exception(status, "Cannot find the Tracer class");
     globalTracer = (jclass) status->localJniEnv->NewGlobalRef(clsLocal);
     check_exception(status, "Cannot instantiate the Tracer class");

@@ -21,7 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

@@ -27,7 +27,7 @@ import es.bsc.compss.nio.commands.CommandCheckWorker;
 import es.bsc.compss.nio.master.handlers.Ender;
 import es.bsc.compss.nio.master.handlers.ProcessOut;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;

@@ -21,7 +21,7 @@ import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.util.LinkedList;
 import java.util.List;
 import storage.StorageException;

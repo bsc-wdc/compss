@@ -23,7 +23,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;

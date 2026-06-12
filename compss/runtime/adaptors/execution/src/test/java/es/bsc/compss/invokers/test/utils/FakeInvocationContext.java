@@ -252,11 +252,6 @@ public class FakeInvocationContext implements InvocationContext {
     }
 
     @Override
-    public long getTracingHostID() {
-        return 0;
-    }
-
-    @Override
     public COMPSsRuntime getRuntimeAPI() {
         return null;
     }

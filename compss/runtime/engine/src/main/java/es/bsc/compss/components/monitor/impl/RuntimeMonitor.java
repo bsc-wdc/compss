@@ -23,6 +23,7 @@ import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -45,8 +46,7 @@ public class RuntimeMonitor implements Runnable {
     // Monitor properties
     private static final boolean MONITOR_ENABLED =
         System.getProperty(COMPSsConstants.MONITOR) != null && !System.getProperty(COMPSsConstants.MONITOR).equals("0");
-    private static final boolean MONITOR_TRACING_ENABLED = System.getProperty(COMPSsConstants.TRACING_MONITOR) != null
-        && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_MONITOR));
+    private static final boolean MONITOR_TRACING_ENABLED = Tracer.isMonitorActivated();
     private static final String MONITOR_DIR_PATH = LoggerManager.getLogDir() + "monitor" + File.separator;
 
 

@@ -37,13 +37,6 @@ public interface InvocationContext {
     public String getHostName();
 
     /**
-     * Returns the trancing node id.
-     * 
-     * @return The tracing ndoe id.
-     */
-    public long getTracingHostID();
-
-    /**
      * Returns the COMPSs installation directory in the current node.
      * 
      * @return The COMPSs installation directory in the current node.

@@ -71,11 +71,11 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.FileOpsManager.FileOpListener;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -1189,11 +1189,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public String getHostName() {
         return MASTER_NAME;
-    }
-
-    @Override
-    public long getTracingHostID() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

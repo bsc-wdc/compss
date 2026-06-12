@@ -42,7 +42,8 @@ import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.types.tracing.binding.EventType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.ConfigManager;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -99,9 +100,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
         RuntimeConfigManager.setProperties();
 
         // Start tracing system
-        boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        Tracer.init(0, "master", installDir, tracingTaskDep);
+        if (installDir != null) {
+            System.setProperty(ConfigManager.TRACING_INSTALL_DIR, installDir);
+        }
+        Tracer.init();
         if (Tracer.isActivated()) {
             Tracer.emitEvent(APIEvent.STATIC_IT);
             EventType.registerAllBindingEvents();

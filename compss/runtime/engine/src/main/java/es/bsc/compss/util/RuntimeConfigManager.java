@@ -184,19 +184,7 @@ public class RuntimeConfigManager {
                 if (System.getProperty(COMPSsConstants.GRAPH) == null) {
                     System.setProperty(COMPSsConstants.GRAPH, Boolean.toString(manager.isGraph()));
                 }
-                if (System.getProperty(COMPSsConstants.TRACING) == null) {
-                    System.setProperty(COMPSsConstants.TRACING, String.valueOf(manager.getTracing()));
-                }
-                if (System.getProperty(COMPSsConstants.EXTRAE_WORKING_DIR) == null) {
-                    System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, manager.getExtraeWDir());
-                }
-                if (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) == null) {
-                    System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
-                }
-                if (System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES) == null) {
-                    System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES,
-                        String.valueOf(manager.getTracingTaskDep()));
-                }
+
                 if (System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE, manager.getCustomExtraeFilePython());
                 }
@@ -243,9 +231,6 @@ public class RuntimeConfigManager {
             COMPSsDefaults.ENABLED_NESTED_TASKS_DETECTION);
         setDefaultProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
         setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsDefaults.SCHEDULER);
-        setDefaultProperty(COMPSsConstants.TRACING, COMPSsDefaults.TRACING);
-        setDefaultProperty(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
-        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
         setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
         setDefaultProperty(COMPSsConstants.SOCKET_MODE, COMPSsDefaults.SOCKET_MODE);
         setDefaultProperty(COMPSsConstants.SOCKET_PATH, COMPSsDefaults.SOCKET_PATH);
@@ -759,64 +744,6 @@ public class RuntimeConfigManager {
      */
     public void setGraph(boolean graph) {
         config.setProperty(COMPSsConstants.GRAPH, graph);
-    }
-
-    /**
-     * Returns the tracing flag value.
-     *
-     * @return The tracing flag value.
-     */
-    public boolean getTracing() {
-        return config.getBoolean(COMPSsConstants.TRACING, false);
-    }
-
-    /**
-     * Sets a new tracing flag value.
-     *
-     * @param tracing New tracing flag value.
-     */
-    public void setTracing(boolean tracing) {
-        config.setProperty(COMPSsConstants.TRACING, tracing);
-    }
-
-    /**
-     * Returns Extrae's working directory path.
-     *
-     * @return Extrae's working directory path.
-     */
-    public String getExtraeWDir() {
-        return config.getString(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
-    }
-
-    /**
-     * Sets a new path as Extrae's working directory.
-     *
-     * @param extraeWDir New Extrae's working directory path.
-     */
-    public void setExtraeWDir(String extraeWDir) {
-        config.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, extraeWDir);
-    }
-
-    public boolean getTracingTaskDep() {
-        return config.getBoolean(COMPSsConstants.TRACING_TASK_DEPENDENCIES, false);
-    }
-
-    /**
-     * Returns the custom Extrae configuration file path.
-     *
-     * @return The custom Extrae configuration file path.
-     */
-    public String getCustomExtraeFile() {
-        return config.getString(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
-    }
-
-    /**
-     * Sets a new custom Extrae configuration file path.
-     *
-     * @param extraeFilePath New custom Extrae configuration file path.
-     */
-    public void setCustomExtraeFile(String extraeFilePath) {
-        config.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFilePath);
     }
 
     /**

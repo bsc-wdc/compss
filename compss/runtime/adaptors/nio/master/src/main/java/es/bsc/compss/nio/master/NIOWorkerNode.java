@@ -72,7 +72,6 @@ import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -148,9 +147,6 @@ public class NIOWorkerNode extends COMPSsWorker {
                 LOGGER.debug("Initializing NIO tracer " + this.getName());
                 if (this.getLimitOfTasks() <= 0) {
                     LOGGER.debug("Resource " + this.getName() + " has 0 slots, it won't appear in the trace");
-                } else {
-                    LOGGER.debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator
-                        + NIOTracer.getTraceOutPath());
                 }
             }
         }

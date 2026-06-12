@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.types.tracing;
 
-import es.bsc.compss.util.Tracer;
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
+import es.bsc.wdc.tracing.Tracer;
 import java.util.Arrays;
 
 public enum APRequestEvent implements Event {

@@ -32,7 +32,7 @@ import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.tracing.APRequestEvent;
 import es.bsc.compss.types.tracing.StorageEvent;
-import es.bsc.compss.util.Tracer;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.Set;

@@ -2,7 +2,7 @@ workflow:
   auto_cancel:
     on_job_failure: all
   rules:
-    - if: $CI_MERGE_REQUEST_DRAFT
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_DRAFT == "true"'
       when: never
     - when: always
 

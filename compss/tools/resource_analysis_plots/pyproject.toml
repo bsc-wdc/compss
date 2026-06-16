@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "compss_genprofiling"
+version = "1.0.0"
+description = "Interactive CLI for generating COMPSs profiling plots."
+authors = [
+    {name = "BSC", email = "support@bsc.es"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "pandas>=1.0.0",
+    "matplotlib>=3.0.0",
+    "questionary>=2.0.0",
+    "rich>=13.0.0"
+]
+
+[tool.setuptools]
+packages = ["src"]
+py-modules = ["genprofiling_cli"]
+
+[project.scripts]
+compss_genprofiling = "genprofiling_cli:main"

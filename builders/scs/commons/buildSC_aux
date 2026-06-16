@@ -145,6 +145,7 @@
   mkdir -p "${targetDir}/Tools/monitor"
   mkdir -p "${targetDir}/Tools/storage"
   mkdir -p "${targetDir}/Tools/reproducibility_service"
+  mkdir -p "${targetDir}/Tools/resource_analysis_plots"
   mkdir -p "${targetDir}/Bindings"
   mkdir -p "${targetDir}/Bindings/bindings-common"
   mkdir -p "${targetDir}/cli"
@@ -338,6 +339,10 @@
   # REPRODUCIBILITY SERVICE
   echo "--- Deploying Reproducibility Service"
   cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/"
+
+  # RESOURCE ANALYSIS PLOTS
+  echo "--- Deploying Resource Analysis Plots"
+  cp -r "${TMP_DIR}/compss/tools/resource_analysis_plots/" "${targetDir}/Tools/"
 
   # BINDINGS DEPLOYMENT
   # - Binding-common

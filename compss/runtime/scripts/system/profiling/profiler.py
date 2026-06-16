@@ -132,21 +132,40 @@ def get_gpu_usage(architecture: str):
 
 def detect_profilable_gpu():
     """
-    Detects which GPU vendor can be profiled based on available system tools.
+    Detects which GPU vendor can be profiled based on available system tools,
+    verifying that the hardware is actually enabled and responding.
     """
     # 1. Check for NVIDIA
     if shutil.which("nvidia-smi") is not None:
-        return "nvidia"
-    
+        try:
+            # Querying the name is a fast way to check if a GPU is actually responding.
+            # If no GPUs are found, this raises a CalledProcessError.
+            subprocess.check_output(
+                "nvidia-smi --query-gpu=name --format=csv,noheader",
+                shell=True, stderr=subprocess.STDOUT, text=True
+            )
+            return "nvidia"
+        except subprocess.CalledProcessError:
+            pass # Tool exists, but no GPUs are enabled/found
+
     # 2. Check for AMD
     if shutil.which("rocm-smi") is not None:
-        return "amd"
+        try:
+            # -i lists the GPU IDs. Fails if no hardware is accessible.
+            subprocess.check_output(
+                "rocm-smi -i",
+                shell=True, stderr=subprocess.STDOUT, text=True
+            )
+            return "amd"
+        except subprocess.CalledProcessError:
+            pass
     
     # 3. Check for Apple Silicon (macOS)
     if platform.system() == "Darwin" and platform.machine() == "arm64":
         return "apple"
         
-    # 4. Check for Intel (Linux sysfs path from our previous function)
+    # 4. Check for Intel (Linux sysfs path)
+    # The existence of this specific directory implies the hardware is present
     if platform.system() == "Linux" and os.path.exists("/sys/class/drm/card0/engine/rcs0/busy"):
         return "intel"
 
@@ -422,10 +441,9 @@ def main():
     try:
         log_dir = sys.argv[1]
         is_master = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else False
-        check_gpu = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
     except IndexError:
         print("PROVENANCE | PROFILING | ERROR: Missing arguments.")
-        print("Usage: python profiler.py [log_dir] [is_master] [check_gpu]")
+        print("Usage: python profiler.py [log_dir] [is_master]")
         sys.exit(1)
 
     try:
@@ -438,13 +456,13 @@ def main():
     # check if it is a local machine_os or a cluster node
     is_local = not os.getenv("ENQUEUE_COMPSS_ARGS")
     hostname = "localhost" if is_local else socket.gethostname()
+    graphics_arch = detect_profilable_gpu()
+    check_gpu = True if graphics_arch != "unknown" else False
 
     if check_gpu:
         to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME,GPU_USAGE,GPU_MEM\n"
-        graphics_arch = detect_profilable_gpu()
     else:
         to_write_header = "CPU,MEM,BYTE_SENT,BYTE_RECV,BYTE_READ_DISK,BYTE_WRITE_DISK,TIME_READ_DISK,TIME_WRITE_DISK,TIME\n"
-        graphics_arch = "unknown"
 
     counter = 0
 

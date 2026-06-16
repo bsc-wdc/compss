@@ -850,6 +850,7 @@ install_compss() {
   mkdir -p ${targetDir}/Tools/storage
   mkdir -p ${targetDir}/Tools/tracing
   mkdir -p ${targetDir}/Tools/reproducibility_service
+  mkdir -p ${targetDir}/Tools/resource_analysis_plots
 
   # RUNTIME DEPLOYMENT
   log_info "- Copy Runtime deployment files"
@@ -1143,6 +1144,10 @@ install_compss() {
   # REPRODUCIBILITY SERVICE
   log_info "--- Deploying Reproducibility Service"
   cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/"
+
+  # RESOURCE ANALYSIS PLOTS
+  log_info "--- Deploying Resource Analysis Plots"
+  cp -r "${TMP_DIR}/compss/tools/resource_analysis_plots/" "${targetDir}/Tools/"
 
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ] || [ "${rcompss}" == "true" ]; then

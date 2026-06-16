@@ -89,6 +89,9 @@ def get_description_plot(metric, node_name="unknown node"):
         "bytes_received": "Plot of the amount of data received across the network during the execution",
     }
 
+    if metric not in description_plots:
+        return f"Plot of {node_name} showing the {metric} during the execution"
+
     return description_plots[metric]
 
 
@@ -527,55 +530,66 @@ def wrroc_create_action(
         if "ComputationalWorkflow" in entity.type:
             resolved_main_entity = entity.id
 
-    # Adding profiling plots to RO-Crate
-    plots_path = str(plots_path)
-    if os.path.exists(plots_path):
-        for root, _, files in os.walk(plots_path):
+    # Adding stats and profiling plots to RO-Crate
+    stats_folder = str(stats_path)
+    if os.path.exists(stats_folder):
+        for root, _, files in os.walk(stats_folder):
             for file in files:
-                if file.endswith(".svg"):
+                if file.endswith(".csv") or file.endswith(".svg"):
                     full_path = os.path.join(root, file)
-                    relative_path = "profiling" + full_path.split("/plots")[1]
+                    if file.endswith(".svg"):
+                        relative_file_path = full_path.split("plots/")[1]
+                        relative_path = "profiling/" + relative_file_path
+                    else:
+                        relative_file_path = full_path.split("stats/")[1]
+                        relative_path = "profiling/stats/" + relative_file_path
 
-                    # Generate a unique ID and path for the file
-                    unique_id = "#" + full_path.split("plots/")[1].split(".svg")[
-                        0
-                    ].replace(
-                        "/", "."
-                    )  # Replace '/' with '_'
+                    # Determine metric and node_name based on path depth
+                    path_parts = relative_path.split("/")
+                    # path_parts example for plots: ["stats", "plots", "gs23r1b30-MASTER", "cpu.svg"]
+                    # path_parts example for flat:  ["stats", "static_resource_profiling_gs23r1b30-MASTER.csv"]
 
-                    metric = relative_path.split("/")[-1].split(".svg")[0]
-                    node_name = relative_path.split("/")[-2]
+                    metric = path_parts[-1].split(".")[0]   # filename without extension
+                    node_name = path_parts[-2]              # parent directory name
+                    description = get_description_plot(metric, node_name)
 
-                    # Add the CreateAction entity
-                    # action = compss_crate.add(Entity(compss_crate, unique_id, properties={
-                    #     '@type': 'CreateAction',
-                    #     'instrument': {
-                    #         '@id': resolved_main_entity
-                    #     },
-                    #     'name': f'Profiling plot of {metric}',
-                    # }))
+                    # Add csv resource usage files
+                    if file.endswith(".csv"):
+                        file_properties = {}
+                        file_properties["name"] = file
+                        file_properties["contentSize"] = os.stat(full_path).st_size
+                        file_properties["description"] = f"Resouce Usage CSV file of {file.split('resource_profiling_')[1].split('.')[0]} node"
+                        file_properties["encodingFormat"] = [
+                            "text/csv",
+                            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/800"},
+                        ]
+                        file_properties["about"] = create_action_id
+                        compss_crate.add_file(
+                            source=full_path,
+                            dest_path=relative_path,
+                            properties=file_properties,
+                        )
+                    # Add plots
+                    elif file.endswith(".svg"):
+                        file_properties = {}
+                        file_properties["@id"] = relative_path
+                        file_properties["@type"] = ["File", "ImageObject"]
+                        file_properties["name"] = path_parts[-1]
+                        file_properties["description"] = description
+                        file_properties["contentSize"] = os.stat(full_path).st_size
+                        file_properties["encodingFormat"] = [
+                            "image/svg+xml",
+                            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"},
+                        ]
+                        file_properties["about"] = resolved_main_entity
+                        compss_crate.add_file(
+                            full_path,
+                            dest_path=relative_path,
+                            properties=file_properties,
+                        )
 
-                    # Add the trace file with a unique ID and file path
-                    trace_file = compss_crate.add_file(
-                        full_path,
-                        dest_path=relative_path,
-                        properties={
-                            "@id": relative_path,  # Unique ID for the file
-                            "@type": ["File", "ImageObject"],
-                            "name": relative_path.split("/")[-1],
-                            "description": get_description_plot(metric, node_name),
-                            "contentSize": os.stat(full_path).st_size,
-                            "encodingFormat": [
-                                "image/svg+xml",
-                                {
-                                    "@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"
-                                },
-                            ],
-                            "about": resolved_main_entity,
-                        },
-                    )
     else:
-        print("Plots folder does not exist")
+        print("Stats folder does not exist")
 
     # Register user submitting the workflow
     agent_added = False

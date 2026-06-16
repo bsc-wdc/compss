@@ -14,506 +14,128 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 import os
+import sys
 import time
+import subprocess
 
 try:
-    import matplotlib.pyplot as plt
-    import matplotlib.colors as mcolors
-    from matplotlib.lines import Line2D
-except:
-    print(
-        "PROVENANCE |  PROFILING | ERROR: matplotlib is not installed. Please install it using 'pip install matplotlib'."
-    )
-    exit(1)
-try:
     import pandas as pd
-except:
+except ImportError:
     print(
         "PROVENANCE | PROFILING | ERROR: pandas is not installed. Please install it using 'pip install pandas'."
     )
-    exit(1)
-
-# Color-blind friendly palette (Paul Tol's high contrast)
-COLOR_PALETTE = [
-    '#4477AA',  # blue
-    '#EE6677',  # red
-    '#228833',  # green
-    '#CCBB44',  # yellow
-    '#66CCEE',  # cyan
-    '#AA3377',  # purple
-    '#BBBBBB',  # grey
-    '#000000'  # black
-]
-
-# Different marker styles for better distinction
-MARKER_STYLES = ['o', 's', '^', 'v', 'D', 'p', '*', 'h', 'H', '+', 'x', '|', '_']
-
-# Line styles for additional distinction
-LINE_STYLES = ['-', '--', '-.', ':']
+    sys.exit(1)
 
 
-def timestamp_axis(num_entries, time_list):
+def get_tool_executable():
     """
-    Function to build the x-axis by including timestamps while preventing any overlapping
-
-    :param num_entries: number of entries in the dataset
-    :param time_list: list containing all the timestamps
-    :return:
+    Locates the 'compss_genprofiling' script directly from the COMPSs installation
+    to run the code directly instead of relying on the system PATH.
     """
-    step = int(num_entries / 60) + 1
-    selected_times = time_list[::step]
-    labels = [str(time) for time in selected_times]
-    time_indices = range(0, len(time_list), step)
-
-    plt.xticks(time_indices, labels=labels, rotation=80)
-    plt.subplots_adjust(top=0.95, bottom=0.25)
-
-
-def build_plot(title, time_list, value_list, name_dataset, measure, num_entries):
-    """
-    Function to build the plot of the profiling data (percentage such as CPU and memory usage)
-
-    :param title: title of the plot
-    :param time_list: list containing the timestamps
-    :param value_list: list containing the data
-    :param name_dataset: name of the data to assign to the label
-    :param measure: unit of measure
-    :param num_entries: length of the value_list
-    :return:
-    """
-    plt.style.use("ggplot")
-    plt.rcParams['figure.dpi'] = 300  # Higher resolution
-    plt.rcParams['savefig.dpi'] = 300
-    plt.rcParams['lines.linewidth'] = 1.5
-    plt.rcParams['lines.markersize'] = 4  # Smaller markers
-
-    fig, ax = plt.subplots(figsize=(12, 8))
-    avg_perc = round(sum(value_list) / num_entries, 2)
-
-    if max(value_list) > 10 ** 6:
-        value_list = [value / 10 ** 6 for value in value_list]
-        measure = "Megabyte (MB)"
-
-    x_indices = range(len(time_list))
-
-    # Use solid line with less frequent markers
-    ax.plot(
-        x_indices,
-        value_list,
-        marker='.',
-        markersize=3,  # Smaller points
-        markevery=10,  # Show marker every 10 points
-        linestyle="-",
-        label=name_dataset,
-        color=COLOR_PALETTE[0]
-    )
-
-    timestamp_axis(num_entries, time_list)
-    ax.margins(x=0.01, y=0.05)
-
-    plt.axhline(
-        avg_perc,
-        color=COLOR_PALETTE[1],
-        linestyle="--",
-        label=f"Average = {avg_perc}%"
-    )
-
-    ax.set_title(title)
-    ax.set_xlabel("Timestamp")
-    ax.set_ylabel(measure)
-    ax.grid(True)
-    ax.legend(bbox_to_anchor=(1.005, 1), loc='upper left', borderaxespad=0.1)
-
-
-def plot_bytes(
-        time_list, first_df, first_df_name, second_df, second_df_name, num_entries, title
-):
-    """
-    Function to generate the plots for metrics which use bytes
-
-    :param time_list: list containing the timestamps
-    :param first_df: list of the first dataset
-    :param first_df_name: name of the first dataset
-    :param second_df: list of the second dataset
-    :param second_df_name: name of the second dataset
-    :param num_entries: length of the time_list
-    :param title: title of the plot
-    :return:
-    """
-    plt.style.use("ggplot")
-    plt.rcParams['figure.dpi'] = 300
-    plt.rcParams['savefig.dpi'] = 300
-    plt.rcParams['lines.linewidth'] = 1.5
-    plt.rcParams['lines.markersize'] = 4
-
-    fig, ax = plt.subplots(figsize=(12, 8))
-
-    first_df = [value / 10 ** 6 for value in first_df]
-    second_df = [value / 10 ** 6 for value in second_df]
-
-    for i in range(num_entries):
-        first_value = 0 if i == 0 else first_df[i - 1]
-        second_value = 0 if i == 0 else second_df[i - 1]
-
-        first_df[i] = first_value + first_df[i]
-        second_df[i] = second_value + second_df[i]
-
-    # Different line styles and markers for better distinction
-    x_indices = range(len(time_list))
-
-    ax.plot(
-        x_indices,
-        first_df,
-        color=COLOR_PALETTE[0],
-        marker='s',
-        markersize=3,
-        markevery=10,
-        linestyle="-",
-        label=first_df_name
-    )
-    ax.plot(
-        x_indices,
-        second_df,
-        color=COLOR_PALETTE[1],
-        marker='^',
-        markersize=3,
-        markevery=10,
-        linestyle="--",
-        label=second_df_name
-    )
-
-    timestamp_axis(num_entries, time_list)
-    ax.margins(x=0.01, y=0.05)
-
-    ax.set_title(title)
-    ax.set_xlabel("Timestamp")
-    ax.set_ylabel("Megabyte (MB)")
-    ax.grid(True)
-    ax.legend(bbox_to_anchor=(1.005, 1), loc='upper left', borderaxespad=0.1)
-
-
-def _save_plot(file_path):
-    """
-        Function to save the plot in the specified file path
-        Prints an error message if the plot cannot be saved
-    :param file_path: pathname of the file to save the plot
-    :return:
-    """
-    try:
-        plt.savefig(file_path, format='svg', bbox_inches='tight', pad_inches=0.1)
-    except Exception as e:
-        print(f"PROVENANCE | PROFILING | WARNING: Could not save the plot to {file_path}. Exception: {e}")
-        return
-    finally:
-        plt.close()
-
-    if not os.path.exists(file_path):
-        print(f"PROVENANCE | PROFILING | WARNING: The plot file {file_path} was not created.")
-    elif os.path.getsize(file_path) == 0:
-        print(f"PROVENANCE | PROFILING | WARNING: The plot file {file_path} is empty.")
-
-
-def build_plot_nodes(resampled_dfs, name_plot, metric, name_metric, colors):
-    """
-    Function to generate the plots of CPU and memory usage of all nodes
-
-    :param resampled_dfs: list containing the dataframe of all nodes
-    :param name_plot: name of the file to save
-    :param metric: label used to select the metric in the dataframe
-    :param name_metric: name of the metric to show in the plot
-    :param colors: list of colors to use in the plots
-    :return:
-    """
-    plt.style.use("ggplot")
-    plt.rcParams['figure.dpi'] = 300
-    plt.rcParams['savefig.dpi'] = 300
-    plt.rcParams['lines.linewidth'] = 1.5
-    plt.rcParams['lines.markersize'] = 3
-
-    plt.figure(figsize=(18, 8))
-
-    # Create custom legend handles for better distinction
-    legend_elements = []
-
-    for i, (label, resampled_df) in enumerate(resampled_dfs.items()):
-        color = COLOR_PALETTE[i % len(COLOR_PALETTE)]
-        marker = MARKER_STYLES[i % len(MARKER_STYLES)]
-        linestyle = LINE_STYLES[i % len(LINE_STYLES)]
-
-        plt.plot(
-            resampled_df.index,
-            resampled_df[metric],
-            label=label,
-            color=color,
-            marker=marker,
-            markersize=3,
-            markevery=15,
-            linestyle=linestyle,
-            linewidth=1.5
-        )
-
-        # Create custom legend entry with all distinguishing features
-        legend_elements.append(Line2D(
-            [0], [0],
-            color=color,
-            marker=marker,
-            linestyle=linestyle,
-            label=label,
-            markersize=8,
-            linewidth=1.5
-        ))
-
-    all_times = pd.concat(resampled_dfs.values()).index.unique().sort_values()
-    num_entries = len(all_times)
-    step = int(num_entries / 60) + 1
-    selected_times = all_times[::step]
-    labels = [time.strftime("%Y-%m-%d %H:%M:%S") for time in selected_times]
-
-    plt.xticks(selected_times, labels=labels, rotation=80)
-    plt.subplots_adjust(top=0.95, bottom=0.12, left=0.06, right=0.92)
-
-    ax = plt.gca()
-    ax.margins(x=0.01, y=0.05)
-
-    plt.xlabel("Timestamp")
-    plt.ylabel(f"{name_metric} usage (%)")
-    plt.title(f"{name_metric} usage among the nodes")
-
-    # Use custom legend
-    # Calculate columns dynamically (e.g., fitting ~25 nodes per vertical column)
-    num_nodes = len(resampled_dfs)
-    legend_cols = max(1, (num_nodes + 39) // 40)
-
-    # Use custom legend with multiple columns and slightly smaller text
-    plt.legend(
-        handles=legend_elements,
-        bbox_to_anchor=(1.005, 1),
-        loc='upper left',
-        borderaxespad=0.1,
-        ncol=legend_cols,  # Splits the legend into multiple columns
-        fontsize='small'  # Shrinks the font slightly to save space
-    )
-
-    plt.grid(True)
-    plt.tight_layout()
-
-    # Save as SVG for vector format
-    if name_plot.endswith('.svg'):
-        name_plot = name_plot[:-4] + '.svg'
-    _save_plot(name_plot)
-    plt.close()
-
-
-def plot_results(folder_pathname, gpu_enabled: bool) -> str:
-    """
-    Function to store the plots generated
-
-    :param folder_pathname: pathname of the directory containing the data
-    :param gpu_enabled: flag indicating whether GPU data is available
-    :return plots_pathname: pathname of the directory containing the plots generated
-    """
-    folder_pathname = str(folder_pathname)
-    if not os.path.exists(folder_pathname):
-        print("PROVENANCE | PROFILING | ERROR: stats folder does not exist")
-        exit(1)
-
-    plots_pathname = folder_pathname + "/plots/"
-    os.makedirs(plots_pathname, exist_ok=True)
-
-    list_of_cpus = {}
-    list_of_mems = {}
-
-    df_list = []
-    name_list = []
-
-    # Read all data and find the max length
-    max_length = 0
-    for csv_resources in os.listdir(folder_pathname):
-        csv_resources = os.path.join(folder_pathname, csv_resources)
-        if not csv_resources.endswith(".csv") or os.path.isdir(csv_resources):
-            continue
-
-        machine_name = csv_resources.split(".csv")[0].split("_")[-1]
-        name_list.append(machine_name)
-
-        df = pd.read_csv(csv_resources)
-        df_list.append(df)
-
-        if len(df) > max_length:
-            max_length = len(df)
-
-    num_files = sum(1 for f in os.listdir(folder_pathname) if f.endswith(".csv"))
-
-    TARGET_POINTS = 100
-    MAX_NODE_PLOTS = 20
-
-    global_step = max(1, max_length // TARGET_POINTS)
-
-    generate_plots = True if num_files < MAX_NODE_PLOTS else False
-    if not generate_plots:
-        print(f"PROVENANCE | PROFILING | INFO: Detected {num_files} nodes. Only aggregated plots will be generated. Individual node plots are skipped to preserve space. Check the log folder for full details on the profiling data of each node.")
-
-    for df, machine_name in zip(df_list, name_list):
-        df_sampled = df.iloc[::global_step, :].copy()
-        df_length = len(df_sampled)
-
-        cpu_usage = df_sampled["CPU"]
-        mem_usage = df_sampled["MEM"]
-        gpu_usage = df_sampled["GPU_USAGE"] if gpu_enabled else None
-        gpu_mem = df_sampled["GPU_MEM"] if gpu_enabled else None
-        byte_sent = df_sampled["BYTE_SENT"]
-        byte_recv = df_sampled["BYTE_RECV"]
-        byte_read_disk = df_sampled["BYTE_READ_DISK"]
-        byte_write_disk = df_sampled["BYTE_WRITE_DISK"]
-        timestamps = df_sampled["TIME"]
-
-        list_of_cpus[machine_name] = list(cpu_usage)
-        list_of_mems[machine_name] = list(mem_usage)
-
-        if generate_plots:
-            output_path = plots_pathname + machine_name
-            os.makedirs(output_path, exist_ok=True)
-
-            build_plot(
-                f"CPU usage of {machine_name}",
-                timestamps,
-                cpu_usage,
-                name_dataset="CPU",
-                measure="CPU %",
-                num_entries=df_length,
-            )
-            _save_plot(output_path + "/cpu.svg")
-            plt.close()
-
-            build_plot(
-                f"Memory usage of {machine_name}",
-                timestamps,
-                mem_usage,
-                name_dataset="MEM",
-                measure="Memory %",
-                num_entries=df_length,
-            )
-            _save_plot(output_path + "/mem.svg")
-            plt.close()
-
-            if gpu_enabled:
-                build_plot(
-                    f"GPU usage of {machine_name}",
-                    timestamps,
-                    gpu_usage,
-                    name_dataset="GPU",
-                    measure="GPU %",
-                    num_entries=df_length,
-                )
-                _save_plot(output_path + "/gpu.svg")
-                plt.close()
-
-                build_plot(
-                    f"GPU Memory usage of {machine_name}",
-                    timestamps,
-                    gpu_mem,
-                    name_dataset="GPU Memory",
-                    measure="GPU Memory (MB)",
-                    num_entries=df_length,
-                )
-                _save_plot(output_path + "/gpu_mem.svg")
-                plt.close()
-
-            # if not byte_sent.isna().any().any() and not byte_recv.isna().any().any():
-            #     plot_bytes(
-            #         time_list=timestamps,
-            #         first_df=byte_sent,
-            #         first_df_name="Bytes sent",
-            #         second_df=byte_recv,
-            #         second_df_name="Bytes received",
-            #         num_entries=df_length,
-            #         title=f"Network usage of {machine_name}",
-            #     )
-            #     plt.savefig(output_path + "/network_usage.svg", format='svg')
-            #     plt.close()
-            #
-            # if not byte_write_disk.isna().any().any() and not byte_read_disk.isna().any().any():
-            #     plot_bytes(
-            #         time_list=timestamps,
-            #         first_df=byte_write_disk,
-            #         first_df_name="Bytes written",
-            #         second_df=byte_read_disk,
-            #         second_df_name="Bytes read",
-            #         num_entries=df_length,
-            #         title=f"Disk usage of {machine_name}",
-            #     )
-            #     plt.savefig(output_path + "/disk_usage.svg", format='svg')
-            #     plt.close()
-
-    if num_files > 1:
-        plt.style.use("ggplot")
-        resampled_dfs = {}
-
-        # Convert all timestamps to Datetime objects first
-        for df in df_list:
-            if not pd.api.types.is_datetime64_any_dtype(df["TIME"]):
-                df["TIME"] = pd.to_datetime(df["TIME"])
-
-        # Find the absolute earliest start and latest end times
-        min_time = min(df["TIME"].min() for df in df_list)
-        max_time = max(df["TIME"].max() for df in df_list)
-
-        total_seconds = (max_time - min_time).total_seconds()
-
-        time_step = max(1, int(total_seconds // TARGET_POINTS))
-        freq = f"{time_step}s"
-
-        # We use the original df_list here (before it was sliced) so the .mean()
-        # calculation has all the raw data to figure out accurate bucket averages.
-        for df, label in zip(df_list, name_list):
-            df_working = df.copy()
-            df_working.set_index("TIME", inplace=True)
-
-            # Resample using our new Time-Based frequency
-            resampled_df = df_working.resample(freq).mean().interpolate(method="linear")
-            resampled_dfs[label] = resampled_df
-
-        build_plot_nodes(
-            resampled_dfs, plots_pathname + "cpu_nodes.svg", "CPU", "CPU", COLOR_PALETTE
-        )
-        build_plot_nodes(
-            resampled_dfs, plots_pathname + "mem_nodes.svg", "MEM", "Memory", COLOR_PALETTE
-        )
-
-        if gpu_enabled:
-            build_plot_nodes(
-                resampled_dfs, plots_pathname + "gpu_nodes.svg", "GPU_USAGE", "GPU", COLOR_PALETTE
-            )
-            build_plot_nodes(
-                resampled_dfs, plots_pathname + "gpu_mem_nodes.svg", "GPU_MEM", "GPU Memory", COLOR_PALETTE
-            )
-
-    return plots_pathname
+    # Default to /opt/COMPSs if the environment variable is missing
+    compss_home = os.environ.get("COMPSS_HOME", "/opt/COMPSs")
+    
+    # List all the places the script might physically live, prioritizing 
+    # the standard installation directories.
+    possible_paths = [
+        # Standard COMPSs Tools installation path
+        os.path.join(compss_home, "Tools", "compss_genprofiling"),
+        
+        # If it gets installed in a subfolder within Tools
+        os.path.join(compss_home, "Tools", "resource_analysis_plots", "genprofiling_cli.py"),
+        
+        # Source code repository path (for developers running from source)
+        os.path.join(compss_home, "compss", "tools", "resource_analysis_plots", "genprofiling_cli.py")
+    ]
+    
+    # Check each path. The moment we find the actual file, we return the command to run it.
+    for path in possible_paths:
+        if os.path.exists(path):
+            print(f"PROVENANCE | PROFILING | Found profiling tool at: {path}")
+            # sys.executable ensures we use the exact same Python interpreter currently running
+            return [sys.executable, path]
+            
+    # Ultimate fallback: We couldn't find the file anywhere in COMPSS_HOME.
+    # Cross our fingers and hope the user installed it globally in their PATH.
+    return ["compss_genprofiling"]
 
 
 def generate_plots(stats_path) -> str:
     """
-    Function to generate all the plots
+    Function to launch the standalone profiling plots generation tool.
 
     :param stats_path: pathname of the folder containing the data
     :return plots_folder: pathname containing the plots
     """
-    plots_folder = None
     start_time = time.time()
-    gpu_enabled = False
+    plots_folder = os.path.join(stats_path, "plots")
+    
+    if not os.path.exists(stats_path):
+        print("PROVENANCE | PROFILING | ERROR: stats folder does not exist")
+        return None
+
     try:
+        num_csv_files = 0
+        gpu_enabled = False
+
+        # Count CSV files (nodes) and check for GPU metrics in the MASTER node
         for fname in os.listdir(stats_path):
-            if fname.endswith("-MASTER.csv"):
-                fpath = os.path.join(stats_path, fname)
-                df = pd.read_csv(fpath, nrows=0)
-                if "GPU_USAGE" in df.columns:
-                    gpu_enabled = True
-                    break
-        plots_folder = plot_results(stats_path, gpu_enabled)
+            if fname.endswith(".csv") and not os.path.isdir(os.path.join(stats_path, fname)):
+                num_csv_files += 1
+                if fname.endswith("-MASTER.csv"):
+                    fpath = os.path.join(stats_path, fname)
+                    # Read only the header to quickly check columns
+                    df = pd.read_csv(fpath, nrows=0)
+                    if "GPU_USAGE" in df.columns:
+                        gpu_enabled = True
+
+        if num_csv_files == 0:
+            print("PROVENANCE | PROFILING | WARNING: No CSV files found. Skipping plot generation.")
+            return None
+
+        # Construct arguments for the tool
+        cmd = get_tool_executable()
+        metric_list = "cpu,mem"
+        if gpu_enabled:
+            metric_list += ",gpu,gpu_mem"
+
+        args = [
+            "--dir=" + str(stats_path),
+            "--output_dir=" + str(plots_folder),
+            "--scope=aggregated",
+            "--metrics=" + metric_list,
+            "--format=svg",
+            "--silent"
+        ]
+            
+        cmd.extend(args)
+
+        # Launch the tool
+        print(f"PROVENANCE | PROFILING | Launching plotting tool with command:\n{' '.join(cmd)}")
+        subprocess.run(cmd, check=True)
+
+        # replace mode_flag with --all-nodes
+        cmd[-4] = "--all-nodes"
+        print(f"PROVENANCE | PROFILING | INFO: Only some plots have been generated due to the number of nodes. If you want to generate all the nodes plots launch this command:\n\n{' '.join(cmd)}\n")
+
         elapsed_time = time.time() - start_time
         print(f"PROVENANCE | PROFILING | Profiling plots generation TIME: {elapsed_time:.2f} s.")
-    except:
-        print("PROVENANCE | PROFILING | ERROR Could not generate the profiling plots.")
 
-    return plots_folder
+        return plots_folder if os.path.exists(plots_folder) else None
+
+    except subprocess.CalledProcessError as e:
+        print(f"PROVENANCE | PROFILING | ERROR: The profiling tool failed with exit code {e.returncode}.")
+    except Exception as e:
+        print(f"PROVENANCE | PROFILING | ERROR: Could not generate the profiling plots. Exception: {e}")
+
+    return None
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python profiling_plots.py <stats_folder_path>")
+        sys.exit(1)
+
+    stats_folder = sys.argv[1]
+    generate_plots(stats_folder)

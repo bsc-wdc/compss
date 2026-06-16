@@ -84,15 +84,8 @@
     else
       echo "profiling/ DIRECTORY EXISTS" | tee -a "${output_file}"
     fi
-    if [ ! -d "${prov_dir}profiling/" ]; then
-      echo "profiling/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
-      exit 1
-    else
-      echo "profiling/ DIRECTORY EXISTS" | tee -a "${output_file}"
-    fi
 
     # Test all files inside the provenance directory exist
-    
     if [ ! -f "${prov_dir}complete_graph.svg" ]; then
       echo "complete_graph.svg FILE DOES NOT EXIST" | tee -a "${output_file}"
       exit 1
@@ -112,11 +105,13 @@
       echo "ro-crate-metadata.json FILE EXISTS" | tee -a "${output_file}"
     fi
 
-    # Check if in profiling subdirectory there are cpu.svg and mem.svg files
-    # put in a list all the directory within profiling/ and check if cpu.svg and mem.svg exist in each of them
-    profiling_subdirs=$(find "${prov_dir}profiling/" -mindepth 1 -maxdepth 1 -type d)
-    # if the lenght of profiling_subdirs is greater than 1, check if cpu.svg and mem.svg exist in profiling/ directory as well
-    if [ $(echo "${profiling_subdirs}" | wc -l) -gt 1 ]; then
+    # Check if in profiling subdirectory there are correct plots based on node count
+    # Find all worker subdirectories within profiling/ (excluding the 'stats' folder)
+    num_workers=$(find "${prov_dir}profiling/" -mindepth 1 -maxdepth 1 -type d ! -name "stats" | wc -l)
+    worker_subdirs=$(find "${prov_dir}profiling/" -mindepth 1 -maxdepth 1 -type d ! -name "stats")
+
+    # SINGLE NODE CASE
+    if [ "${num_workers}" -eq 0 ]; then
       if [ ! -f "${prov_dir}profiling/cpu.svg" ]; then
         echo "cpu.svg FILE DOES NOT EXIST IN profiling/ DIRECTORY" | tee -a "${output_file}"
         exit 1
@@ -129,23 +124,39 @@
       else
         echo "mem.svg FILE EXISTS IN profiling/ DIRECTORY" | tee -a "${output_file}"
       fi
-    fi
-    # Check if cpu.svg and mem.svg exist in each of the subdirectories of profiling/
-    for subdir in ${profiling_subdirs}; do
-      if [ ! -f "${subdir}/cpu.svg" ]; then
-        echo "cpu.svg FILE DOES NOT EXIST IN ${subdir}" | tee -a "${output_file}"
+    
+    # MULTI NODE CASE
+    else
+      # Check for aggregated plots in the root profiling directory
+      if [ ! -f "${prov_dir}profiling/cpu_aggregated.svg" ]; then
+        echo "cpu_aggregated.svg FILE DOES NOT EXIST IN profiling/ DIRECTORY" | tee -a "${output_file}"
         exit 1
       else
-        echo "cpu.svg FILE EXISTS IN ${subdir}" | tee -a "${output_file}"
+        echo "cpu_aggregated.svg FILE EXISTS IN profiling/ DIRECTORY" | tee -a "${output_file}"
       fi
-      if [ ! -f "${subdir}/mem.svg" ]; then
-        echo "mem.svg FILE DOES NOT EXIST IN ${subdir}" | tee -a "${subdir}" | tee -a "${output_file}"
+      if [ ! -f "${prov_dir}profiling/mem_aggregated.svg" ]; then
+        echo "mem_aggregated.svg FILE DOES NOT EXIST IN profiling/ DIRECTORY" | tee -a "${output_file}"
         exit 1
       else
-        echo "mem.svg FILE EXISTS IN ${subdir}" | tee -a "${output_file}"
+        echo "mem_aggregated.svg FILE EXISTS IN profiling/ DIRECTORY" | tee -a "${output_file}"
       fi
-    done
 
+      # Check for individual plots in each worker subdirectory
+      for subdir in ${worker_subdirs}; do
+        if [ ! -f "${subdir}/cpu.svg" ]; then
+          echo "cpu.svg FILE DOES NOT EXIST IN ${subdir}" | tee -a "${output_file}"
+          exit 1
+        else
+          echo "cpu.svg FILE EXISTS IN ${subdir}" | tee -a "${output_file}"
+        fi
+        if [ ! -f "${subdir}/mem.svg" ]; then
+          echo "mem.svg FILE DOES NOT EXIST IN ${subdir}" | tee -a "${output_file}"
+          exit 1
+        else
+          echo "mem.svg FILE EXISTS IN ${subdir}" | tee -a "${output_file}"
+        fi
+      done
+    fi
     
     # Check ro-crate-metadata.json content
 

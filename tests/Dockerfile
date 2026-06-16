@@ -70,7 +70,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			roc-validator==0.8.1 \
 			rocrate==0.14.2 \
 			tabulate==0.10.0 \
-			types-tabulate==0.10.0.20260408
+			types-tabulate==0.10.0.20260508
 
 # Prevent OpenMPI from spinning/hanging in Docker CI.
 # COMPSs sets fake SLURM_* env vars for resource control; OpenMPI detects them

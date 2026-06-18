@@ -83,5 +83,10 @@ def set_profile_details(compss_crate: ROCrate, level: int) -> None:
         "https://w3id.org/ro/terms/workflow-run"
     )
 
+    # Add 'localPath' context to the RO-Crate metadata 
+    # compss_crate.metadata.extra_contexts.append(
+    #     "https://w3id.org/ro/terms#localPath"
+    # )
+
     # Add 'keywords', useful mainly for Zenodo exports
     compss_crate.root_dataset["keywords"] = ["COMPSs", "RO-Crate"]

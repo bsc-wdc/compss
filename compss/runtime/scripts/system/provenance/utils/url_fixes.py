@@ -17,6 +17,27 @@
 import typing
 
 from urllib.parse import urlsplit
+import pwd
+import os
+import random
+import socket
+from urllib.parse import urlunsplit
+
+# Module-level constants computed once at import time to ensure consistency
+# across all URL rewrites within a single provenance generation run.
+# TRANSFER_NODE is randomly selected between 1-4 to distribute load across runs.
+IS_BSC = bool(os.getenv("BSC_MACHINE"))
+TRANSFER_NODE = f"transfer{random.randint(1, 4)}.bsc.es" if IS_BSC else None
+IS_BSC = bool(os.getenv("BSC_MACHINE"))
+TRANSFER_NODE = f"transfer{random.randint(1, 4)}.bsc.es" if IS_BSC else None
+# try:
+#     BSC_USER = pwd.getpwuid(os.getuid()).pw_name
+# except Exception:
+#     BSC_USER = ""
+
+# print(f"BSC USER: {BSC_USER}")
+# print(f"BSC IS: {IS_BSC}")
+# print(f"TRANSFER NODE: {TRANSFER_NODE}")
 
 
 def fix_dir_url(in_url: str) -> str:
@@ -90,3 +111,29 @@ def fix_in_files_at_out_dirs(
     # print(f"PROVENANCE DEBUG | RESULT FROM fix_in_files_at_out_dirs:\n {inputs_list}")
 
     return inputs_list, outputs_list
+
+# Username is intentionally omitted from the scp:// URL.
+# Initially, the URL included the username in the format scp://user@host/path,
+# # but this was removed to avoid exposing sensitive information.
+# On non-BSC machines, the local hostname is used instead.
+def write_external_url(url: str) -> str:
+    """
+    Rewrite a file:// or dir:// URL to scp://host/path for external access.
+    Applied when data is not persisted in the crate.
+
+    :param url: The original URL
+    :returns: The rewritten scp:// URL
+    """
+    
+    if not url:
+        return ""
+    parts = urlsplit(url)
+    if IS_BSC and TRANSFER_NODE:
+        netloc = f"{TRANSFER_NODE}/"
+    else:
+        # On a laptop or non-BSC machine, use the local hostname
+        netloc = f"{socket.gethostname()}/"
+    new_parts = list(parts)
+    new_parts[0] = "scp"
+    new_parts[1] = netloc
+    return urlunsplit(new_parts)

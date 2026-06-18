@@ -38,6 +38,8 @@ from datetime import timezone
 from datetime import datetime
 import pytz
 
+from provenance.utils.url_fixes import write_external_url
+
 try:
     import pandas as pd
 except:
@@ -956,10 +958,14 @@ def wrroc_create_action(
                         dest_path=crate_path,
                         properties=file_properties,
                     )
-                else:
+                else:                   
                     file_url = "file://" + socket.gethostname() + str(file.resolve())
+                    # print(f"TRACE URL:{file_url}")
+                    # Paraver trace files are referenced via scp:// URLs for external access
+                    # when trace_persistence is False, so they are not physically copied into the crate.                    
+                    modified_url = write_external_url(file_url)
                     compss_crate.add_file(
-                        source=file_url,
+                        source=modified_url,
                         fetch_remote=False,
                         validate_url=False,
                         properties=file_properties,

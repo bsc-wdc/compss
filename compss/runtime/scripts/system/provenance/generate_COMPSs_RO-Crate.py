@@ -49,6 +49,8 @@ from provenance.wrroc.provenance_run.retrospective import *
 from provenance.wrroc.store_data import store_data
 from provenance.wrroc.profiling_plots import generate_plots
 
+from provenance.utils.url_fixes import write_external_url
+
 from rocrate.utils import iso_now
 
 PROVENANCE_RUN_ENABLED = True  # Provenance Run Crate profile is enabled by default
@@ -141,14 +143,21 @@ def main():
 
     # The list has at this point detected ins and outs, but also added any ins an outs defined by the user
     list_common_paths = []
+    # Common paths are computed regardless of data_persistence, because they are
+    # needed to determine the 'localPath' property of each entity when persistence is False.
+    # Previously, this was only computed when data_persistence was True.
+    list_common_paths = get_common_paths(ins_and_outs)
     if (
         "data_persistence" in compss_wf_info
         and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
-        list_common_paths = get_common_paths(ins_and_outs)
     else:
         persistence = False
+        compss_crate.metadata.extra_contexts.append(
+        "https://w3id.org/ro/terms#localPath"
+    )
+
 
     if "provenance_run" in compss_wf_info:
         if isinstance(compss_wf_info["provenance_run"], bool):

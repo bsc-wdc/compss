@@ -21,13 +21,12 @@ from datetime import timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from provenance.utils.url_fixes import fix_dir_url
+from provenance.utils.url_fixes import fix_dir_url, write_external_url
 from rocrate.model import ContextEntity
 from rocrate.rocrate import ROCrate
 from rocrate.utils import iso_now
 
 from models.Task import Task
-
 
 def add_dataset_file_to_crate(
     compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list
@@ -47,7 +46,7 @@ def add_dataset_file_to_crate(
     """
 
     # method_time = time.time()
-
+    
     try:
         # urlsplit returns in url_parts.path everything when it is a File, not only the directory that contains it
         url_parts = urlsplit(in_url)
@@ -81,38 +80,38 @@ def add_dataset_file_to_crate(
         if url_parts.scheme == "file":  # Dealing with a local file
             file_properties["contentSize"] = os.path.getsize(url_parts.path)
             crate_path = ""
+            for item in common_paths:  # All files must have a match
+                if url_parts.path.startswith(item):
+                    cwd_endslash = (
+                        os.getcwd() + "/"
+                    )  # os.getcwd does not add the final slash
+                    # BSC hack, inconsistent behaviour in MN5. /gpfs/home/ and /home/ are equivalent. Randomly, sometimes we get /home/ and others /gpfs/home at the dataprovenance.log and getting paths
+                    if not item.startswith("/gpfs"):
+                        # Remove /gpfs only if common paths did not include them
+                        cwd_endslash = cwd_endslash.removeprefix("/gpfs")
+                    # print(f"CWD_ENDSLASH: {cwd_endslash}")
+                    # print(f"ITEM: {item}")
+                    if cwd_endslash == item:
+                        # Check if it is the working directory. When this script runs, user application has finished,
+                        # so we can ensure cwd is the original folder where the application was started
+                        # Workingdir dataset folder, add it to the root
+                        # Slice out the common part of the path
+                        crate_path = "dataset/" + url_parts.path[len(item) :]
+                    else:  # Now includes len(common_paths) == 1
+                        # Looking for the name of the previous folder
+                        cp_path = Path(item)
+                        crate_path = (
+                            "dataset/"
+                            # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
+                            + cp_path.parts[-1]
+                            # Common part now always ends with '/'
+                            + "/"
+                            # Slice out the common part of the path
+                            + url_parts.path[len(item) :]
+                        )
+                    break 
             # add_file_time = time.time()
             if persist:  # Remove scheme so it is added as a regular file
-                for item in common_paths:  # All files must have a match
-                    if url_parts.path.startswith(item):
-                        cwd_endslash = (
-                            os.getcwd() + "/"
-                        )  # os.getcwd does not add the final slash
-                        # BSC hack, inconsistent behaviour in MN5. /gpfs/home/ and /home/ are equivalent. Randomly, sometimes we get /home/ and others /gpfs/home at the dataprovenance.log and getting paths
-                        if not item.startswith("/gpfs"):
-                            # Remove /gpfs only if common paths did not include them
-                            cwd_endslash = cwd_endslash.removeprefix("/gpfs")
-                        # print(f"CWD_ENDSLASH: {cwd_endslash}")
-                        # print(f"ITEM: {item}")
-                        if cwd_endslash == item:
-                            # Check if it is the working directory. When this script runs, user application has finished,
-                            # so we can ensure cwd is the original folder where the application was started
-                            # Workingdir dataset folder, add it to the root
-                            # Slice out the common part of the path
-                            crate_path = "dataset/" + url_parts.path[len(item) :]
-                        else:  # Now includes len(common_paths) == 1
-                            # Looking for the name of the previous folder
-                            cp_path = Path(item)
-                            crate_path = (
-                                "dataset/"
-                                # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
-                                + cp_path.parts[-1]
-                                # Common part now always ends with '/'
-                                + "/"
-                                # Slice out the common part of the path
-                                + url_parts.path[len(item) :]
-                            )
-                        break
                 if __debug__:
                     print(
                         f"PROVENANCE DEBUG | Adding SINGLE FILE {url_parts.path} as {crate_path}"
@@ -123,13 +122,20 @@ def add_dataset_file_to_crate(
                     properties=file_properties,
                 )
                 return crate_path
-            # else:
-            compss_crate.add_file(
-                in_url,
-                fetch_remote=False,
-                validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
-                properties=file_properties,
-            )
+            else:           
+                # Adding 'localPath' to the entity so that a reproducibility service knows
+                # where to place the data on the filesystem when re-executing the workflow.
+                file_properties["localPath"] = crate_path    
+                # URL rewriting to scp:// is applied only at the point of adding to the crate,
+                # not during processing.              
+                #modified_url = write_external_url(url_parts.path)
+                modified_url = write_external_url(in_url)
+                compss_crate.add_file(
+                    modified_url,
+                    fetch_remote=False,
+                    validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                    properties=file_properties,
+                )
             # add_file_time = time.time() - add_file_time
     except AttributeError:
         print(f"PROVENANCE | WARNING: Could not process URL: {in_url}.")
@@ -179,14 +185,15 @@ def add_dataset_file_to_crate(
                         # Schema.org
                         "contentSize": os.path.getsize(listed_file),
                     }
+                    # url_parts.path includes a final '/'
+                    filtered_url = listed_file[
+                        len(url_parts.path) :
+                    ]  # Does not include an initial '/'
                     if persist:
-                        # url_parts.path includes a final '/'
-                        filtered_url = listed_file[
-                            len(url_parts.path) :
-                        ]  # Does not include an initial '/'
                         dir_f_url = (
                             "dataset/" + final_item_name + "/" + filtered_url
                         )  # The 'name' property for Datasets does not include a final '/'
+
                         # print(f"LISTED FILE: {listed_file}")
                         # print(f"URL_PARTS.PATH: {url_parts.path}")
                         # print(f"DIR_F_URL: {dir_f_url}")
@@ -202,16 +209,23 @@ def add_dataset_file_to_crate(
                             # True fails at MN4 when file URI points to a node hostname (only localhost works)
                             properties=dir_f_properties,
                         )
+                        has_part_list.append({"@id": dir_f_url}) 
                     else:
                         dir_f_url = "file://" + url_parts.netloc + listed_file
+                        # print(f"URL:{dir_f_url}")
+                        # print(f"URL MODIFIED:{write_external_url(dir_f_url)}")       
+                        dir_f_properties["localPath"] = (
+                            "dataset/" + final_item_name + "/" + filtered_url
+                        ) 
+                        modified_url = write_external_url(dir_f_url)               
                         compss_crate.add_file(
-                            dir_f_url,
+                            modified_url,
                             fetch_remote=False,
                             validate_url=False,
                             # True fails at MN4 when file URI points to a node hostname (only localhost works)
                             properties=dir_f_properties,
                         )
-                    has_part_list.append({"@id": dir_f_url})
+                        has_part_list.append({"@id": modified_url})
 
                 for dir_name in dirs:
                     # Check if it's an empty directory, needs to be added by hand
@@ -262,11 +276,14 @@ def add_dataset_file_to_crate(
                             dir_f_url = (
                                 "file://" + url_parts.netloc + full_dir_name + "/"
                             )
+                            # print(f"URL:{dir_f_url}")
+                            # print(f"URL MODIFIED:{write_external_url(dir_f_url)}")
+                            modified_url = write_external_url(dir_f_url)                                
                             # Directories must finish with slash
                             compss_crate.add_dataset(
-                                source=dir_f_url, properties=dir_properties
+                                source=modified_url, properties=dir_properties
                             )
-                            has_part_list.append({"@id": dir_f_url})
+                            has_part_list.append({"@id": modified_url})
 
             # After checking all directory structure, represent correctly the dataset
             if not os.listdir(url_parts.path):
@@ -318,15 +335,18 @@ def add_dataset_file_to_crate(
                     return path_in_crate
                 else:
                     # Directories must finish with slash
+                    modified_url = write_external_url(fix_dir_url(in_url)) if not persist else fix_dir_url(in_url)
                     compss_crate.add_dataset(
-                        source=fix_dir_url(in_url), properties=file_properties
+                        source=modified_url, properties=file_properties
                     )
+
             else:
                 # Directory had content
                 file_properties["hasPart"] = has_part_list
                 if persist:
                     dataset_path = url_parts.path
                     path_in_crate = "dataset/" + final_item_name + "/"
+
                     if __debug__:
                         print(
                             f"PROVENANCE DEBUG | Adding DATASET DIRECTORY {dataset_path} as {path_in_crate}"
@@ -339,8 +359,9 @@ def add_dataset_file_to_crate(
                     return path_in_crate
                 # else:
                 # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+                modified_url = write_external_url(fix_dir_url(in_url)) if not persist else fix_dir_url(in_url)
                 compss_crate.add_dataset(
-                    fix_dir_url(in_url), properties=file_properties
+                    modified_url, properties=file_properties
                 )
 
         if url_parts.scheme.startswith("http"):
@@ -361,7 +382,8 @@ def add_dataset_file_to_crate(
     except:
         print(f"PROVENANCE | WARNING: Could not add directory {url_parts.path}.")
 
-    return fix_dir_url(in_url)
+    #return fix_dir_url(in_url)
+    return write_external_url(fix_dir_url(in_url)) if not persist else fix_dir_url(in_url)
 
 
 def add_manual_datasets(

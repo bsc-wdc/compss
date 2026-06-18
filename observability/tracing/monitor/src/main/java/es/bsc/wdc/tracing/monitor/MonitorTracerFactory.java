@@ -57,8 +57,8 @@ public class MonitorTracerFactory implements TracingBackendFactory {
         }
 
         String serviceName = getProperty(Constants.OTEL_SERVICE, props, Constants.DEFAULT_SERVICE_NAME);
-        String metricsEP = getProperty(Constants.OTEL_ENDPOINT, props, Constants.DEFAULT_OTEL_ENDPOINT);
-        String eventsEP = getProperty(Constants.EVENTS_API, props, Constants.DEFAULT_EVENTS_API);
+        String metricsEP = getProperty(Constants.OTEL_ENDPOINT, props, Constants.getDefaultOtelEndpoint());
+        String eventsEP = getProperty(Constants.EVENTS_API, props, Constants.getDefaultEventsApi());
 
         return new MonitorTracer(nodeName, masterName, runId, serviceName, metricsEP, eventsEP);
     }

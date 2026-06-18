@@ -39,7 +39,8 @@ import java.util.Map;
 public class MonitorGraph implements GraphHandler {
 
     private static final String GRAPH_API = "compss.graph.api";
-    private static final String DEFAULT_GRAPH_API = "http://localhost:8088/graph-events";
+    private static final String MONITOR_HOST = "COMPSS_MONITOR_HOST";
+    private static final String DEFAULT_MONITOR_HOST = "localhost";
     private static final String DEFAULT_MASTER_NAME = "local-master";
 
     private final GraphSink graphSink;
@@ -51,7 +52,7 @@ public class MonitorGraph implements GraphHandler {
      * Creates a new MonitorGraph.
      */
     public MonitorGraph() {
-        String graphEP = System.getProperty(GRAPH_API, DEFAULT_GRAPH_API);
+        String graphEP = System.getProperty(GRAPH_API, getDefaultGraphApi());
         this.graphSink = new GraphSink(graphEP);
         this.graphSink.start();
         this.runId = extractRunId(System.getProperty("compss.uuid", System.getProperty(COMPSsConstants.LOG_DIR)));
@@ -210,5 +211,13 @@ public class MonitorGraph implements GraphHandler {
         } catch (Exception e) {
             return "unknown_run";
         }
+    }
+
+    private static String getDefaultGraphApi() {
+        String monitorHost = System.getenv(MONITOR_HOST);
+        if (monitorHost == null || monitorHost.trim().isEmpty()) {
+            monitorHost = DEFAULT_MONITOR_HOST;
+        }
+        return "http://" + monitorHost.trim() + ":8088/graph-events";
     }
 }

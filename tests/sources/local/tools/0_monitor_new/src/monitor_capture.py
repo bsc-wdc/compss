@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import os
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+
+def _append_jsonl(path, item):
+    with open(path, "a", encoding="utf-8") as handler:
+        handler.write(json.dumps(item, sort_keys=True))
+        handler.write("\n")
+        handler.flush()
+
+
+def serve(args):
+    events_file = os.path.abspath(args.events_file)
+    graph_file = os.path.abspath(args.graph_file)
+    port_file = os.path.abspath(args.port_file)
+
+    for file_path in (events_file, graph_file):
+        open(file_path, "w", encoding="utf-8").close()
+
+    class CaptureHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(length).decode("utf-8")
+            try:
+                decoded = json.loads(raw_body) if raw_body else []
+            except json.JSONDecodeError as exc:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(str(exc).encode("utf-8"))
+                return
+
+            items = decoded if isinstance(decoded, list) else [decoded]
+            if self.path == "/monitored-events":
+                output = events_file
+            elif self.path == "/graph-events":
+                output = graph_file
+            else:
+                output = None
+
+            if output is not None:
+                for item in items:
+                    _append_jsonl(output, item)
+
+            self.send_response(204)
+            self.end_headers()
+
+        def log_message(self, fmt, *args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), CaptureHandler)
+    with open(port_file, "w", encoding="utf-8") as handler:
+        handler.write(str(server.server_port))
+        handler.write("\n")
+    server.serve_forever()
+
+
+def _load_jsonl(path):
+    if not os.path.exists(path):
+        raise AssertionError("Missing capture file: {}".format(path))
+
+    items = []
+    with open(path, "r", encoding="utf-8") as handler:
+        for line in handler:
+            line = line.strip()
+            if line:
+                items.append(json.loads(line))
+    return items
+
+
+def _require(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+def _validate_monitored_events(events):
+    _require(events, "No monitored events were captured")
+
+    required = {
+        "ts",
+        "run_id",
+        "agent_id",
+        "node_name",
+        "thread_type",
+        "thread_id",
+        "event_type",
+        "event_code",
+        "event_name",
+    }
+    for event in events:
+        missing = required.difference(event)
+        _require(not missing, "Monitored event missing fields: {}".format(sorted(missing)))
+        _require(event["run_id"], "Monitored event has empty run_id")
+        _require(event["thread_type"], "Monitored event has empty thread_type")
+
+    agents = {event["agent_id"] for event in events}
+    _require("local-master" in agents, "Missing local-master monitored events")
+    _require("local-worker" in agents, "Missing local-worker monitored events")
+
+    master_events = [event for event in events if event["agent_id"] == "local-master"]
+    worker_events = [event for event in events if event["agent_id"] == "local-worker"]
+    _require(any(event["node_name"] == "master" for event in master_events), "local-master node_name is not master")
+    _require(any(event["node_name"] == "localhost" for event in worker_events), "local-worker node_name is not localhost")
+
+    thread_types = {event["thread_type"] for event in events}
+    _require({"AP", "TD", "EXEC"}.issubset(thread_types), "Missing AP, TD or EXEC monitored thread type")
+
+    event_names = {event["event_name"] for event in events}
+    _require("Task Dispatcher: Execute tasks" in event_names, "Missing task dispatcher execute event")
+    _require("Access Processor: Barrier" in event_names, "Missing access processor barrier event")
+    _require("task_one" in event_names, "Missing task_one execution event")
+
+
+def _validate_graph_events(graph_events):
+    _require(graph_events, "No graph events were captured")
+
+    required = {"ts", "run_id", "app_id", "type", "master_name"}
+    for event in graph_events:
+        missing = required.difference(event)
+        _require(not missing, "Graph event missing fields: {}".format(sorted(missing)))
+        _require(event["run_id"], "Graph event has empty run_id")
+        _require(event["master_name"] == "local-master", "Unexpected graph master_name: {}".format(event["master_name"]))
+
+    event_types = {event["type"] for event in graph_events}
+    expected_types = {"APP_START", "TASK_CREATED", "DATA_DEP", "TASK_FINISHED", "APP_END"}
+    _require(expected_types.issubset(event_types), "Missing graph event types: {}".format(sorted(expected_types - event_types)))
+
+    expected_payload = {"task_id": 1, "task_name": "test_monitor_new.task_one"}
+    _require(
+        any(event.get("type") == "TASK_CREATED" and event.get("payload") == expected_payload for event in graph_events),
+        "Missing expected task_one TASK_CREATED payload",
+    )
+
+
+def validate(args):
+    events = _load_jsonl(args.events_file)
+    graph_events = _load_jsonl(args.graph_file)
+
+    _validate_monitored_events(events)
+    _validate_graph_events(graph_events)
+
+    event_run_ids = {event["run_id"] for event in events if event.get("run_id")}
+    graph_run_ids = {event["run_id"] for event in graph_events if event.get("run_id")}
+    _require(event_run_ids.intersection(graph_run_ids), "Monitored and graph events do not share a run_id")
+
+    print("Captured monitored events:", len(events))
+    print("Captured graph events:", len(graph_events))
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    serve_parser = subparsers.add_parser("serve")
+    serve_parser.add_argument("--events-file", required=True)
+    serve_parser.add_argument("--graph-file", required=True)
+    serve_parser.add_argument("--port-file", required=True)
+    serve_parser.set_defaults(func=serve)
+
+    validate_parser = subparsers.add_parser("validate")
+    validate_parser.add_argument("--events-file", required=True)
+    validate_parser.add_argument("--graph-file", required=True)
+    validate_parser.set_defaults(func=validate)
+
+    args = parser.parse_args()
+    try:
+        args.func(args)
+    except AssertionError as exc:
+        print("ERROR:", exc, file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

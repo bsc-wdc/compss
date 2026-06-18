@@ -69,7 +69,7 @@ public class OtelMetrics {
         Resource res = constructOtelResource(nodeName, masterName, serviceName);
 
         if (otlpEndpoint == null || otlpEndpoint.isEmpty()) {
-            otlpEndpoint = Constants.DEFAULT_OTEL_ENDPOINT;
+            otlpEndpoint = Constants.getDefaultOtelEndpoint();
         }
         Duration period = Constants.DEFAULT_OTEL_PERIOD;
         this.meter = generatePeriodicMeter(otlpEndpoint, res, period);

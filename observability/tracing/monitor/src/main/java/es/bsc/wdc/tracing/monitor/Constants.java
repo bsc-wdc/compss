@@ -28,10 +28,12 @@ public class Constants {
     public static final String GRAPH_API = "compss.graph.api";
     public static final String OTEL_ENDPOINT = "compss.otel.endpoint";
     public static final String OTEL_SERVICE = "compss.otel.service";
+    public static final String ENV_MONITOR_HOST = "COMPSS_MONITOR_HOST";
 
     // Default values
     public static final String DEFAULT_MASTER_NAME = "local-master";
     public static final String DEFAULT_NODE_NAME = "master";
+    public static final String DEFAULT_MONITOR_HOST = "localhost";
     public static final String DEFAULT_WORKER_NAME = "local-worker";
     public static final String DEFAULT_EVENTS_API = "http://localhost:8088/monitored-events";
     public static final String DEFAULT_GRAPH_API = "http://localhost:8088/graph-events";
@@ -41,4 +43,28 @@ public class Constants {
 
     public static final Duration DEFAULT_OTEL_PERIOD = Duration.ofSeconds(1);
 
+
+    private Constants() {
+        // Utility class
+    }
+
+    public static String getDefaultEventsApi() {
+        return "http://" + getMonitorHost() + ":8088/monitored-events";
+    }
+
+    public static String getDefaultGraphApi() {
+        return "http://" + getMonitorHost() + ":8088/graph-events";
+    }
+
+    public static String getDefaultOtelEndpoint() {
+        return "http://" + getMonitorHost() + ":4317";
+    }
+
+    private static String getMonitorHost() {
+        String host = System.getenv(ENV_MONITOR_HOST);
+        if (host == null || host.trim().isEmpty()) {
+            return DEFAULT_MONITOR_HOST;
+        }
+        return host.trim();
+    }
 }

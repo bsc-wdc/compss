@@ -51,6 +51,7 @@ def add_workflow_engine(
             "@type": "SoftwareApplication",
             "name": "COMPSs Runtime Environment",
             "softwareVersion": version,
+            "citation": "https://doi.org/10.1016/j.softx.2015.10.004",
             "url": "http://compss.bsc.es/"
         }
     ))

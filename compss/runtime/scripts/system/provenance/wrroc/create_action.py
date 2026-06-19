@@ -38,8 +38,6 @@ from datetime import timezone
 from datetime import datetime
 import pytz
 
-from provenance.utils.url_fixes import write_external_url
-
 try:
     import pandas as pd
 except:
@@ -70,31 +68,6 @@ unit_dict = {
 }
 
 LANGUAGES_EXTENSION = (".java", ".py", ".sh")
-
-
-def get_description_plot(metric, node_name="unknown node"):
-    description_plots = {
-        "cpu": f"Plot of {node_name} showing the percentage of CPU used during the execution",
-        "mem": f"Plot of {node_name} showing the amount of memory used during the execution",
-        "gpu": f"Plot of {node_name} showing the percentage of GPU used during the execution",
-        "gpu_mem": f"Plot of {node_name} showing the amount of GPU memory used during the execution",
-        "disk_usage": f"Plot of {node_name} showing the cumulative amount of data read and written on the disk during the execution",
-        "network_usage": f"Plot of {node_name} showing the cumulative amount of data sent and received during the execution",
-        "cpu_nodes": "Plot of the percentage of CPU used during the execution of all nodes used",
-        "mem_nodes": "Plot of the percentage of memory used during the execution of all nodes used",
-        "gpu_nodes": "Plot of the percentage of GPU used during the execution of all nodes used",
-        "gpu_mem_nodes": "Plot of the percentage of GPU memory used during the execution of all nodes used",
-        # The following plots represent bursts over time and are currently unused
-        "bytes_read": "Plot of the amount of data read from the disk during the execution",
-        "bytes_written": "Plot of the amount of data written from the disk during the execution",
-        "bytes_sent": "Plot of the amount of data sent across the network during the execution",
-        "bytes_received": "Plot of the amount of data received across the network during the execution",
-    }
-
-    if metric not in description_plots:
-        return f"Plot of {node_name} showing the {metric} during the execution"
-
-    return description_plots[metric]
 
 
 def process_log(dp_path: str, data_list: list) -> tuple:
@@ -530,68 +503,8 @@ def wrroc_create_action(
     resolved_main_entity = main_entity
     for entity in compss_crate.get_entities():
         if "ComputationalWorkflow" in entity.type:
-            resolved_main_entity = entity.id
-
-    # Adding stats and profiling plots to RO-Crate
-    stats_folder = str(stats_path)
-    if os.path.exists(stats_folder):
-        for root, _, files in os.walk(stats_folder):
-            for file in files:
-                if file.endswith(".csv") or file.endswith(".svg"):
-                    full_path = os.path.join(root, file)
-                    if file.endswith(".svg"):
-                        relative_file_path = full_path.split("plots/")[1]
-                        relative_path = "profiling/" + relative_file_path
-                    else:
-                        relative_file_path = full_path.split("stats/")[1]
-                        relative_path = "profiling/stats/" + relative_file_path
-
-                    # Determine metric and node_name based on path depth
-                    path_parts = relative_path.split("/")
-                    # path_parts example for plots: ["stats", "plots", "gs23r1b30-MASTER", "cpu.svg"]
-                    # path_parts example for flat:  ["stats", "static_resource_profiling_gs23r1b30-MASTER.csv"]
-
-                    metric = path_parts[-1].split(".")[0]   # filename without extension
-                    node_name = path_parts[-2]              # parent directory name
-                    description = get_description_plot(metric, node_name)
-
-                    # Add csv resource usage files
-                    if file.endswith(".csv"):
-                        file_properties = {}
-                        file_properties["name"] = file
-                        file_properties["contentSize"] = os.stat(full_path).st_size
-                        file_properties["description"] = f"Resouce Usage CSV file of {file.split('resource_profiling_')[1].split('.')[0]} node"
-                        file_properties["encodingFormat"] = [
-                            "text/csv",
-                            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/800"},
-                        ]
-                        file_properties["about"] = create_action_id
-                        compss_crate.add_file(
-                            source=full_path,
-                            dest_path=relative_path,
-                            properties=file_properties,
-                        )
-                    # Add plots
-                    elif file.endswith(".svg"):
-                        file_properties = {}
-                        file_properties["@id"] = relative_path
-                        file_properties["@type"] = ["File", "ImageObject"]
-                        file_properties["name"] = path_parts[-1]
-                        file_properties["description"] = description
-                        file_properties["contentSize"] = os.stat(full_path).st_size
-                        file_properties["encodingFormat"] = [
-                            "image/svg+xml",
-                            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"},
-                        ]
-                        file_properties["about"] = resolved_main_entity
-                        compss_crate.add_file(
-                            full_path,
-                            dest_path=relative_path,
-                            properties=file_properties,
-                        )
-
-    else:
-        print("Stats folder does not exist")
+            resolved_main_entity = entity
+    # Maybe better to get it from compss_crate.root_dataset["mainEntity"] ???
 
     # Register user submitting the workflow
     agent_added = False
@@ -672,7 +585,7 @@ def wrroc_create_action(
 
     create_action_properties = {
         "@type": "CreateAction",
-        "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
+        "instrument": resolved_main_entity,  # Can be a string or an entity
         "actionStatus": {
             "@id": execution_status
         },
@@ -855,39 +768,6 @@ def wrroc_create_action(
 
     create_action_properties["resourceUsage"] = id_name_list
 
-    # if os.path.isdir(energy_path):
-    #     try:
-    #         print(f"PROVENANCE | RO-Crate adding energy data")
-    #         # Add the resource usage to the ROCrate object
-    #         for data_file in os.listdir(energy_path):
-    #             if data_file.endswith("time.csv"):
-    #                 info_list = []
-    #                 filename = Path(energy_path, data_file)
-    #                 node = data_file.split(".")[1]
-    #                 get_energy_usage_for_node(filename, info_list, node)
-    #
-    #                 id_info_list = []
-    #                 for info_properties in info_list:
-    #                     info_id = info_properties["id"]
-    #                     del info_properties["id"]
-    #                     compss_crate.add(
-    #                         ContextEntity(
-    #                             compss_crate, info_id, properties=info_properties
-    #                         )
-    #                     )
-    #                     id_info_list.append({"@id": info_id})
-    #                     create_action_properties["resourceUsage"] = id_info_list
-    #                     compss_crate.add(
-    #                         ContextEntity(
-    #                             compss_crate, node, properties=create_action_properties
-    #                         )
-    #                     )
-    #     except ValueError:
-    #         print(
-    #             f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
-    #         )
-    #         print("PROVENANCE | EAR not used")
-
     if agent:
         create_action_properties["agent"] = agent
 
@@ -911,68 +791,5 @@ def wrroc_create_action(
     for item in outs:
         create_action.append_to("result", {"@id": fix_dir_url(item)})
     create_action.append_to("result", {"@id": "./"})  # The generated RO-Crate
-
-    # Add out and err logs in SLURM executions
-    if job_id:
-        suffix = [".out", ".err"]
-        msg = ["output", "error"]
-        for f_suffix, f_msg in zip(suffix, msg):
-            file_properties = {}
-            file_properties["name"] = "compss-" + job_id + f_suffix
-            file_properties["contentSize"] = os.path.getsize(file_properties["name"])
-            file_properties["description"] = (
-                "COMPSs console standard " + f_msg + " log file"
-            )
-            file_properties["encodingFormat"] = "text/plain"
-            file_properties["about"] = create_action_id
-            compss_crate.add_file(file_properties["name"], properties=file_properties)
-
-    # Add Paraver trace files if they have been generated in PRV_DIR/ folder
-    compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    if (
-        "trace_persistence" in compss_wf_info
-        and compss_wf_info["trace_persistence"] is True
-    ):
-        prv_persist = True
-    else:
-        prv_persist = False
-    prv_dir = log_dir / "trace/"
-    if prv_dir.exists() and prv_dir.is_dir():
-        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
-        if not prv_persist:
-            print(
-                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
-            )
-        for file in prv_dir.iterdir():
-            if file.is_file():
-                file_properties = {}
-                file_properties["name"] = file.name
-                file_properties["contentSize"] = file.stat().st_size
-                file_properties["description"] = "PARAVER trace files"
-                file_properties["encodingFormat"] = "text/plain"
-                file_properties["about"] = create_action_id
-                if prv_persist:
-                    crate_path = "trace/" + file.name
-                    compss_crate.add_file(
-                        source=file.resolve(),
-                        dest_path=crate_path,
-                        properties=file_properties,
-                    )
-                else:                   
-                    file_url = "file://" + socket.gethostname() + str(file.resolve())
-                    # print(f"TRACE URL:{file_url}")
-                    # Paraver trace files are referenced via scp:// URLs for external access
-                    # when trace_persistence is False, so they are not physically copied into the crate.                    
-                    modified_url = write_external_url(file_url)
-                    compss_crate.add_file(
-                        source=modified_url,
-                        fetch_remote=False,
-                        validate_url=False,
-                        properties=file_properties,
-                    )
-    elif prv_persist:
-        print(
-            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
-        )
 
     return create_action, agent

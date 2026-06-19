@@ -28,6 +28,33 @@ from rocrate.utils import iso_now
 
 from models.Task import Task
 
+def get_description_plot(metric, node_name="unknown node"):
+    description_plots = {
+        "cpu_aggregated": f"Profiling plot showing the percentage of CPU used during workflow run, aggregating all nodes",
+        "mem_aggregated": f"Profiling plot showing the amount of memory used during workflow run, aggregating all nodes",
+        "cpu": f"Profiling plot for node {node_name} showing the percentage of CPU used during workflow run",
+        "mem": f"Profiling plot for node {node_name} showing the amount of memory used during workflow run",
+        "gpu": f"Profiling plot for node {node_name} showing the percentage of GPU used during workflow run",
+        "gpu_mem": f"Profiling plot for node {node_name} showing the amount of GPU memory used during workflow run",
+        "disk_usage": f"Profiling plot for node {node_name} showing the cumulative amount of data read and written on the disk during workflow run",
+        "network_usage": f"Profiling plot for node {node_name} showing the cumulative amount of data sent and received during workflow run",
+        "cpu_nodes": "Profiling plot for the percentage of CPU for all nodes during workflow run",
+        "mem_nodes": "Profiling plot for the percentage of memory usage for all nodes during workflow run",
+        "gpu_nodes": "Profiling plot for the percentage of GPU used for all nodes during workflow run",
+        "gpu_mem_nodes": "Profiling plot for the percentage of GPU memory used for all nodes during workflow run",
+        # The following plots represent bursts over time and are currently unused
+        "bytes_read": "Profiling plot for the amount of data read from the disk during workflow run",
+        "bytes_written": "Profiling plot for the amount of data written from the disk during workflow run",
+        "bytes_sent": "Profiling plot for the amount of data sent across the network during workflow run",
+        "bytes_received": "Profiling plot for the amount of data received across the network during workflow run",
+    }
+
+    if metric not in description_plots:
+        return f"Profiling plot for node {node_name} showing metric {metric} during workflow run"
+
+    return description_plots[metric]
+
+
 def add_dataset_file_to_crate(
     compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list
 ) -> str:
@@ -530,7 +557,8 @@ def add_file_to_crate(
     }
 
     if task:
-        file_properties["description"] = f"Log file of Task {task.tid}"
+        channel = "Error" if source.name.endswith(".err") else "Output"
+        file_properties["description"] = f"{channel} log file for Task {task.tid}"
     if e_create_action:
         file_properties["about"] = e_create_action
 
@@ -540,3 +568,184 @@ def add_file_to_crate(
         dest_path=os.path.join(destination, source.name),
         properties=file_properties,
     )
+
+
+def add_master_out_and_err(compss_crate, create_action):
+    # Add out and err logs in SLURM executions
+    if job_id := os.getenv("SLURM_JOB_ID"):
+        suffix = [".out", ".err"]
+        msg = ["output", "error"]
+        for f_suffix, f_msg in zip(suffix, msg):
+            file_properties = {}
+            file_properties["name"] = "compss-" + job_id + f_suffix
+            file_properties["contentSize"] = os.path.getsize(file_properties["name"])
+            file_properties["description"] = (
+                "COMPSs console standard " + f_msg + " log file"
+            )
+            file_properties["encodingFormat"] = "text/plain"
+            file_properties["about"] = create_action
+            compss_crate.add_file(file_properties["name"], properties=file_properties)
+
+
+def add_trace_files(compss_crate, compss_wf_info, log_dir, create_action):
+    # Add Paraver trace files if they have been generated in PRV_DIR/ folder
+    if (
+        "trace_persistence" in compss_wf_info
+        and compss_wf_info["trace_persistence"] is True
+    ):
+        prv_persist = True
+    else:
+        prv_persist = False
+    prv_dir = log_dir / "trace/"
+    if prv_dir.exists() and prv_dir.is_dir():
+        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
+        if not prv_persist:
+            print(
+                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
+            )
+        for file in prv_dir.iterdir():
+            if file.is_file():
+                file_properties = {}
+                file_properties["name"] = file.name
+                file_properties["contentSize"] = file.stat().st_size
+                file_properties["description"] = "PARAVER trace files"
+                file_properties["encodingFormat"] = "text/plain"
+                file_properties["about"] = create_action
+                if prv_persist:
+                    crate_path = "trace/" + file.name
+                    compss_crate.add_file(
+                        source=file.resolve(),
+                        dest_path=crate_path,
+                        properties=file_properties,
+                    )
+                else:
+                    file_url = "file://" + socket.gethostname() + str(file.resolve())
+                    # print(f"TRACE URL:{file_url}")
+                    # Paraver trace files are referenced via scp:// URLs for external access
+                    # when trace_persistence is False, so they are not physically copied into the crate.
+                    modified_url = write_external_url(file_url)
+                    compss_crate.add_file(
+                        source=modified_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        properties=file_properties,
+                    )
+    elif prv_persist:
+        print(
+            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
+        )
+
+def add_all_log_files(compss_crate, log_dir, create_action):
+    # Add all COMPSs runtime execution log files. They can be useful for debugging purposes
+    if log_dir.exists() and log_dir.is_dir():
+        print(f"PROVENANCE | RO-Crate adding all COMPSs log files")
+        for root, dirs, files in os.walk(log_dir):
+            # Evitar entrar en estos directorios
+            dirs[:] = [d for d in dirs if d not in {"stats", "monitor", "jobs", "trace"}]
+            for file in files:
+                if file.endswith("compss_trace.tar.gz"):
+                    # Do not add intermediate PARAVER trace generation files
+                    continue
+                path = Path(root) / file
+                file_properties = {}
+                file_properties["name"] = file
+                file_properties["contentSize"] = path.stat().st_size
+                file_properties["description"] = "COMPSs runtime log file"
+                file_properties["encodingFormat"] = "text/plain"
+                file_properties["about"] = create_action
+                crate_path = Path("runtime_logs") / path.relative_to(log_dir)
+                compss_crate.add_file(
+                    source=path.resolve(),
+                    dest_path=crate_path,
+                    properties=file_properties,
+                )
+
+def add_stats_and_plots(compss_crate, log_dir, create_action, main_entity):
+    # Adding stats and profiling plots to RO-Crate
+    resolved_main_entity = main_entity
+    for entity in compss_crate.get_entities():
+        if "ComputationalWorkflow" in entity.type:
+            resolved_main_entity = entity
+
+    stats_folder = log_dir / "stats/"
+    if os.path.exists(stats_folder):
+        for root, _, files in os.walk(stats_folder):
+            for file in files:
+                if file.endswith(".csv") or file.endswith(".svg"):
+                    full_path = os.path.join(root, file)
+                    if file.endswith(".svg"):
+                        relative_file_path = full_path.split("plots/")[1]
+                        relative_path = "profiling/" + relative_file_path
+                        # Determine metric and node_name based on path depth
+                        path_parts = relative_path.split("/")
+                        # path_parts example for plots: ["stats", "plots", "gs23r1b30-MASTER", "cpu.svg"]
+                        # path_parts example for flat:  ["stats", "static_resource_profiling_gs23r1b30-MASTER.csv"]
+
+                        metric = path_parts[-1].split(".")[0]   # filename without extension
+                        node_name = path_parts[-2]              # parent directory name
+                        description = get_description_plot(metric, node_name)
+                        file_properties = {}
+                        file_properties["@id"] = relative_path
+                        file_properties["@type"] = ["File", "ImageObject"]
+                        file_properties["name"] = path_parts[-1]
+                        file_properties["description"] = description
+                        file_properties["contentSize"] = os.stat(full_path).st_size
+                        file_properties["encodingFormat"] = [
+                            "image/svg+xml",
+                            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"},
+                        ]
+                        file_properties["about"] = resolved_main_entity
+                    else:
+                        # CSV files
+                        relative_file_path = full_path.split("stats/")[1]
+                        relative_path = "runtime_logs/stats/" + relative_file_path
+                        file_properties = {}
+                        file_properties["name"] = file
+                        file_properties["contentSize"] = os.stat(full_path).st_size
+                        file_properties["description"] = f"Resource Usage CSV file for node {file.split('resource_profiling_')[1].split('.')[0]}"
+                        file_properties["encodingFormat"] = [
+                            "text/csv",
+                            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/800"},
+                        ]
+                        file_properties["about"] = create_action
+
+                    compss_crate.add_file(
+                        source=full_path,
+                        dest_path=relative_path,
+                        properties=file_properties,
+                    )
+    else:
+        print("Stats folder does not exist")
+
+    # if os.path.isdir(energy_path):
+    #     try:
+    #         print(f"PROVENANCE | RO-Crate adding energy data")
+    #         # Add the resource usage to the ROCrate object
+    #         for data_file in os.listdir(energy_path):
+    #             if data_file.endswith("time.csv"):
+    #                 info_list = []
+    #                 filename = Path(energy_path, data_file)
+    #                 node = data_file.split(".")[1]
+    #                 get_energy_usage_for_node(filename, info_list, node)
+    #
+    #                 id_info_list = []
+    #                 for info_properties in info_list:
+    #                     info_id = info_properties["id"]
+    #                     del info_properties["id"]
+    #                     compss_crate.add(
+    #                         ContextEntity(
+    #                             compss_crate, info_id, properties=info_properties
+    #                         )
+    #                     )
+    #                     id_info_list.append({"@id": info_id})
+    #                     create_action_properties["resourceUsage"] = id_info_list
+    #                     compss_crate.add(
+    #                         ContextEntity(
+    #                             compss_crate, node, properties=create_action_properties
+    #                         )
+    #                     )
+    #     except ValueError:
+    #         print(
+    #             f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
+    #         )
+    #         print("PROVENANCE | EAR not used")

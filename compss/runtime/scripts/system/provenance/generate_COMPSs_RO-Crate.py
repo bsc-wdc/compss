@@ -36,6 +36,7 @@ from provenance.file_adding.datasets import (
     add_manual_datasets,
 )
 from provenance.file_adding.source_code import add_application_source_files
+from provenance.file_adding.datasets import add_master_out_and_err, add_trace_files, add_all_log_files, add_stats_and_plots
 from provenance.processing.entities import root_entity, get_main_entities
 from provenance.processing.master_log import process_master_log
 from provenance.processing.worker_logs import update_tasks_from_worker_logs
@@ -351,7 +352,7 @@ def main():
             if job_logs_available and task.logs:
                 for filename in task.logs:
                     source = Path(PATH_LOG) / "jobs" / filename
-                    add_file_to_crate(compss_crate, source, "logs", task, create_action)
+                    add_file_to_crate(compss_crate, source, "runtime_logs/jobs", task, create_action)
                     added_logs.add(filename)
 
         # Enforce symmetry between FormalParameter.workExample and ActualValue.exampleOfWork
@@ -372,20 +373,6 @@ def main():
                 f"PROVENANCE DEBUG | Task and Parameter processing TIME: {pr_part_time1} s"
             )
 
-    # Check for the presence of job log files in any case:
-    # - Their presence indicates either: failure or debug mode enabled
-    # - If debug mode was not enabled and log files were generated, we can assume a failure
-    # - Double check that some log files have not been previously added together with their task (if the info was available)
-
-    part_time = time.time()
-    if job_logs_available:
-        logs = (PATH_LOG / "jobs").glob("*")
-        for file in logs:
-            if file.name not in added_logs:
-                add_file_to_crate(crate=compss_crate, source=file, destination="logs")
-                added_logs.add(file.name)
-    if __debug__:
-        print(f"PROVENANCE DEBUG | Adding logs TIME: {time.time() - part_time} s")
 
     # -------------------- MAIN ENTITY -------------------- #
 
@@ -448,6 +435,31 @@ def main():
         f"PROVENANCE | RO-Crate adding CreateAction TIME: "
         f"{time.time() - part_time} s"
     )
+
+    ### LOGS HANDLING
+
+    part_time = time.time()
+    # Check for the presence of job log files in any case:
+    # - Their presence indicates either: failure or debug mode enabled
+    # - If debug mode was not enabled and log files were generated, we can assume a failure
+    # - Double check that some log files have not been previously added together with their task (if the info was available)
+
+    if job_logs_available:
+        logs = (PATH_LOG / "jobs").glob("*")
+        for file in logs:
+            if file.name not in added_logs:
+                add_file_to_crate(crate=compss_crate, source=file, destination="runtime_logs/jobs")
+                added_logs.add(file.name)
+
+    # Add all engine-specific traces (i.e. need the 'about' property).
+    # COMPSs execution logs, traces, etc...
+    add_master_out_and_err(compss_crate, main_create_action)
+    add_trace_files(compss_crate, compss_wf_info, PATH_LOG, main_create_action)
+    add_all_log_files(compss_crate, PATH_LOG, main_create_action)
+    add_stats_and_plots(compss_crate, PATH_LOG, main_create_action, main_entity)
+
+    if __debug__:
+        print(f"PROVENANCE DEBUG | Adding logs TIME: {time.time() - part_time} s")
 
     if PROVENANCE_RUN_ENABLED:
         pr_part_time2 = time.time()

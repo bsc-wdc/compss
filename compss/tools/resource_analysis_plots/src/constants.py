@@ -18,7 +18,7 @@
 
 
 # Directories
-DEFAULT_STATS_SUBDIR = "profiling/stats"
+DEFAULT_STATS_SUBDIR = "runtime_logs/stats"
 DEFAULT_PLOTS_DIR = "profiling"
 
 # Scopes for plot generation

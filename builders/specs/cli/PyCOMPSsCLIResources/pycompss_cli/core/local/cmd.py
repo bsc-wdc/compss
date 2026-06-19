@@ -1179,18 +1179,17 @@ def local_inspect_tasks(
             # There is no way around this, all Files need to be examined, since the log will reference the corresponding task CreateAction with 'mentions'
             # There is no reference from the task CreateAction to the corresponding logs
             # Buidling all log_trees is useless for non print_candidates (if they will never be printed)
-            elif is_compss_wf and "File" in e.type and e.get("about") and "logs" in e.get("@id"):
-                task_id = (
-                    e.get("about").get("@id").split("_")[1] if is_compss_wf else e.id
-                )
-                if (
-                    (not tasks_to_inspect)
-                    or (task_id in tasks_to_inspect)
-                    or (failing_tasks_only and task_id in failing_tasks)
-                ):
-                    log_tree.setdefault(task_id, [])
-                    log_tree[task_id].append(e.id)
-
+            else:
+                file_about_str = e.get("about", {}).get("@id", "")
+                if is_compss_wf and "File" in e.type and "execution_details" in file_about_str:
+                    task_id = file_about_str.split("_")[1]
+                    if (
+                        (not tasks_to_inspect)
+                        or (task_id in tasks_to_inspect)
+                        or (failing_tasks_only and task_id in failing_tasks)
+                    ):
+                        log_tree.setdefault(task_id, [])
+                        log_tree[task_id].append(e.id)
 
         # print(f"PROVENANCE | Get CreateActions and logs TIME: {time.time() - part_time} s")
         # print(f"TO BE PRINTED: {len(print_candidates)}")

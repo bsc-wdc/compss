@@ -60,12 +60,23 @@ For `monitored_events.jsonl`, the test checks that:
 - `run_id` and `thread_type` are populated;
 - both `local-master` and `local-worker` agents emitted events;
 - master events use `node_name == "master"`;
-- worker events use `node_name == "localhost"`;
+- worker events use a local worker node name (`localhost` or `COMPSsWorker01`,
+  depending on the runtime/resource naming path);
 - the expected thread types `AP`, `TD`, and `EXEC` appear;
 - representative event names are present, including:
   - `Task Dispatcher: Execute tasks`
   - `Access Processor: Barrier`
   - `task_one`
+- task registry events (`event_type == 88000000`) are emitted for the three
+  application core elements:
+  - `task_one`
+  - `task_two`
+  - `task_three`
+- each registry signature maps consistently to exactly one core id
+  (`event_code`);
+- the three application signatures map to three distinct core ids. This catches
+  regressions where the monitor exports an implementation id or a constant
+  value instead of the real core element id.
 
 For `graph_events.jsonl`, the test checks that:
 
@@ -84,6 +95,13 @@ For `graph_events.jsonl`, the test checks that:
 ```json
 {"task_id": 1, "task_name": "test_monitor_new.task_one"}
 ```
+
+- the set of created task names is exactly the three application tasks;
+- the set of finished task names matches the created tasks and uses the same
+  task ids;
+- data dependencies describe the application chain:
+  - `test_monitor_new.task_one -> test_monitor_new.task_two`
+  - `test_monitor_new.task_two -> test_monitor_new.task_three`
 
 Finally, the test checks that monitored events and graph events share a common
 `run_id`.

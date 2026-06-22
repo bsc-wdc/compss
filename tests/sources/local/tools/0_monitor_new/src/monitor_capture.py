@@ -7,6 +7,20 @@ import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
+TASK_REGISTRY_EVENT_TYPE = 88000000
+EXPECTED_REGISTRY_SIGNATURES = {"task_one", "task_two", "task_three"}
+EXPECTED_TASK_NAMES = {
+    "test_monitor_new.task_one",
+    "test_monitor_new.task_two",
+    "test_monitor_new.task_three",
+}
+EXPECTED_WORKER_NODE_NAMES = {"localhost", "COMPSsWorker01"}
+EXPECTED_DATA_DEPENDENCIES = {
+    ("test_monitor_new.task_one", "test_monitor_new.task_two"),
+    ("test_monitor_new.task_two", "test_monitor_new.task_three"),
+}
+
+
 def _append_jsonl(path, item):
     with open(path, "a", encoding="utf-8") as handler:
         handler.write(json.dumps(item, sort_keys=True))
@@ -104,7 +118,11 @@ def _validate_monitored_events(events):
     master_events = [event for event in events if event["agent_id"] == "local-master"]
     worker_events = [event for event in events if event["agent_id"] == "local-worker"]
     _require(any(event["node_name"] == "master" for event in master_events), "local-master node_name is not master")
-    _require(any(event["node_name"] == "localhost" for event in worker_events), "local-worker node_name is not localhost")
+    worker_node_names = {event["node_name"] for event in worker_events}
+    _require(
+        worker_node_names.issubset(EXPECTED_WORKER_NODE_NAMES),
+        "Unexpected local-worker node_name values: {}".format(sorted(worker_node_names)),
+    )
 
     thread_types = {event["thread_type"] for event in events}
     _require({"AP", "TD", "EXEC"}.issubset(thread_types), "Missing AP, TD or EXEC monitored thread type")
@@ -113,6 +131,42 @@ def _validate_monitored_events(events):
     _require("Task Dispatcher: Execute tasks" in event_names, "Missing task dispatcher execute event")
     _require("Access Processor: Barrier" in event_names, "Missing access processor barrier event")
     _require("task_one" in event_names, "Missing task_one execution event")
+
+    _validate_task_registry_events(events)
+
+
+def _validate_task_registry_events(events):
+    registry_events = [event for event in events if event["event_type"] == TASK_REGISTRY_EVENT_TYPE]
+    _require(registry_events, "No task registry events were captured")
+
+    for event in registry_events:
+        _require(event["agent_id"] == "local-master", "Task registry event was not emitted by local-master")
+        _require(event["node_name"] == "master", "Task registry event node_name is not master")
+        _require(event["thread_type"] == "REGISTRY", "Task registry event thread_type is not REGISTRY")
+        _require(isinstance(event["event_code"], int), "Task registry event_code is not an integer")
+        _require(event["event_code"] > 0, "Task registry event_code is not a positive core id")
+
+    signature_to_core_ids = {}
+    for event in registry_events:
+        signature = event["event_name"]
+        if signature in EXPECTED_REGISTRY_SIGNATURES:
+            signature_to_core_ids.setdefault(signature, set()).add(event["event_code"])
+
+    missing = EXPECTED_REGISTRY_SIGNATURES.difference(signature_to_core_ids)
+    _require(not missing, "Missing task registry signatures: {}".format(sorted(missing)))
+
+    unstable = {
+        signature: sorted(core_ids)
+        for signature, core_ids in signature_to_core_ids.items()
+        if len(core_ids) != 1
+    }
+    _require(not unstable, "Task registry signatures map to multiple core ids: {}".format(unstable))
+
+    core_ids = {next(iter(core_ids)) for core_ids in signature_to_core_ids.values()}
+    _require(
+        len(core_ids) == len(EXPECTED_REGISTRY_SIGNATURES),
+        "Task registry signatures do not map to distinct core ids: {}".format(signature_to_core_ids),
+    )
 
 
 def _validate_graph_events(graph_events):
@@ -134,6 +188,59 @@ def _validate_graph_events(graph_events):
         any(event.get("type") == "TASK_CREATED" and event.get("payload") == expected_payload for event in graph_events),
         "Missing expected task_one TASK_CREATED payload",
     )
+
+    _validate_application_graph_events(graph_events)
+
+
+def _payload(event):
+    payload = event.get("payload")
+    _require(payload is None or isinstance(payload, dict), "Graph event payload is not a JSON object")
+    return payload or {}
+
+
+def _validate_application_graph_events(graph_events):
+    task_created = [event for event in graph_events if event["type"] == "TASK_CREATED"]
+    task_finished = [event for event in graph_events if event["type"] == "TASK_FINISHED"]
+    data_deps = [event for event in graph_events if event["type"] == "DATA_DEP"]
+
+    created_by_id = {}
+    for event in task_created:
+        payload = _payload(event)
+        task_id = payload.get("task_id")
+        task_name = payload.get("task_name")
+        _require(isinstance(task_id, int), "TASK_CREATED payload task_id is not an integer")
+        _require(task_name in EXPECTED_TASK_NAMES, "Unexpected TASK_CREATED task_name: {}".format(task_name))
+        _require(task_id not in created_by_id, "Duplicated TASK_CREATED task_id: {}".format(task_id))
+        created_by_id[task_id] = task_name
+
+    _require(set(created_by_id.values()) == EXPECTED_TASK_NAMES, "Unexpected TASK_CREATED task set")
+
+    finished_by_id = {}
+    for event in task_finished:
+        payload = _payload(event)
+        task_id = payload.get("task_id")
+        task_name = payload.get("task_name")
+        _require(isinstance(task_id, int), "TASK_FINISHED payload task_id is not an integer")
+        _require(task_name in EXPECTED_TASK_NAMES, "Unexpected TASK_FINISHED task_name: {}".format(task_name))
+        _require(task_id not in finished_by_id, "Duplicated TASK_FINISHED task_id: {}".format(task_id))
+        finished_by_id[task_id] = task_name
+
+    _require(finished_by_id == created_by_id, "TASK_FINISHED ids do not match TASK_CREATED ids")
+
+    dependency_pairs = set()
+    for event in data_deps:
+        payload = _payload(event)
+        producer_name = payload.get("producer_name")
+        consumer_name = payload.get("consumer_name")
+        producer_id = payload.get("producer_id")
+        consumer_id = payload.get("consumer_id")
+        _require(producer_name in EXPECTED_TASK_NAMES, "Unexpected DATA_DEP producer_name: {}".format(producer_name))
+        _require(consumer_name in EXPECTED_TASK_NAMES, "Unexpected DATA_DEP consumer_name: {}".format(consumer_name))
+        _require(created_by_id.get(producer_id) == producer_name, "DATA_DEP producer_id does not match producer_name")
+        _require(created_by_id.get(consumer_id) == consumer_name, "DATA_DEP consumer_id does not match consumer_name")
+        dependency_pairs.add((producer_name, consumer_name))
+
+    _require(dependency_pairs == EXPECTED_DATA_DEPENDENCIES, "Unexpected DATA_DEP graph: {}".format(dependency_pairs))
 
 
 def validate(args):

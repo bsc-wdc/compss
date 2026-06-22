@@ -108,11 +108,11 @@ public abstract class NIOAgent {
     private volatile boolean finish;
     private Connection closingConnection = null;
 
-    // Requests related to a DataId
+    // Requests related to a DataId -- always access under synchronized(this.dataToRequests)
     protected final Map<String, List<DataRequest>> dataToRequests;
     // NIOData requests that will be transferred
     private final LinkedList<DataRequest> pendingRequests;
-    // Ongoing transfers
+    // Ongoing transfers -- always access under synchronized(this.ongoingTransfers)
     private final Map<Connection, String> ongoingTransfers;
     // Ongoing Commands
     private static final Map<Connection, Command> ONGOING_COMMANDS = new ConcurrentHashMap<>();
@@ -230,7 +230,9 @@ public abstract class NIOAgent {
      * @return The DataRequests associated to the given data Id.
      */
     protected List<DataRequest> getDataRequests(String dataId) {
-        return this.dataToRequests.get(dataId);
+        synchronized (this.dataToRequests) {
+            return this.dataToRequests.get(dataId);
+        }
     }
 
     /**
@@ -283,6 +285,9 @@ public abstract class NIOAgent {
                 nn = this.masterNode;
             }
             Connection c = null;
+            // Set once the transfer is registered in ongoingTransfers. Until then receivedData() cannot run for this
+            // connection, so on failure the receive slot is still ours to release.
+            boolean registered = false;
 
             try {
                 c = TM.startConnection(nn, handler);
@@ -293,7 +298,10 @@ public abstract class NIOAgent {
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(remoteData, this.tracingId);
                 registerOngoingCommand(c, cdd);
-                this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
+                synchronized (this.ongoingTransfers) {
+                    this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
+                }
+                registered = true;
                 c.sendCommand(cdd);
 
                 if (NIOTracer.isActivated()) {
@@ -333,8 +341,31 @@ public abstract class NIOAgent {
 
             } catch (Exception e) {
                 e.printStackTrace(System.err);
+                // Release the receive slot exactly once. If the transfer was never registered, receivedData() could
+                // not have run, so the slot is still ours. If it was registered, only release when we win the atomic
+                // remove: otherwise receivedData() already completed on the comm thread and released the slot, and a
+                // second release here would corrupt the receiveTransfers count.
+                boolean ownsSlot = !registered;
                 if (c != null) {
                     c.finishConnection();
+                    synchronized (this.ongoingTransfers) {
+                        if (this.ongoingTransfers.remove(c) != null) {
+                            ownsSlot = true;
+                        }
+                    }
+                    unregisterConnectionInOngoingCommands(c);
+                }
+                if (ownsSlot) {
+                    releaseReceiveSlot();
+                }
+                String failedDataId = dr.getSource().getDataMgmtId();
+                List<DataRequest> failedRequests;
+                synchronized (this.dataToRequests) {
+                    failedRequests = this.dataToRequests.remove(failedDataId);
+                }
+                handleRequestedDataNotAvailableError(failedRequests, failedDataId);
+                if (this.finish && !hasPendingTransfers()) {
+                    shutdown(this.closingConnection);
                 }
             }
             synchronized (pendingRequests) {
@@ -386,15 +417,17 @@ public abstract class NIOAgent {
      * @param dr Data Request to add.
      */
     public void addTransferRequest(DataRequest dr) {
-        List<DataRequest> list = this.dataToRequests.get(dr.getSource().getDataMgmtId());
-        if (list == null) {
-            list = new LinkedList<>();
-            this.dataToRequests.put(dr.getSource().getDataMgmtId(), list);
-            synchronized (this.pendingRequests) {
-                this.pendingRequests.add(dr);
+        synchronized (this.dataToRequests) {
+            List<DataRequest> list = this.dataToRequests.get(dr.getSource().getDataMgmtId());
+            if (list == null) {
+                list = new LinkedList<>();
+                this.dataToRequests.put(dr.getSource().getDataMgmtId(), list);
+                synchronized (this.pendingRequests) {
+                    this.pendingRequests.add(dr);
+                }
             }
+            list.add(dr);
         }
-        list.add(dr);
     }
 
     /**
@@ -671,7 +704,10 @@ public abstract class NIOAgent {
      * @param t Transfer.
      */
     public void receivedData(Connection c, Transfer t) {
-        String dataId = this.ongoingTransfers.remove(c);
+        String dataId;
+        synchronized (this.ongoingTransfers) {
+            dataId = this.ongoingTransfers.remove(c);
+        }
         if (dataId == null) {
             // It has received the output and error of a job execution
             return;
@@ -690,7 +726,10 @@ public abstract class NIOAgent {
         }
 
         // Get all data requests for this source data_id/filename, and group by the target(final) data_id/filename
-        List<DataRequest> requests = dataToRequests.remove(dataId);
+        List<DataRequest> requests;
+        synchronized (this.dataToRequests) {
+            requests = this.dataToRequests.remove(dataId);
+        }
         if (requests == null || requests.isEmpty()) {
             LOGGER.warn("WARN: No data removed for received data " + dataId);
             return;
@@ -1058,7 +1097,10 @@ public abstract class NIOAgent {
      * @param c Connection.
      */
     public boolean checkAndHandleRequestedDataNotAvailableError(Connection c) {
-        String dataId = this.ongoingTransfers.remove(c);
+        String dataId;
+        synchronized (this.ongoingTransfers) {
+            dataId = this.ongoingTransfers.remove(c);
+        }
         if (dataId == null) { // It has received the output and error of a job
             LOGGER.error("Failed data connection not a tranfer");
             return false;
@@ -1066,7 +1108,10 @@ public abstract class NIOAgent {
         // Remove connection from commands Hasmap
         unregisterConnectionInOngoingCommands(c);
         releaseReceiveSlot();
-        List<DataRequest> requests = this.dataToRequests.remove(dataId);
+        List<DataRequest> requests;
+        synchronized (this.dataToRequests) {
+            requests = this.dataToRequests.remove(dataId);
+        }
         handleRequestedDataNotAvailableError(requests, dataId);
         requestTransfers();
 

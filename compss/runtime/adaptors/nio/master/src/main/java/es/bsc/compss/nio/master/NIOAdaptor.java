@@ -98,6 +98,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -367,9 +368,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LOGGER.debug("- Waiting for workers to shutdown...");
         sl.enable();
         try {
-            sem.acquire();
-        } catch (Exception e) {
-            LOGGER.error("ERROR: Exception raised on worker shutdown");
+            if (!sem.tryAcquire(120, TimeUnit.SECONDS)) {
+                LOGGER.error("ERROR: Timeout waiting for workers to shutdown");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("ERROR: Interrupted waiting for workers to shutdown");
         }
         LOGGER.debug("- Workers stopped");
 
@@ -997,8 +1001,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void handleShutdownACKCommandError(Connection c, CommandShutdownACK commandShutdownACK) {
-        // Nothing to do at master
-        LOGGER.warn("Error receiving shutdown ACK. Not handeled");
+        LOGGER.error("Error receiving shutdown ACK from worker.");
+        ClosingWorker closing = STOPPING_NODES.remove(c);
+        if (closing != null) {
+            removedNode(closing.worker);
+            closing.listener.notifyFailure(new Exception("Error receiving shutdown ACK from worker."));
+        }
     }
 
     @Override

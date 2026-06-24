@@ -53,10 +53,6 @@ import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.datarequest.WorkerDataRequest;
 import es.bsc.compss.nio.exceptions.DataNotAvailableException;
 import es.bsc.compss.nio.listeners.FetchDataOperationListener;
@@ -802,16 +798,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Never orders the shutdown of a worker peer
     }
 
-    @Override
-    public void notifyAnalysisFilesDone(Set<String> tracingFilesPaths) {
-        // Nothing to do
-    }
-
-    @Override
-    public void notifyDebugFilesDone(Set<String> logPath) {
-        // Nothing to do
-    }
-
     /**
      * Freezes the files on the folder and returns the paths to those frozen files.
      *
@@ -909,7 +895,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         logFilesPaths = getFilesPathFromFolder(this.getLogDir());
 
-        c.sendCommand(new CommandGenerateDebugFilesDone(logFilesPaths));
+        c.sendDataObject(logFilesPaths);
         c.finishConnection();
     }
 
@@ -919,23 +905,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         generateTracingFiles();
         Set<String> analysisFilesPaths;
 
-        // Ideally the transfer should be a single compressed file
-        // following commented code was a try at that but was not working properly
-
-        // try {
-        // // Tries to generate a tar.gz file with the contents of the analysis folder.
-        // final String tarTargetPath = this.getWorkingDir() + File.separator + "analysis.tar.gz";
-        // analysisFilesPaths = generatePackageFromFolder(this.getAnalysisDir(), tarTargetPath);
-        // } catch (Exception e) {
-        // // If it runs out of space to do the tar.gz package sends the paths to the files
-        // WORKER_LOGGER
-        // .warn("Something failed while generating tar.gz package with the contents of the analysis folder.", e);
-        // analysisFilesPaths = getFilesPathFromFolder(this.getAnalysisDir());
-        // }
-
         analysisFilesPaths = getFilesPathFromFolder(this.getAnalysisDir());
-
-        c.sendCommand(new CommandGenerateAnalysisFilesDone(analysisFilesPaths));
+        c.sendDataObject(analysisFilesPaths);
         c.finishConnection();
     }
 
@@ -1416,38 +1387,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void handleShutdownACKCommandError(Connection c, CommandShutdownACK commandShutdownACK) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending eshutdown ACK. Not handeled");
-
-    }
-
-    @Override
-    public void handleTracingGenerateDoneCommandError(Connection c,
-        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone) {
-        // Nothing to do at worker
-        WORKER_LOGGER.warn("Error sending tracing generate done. Not handeled");
-
-    }
-
-    @Override
-    public void handleTracingGenerateCommandError(Connection c,
-        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles) {
-        // Nothing to do at worker
-        WORKER_LOGGER.warn("Error receiving tracing generate command. Not handeled");
-
-    }
-
-    @Override
-    public void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateDebugFiles commandGenerateDebugFiles) {
-        // Nothing to do at worker
-        WORKER_LOGGER.warn("Error receiving generate worker debug command. Not handeled");
-
-    }
-
-    @Override
-    public void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone) {
-        // Nothing to do at worker
-        WORKER_LOGGER.warn("Error sending  generate worker debug done. Not handeled");
 
     }
 

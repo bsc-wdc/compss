@@ -17,12 +17,18 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CommandShutdownACK implements Command {
+
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+
 
     /**
      * Creates a new CommandShutdownACK for externalization.
@@ -33,6 +39,7 @@ public class CommandShutdownACK implements Command {
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
+        logger.debug("Received ShutdownACK from connection {}", c);
         agent.shutdownNotification(c);
     }
 

@@ -17,6 +17,7 @@
 package es.bsc.compss.nio;
 
 import es.bsc.comm.Connection;
+import es.bsc.comm.ConnectionListener;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIOConnection;
@@ -38,10 +39,6 @@ import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
 import es.bsc.compss.nio.commands.CommandTracingID;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.utils.NIOBindingDataManager;
@@ -68,7 +65,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -179,10 +175,22 @@ public abstract class NIOAgent {
     /**
      * Starts a new connection.
      *
+     * @param node target node
      * @return The new connection.
      */
     public Connection startConnection(NIONode node) {
         return TM.startConnection(node, handler);
+    }
+
+    /**
+     * Starts a new connection.
+     *
+     * @param node target node
+     * @param cl handler of the events of the connection
+     * @return The new connection.
+     */
+    public Connection startConnection(NIONode node, ConnectionListener cl) {
+        return TM.startConnection(node, cl);
     }
 
     protected void shutdown(Connection notifyTo) {
@@ -1178,10 +1186,6 @@ public abstract class NIOAgent {
     // Generates the analysis files to be retrieved by the master post mortem and returns the paths to those files
     public abstract void generateAnalysisFiles(Connection c);
 
-    public abstract void notifyDebugFilesDone(Set<String> logPath);
-
-    public abstract void notifyAnalysisFilesDone(Set<String> tracingFilesPaths);
-
     public void receivedPartialBindingObjects(Connection c, Transfer t) {
         NIOBindingDataManager.receivedPartialBindingObject((NIOConnection) c, t);
     }
@@ -1213,18 +1217,6 @@ public abstract class NIOAgent {
     public abstract void handleShutdownCommandError(Connection c, CommandShutdown commandShutdown);
 
     public abstract void handleShutdownACKCommandError(Connection c, CommandShutdownACK commandShutdownACK);
-
-    public abstract void handleTracingGenerateDoneCommandError(Connection c,
-        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone);
-
-    public abstract void handleTracingGenerateCommandError(Connection c,
-        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles);
-
-    public abstract void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateDebugFiles commandGenerateDebugFiles);
-
-    public abstract void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone);
 
     /**
      * Re-send a given command to a given NIONode.

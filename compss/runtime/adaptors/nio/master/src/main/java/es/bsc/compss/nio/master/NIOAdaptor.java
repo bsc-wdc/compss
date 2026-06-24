@@ -46,10 +46,6 @@ import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
 import es.bsc.compss.nio.master.types.TransferGroup;
@@ -89,7 +85,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -133,20 +128,15 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final ConcurrentMap<String, NIOWorkerNode> ONGOING_WORKER_PINGS = new ConcurrentHashMap<>();
 
-    private static final Map<Integer, TransferGroup> PENDING_TRANSFER_GROUPS = new HashMap<>();
+    private static final Map<Integer, TransferGroup> PENDING_TRANSFER_GROUPS = new ConcurrentHashMap<>();
 
-    private static final Map<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
+    private static final Map<Connection, ClosingWorker> STOPPING_NODES = new ConcurrentHashMap<>();
 
     private static final Map<Connection, ClosingExecutor> STOPPING_EXECUTORS = new ConcurrentHashMap<>();
 
-    private static final Map<Connection, Semaphore> PENDING_MODIFICATIONS = new HashMap<>();
+    private static final Map<Connection, Semaphore> PENDING_MODIFICATIONS = new ConcurrentHashMap<>();
 
     private final boolean persistentC;
-
-    private final Semaphore tracingGeneration;
-    private final Semaphore workersDebugInfo;
-    private Set<String> workerLogFilesPaths;
-    private Set<String> workerTracingFilesPaths;
 
     static {
         int masterPort;
@@ -173,12 +163,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             persistentCStr = COMPSsDefaults.PERSISTENT_C;
         }
         this.persistentC = Boolean.parseBoolean(persistentCStr);
-
-        // Initialize tracing and workers debug semaphores
-        this.tracingGeneration = new Semaphore(0);
-        this.workersDebugInfo = new Semaphore(0);
-        this.workerLogFilesPaths = null;
-        this.workerTracingFilesPaths = null;
 
         // Create jobs directory
         File file = new File(JOBS_DIR);
@@ -811,54 +795,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         listener.notifyEnd();
     }
 
-    // @Override
-    /**
-     * Waits until the tracing package is generated.
-     */
-    public Set<String> waitForAnalysisFiles() {
-        try {
-            tracingGeneration.acquire();
-            return workerTracingFilesPaths;
-        } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for package generation");
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        }
-        return null;
-
-    }
-
-    @Override
-    public void notifyAnalysisFilesDone(Set<String> tracingFilesPaths) {
-        this.workerTracingFilesPaths = tracingFilesPaths;
-        tracingGeneration.release();
-    }
-
-    /**
-     * Waits until the Debug Info is generated.
-     */
-    public Set<String> waitUntilWorkersDebugInfoGenerated() {
-        try {
-            workersDebugInfo.acquire();
-            return workerLogFilesPaths;
-        } catch (InterruptedException ex) {
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        }
-        return null;
-
-    }
-
-    @Override
-    public void notifyDebugFilesDone(Set<String> logPaths) {
-        this.workerLogFilesPaths = logPaths;
-        workersDebugInfo.release();
-    }
-
     @Override
     public void generateDebugFiles(Connection c) {
-        c.sendCommand(new CommandGenerateDebugFilesDone(null));
-        c.finishConnection();
+        // Master side, nothing to do
     }
 
     @Override
@@ -955,7 +894,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void handleDataReceivedCommandError(Connection c, CommandDataReceived commandDataReceived) {
         // Nothing to do at master
-        LOGGER.warn("Error receiving task done command. Not handeled");
+        LOGGER.warn("Error receiving task done command. Not handled");
     }
 
     @Override
@@ -1007,36 +946,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             removedNode(closing.worker);
             closing.listener.notifyFailure(new Exception("Error receiving shutdown ACK from worker."));
         }
-    }
-
-    @Override
-    public void handleTracingGenerateDoneCommandError(Connection c,
-        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone) {
-        // Nothing to do at master
-        LOGGER.warn("Error receiving tracing generate done. Not handeled");
-    }
-
-    @Override
-    public void handleTracingGenerateCommandError(Connection c,
-        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles) {
-        LOGGER.error("Error sending tracing generate command.");
-        notifyAnalysisFilesDone(null);
-
-    }
-
-    @Override
-    public void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateDebugFiles commandGenerateDebugFiles) {
-        LOGGER.error("Error sending generate worker debug command.");
-        notifyDebugFilesDone(null);
-    }
-
-    @Override
-    public void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone) {
-        // Nothing to do at master
-        LOGGER.warn("Error receiving generate worker debug done. Not handeled");
-
     }
 
     @Override

@@ -51,7 +51,7 @@ public class CommandGenerateDebugFiles implements Command {
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.handleGenerateWorkerDebugCommandError(c, this);
+        // Error handled in specific handler
 
     }
 

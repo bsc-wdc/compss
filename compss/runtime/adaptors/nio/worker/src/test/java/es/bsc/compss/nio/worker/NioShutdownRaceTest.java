@@ -28,8 +28,6 @@ import es.bsc.comm.exceptions.ViabilityException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import es.bsc.comm.stage.Transfer.Direction;
-import es.bsc.comm.stage.Transfer.Type;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOHandler;
 import es.bsc.compss.nio.NIOParam;
@@ -45,17 +43,12 @@ import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -340,14 +333,6 @@ public class NioShutdownRaceTest {
         }
 
         @Override
-        public void notifyDebugFilesDone(Set<String> logPath) {
-        }
-
-        @Override
-        public void notifyAnalysisFilesDone(Set<String> tracingFilesPaths) {
-        }
-
-        @Override
         public void increaseResources(MethodResourceDescription description) {
         }
 
@@ -397,22 +382,6 @@ public class NioShutdownRaceTest {
 
         @Override
         public void handleShutdownACKCommandError(Connection c, CommandShutdownACK cmd) {
-        }
-
-        @Override
-        public void handleTracingGenerateDoneCommandError(Connection c, CommandGenerateAnalysisFilesDone cmd) {
-        }
-
-        @Override
-        public void handleTracingGenerateCommandError(Connection c, CommandGenerateAnalysisFiles cmd) {
-        }
-
-        @Override
-        public void handleGenerateWorkerDebugCommandError(Connection c, CommandGenerateDebugFiles cmd) {
-        }
-
-        @Override
-        public void handleGenerateWorkerDebugDoneCommandError(Connection c, CommandGenerateDebugFilesDone cmd) {
         }
 
         @Override

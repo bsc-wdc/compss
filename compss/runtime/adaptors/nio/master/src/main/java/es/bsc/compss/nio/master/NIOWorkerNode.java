@@ -17,7 +17,10 @@
 package es.bsc.compss.nio.master;
 
 import es.bsc.comm.Connection;
+import es.bsc.comm.ConnectionListener;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
+import es.bsc.comm.stage.Transfer;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
@@ -29,6 +32,7 @@ import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.nio.commands.Command;
 import es.bsc.compss.nio.commands.CommandCancelTask;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
@@ -72,6 +76,7 @@ import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -324,6 +329,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     Connection c = commManager.startConnection(node);
                     commManager.shuttingDown(this, c, sl);
                     CommandShutdown cmd = new CommandShutdown(null);
+                    LOGGER.debug("Worker " + this.getName() + " set to be stopped.");
                     NIOAgent.registerOngoingCommand(c, cmd);
                     c.sendCommand(cmd);
                     c.receive();
@@ -726,31 +732,83 @@ public class NIOWorkerNode extends COMPSsWorker {
         // Nothing to do
     }
 
+    private Set<String> generateWorkerFiles(String fileType, Command cmd) {
+        if (!started) {
+            LOGGER.debug("Worker {} files not generated because worker was not started", fileType);
+            return null;
+        }
+        LOGGER.debug("Sending command to generate worker {} files for " + this.getHost(), fileType);
+        if (node == null) {
+            LOGGER.error("Worker {} files generation has failed.", fileType);
+            return null;
+        }
+        final Set<String> files = new HashSet<>();
+        Semaphore sem = new Semaphore(0);
+        final String workerName = this.getName();
+        ConnectionListener cl = new ConnectionListener() {
+
+            @Override
+            public void init() throws CommException {
+                // Do nothing
+            }
+
+            @Override
+            public void errorHandler(Connection connection, Transfer transfer, CommException e) {
+                LOGGER.error("Could not generate {}'s {} files.", fileType, workerName);
+                sem.release();
+            }
+
+            @Override
+            public void dataReceived(Connection c, Transfer transfer) {
+                Object resp = transfer.getObject();
+                try {
+                    Set<String> remoteLocations = (Set<String>) resp;
+                    files.addAll(remoteLocations);
+                } catch (ClassCastException cce) {
+                    LOGGER.error("Unexpected value ({}) received through connection {}", resp, c);
+                }
+                sem.release();
+            }
+
+            @Override
+            public void commandReceived(Connection c, Transfer transfer) {
+                LOGGER.error("Unexpected command {} received through connection {}", transfer.getObject(), c);
+                sem.release();
+            }
+
+            @Override
+            public void writeFinished(Connection connection, Transfer transfer) {
+                LOGGER.debug("Requested {} {} files generation through connection {}", fileType, workerName,
+                    connection);
+            }
+
+            @Override
+            public void connectionFinished(Connection connection) {
+                // All commands received.
+            }
+        };
+        Connection c = commManager.startConnection(node, cl);
+        c.sendCommand(cmd);
+        c.receive();
+        c.finishConnection();
+        LOGGER.debug("Waiting for {} to generate {} files...", workerName, fileType);
+        try {
+            sem.acquire();
+        } catch (InterruptedException ie) {
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
+        }
+        LOGGER.debug("{}'s {} files generated {}", workerName, fileType, files);
+        return files;
+    }
+
     /**
      * Sends the NIOWorker CommandGenerateAnalysisFiles and waits for a CommandGenerateAnalysisFilesDone containing the
      * paths of the analysis files.
      */
     @Override
     public Set<String> generateWorkerAnalysisFiles() {
-        if (!started) {
-            LOGGER.debug("Worker debug files not generated because worker was not started");
-            return null;
-        }
-        LOGGER.debug("Sending command to generated tracing package for " + this.getHost());
-        if (node == null) {
-            LOGGER.error("ERROR: Package generation for " + this.getHost() + " has failed.");
-            return null;
-        }
-        Connection c = commManager.startConnection(node);
-        CommandGenerateAnalysisFiles cmd = new CommandGenerateAnalysisFiles();
-        NIOAgent.registerOngoingCommand(c, cmd);
-        c.sendCommand(cmd);
-        c.receive();
-        c.finishConnection();
-        Set<String> traceFilesPaths = commManager.waitForAnalysisFiles();
-        LOGGER.debug("Worker analysis files generated");
-        return traceFilesPaths;
-
+        return generateWorkerFiles("analysis", new CommandGenerateAnalysisFiles());
     }
 
     /**
@@ -759,25 +817,7 @@ public class NIOWorkerNode extends COMPSsWorker {
      */
     @Override
     public Set<String> generateWorkerDebugFiles() {
-        if (!started) {
-            LOGGER.debug("Worker debug files not generated because worker was not started");
-            return null;
-        }
-        LOGGER.debug("Sending command to generate worker debug files for " + this.getHost());
-        if (node == null) {
-            LOGGER.error("Worker debug files generation has failed.");
-            return null;
-        }
-
-        Connection c = commManager.startConnection(node);
-        CommandGenerateDebugFiles cmd = new CommandGenerateDebugFiles();
-        NIOAgent.registerOngoingCommand(c, cmd);
-        c.sendCommand(cmd);
-        c.receive();
-        c.finishConnection();
-        Set<String> logPath = commManager.waitUntilWorkersDebugInfoGenerated();
-        LOGGER.debug("Worker debug files generated");
-        return logPath;
+        return generateWorkerFiles("debug", new CommandGenerateDebugFiles());
     }
 
     /**

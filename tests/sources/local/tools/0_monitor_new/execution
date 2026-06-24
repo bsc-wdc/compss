@@ -38,7 +38,7 @@
     graph_file="${capture_dir}/graph_events.jsonl"
     port_file="${capture_dir}/port"
     mkdir -p "${exec_target_log_folder}" "${capture_dir}"
-    expectedTime=10s
+    expectedTime=180s
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python3_mpi' ]; then

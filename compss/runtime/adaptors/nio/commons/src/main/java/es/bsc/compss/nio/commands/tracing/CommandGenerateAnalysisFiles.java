@@ -51,8 +51,7 @@ public class CommandGenerateAnalysisFiles implements Command {
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.handleTracingGenerateCommandError(c, this);
-
+        // Error handled in specific handler
     }
 
 }

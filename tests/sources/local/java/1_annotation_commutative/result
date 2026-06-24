@@ -156,10 +156,10 @@
       core_id=$(echo "$line" | awk '{print $1}')
       core_name=$(echo "$line" | awk '{print $2}')
       core_id_to_name[$core_id]="$core_name"
+      echo "Mapping Core ID $core_id to Core Name $core_name"
   done < <(grep "Registering New CoreElement" "$runtime_log" | \
       sed -E 's/.*"method_name":"([^"]+)".*/\1/' | \
-      sort -u | \
-      nl)
+      nl -v 0)
       
 
   # Find all unique clusterCommutative patterns in the file

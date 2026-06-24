@@ -90,7 +90,7 @@ public class CommonMPIDefinition {
      */
     public void setRunnerProperties(String installDir) {
         if (this.mpiRunner.endsWith("srun")) {
-            loadMPIType(installDir + COMPSsPaths.REL_MPI_CFGS_DIR + "slurm.properties");
+            loadMPIType(installDir + File.separator + COMPSsPaths.REL_MPI_CFGS_DIR + "slurm.properties");
         } else {
             String type = System.getenv(COMPSsConstants.COMPSS_MPIRUN_TYPE);
             if (type != null && !type.isEmpty()) {
@@ -98,7 +98,7 @@ public class CommonMPIDefinition {
                 if (type.startsWith(File.separator)) {
                     loadMPIType(type);
                 } else {
-                    loadMPIType(installDir + COMPSsPaths.REL_MPI_CFGS_DIR + type + ".properties");
+                    loadMPIType(installDir + File.separator + COMPSsPaths.REL_MPI_CFGS_DIR + type + ".properties");
                 }
             } else {
                 LOGGER.warn("Loading default MPIRUN type. You can modify with " + COMPSsConstants.COMPSS_MPIRUN_TYPE

@@ -249,7 +249,8 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 }
             }
             LOGGER.debug(Thread.currentThread().getName() + " READS -" + line + "-(" + line.length() + ")");
-            readCommand = readCommand(line, line.split(" "));
+            String[] parts = line.split(" (?=[^\\]}]*([\\[{]|$))");
+            readCommand = readCommand(line, parts);
         } catch (IOException ioe) {
             throw new ExternalExecutorException(ioe);
         }

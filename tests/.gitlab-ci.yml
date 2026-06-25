@@ -12,6 +12,24 @@ variables:
   DEPS_IMAGE: $CI_REGISTRY_IMAGE/deps:latest
   TEST_DEPS_IMAGE: $CI_REGISTRY_IMAGE/test-deps:latest
 
+# Reusable script snippets spliced into jobs via `!reference`. Keeping the
+# registry login in one place avoids drift between the docker jobs that all
+# log in to the registry. Disk cleanup is handled out-of-band by an age-based
+# cron on each runner (compss-ci-docker-prune), NOT per-job: a per-pipeline
+# prune deletes other concurrently-running pipelines' images and races their
+# pulls (failed to lease content) on runners with concurrent > 1.
+.ci_snippets:
+  registry_login:
+    # Retry with backoff: when several parallel jobs land on the same runner they
+    # fire simultaneous TLS handshakes at the registry proxy, which occasionally
+    # drops one ("net/http: TLS handshake timeout"). Absorb that transient burst
+    # instead of failing the job. A genuine outage still fails after 5 attempts.
+    - |
+      n=0; until docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"; do
+        n=$((n + 1)); [ "$n" -ge 5 ] && { echo "docker login failed after $n attempts"; exit 1; }
+        echo "docker login attempt $n failed (transient registry/TLS); retrying in $((n * 3))s..."; sleep $((n * 3))
+      done
+
 stages:
   - rebase_verify
   - header_setup
@@ -75,7 +93,7 @@ header_setup:
         fi
         git commit -m "Add headers and format code"
         echo "Files with no headers detected, pushing commit"
-        git push origin "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+        git push origin "HEAD:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
         exit 1
       else
         echo "All files contained headers, proceeding"
@@ -94,7 +112,7 @@ docker_build_deps:
   variables:
     DOCKER_BUILDKIT: "1"
   script:
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - !reference [.ci_snippets, registry_login]
     - docker pull "$DEPS_IMAGE" || true
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "$DEPS_IMAGE" --target deps -t "$DEPS_IMAGE" .
     - docker push "$DEPS_IMAGE"
@@ -122,7 +140,7 @@ docker_build_test_deps:
   variables:
     DOCKER_BUILDKIT: "1"
   script:
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - !reference [.ci_snippets, registry_login]
     - docker pull "$TEST_DEPS_IMAGE" || true
     - docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from "$TEST_DEPS_IMAGE" --target test-deps -t "$TEST_DEPS_IMAGE" tests/
     - docker push "$TEST_DEPS_IMAGE"
@@ -152,11 +170,8 @@ docker_build:
     DOCKER_BUILDKIT: "1"
     CI_BUILD_TAG: "ci-build:$CI_PIPELINE_ID"
   script:
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    # Remove old ci images from previous pipelines to free disk.
+    - !reference [.ci_snippets, registry_login]
     # Builder prune uses a 48h window so the Maven cache mount stays warm between pipelines.
-    - docker images "$CI_REGISTRY_IMAGE/ci" --format "{{.Tag}}" | grep -v "^$CI_PIPELINE_ID$" | xargs -r -I{} docker rmi "$CI_REGISTRY_IMAGE/ci:{}" 2>/dev/null || true
-    - docker image prune -f
     - docker builder prune --filter until=48h -f
     - |
       # Build the COMPSs installation (build stage) — used as 'build' context for tests/Dockerfile
@@ -191,18 +206,22 @@ tests:
     - job: docker_build
   parallel:
     matrix:
-      # Job 1 (~62 min based on Jenkins timing): python ~40 min, cloud ~14 min,
-      # fault_tolerance ~5 min, performance ~3 min, socket ~1 min.
-      - TEST_FAMILIES: "-f python -f cloud -f fault_tolerance -f performance -f socket"
-      # Job 2 (~63 min based on Jenkins timing): java ~33 min (3_node_init_failure
-      # alone takes 439 s), c ~10 min, agents ~5 min, agents_transfers ~3 min,
-      # pscos ~5 min, tools ~6 min, gos ~1 min.
-      - TEST_FAMILIES: "-f java -f c -f agents -f agents_transfers -f gos -f pscos -f tools"
+      # Families split across 4 parallel jobs, balanced with longest-processing-
+      # time-first using the per-family Jenkins timings shown below. The two big
+      # single families (python, java) each get a dedicated job, so the overall
+      # makespan is bounded by python (~40 min); the remaining families pack into
+      # two ~26-27 min jobs.
+      #
+      # python ~40 min.
+      - TEST_FAMILIES: "-f python"
+      # java ~33 min (3_node_init_failure alone takes 439 s).
+      - TEST_FAMILIES: "-f java"
+      # cloud ~14 + fault_tolerance ~5 + pscos ~5 + agents_transfers ~3 = ~27 min.
+      - TEST_FAMILIES: "-f cloud -f fault_tolerance -f pscos -f agents_transfers"
+      # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min.
+      - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos"
   script:
-    - docker login -u gitlab-ci-token -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    # Remove old ci images from previous pipelines to free disk before pulling
-    - docker images "$CI_REGISTRY_IMAGE/ci" --format "{{.Tag}}" | grep -v "^$CI_PIPELINE_ID$" | xargs -r -I{} docker rmi "$CI_REGISTRY_IMAGE/ci:{}" 2>/dev/null || true
-    - docker image prune -f
+    - !reference [.ci_snippets, registry_login]
     - docker pull "$COMPSS_IMAGE"
     # Use the same docker_test script as Jenkins. COMPSS_CONTAINER is set to a
     # per-job unique name so parallel jobs on the same runner don't collide.
@@ -215,14 +234,6 @@ tests:
     - mkdir -p test-results
     - $CI_PROJECT_DIR/tests/scripts/docker_test -FF $TEST_FAMILIES 2>&1 | tee test-results/docker_test.log; exit ${PIPESTATUS[0]}
   after_script:
-    # Cancel the whole pipeline if this job failed so the parallel test job
-    # doesn't keep running needlessly (workaround for GitLab < 17.0 which
-    # lacks workflow.auto_cancel.on_failure).
-    - |
-      if [ "$CI_JOB_STATUS" = "failed" ]; then
-        curl -sf --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/cancel" || true
-      fi
     # Copy only the logs/ subtree: all *.outputlog, *.errorlog, runtime.log,
     # and job output files written by the test execution scripts go there.
     # apps/ contains only deployed binaries (jars, compiled C, xmls) and is

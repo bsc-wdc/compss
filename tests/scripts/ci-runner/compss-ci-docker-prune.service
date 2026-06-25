@@ -1,0 +1,11 @@
+[Unit]
+Description=COMPSs CI age-based Docker cleanup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/compss-ci-docker-prune.sh
+# On a builder runner keep base images longer so builds stay cache-warm by
+# uncommenting:
+# Environment=IMAGE_AGE=72h

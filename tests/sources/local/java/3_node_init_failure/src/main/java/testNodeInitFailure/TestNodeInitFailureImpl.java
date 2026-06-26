@@ -19,7 +19,7 @@ public class TestNodeInitFailureImpl {
             if (nm < 2) {
                 System.exit(1);
             }
-            Thread.sleep(10000);
+            Thread.sleep(200);
             FileOutputStream fos = new FileOutputStream(out);
             fos.write(initial + 1);
             fos.close();

@@ -35,7 +35,7 @@
   output_log_0="${target_log_folder_0}/node_init_failure.outputlog"
   error_log_0="${target_log_folder_0}/node_init_failure.errorlog"
 
-  expectedTime=1000s
+  expectedTime=300s
 
   # Reduce SSH retry timeout: the failing worker (COMPSsWorker_02) has an unresolvable
   # hostname by design, so DNS fails immediately. The default 160s retry window burns
@@ -72,7 +72,7 @@
   output_log_1="${target_log_folder_1}/node_init_failure.outputlog"
   error_log_1="${target_log_folder_1}/node_init_failure.errorlog"
 
-  expectedTime=1000s
+  expectedTime=300s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-scheduler-fullgraph</artifactId>
-        <version>3.4.post2606</version>
+        <version>3.4.post2607</version>
     </parent>
 
 	<!-- PROJECT INFORMATION -->

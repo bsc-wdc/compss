@@ -24,6 +24,14 @@
     # Move to sources directory
     cd "${dlbSrc}" || exit 1
 
+    # Normalize source timestamps to the local clock. When sources are transferred
+    # from Jenkins to a supercomputer whose clock lags Jenkins, all files carry
+    # future timestamps relative to the SC. make then permanently sees Makefile.am
+    # as newer than the generated Makefile.in and re-runs the full autotools chain
+    # (aclocal -> automake -> autoconf -> config.status --recheck) on every
+    # invocation, looping indefinitely. Touching here (before bootstrap) fixes it.
+    find "${dlbSrc}" -type f -exec touch {} +
+
     ./bootstrap
     ev=$?
     if [ "$ev" -ne 0 ]; then

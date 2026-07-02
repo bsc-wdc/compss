@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Installing required `build` package..."
+echo "Installing required 'build' package..."
 
 python3 -m pip install build
 

@@ -400,6 +400,7 @@
       module unload ${py3_modules}
     fi
   fi
+  failed_py3_other=""
   if [ -n "$py3_other_modules" ]; then
     if [ "$py3_other_modules" != "ignore" ]; then
 	if [ -n "$run_before_py3_other_modules" ]; then
@@ -417,13 +418,19 @@
         ./install.sh "${targetDir}"/Bindings/python false python3
         ev=$?
         if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to install Python-binding for Python 3"
-          exit $ev
+          # Optional interpreter: warn and keep going so a single bad module
+          # (e.g. one with an incompatible setuptools/backports) does not abort
+          # the whole SC install nor skip the remaining modules in the list.
+          echo "WARNING: Failed to install Python-binding for ${py3_mod}; skipping and continuing"
+          failed_py3_other="${failed_py3_other} ${py3_mod}"
         fi
         #shellcheck disable=SC2086
         module unload ${py3_mod}
       done
     fi
+  fi
+  if [ -n "$failed_py3_other" ]; then
+    echo "WARNING: Python binding NOT installed for the following modules:${failed_py3_other}"
   fi
   cd "${SCRIPT_DIR}" || exit 1
 
@@ -490,4 +497,10 @@
   chmod 777 "${log_usage_file}"
 
   # END
+  # The install is complete and usable, but if any optional Python module
+  # failed above, exit non-zero so the failure is visible to the caller/CI.
+  if [ -n "${failed_py3_other:-}" ]; then
+    echo "ERROR: SC install completed but Python binding failed for:${failed_py3_other}"
+    exit 1
+  fi
   exit 0

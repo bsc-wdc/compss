@@ -660,7 +660,7 @@ def _render_io(tree, title, items):
 
                 # ADD num items and / or contentSize
                 if any(t in e_type for t in ["Dataset", "Collection"]) and item_name != "./":
-                    item_str += f" [dim]({len(item.get('hasPart'))} items)[/]"
+                    item_str += f" [dim]({len(item.get('hasPart', []))} items)[/]"
                 if "contentSize" in item:
                     # Mainly true for Files, but Datasets could have it defined
                     item_str += f" [dim]({int(item['contentSize']):,} bytes)[/]"
@@ -1179,9 +1179,14 @@ def local_inspect_tasks(
             # There is no way around this, all Files need to be examined, since the log will reference the corresponding task CreateAction with 'mentions'
             # There is no reference from the task CreateAction to the corresponding logs
             # Buidling all log_trees is useless for non print_candidates (if they will never be printed)
-            else:
-                file_about_str = e.get("about", {}).get("@id", "")
-                if is_compss_wf and "File" in e.type and "execution_details" in file_about_str:
+            elif is_compss_wf and "File" in e.type:
+                file_about = e.get("about", {})
+                # about can be an entity or a string
+                if isinstance(file_about, dict):
+                    file_about_str = file_about.get("@id", "")
+                else:
+                    file_about_str = ""
+                if "execution_details" in file_about_str:
                     task_id = file_about_str.split("_")[1]
                     if (
                         (not tasks_to_inspect)

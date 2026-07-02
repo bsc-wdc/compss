@@ -53,7 +53,8 @@ def get_tool_executable():
     # Check each path. The moment we find the actual file, we return the command to run it.
     for path in possible_paths:
         if os.path.exists(path):
-            print(f"PROVENANCE | PROFILING | Found profiling tool at: {path}")
+            if __debug__:
+                print(f"PROVENANCE | PROFILING | Found profiling tool at: {path}")
             # sys.executable ensures we use the exact same Python interpreter currently running
             return [sys.executable, path]
             
@@ -113,12 +114,13 @@ def generate_plots(stats_path) -> str:
         cmd.extend(args)
 
         # Launch the tool
-        print(f"PROVENANCE | PROFILING | Launching plotting tool with command:\n{' '.join(cmd)}")
+        if __debug__:
+            print(f"PROVENANCE | PROFILING | Launching plotting tool with command:\n{' '.join(cmd)}")
         subprocess.run(cmd, check=True)
 
-        # replace mode_flag with --all-nodes
-        cmd[-4] = "--all-nodes"
-        print(f"PROVENANCE | PROFILING | INFO: Only some plots have been generated due to the number of nodes. If you want to generate all the nodes plots launch this command:\n\n{' '.join(cmd)}\n")
+        # replace mode_flag with --scope=all
+        cmd[-4] = "--scope=all"
+        print(f"PROVENANCE | PROFILING | INFO: By default, only aggregated plots are generated. If you want to generate plots for all computing nodes, launch this command:\n\t{' '.join(cmd)}")
 
         elapsed_time = time.time() - start_time
         print(f"PROVENANCE | PROFILING | Profiling plots generation TIME: {elapsed_time:.2f} s.")

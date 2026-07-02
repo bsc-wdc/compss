@@ -643,8 +643,8 @@ def add_all_log_files(compss_crate, log_dir, create_action):
             # Evitar entrar en estos directorios
             dirs[:] = [d for d in dirs if d not in {"stats", "monitor", "jobs", "trace"}]
             for file in files:
-                if file.endswith("compss_trace.tar.gz"):
-                    # Do not add intermediate PARAVER trace generation files
+                if file.endswith("compss_trace.tar.gz") or (file.endswith(".csv") and Path(root).name == "Log"):
+                    # Do not add intermediate PARAVER trace generation files or profiling duplicated CSV files
                     continue
                 path = Path(root) / file
                 file_properties = {}

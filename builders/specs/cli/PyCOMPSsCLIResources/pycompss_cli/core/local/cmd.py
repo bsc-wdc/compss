@@ -42,6 +42,7 @@ class _CrateContext:
     main_entity: Entity | None = None
     create_action: Entity | None = None
     profiles: list[str] = field(default_factory=list)
+    paraver_traces: list[Entity] = field(default_factory=list)
     task_stats: dict = field(
         default_factory=lambda: {
             "completed": 0,
@@ -693,6 +694,16 @@ def _render_data_assets(action_tree, ca, data_assets):
             _render_io(action_tree, "Outputs", wf_out)
 
 
+def _render_paraver_traces(action_tree, traces, data_assets):
+    if traces:
+        if not data_assets:
+            action_tree.add(
+                f"PARAVER Trace Files —— [dark_goldenrod]{len(traces) if traces else 0}"
+            )
+        else:
+            _render_io(action_tree, "PARAVER Trace Files", traces)
+
+
 def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool):
     ca = ctx.create_action
     m_e = ctx.main_entity
@@ -747,6 +758,7 @@ def _render_execution(tree, ctx: _CrateContext, verbose: bool, data_assets: bool
         _render_submission(action_tree, ctx)
     _render_environment(action_tree, ca, verbose)
     _render_data_assets(action_tree, ca, data_assets)
+    _render_paraver_traces(action_tree, ctx.paraver_traces, data_assets)
 
 
 def _add_single_author(tree, entity, field):
@@ -929,7 +941,12 @@ def _inspect_crate(path, crate: ROCrate) -> _CrateContext:
                 else:
                     # Task CreateAction
                     _update_task_stats(ctx.task_stats, e)
-            
+        elif "File" in e.type:
+            if e.get("description", "").startswith("PARAVER"):
+                ctx.paraver_traces.append(e)
+
+    ctx.paraver_traces.sort(key=lambda e: e.get("@id", ""))
+    
     return ctx
 
 

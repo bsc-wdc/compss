@@ -19,6 +19,14 @@
     local installationDir=$1
     local ev
 
+    # Normalize source timestamps to the local clock. When sources are transferred
+    # from Jenkins to a supercomputer whose clock lags Jenkins, all files carry
+    # future timestamps relative to the SC. make then permanently sees Makefile.am
+    # as newer than the generated Makefile.in and re-runs the full autotools chain
+    # (aclocal -> automake -> autoconf -> config.status --recheck) on every
+    # invocation, looping indefinitely. Touching here (before autogen) fixes it.
+    find . -type f -exec touch {} +
+
     ./autogen.sh
     ev=$?
     if [ $ev -ne 0 ]; then

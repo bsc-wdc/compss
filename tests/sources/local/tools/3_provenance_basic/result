@@ -9,6 +9,8 @@
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
   dataprovenance_log="${target_log_folder}/dataprovenance.log"
+  worker_log="${target_log_folder}/workers/COMPSsWorker01/Log/static_worker_dp.out"
+  binding_log="${target_log_folder}/workers/COMPSsWorker01/Log/static_binding_dp.out"
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
@@ -255,6 +257,55 @@
       echo "dataprovenance.log: Third line (starting timestamp) not found or malformed: ${starting_timestamp}" | tee -a "${output_file}"
       exit 1
     fi
+
+    # Check static_worker_dp.out has been generated and follows expected structure
+    if [ ! -f "${worker_log}" ]; then
+      echo "static_worker_dp.out FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    fi
+    echo "static_worker_dp.out FILE EXISTS" | tee -a "${output_file}"
+    # File must not be empty
+    if [ ! -s "${worker_log}" ]; then
+      echo "static_worker_dp.out FILE IS EMPTY" | tee -a "${output_file}"
+      exit 1
+    fi
+    if ! grep -q job1_NEW\.out "${worker_log}"; then
+      echo "static_worker_dp.out: job1_NEW.out not found in the file"
+      exit 1
+    else
+      echo "static_worker_dp.out: job1_NEW.out found"
+    fi
+    if ! grep -q job1_NEW\.err "${worker_log}"; then
+      echo "static_worker_dp.out: job1_NEW.err not found in the file"
+      exit 1
+    else
+      echo "static_worker_dp.out: job1_NEW.err found"
+    fi
+
+    # Check static_binding_dp.out has been generated and follows expected structure
+    if [ ! -f "${binding_log}" ]; then
+      echo "static_binding_dp.out FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    fi
+    echo "static_binding_dp.out FILE EXISTS" | tee -a "${output_file}"
+    # File must not be empty
+    if [ ! -s "${binding_log}" ]; then
+      echo "static_binding_dp.out FILE IS EMPTY" | tee -a "${output_file}"
+      exit 1
+    fi
+    if [ "$(grep -c COMPSSTYPE=9 "${binding_log}")" -ne 48 ]; then
+      echo "static_binding_dp.out: 48 FILE parameters not found in the file"
+      exit 1
+    else
+      echo "static_binding_dp.out: 48 FILE parameters found in the file"
+    fi
+    if [ "$(grep -c COMPSSTYPE=4 "${binding_log}")" -ne 8 ]; then
+      echo "static_binding_dp.out: 8 SCALAR parameters not found in the file"
+      exit 1
+    else
+      echo "static_binding_dp.out: 8 SCALAR parameters found in the file"
+    fi
+
 
     # Locate section boundaries by content — no section header lines exist in the file
     # INPUT/OUTPUT block starts immediately after the 3 header lines

@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			libjpeg-dev=8c-2ubuntu11 \
 			libopenmpi-dev=4.1.6-7ubuntu2 \
 			libtool=2.4.7-7build1 \
-			libxml2-dev=2.9.14+dfsg-1.3ubuntu3.7 \
+			libxml2-dev=2.9.14+dfsg-1.3ubuntu3.8 \
 			maven=3.8.7-2 \
 			python3-dev=3.12.3-0ubuntu2.1 \
 			python3-pip=24.0+dfsg-1ubuntu1.3 \

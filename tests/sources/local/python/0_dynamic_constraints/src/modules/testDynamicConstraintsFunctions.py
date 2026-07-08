@@ -9,7 +9,6 @@ PyCOMPSs Testbench
 
 # Imports
 import unittest
-import time
 from pycompss.api.api import compss_wait_on
 from pycompss.api.constraint import constraint
 from pycompss.api.task import task
@@ -22,7 +21,6 @@ SS = 1
 @task(returns=int)
 def singleintconstTask(comp):
     print("computing_units=", comp)
-    time.sleep(1)
     return 1
 
 
@@ -31,7 +29,6 @@ def singleintconstTask(comp):
 def multintconstTask(comp, mems):
     print("computing_units=", comp)
     print("memory_size=", mems)
-    time.sleep(1)
     return 1
 
 
@@ -39,7 +36,6 @@ def multintconstTask(comp, mems):
 @task(returns=int)
 def singleexpconstTask(comp):
     print("computing_units=", comp + comp)
-    time.sleep(1)
     return 1
 
 
@@ -48,7 +44,6 @@ def singleexpconstTask(comp):
 def multexpconstTask(comp):
     print("computing_units=", comp + comp)
     print("memory_size=", comp + comp*2 + 4)
-    time.sleep(1)
     return 1
 
 
@@ -57,7 +52,6 @@ def multexpconstTask(comp):
 def singleglobalconstTask():
     global CU
     print("computing_units=", CU)
-    time.sleep(1)
     return 1
 
 
@@ -68,7 +62,6 @@ def multglobalconstTask():
     global MS
     print("computing_units=", CU)
     print("memory_size=", MS)
-    time.sleep(1)
     return 1
 
 
@@ -76,7 +69,6 @@ def multglobalconstTask():
 @task(returns=int)
 def singlestrconstTask(memt):
     print("memory_type=", memt)
-    time.sleep(1)
     return 1
 
 
@@ -85,7 +77,6 @@ def singlestrconstTask(memt):
 def multstrconstTask(memt, stot):
     print("memory_type=", memt)
     print("storage_type=", stot)
-    time.sleep(1)
     return 1
 
 
@@ -97,7 +88,6 @@ def multintstrexpglobalconstTask(comp, memt):
     print("memory_type=", memt)
     print("memory_size=", comp + comp/1)
     print("storage_size=", SS)
-    time.sleep(1)
     return 1
 
 
@@ -106,7 +96,6 @@ def multintstrexpglobalconstTask(comp, memt):
 def dynamicstaticintconstTask(comp):
     print("computing_units=", comp)
     print("memory_size=", 1)
-    time.sleep(1)
     return 1
 
 
@@ -115,7 +104,6 @@ def dynamicstaticintconstTask(comp):
 def dynamicstaticexpconstTask(mems):
     print("computing_units=", 1)
     print("memory_size=", mems*2)
-    time.sleep(1)
     return 1
 
 
@@ -125,7 +113,6 @@ def dynamicstaticglobalconstTask():
     global MS
     print("computing_units=", 1)
     print("memory_size=", MS)
-    time.sleep(1)
     return 1
 
 
@@ -135,7 +122,6 @@ def dynamicstaticglobalconstTask():
 def dynamicstaticstrconstTask(memt):
     print("computing_units=", memt)
     print("memory_type=DRAM")
-    time.sleep(1)
     return 1
 
 

@@ -9,7 +9,6 @@ PyCOMPSs Testbench
 
 # Imports
 import unittest
-import time
 from pycompss.api.api import compss_wait_on
 from pycompss.api.constraint import constraint
 from pycompss.api.task import task
@@ -23,7 +22,6 @@ class testDynamicCostraintsClass:
     @task(returns=int)
     def singleintconstTask(self, comp):
         print("computing_units=", comp)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="comp", memory_size="mems")
@@ -31,14 +29,12 @@ class testDynamicCostraintsClass:
     def multintconstTask(self, comp, mems):
         print("computing_units=", comp)
         print("memory_size=", mems)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="comp+comp")
     @task(returns=int)
     def singleexpconstTask(self, comp):
         print("computing_units=", comp + comp)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="comp+comp", memory_size="comp + comp*2 + 4")
@@ -46,7 +42,6 @@ class testDynamicCostraintsClass:
     def multexpconstTask(self, comp):
         print("computing_units=", comp + comp)
         print("memory_size=", comp + comp * 2 + 4)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="CU")
@@ -54,7 +49,6 @@ class testDynamicCostraintsClass:
     def singleglobalconstTask(self):
         global CU
         print("computing_units=", CU)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="CU", memory_size="MS")
@@ -64,14 +58,12 @@ class testDynamicCostraintsClass:
         global MS
         print("computing_units=", CU)
         print("memory_size=", MS)
-        time.sleep(1)
         return 1
 
     @constraint(memory_type="memt")
     @task(returns=int)
     def singlestrconstTask(self, memt):
         print("memory_type=", memt)
-        time.sleep(1)
         return 1
 
     @constraint(memory_type="memt", storage_type="stot")
@@ -79,7 +71,6 @@ class testDynamicCostraintsClass:
     def multstrconstTask(self, memt, stot):
         print("memory_type=", memt)
         print("storage_type=", stot)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="comp", memory_type="memt", memory_size="comp + comp/1", storage_size="SS")
@@ -90,7 +81,6 @@ class testDynamicCostraintsClass:
         print("memory_type=", memt)
         print("memory_size=", comp + comp / 1)
         print("storage_size=", SS)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="comp", memory_size="1")
@@ -98,7 +88,6 @@ class testDynamicCostraintsClass:
     def dynamicstaticintconstTask(self, comp):
         print("computing_units=", comp)
         print("memory_size=", 1)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="1", memory_size="mems*2")
@@ -106,7 +95,6 @@ class testDynamicCostraintsClass:
     def dynamicstaticexpconstTask(self, mems):
         print("computing_units=", 1)
         print("memory_size=", mems * 2)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="1", memory_size="MS")
@@ -115,7 +103,6 @@ class testDynamicCostraintsClass:
         global MS
         print("computing_units=", 1)
         print("memory_size=", MS)
-        time.sleep(1)
         return 1
 
     @constraint(computing_units="1", memory_type="memt")
@@ -123,7 +110,6 @@ class testDynamicCostraintsClass:
     def dynamicstaticstrconstTask(self, memt):
         print("computing_units=", memt)
         print("memory_type=DRAM")
-        time.sleep(1)
         return 1
 
 

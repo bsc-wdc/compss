@@ -37,7 +37,12 @@
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
     expectedTime=60s
-    sleep 10s
+    # Wait (up to 15s) until any previous runtime's NIO workers have exited
+    # and released their fixed ports, instead of sleeping a fixed amount
+    for _ in $(seq 1 30); do
+      pgrep -f "es.bsc.compss.nio.worker.NIOWorker" > /dev/null || break
+      sleep 0.5
+    done
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -79,7 +84,12 @@
     exec_target_log_folder="${target_log_folder}/${app_name}_proj_file_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
     expectedTime=60s
-    sleep 20s
+    # Wait (up to 15s) until any previous runtime's NIO workers have exited
+    # and released their fixed ports, instead of sleeping a fixed amount
+    for _ in $(seq 1 30); do
+      pgrep -f "es.bsc.compss.nio.worker.NIOWorker" > /dev/null || break
+      sleep 0.5
+    done
     source "${base_app_dir}"/env_script.sh
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \

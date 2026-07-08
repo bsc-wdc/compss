@@ -574,6 +574,7 @@ xml_project_add_worker_in_master() {
 ###############################################
 xml_project_add_workers() {
   # Add workers
+  pids=""
   for worker_node in ${worker_nodes}; do
     local worker_node_name
     if [ ! -z "${NODE_NAME_XML}" ]; then
@@ -583,18 +584,24 @@ xml_project_add_workers() {
     else
       worker_node_name=${worker_node}
     fi
-    # Create working dirs
-    if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      CMD="${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
-      if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
-         echo "Worker WD mkdir: ${CMD}"
-      fi
-      # shellcheck disable=SC2086
-      ${CMD}
-    fi
     # Add compute node
     worker_node_name=${worker_node_name}${network}
     add_compute_node "${worker_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
+    (
+      # Create working dirs
+      if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
+        CMD="${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
+        if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
+          echo "Worker WD mkdir: ${CMD}"
+        fi
+        # shellcheck disable=SC2086
+        ${CMD}
+      fi
+    ) &
+  pids="$pids $!"
+  done
+  for pid in $pids; do
+    wait "$pid" || exit $?
   done
 }
 
@@ -2554,21 +2561,29 @@ prolog() {
   fi
   for action in "${prologActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
+    pids=()
     for node in ${worker_nodes}; do
-        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
-            node=$(${NODE_NAME_QUEUE} ${node})
+      (
+        target_node="${node}"
+        if [ -n "${NODE_NAME_QUEUE}" ]; then
+            target_node=$(${NODE_NAME_QUEUE} "${target_node}")
         fi
-        w_realAction="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${realAction}${POST_CMD}"
+        w_realAction="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${target_node} ${PRE_CMD}${realAction}${POST_CMD}"
         if [ "${log_level}" != "off" ]; then
-            echo "- Prolog in $node: $realAction"
+            echo "- Prolog in $target_node: $realAction"
         fi
         ${w_realAction}
+      ) &
+      pids+=($!)
+    done
+    actionExitValue=0
+    for pid in "${pids[@]}"; do
+        wait "$pid" || actionExitValue=1
     done
     if [ "${log_level}" != "off" ]; then
-       echo "- Prolog: $realAction"
+      echo "- Prolog: $realAction"
     fi
-    $realAction
-    local actionExitValue=$?
+    $realAction || actionExitValue=1
     if [ $actionExitValue -ne 0 ]; then
       action_error "$ERROR_PROLOG_ACTION"
     fi
@@ -2585,21 +2600,29 @@ epilog() {
   fi
   for action in "${epilogActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
+    pids=()
     for node in ${worker_nodes}; do
-        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
-            node=$(${NODE_NAME_QUEUE} ${node})
+      (
+        target_node="${node}"
+        if [ -n "${NODE_NAME_QUEUE}" ]; then
+            target_node=$(${NODE_NAME_QUEUE} ${target_node})
         fi
-        w_realAction="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${realAction}${POST_CMD}"
+        w_realAction="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${target_node} ${PRE_CMD}${realAction}${POST_CMD}"
         if [ "${log_level}" != "off" ]; then
-            echo "- Epilog in $node: $w_realAction"
+            echo "- Epilog in $target_node: $w_realAction"
         fi
         ${w_realAction}
+      ) &
+      pids+=($!)
+    done
+    actionExitValue=0
+    for pid in "${pids[@]}"; do
+        wait "$pid" || actionExitValue=1
     done
     if [ "${log_level}" != "off" ]; then
-       echo "- Epilog: $realAction"
+      echo "- Epilog: $realAction"
     fi
-    $realAction
-    local actionExitValue=$?
+    $realAction || actionExitValue=1
     if [ $actionExitValue -ne 0 ]; then
       action_error "$ERROR_EPILOG_ACTION"
     fi
@@ -2629,7 +2652,9 @@ cleanup() {
     if [ "${log_level}" != "off" ]; then
        echo "[LAUNCH_COMPSS] Cleanup Worker TMP files"
     fi
+    pids=""
     for node in ${worker_nodes}; do
+    (
       local sandboxWD=${worker_working_dir}/
       if [ ! -z "${NODE_NAME_QUEUE}" ]; then
         node=$(${NODE_NAME_QUEUE} ${node})
@@ -2638,8 +2663,14 @@ cleanup() {
           echo "[LAUNCH_COMPSS] Removing ${sandboxWD}"
       fi
       # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
+      ${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR} ) &
+      pids="$pids $!"
     done
+
+    for pid in $pids; do
+      wait "$pid" || exit $?
+    done
+
     if [ "${log_level}" != "off" ]; then
         echo "[LAUNCH_COMPSS] Cleanup TMP files"
     fi

@@ -14,6 +14,33 @@ from pycompss.functions.reduce import merge_reduce
 import random
 
 
+CHECKPOINT_DIR = "/tmp/checkpointing/"
+
+
+def wait_for_checkpoint_stable(timeout=30, interval=0.5, stable_for=2.0):
+    # Wait until the checkpointer has persisted something and the checkpoint
+    # directory content has been stable for a while, instead of sleeping a
+    # fixed amount
+    import os
+    import time
+    deadline = time.time() + timeout
+    last = None
+    stable_since = None
+    while time.time() < deadline:
+        current = sorted(os.listdir(CHECKPOINT_DIR))
+        if current and current == last:
+            if stable_since is None:
+                stable_since = time.time()
+            if time.time() - stable_since >= stable_for:
+                return
+        else:
+            stable_since = None
+        last = current
+        time.sleep(interval)
+    raise Exception("Timed out waiting for checkpoint to stabilize")
+
+
+
 def init_board_gauss(numV, dim, K):
     n = int(float(numV) / K)
     data = []
@@ -135,7 +162,7 @@ def kmeans_frag(numV, k, dim, epsilon, maxIterations, numFrag):
         print(mu)
         if exception == "1":
             if n == 1:
-                time.sleep(10)
+                wait_for_checkpoint_stable()
                 raise Exception("Error")
         n += 1
     print("FINAL " + str(mu))

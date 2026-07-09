@@ -23,7 +23,7 @@ def update_file(structure, name):
     f = open(structure, "w")
     f.write(content + ", " + name + "!")
     f.close()
-    time.sleep(2.0)
+    time.sleep(0.5)
 
 def main(): 
     hello_file="/tmp/sharedDisk/hello_world.txt"

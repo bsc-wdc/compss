@@ -40,8 +40,12 @@
         echo "This feature is not needed to be tested with MPI workers. Skipping."
         continue
     fi
-    # Add a little sleep to allow OS free sockets
-    sleep 10s
+    # Wait (up to 15s) until any previous runtime's NIO workers have exited
+    # and released their fixed ports, instead of sleeping a fixed amount
+    for _ in $(seq 1 30); do
+      pgrep -f "es.bsc.compss.nio.worker.NIOWorker" > /dev/null || break
+      sleep 0.5
+    done
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -52,7 +56,7 @@
       --log_level=debug \
       ${runcompss_opts} \
       \
-      --wall_clock_limit=20 \
+      --wall_clock_limit=8 \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       ${python_mpi_worker} \

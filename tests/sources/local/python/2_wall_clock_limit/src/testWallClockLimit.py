@@ -25,7 +25,7 @@ def long_task(file_path):
     with open(file_path, 'a') as fos:
         new_value = str(2)
         fos.write(new_value)
-    time.sleep(20)
+    time.sleep(8)
     return 1
 
 

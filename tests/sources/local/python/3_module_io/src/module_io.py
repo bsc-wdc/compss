@@ -29,7 +29,7 @@ def task1(tmp_dir):
 @task()
 def task2(data, tmp_dir):
     #give time to io_task to check how many files in tmp_dir
-    time.sleep(5)
+    time.sleep(2)
     
     f = open(os.path.join(tmp_dir, "task2_data"), "w")
     f.write(data)

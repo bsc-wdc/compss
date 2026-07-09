@@ -12,6 +12,26 @@ import random
 import os
 from os import path
 
+import glob
+
+CHECKPOINT_DIR = "/tmp/checkpointing/"
+
+
+def wait_for_checkpoint(patterns, timeout=30, interval=0.2):
+    # Wait until the checkpointer has persisted the given data versions,
+    # instead of sleeping a fixed amount. No grace period is needed: the
+    # runtime shutdown drains pending checkpoint copies, records and
+    # superseded-version deletions before exiting. The timeout stays below
+    # the execution script's 60s harness timeout so this diagnostic fires
+    # first.
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if all(glob.glob(CHECKPOINT_DIR + p + "*") for p in patterns):
+            return
+        time.sleep(interval)
+    raise Exception("Timed out waiting for checkpoint files: " + str(patterns))
+
+
 
 @task(fileName=FILE_INOUT)
 def increment(fileName):
@@ -64,7 +84,7 @@ def main():
     increment(fileName)
 
     if exception == "1":
-        time.sleep(10)
+        wait_for_checkpoint(["d1v4_"])
         raise Exception("Error")
     increment2(fileName)
 

@@ -7,8 +7,6 @@ from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.constraint import constraint
 
-import time
-import random
 import os
 from os import path
 
@@ -22,7 +20,6 @@ def fix_side_chain(i, structure=None, **kwargs):
         f.close()
     elif i == 1:
         raise Exception("Exception shouldn't be none")
-    time.sleep(2.0+(float(random.randint(20,30))/100.0))
 
 @task(structure=FILE_OUT)
 def fix_side_chain_2(i, structure, **kwargs):
@@ -34,7 +31,6 @@ def fix_side_chain_2(i, structure, **kwargs):
         f.close()
     elif i == 1:
         raise Exception("Exception shouldn't be none")
-    time.sleep(2.0+(float(random.randint(20,30))/100.0))
 
 @task(structure=FILE_OUT)
 def fix_side_chain_3(i, structure="hola", **kwargs):
@@ -46,7 +42,6 @@ def fix_side_chain_3(i, structure="hola", **kwargs):
         f.close()
     elif i != 2:
         raise Exception("Exception shouldn't be none")
-    time.sleep(2.0+(float(random.randint(20,30))/100.0))
 
 def main():
     st = "structure_1"

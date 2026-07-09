@@ -27,7 +27,7 @@ def launch_tasks(num_tasks):
 
 
 def main_program():
-    num_tasks = 20
+    num_tasks = 8
 
     print ("Launching set of tasks with barrier")
     results = launch_tasks(num_tasks)

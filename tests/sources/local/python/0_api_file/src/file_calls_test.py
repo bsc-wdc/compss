@@ -20,7 +20,7 @@ def gen_file(structure):
     f = open(structure, "w")
     f.write(WRITTING)
     f.close()
-    time.sleep(5.0)
+    time.sleep(2)
 
 def main():
     hello_file="hello_world.txt"

@@ -207,10 +207,10 @@ tests:
   parallel:
     matrix:
       # Families split across 4 parallel jobs, balanced with longest-processing-
-      # time-first using the per-family Jenkins timings shown below. The python
-      # family is additionally sharded into TEST_SHARDS containers running in
-      # parallel on the same runner (tests.py --shard), so the overall makespan
-      # is bounded by java (~33 min).
+      # time-first using the per-family Jenkins timings shown below. The two big
+      # single families (python, java) are additionally sharded into TEST_SHARDS
+      # containers running in parallel on the same runner (tests.py --shard), so
+      # the overall makespan is bounded by the packed family jobs (~26-27 min).
       #
       # python ~40 min sequential; ~20 min in 2 shards. Tests spend most of
       # their time in runtime start/stop, so two concurrent shards don't
@@ -218,8 +218,11 @@ tests:
       # network namespace, /root and /tmp volumes).
       - TEST_FAMILIES: "-f python"
         TEST_SHARDS: "2"
-      # java ~33 min (3_node_init_failure alone takes 439 s).
+      # java ~30 min sequential after test speedups; ~13-17 min in 2 shards (the
+      # heavy tests cluster on even family numbers, so the split is uneven but
+      # still a big win).
       - TEST_FAMILIES: "-f java"
+        TEST_SHARDS: "2"
       # cloud ~14 + fault_tolerance ~5 + pscos ~5 + agents_transfers ~3 = ~27 min.
       - TEST_FAMILIES: "-f cloud -f fault_tolerance -f pscos -f agents_transfers"
       # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min.

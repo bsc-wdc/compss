@@ -11,8 +11,8 @@ import java.lang.Thread;
 
 public class TestCommutativeImpl {
 
-    private static final int TASK_SLEEP_TIME = 1_000; // ms
-    private static final int OTHER_TASK_SLEEP = 500;
+    private static final int TASK_SLEEP_TIME = 500; // ms
+    private static final int OTHER_TASK_SLEEP = 250;
 
 
     public static void writeOne(String fileName) {

@@ -4,6 +4,7 @@
 import os
 import subprocess
 import sys
+import time
 from enum import Enum
 from tabulate import tabulate
 
@@ -661,6 +662,65 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
 ############################################
 
 
+# COMPSs NIO port range: the master binds BASE_MASTER_PORT (43000) plus a
+# random offset up to 1000 (see NIOAdaptor.java) and the test workers listen
+# on 43001-43002 (resources.xml). A new runtime may fail to start with
+# "java.net.BindException: Address already in use" while the previous test's
+# runtime is still releasing its sockets.
+COMPSS_FIRST_PORT = 43000
+COMPSS_LAST_PORT = 43999
+
+
+def _get_busy_compss_ports():
+    """
+    Returns the set of listening TCP ports within the COMPSs NIO port range
+
+    :return: Set of busy ports (empty if the information is unavailable)
+        + type: set(int)
+    """
+    listening = set()
+    for proc_file in ("/proc/net/tcp", "/proc/net/tcp6"):
+        try:
+            with open(proc_file) as net_file:
+                next(net_file)  # skip header
+                for line in net_file:
+                    fields = line.split()
+                    local_address = fields[1]
+                    state = fields[3]
+                    if state != "0A":  # 0A = TCP_LISTEN
+                        continue
+                    port = int(local_address.rsplit(":", 1)[1], 16)
+                    if COMPSS_FIRST_PORT <= port <= COMPSS_LAST_PORT:
+                        listening.add(port)
+        except (OSError, StopIteration):
+            continue
+    return listening
+
+
+def _wait_for_compss_ports_release(timeout=30):
+    """
+    Waits until no process listens on the COMPSs NIO port range so the next
+    runtime can bind its transfer server without a BindException
+
+    :param timeout: Maximum seconds to wait before proceeding anyways
+        + type: int
+    :return:
+    """
+    deadline = time.time() + timeout
+    busy_ports = _get_busy_compss_ports()
+    while busy_ports and time.time() < deadline:
+        time.sleep(0.5)
+        busy_ports = _get_busy_compss_ports()
+    if busy_ports:
+        print(
+            "[WARN] COMPSs ports still busy after "
+            + str(timeout)
+            + "s: "
+            + str(sorted(busy_ports))
+            + ". Proceeding anyways..."
+        )
+
+
 def _execute_test(
     test_name, test_path, compss_logs_root, cmd_args, compss_cfg, compss_cfg_sc=None
 ):
@@ -684,8 +744,6 @@ def _execute_test(
     :raise TestExecutionError: If an error is encountered when creating the necessary
                                structures to launch the test
     """
-    import time
-
     skip_file = os.path.join(test_path, "skip")
     if os.path.isfile(skip_file):
         print("[INFO] Skipping test " + str(test_name))
@@ -721,6 +779,9 @@ def _execute_test(
             ) from exc
         # Define compss logs folder
         compss_logs_path = os.path.join(compss_logs_root, test_name)
+        # Wait until the previous runtime has released the COMPSs ports
+        # (replaces the per-test "sleep 10s to allow OS free sockets")
+        _wait_for_compss_ports_release()
         # Execute test specific execution file
         test_ev = _execute_test_cmd(
             test_path,

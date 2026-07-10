@@ -40,8 +40,6 @@
       echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
       continue
     fi
-    # Added to allow socker release
-    sleep 10s
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

@@ -226,6 +226,7 @@ def _print_local_args(args):
     print(f"[INFO]   - retry: {args.retry}")
     print(f"[INFO]   - fail_fast: {args.fail_fast}")
     print(f"[INFO]   - coverage: {args.coverage}")
+    print(f"[INFO]   - shard: {args.shard}")
 
 
 def _print_common_args(args):
@@ -378,6 +379,18 @@ def _add_local_args(parser):
         help="Executes in Coverage mode",
     )
 
+    # Add shard option
+    parser.add_argument(
+        "--shard",
+        action="store",
+        dest="shard",
+        default=None,
+        help="Deploys and executes only the K-th of N interleaved slices of the "
+        "selected tests (format K/N, e.g. --shard 1/2). Tests are assigned to "
+        "shards round-robin by family number so several shards can run the same "
+        "family in parallel (e.g. in separate containers).",
+    )
+
 
 def _add_cli_args(parser, default_cfg):
     # Add cfg file option
@@ -428,12 +441,39 @@ def _check_local_args(cmd_args):
     if cmd_args.families is None or not cmd_args.families:
         cmd_args.families = DEFAULT_FAMILIES
 
+    # Validate and normalize the shard option into an (index, count) tuple
+    cmd_args.shard = _parse_shard(cmd_args.shard)
+
     # Add test numbering to cmd_args
     cmd_args.test_numbers = _get_test_numbers(
         TESTS_DIR, DEFAULT_FAMILIES, DEFAULT_IGNORED
     )
 
     return cmd_args
+
+
+def _parse_shard(shard):
+    """
+    Parses a K/N shard expression into an (index, count) tuple
+
+    :param shard: Shard expression (K/N string) or None
+    :return: Tuple (shard_index, shard_count) or None if no shard was requested
+        + type: tuple(int, int)
+    :raise ArgumentError: If the shard expression is invalid
+    """
+    if shard is None:
+        return None
+    try:
+        shard_index, shard_count = (int(field) for field in shard.split("/"))
+    except ValueError as ve:
+        raise ArgumentError(
+            f"[ERROR] Invalid --shard expression {shard}. Expected format K/N"
+        ) from ve
+    if shard_count < 1 or not 1 <= shard_index <= shard_count:
+        raise ArgumentError(
+            f"[ERROR] Invalid --shard expression {shard}. Required: 1 <= K <= N"
+        )
+    return shard_index, shard_count
 
 
 def _check_cli_args(cmd_args):
@@ -447,6 +487,9 @@ def _check_cli_args(cmd_args):
     # If no family provided, load all
     if cmd_args.families is None or not cmd_args.families:
         cmd_args.families = DEFAULT_CLI_FAMILIES
+
+    # Validate and normalize the shard option into an (index, count) tuple
+    cmd_args.shard = _parse_shard(cmd_args.shard)
 
     # Add test numbering to cmd_args
     cmd_args.test_numbers = _get_test_numbers(

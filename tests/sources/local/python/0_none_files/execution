@@ -40,8 +40,6 @@
       echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
       continue
     fi
-    # Add a little sleep to allow OS free sockets
-    sleep 10s
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \

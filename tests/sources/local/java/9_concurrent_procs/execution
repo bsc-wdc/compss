@@ -37,7 +37,6 @@
   mkdir -p "${log_folder_app2}"
   export COMPSS_WORKER_INIT_TIMEOUT=60000
   expectedTime=120s
-  sleep 5s
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
     --project="${base_app_dir}"/project.xml \

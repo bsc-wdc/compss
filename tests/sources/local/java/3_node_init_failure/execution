@@ -29,6 +29,12 @@
   echo
   echo "*** RUNNING JAVA APPLICATION TEST NODE INIT FAILURE"
 
+  # Each retry launches runcompss twice, so the runtime log dirs are numbered
+  # _0$((2*retry-1)) for the first run and _0$((2*retry)) for the second
+  # (same scheme as 9_concurrent_procs)
+  execNum2=$((retry_num * 2))
+  execNum1=$((execNum2 - 1))
+
   # Run application with "shutdown_in_node_failure=false"
   target_log_folder_0="${target_log_folder}_flag_false"
   mkdir -p "${target_log_folder}_flag_false"
@@ -56,7 +62,7 @@
     "${app_name}" > >(tee "${output_log_0}") 2> >(tee "${error_log_0}" >&2)
   
   # Copy LOG files
-  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_0}"
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum1}"/* "${target_log_folder_0}"
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Report time out
@@ -64,15 +70,17 @@
     exit_value=124
   fi
 
-  sleep 10s
-
   # Run application with "shutdown_in_node_failure=true"
   target_log_folder_1="${target_log_folder}_flag_true"
   mkdir -p "${target_log_folder}_flag_true"
   output_log_1="${target_log_folder_1}/node_init_failure.outputlog"
   error_log_1="${target_log_folder_1}/node_init_failure.errorlog"
 
-  expectedTime=300s
+  # This run never exits on its own: the runtime prints "Execution stopped due to
+  # node ... failure" (the only thing the result script checks for this run, ~11s
+  # in) but then hangs retrying the failed worker cleanup, so it always runs until
+  # timeout kills it. 90s is ample to record the message; do not restore 300s.
+  expectedTime=90s
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
@@ -87,8 +95,8 @@
     \
     "${app_name}" > >(tee "${output_log_1}") 2> >(tee "${error_log_1}" >&2)
 
-  # Copy LOG files
-  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder_1}"
+  # Copy LOG files (second execution's log dir, not the first one)
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${execNum2}"/* "${target_log_folder_1}"
   # Check timeout
   if [[ "$?" = "124" ]]; then
     # Report time out

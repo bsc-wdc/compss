@@ -207,13 +207,17 @@ tests:
   parallel:
     matrix:
       # Families split across 4 parallel jobs, balanced with longest-processing-
-      # time-first using the per-family Jenkins timings shown below. The two big
-      # single families (python, java) each get a dedicated job, so the overall
-      # makespan is bounded by python (~40 min); the remaining families pack into
-      # two ~26-27 min jobs.
+      # time-first using the per-family Jenkins timings shown below. The python
+      # family is additionally sharded into TEST_SHARDS containers running in
+      # parallel on the same runner (tests.py --shard), so the overall makespan
+      # is bounded by java (~33 min).
       #
-      # python ~40 min.
+      # python ~40 min sequential; ~20 min in 2 shards. Tests spend most of
+      # their time in runtime start/stop, so two concurrent shards don't
+      # contend on CPU, and each shard container is fully isolated (own
+      # network namespace, /root and /tmp volumes).
       - TEST_FAMILIES: "-f python"
+        TEST_SHARDS: "2"
       # java ~33 min (3_node_init_failure alone takes 439 s).
       - TEST_FAMILIES: "-f java"
       # cloud ~14 + fault_tolerance ~5 + pscos ~5 + agents_transfers ~3 = ~27 min.
@@ -224,25 +228,48 @@ tests:
     - !reference [.ci_snippets, registry_login]
     - docker pull "$COMPSS_IMAGE"
     # Use the same docker_test script as Jenkins. COMPSS_CONTAINER is set to a
-    # per-job unique name so parallel jobs on the same runner don't collide.
+    # per-job (and per-shard) unique name so parallel jobs and shard containers
+    # on the same runner don't collide.
     # COMPSS_IMAGE is already available from the global variables block.
-    - export COMPSS_CONTAINER=$CONTAINER_NAME
     # Tee docker_test output to an artifact so the test runner pass/fail
     # summary is available even when the 4 MB job log is truncated.
     # $TEST_FAMILIES is intentionally unquoted so the shell word-splits
     # "-f python -f cloud ..." into separate arguments for docker_test.
     - mkdir -p test-results
-    - $CI_PROJECT_DIR/tests/scripts/docker_test -FF $TEST_FAMILIES 2>&1 | tee test-results/docker_test.log; exit ${PIPESTATUS[0]}
+    - |
+      shards="${TEST_SHARDS:-1}"
+      pids=""
+      for i in $(seq 1 "$shards"); do
+        if [ "$shards" -gt 1 ]; then
+          shard_args="--shard $i/$shards"
+          log_file="test-results/docker_test_shard${i}.log"
+        else
+          shard_args=""
+          log_file="test-results/docker_test.log"
+        fi
+        ( set -o pipefail
+          COMPSS_CONTAINER="${CONTAINER_NAME}_s${i}" \
+            "$CI_PROJECT_DIR/tests/scripts/docker_test" -FF $TEST_FAMILIES $shard_args 2>&1 | tee "$log_file"
+        ) &
+        pids="$pids $!"
+      done
+      rc=0
+      for pid in $pids; do wait "$pid" || rc=1; done
+      exit $rc
   after_script:
     # Copy only the logs/ subtree: all *.outputlog, *.errorlog, runtime.log,
     # and job output files written by the test execution scripts go there.
     # apps/ contains only deployed binaries (jars, compiled C, xmls) and is
-    # not needed for debugging failures.
+    # not needed for debugging failures. Test (app) numbers are globally
+    # unique, so the per-shard log trees merge cleanly into one logs/ dir.
     - mkdir -p test-results
-    - docker cp $CONTAINER_NAME:/root/tests_execution_sandbox/logs/. test-results/logs/ 2>/dev/null || true
-    # docker rm -fv removes the container and its anonymous volumes (the same
-    # three volumes that docker_test creates with --mount type=volume).
-    - docker rm -fv $CONTAINER_NAME || true
+    - |
+      for container in $(docker ps -a --format '{{.Names}}' | grep -E "^${CONTAINER_NAME}_s[0-9]+$"); do
+        docker cp "$container":/root/tests_execution_sandbox/logs/. test-results/logs/ 2>/dev/null || true
+        # docker rm -fv removes the container and its anonymous volumes (the
+        # same three volumes that docker_test creates with --mount type=volume).
+        docker rm -fv "$container" || true
+      done
   artifacts:
     when: always
     name: "test-results-${CI_JOB_NAME}-${CI_PIPELINE_ID}"

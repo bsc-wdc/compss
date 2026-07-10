@@ -128,6 +128,8 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     if cmd_args.tests is None or not cmd_args.tests:
         _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir)
     else:
+        if getattr(cmd_args, "shard", None) is not None:
+            print("[WARN] Specific tests detected. Ignoring --shard option")
         _compile_and_deploy_specific(cmd_args, compss_cfg)
 
     # End
@@ -167,9 +169,16 @@ def _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir):
     if __debug__:
         print(f"[DEBUG]   - target_dir : {tests_exec_sandbox}")
 
+    shard = getattr(cmd_args, "shard", None)
     for family in cmd_args.families:
         print(f"[INFO] Deploying all tests in family {family}")
         for test_num, test_info in cmd_args.test_numbers[family].items():
+            if shard is not None:
+                shard_index, shard_count = shard
+                # Round-robin assignment by family number so consecutive (often
+                # related and similarly heavy) tests spread across shards
+                if test_num % shard_count != shard_index % shard_count:
+                    continue
             test_dir, test_path, test_global_num = test_info
             _deploy(
                 test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg

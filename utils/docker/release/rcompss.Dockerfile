@@ -2,14 +2,16 @@ FROM eclipse-temurin:21-jre-noble AS rcompss
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
+ARG CMAKE_VERSION
+ARG R_BASE_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			cmake \
-			r-base
+			cmake=${CMAKE_VERSION} \
+			r-base=${R_BASE_VERSION}
 
 COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \
@@ -47,11 +49,12 @@ CMD compss_agent_start --hostname=$(hostname -i) \
 
 FROM rcompss AS rcompss-hpc
 
+ARG PAPI_TOOLS_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			papi-tools
+			papi-tools=${PAPI_TOOLS_VERSION}
 
 COPY --from=build --link --parents \
 	/opt/COMPSs/Dependencies/dlb \

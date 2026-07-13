@@ -17,8 +17,6 @@
 #---------------------------------------------------
 # VERSIONS (must match buildlocal expectations)
 #---------------------------------------------------
-EXTRAE_VERSION="3.5.3"
-DLB_VERSION="3.6.0"
 KAFKA_VERSION="3.8.0"
 TOMCAT_VERSION="8.5.23"
 JACOCO_VERSION="0.8.5"

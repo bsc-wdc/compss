@@ -220,7 +220,7 @@ process_pipe_commands() {
 
                     if [ "$using_dlb_module" = false ]; then
                         module unload dlb &>/dev/null
-                        python_version=$(python -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')")
+                        python_version=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')")
                         export DLB_HOME="${SCRIPT_DIR}/../../../../../../Dependencies/dlb"
                         export PYTHONPATH="${DLB_HOME}/lib/${python_version}/site-packages${PYTHONPATH:+:$PYTHONPATH}"
                     fi

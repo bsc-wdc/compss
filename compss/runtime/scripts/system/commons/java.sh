@@ -24,7 +24,8 @@ JAVA_HOME_ERROR="ERROR: Cannot find Java JRE installation. Please set JAVA_HOME.
 # DEFINING CONSTANTS DECLARATION
 #---------------------------------------------------
 if [ -z "${JAVA_HOME}" ]; then
-  JAVA=java
+  JAVA=$(command -v java)
+  JAVA_HOME=$(dirname "$(dirname "$(realpath "${JAVA}")")")
 elif [ -f "${JAVA_HOME}/jre/bin/java" ]; then
   JAVA="${JAVA_HOME}/jre/bin/java"
 elif [ -f "${JAVA_HOME}/bin/java" ]; then

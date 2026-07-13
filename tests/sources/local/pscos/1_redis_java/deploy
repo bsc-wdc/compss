@@ -7,7 +7,7 @@
   # Copy Redis Storage jar
   (
   cd "${source_base_dir}"/../../../../../utils/storage/redisPSCO/
-  mvn clean package
+  mvn -q clean package
   )
   mkdir -p "${target_base_dir}"/jars/
   cp "${source_base_dir}"/../../../../../utils/storage/redisPSCO/target/compss-redisPSCO.jar "${target_base_dir}"/jars/compss-redisPSCO.jar

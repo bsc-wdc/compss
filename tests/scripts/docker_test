@@ -14,22 +14,19 @@
   master_dir=/root
   worker_dir=/tmp/COMPSsWorker01
 
-  # Remove any leftover container from a previous run before starting a fresh one.
-  docker rm -fv "${COMPSS_CONTAINER:=tests}" &> /dev/null || true
-
-  # Run the container — the ENTRYPOINT (compss_entrypoint.sh) handles
-  # configure_hosts_insert and starting sshd before exec-ing the CMD.
-  docker run -d \
-             --init \
-             --env COMPSS_CONTAINER="${COMPSS_CONTAINER}" \
-             --env COMPSS_IMAGE="${COMPSS_IMAGE}" \
-             --mount type=bind,src="${docker_host:-${docker_sock}}",dst=${docker_sock} \
-             --mount type=volume,dst=${master_dir} \
-             --mount type=volume,dst=${worker_dir} \
-             --name="${COMPSS_CONTAINER}" \
-             "${COMPSS_IMAGE}" sleep infinity
+  # Run the container
+  if ! docker run -d \
+                  --env COMPSS_CONTAINER="${COMPSS_CONTAINER:=tests}" \
+                  --env COMPSS_IMAGE="${COMPSS_IMAGE}" \
+                  --mount type=bind,src="${docker_host:-${docker_sock}}",dst=${docker_sock} \
+                  --mount type=volume,dst=${master_dir} \
+                  --mount type=volume,dst=${worker_dir} \
+                  --name="${COMPSS_CONTAINER}" \
+                  "${COMPSS_IMAGE}" sleep infinity ; then
+    echo "Docker container '${COMPSS_CONTAINER}' is already running. Remove it before trying to run the tests with:"
+    echo "docker rm -fv ${COMPSS_CONTAINER}"
+    exit 1
+  fi
 
   # Execute the tests
-  docker exec "${COMPSS_CONTAINER}" /bin/bash -lc \
-    'python3 /framework/tests/scripts/tests.py "$@"' \
-    _ "$@"
+  docker exec "${COMPSS_CONTAINER}" /bin/bash -lc 'python3 /framework/tests/scripts/tests.py "$@"' _ "$@"

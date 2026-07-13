@@ -2,24 +2,10 @@ FROM eclipse-temurin:21-jre-noble AS compss-orchestra
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
-RUN install -m 0755 -d /etc/apt/keyrings && \
-	curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
-	chmod a+r /etc/apt/keyrings/docker.asc && \
-	tee /etc/apt/sources.list.d/docker.sources <<-EOF
-		Types: deb
-		URIs: https://download.docker.com/linux/ubuntu
-		Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-		Components: stable
-		Signed-By: /etc/apt/keyrings/docker.asc
-		EOF
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
-	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
-	rm -f /etc/apt/apt.conf.d/docker-clean && \
-	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
-	apt-get update && \
-	apt-get install -y --no-install-recommends \
-			docker-ce-cli
+ARG DOCKER_CE_CLI_VERSION
+RUN wget https://download.docker.com/linux/ubuntu/dists/noble/pool/stable/${TARGETARCH}/docker-ce-cli_${DOCKER_CE_CLI_VERSION}_${TARGETARCH}.deb && \
+	dpkg -i docker-ce-cli_${DOCKER_CE_CLI_VERSION}_${TARGETARCH}.deb && \
+	rm docker-ce-cli_${DOCKER_CE_CLI_VERSION}_${TARGETARCH}.deb
 
 COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \

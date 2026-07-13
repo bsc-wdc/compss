@@ -16,7 +16,7 @@
   # Copy dummy Storage jar
   (
   cd "${source_base_dir}"/../../../../../utils/storage/dummyPSCO/
-  mvn clean package
+  mvn -q clean package
   )
   mkdir -p "${target_base_dir}"/jars/
   cp "${source_base_dir}"/../../../../../utils/storage/dummyPSCO/target/compss-dummyPSCO.jar "${target_base_dir}"/jars/compss-dummyPSCO.jar

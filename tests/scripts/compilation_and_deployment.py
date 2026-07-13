@@ -321,7 +321,7 @@ def _compile(working_dir, compss_cfg):
             print(f"[INFO] Pre-built JAR found, skipping compilation for {working_dir}")
             return
 
-        cmd = ["mvn", "-nsu", "clean", "install"]
+        cmd = ["mvn", "-nsu", "-ntp", "-q", "clean", "install"]
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()

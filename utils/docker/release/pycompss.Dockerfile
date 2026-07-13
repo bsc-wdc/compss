@@ -2,19 +2,23 @@ FROM eclipse-temurin:21-jre-noble AS pycompss
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
+ARG PYTHON3_VERSION
+ARG PYTHON3_PIP_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			python3 \
-			python3-pip
+			python3=${PYTHON3_VERSION} \
+			python3-pip=${PYTHON3_PIP_VERSION}
 
+ARG DILL_VERSION
+ARG ROCRATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			dill \
-			rocrate
+			dill==${DILL_VERSION} \
+			rocrate==${ROCRATE_VERSION}
 
 COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \
@@ -55,15 +59,17 @@ CMD compss_agent_start --hostname=$(hostname -i) \
 
 FROM pycompss AS pycompss-hpc
 
+ARG PAPI_TOOLS_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			papi-tools
+			papi-tools=${PAPI_TOOLS_VERSION}
 
+ARG NUMBA_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			numba
+			numba==${NUMBA_VERSION}
 
 COPY --from=build --link --parents \
 	/opt/COMPSs/Dependencies/dlb \

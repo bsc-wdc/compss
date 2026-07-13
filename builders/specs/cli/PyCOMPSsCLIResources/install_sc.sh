@@ -4,7 +4,7 @@
 
 echo "Installing..."
 
-version=$(python -c "import sys; version = sys.version_info; print('%d.%d' % (version[0], version[1]))")
+version=$(python3 -c "import sys; version = sys.version_info; print('%d.%d' % (version[0], version[1]))")
 path="$1/lib/python${version}/site-packages/"
 
 mkdir -p ${path}

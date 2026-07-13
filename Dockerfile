@@ -1,90 +1,91 @@
-# syntax=docker/dockerfile:1
-ARG DEBIAN_FRONTEND=noninteractive
-# In CI, docker_build overrides this with the pre-built registry image so the
-# deps stage is bypassed entirely (no submodule init or compilation needed).
-ARG CI_DEPS_IMAGE=deps
-
-# Stage: pre-install external dependencies (Extrae, DLB, Kafka, Tomcat, JaCoCo).
-# Built and pushed to the registry by the docker_build_deps CI job.
-# Clones submodules directly from their remotes (no .git needed in context).
-# Dependency version pins live in builders/deps-versions — edit that file to
-# trigger a deps image rebuild in CI without touching the rest of this Dockerfile.
-FROM eclipse-temurin:21-jdk-noble AS deps
+FROM eclipse-temurin:21-jdk-noble AS build
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
-ENV GRADLE_HOME=/opt/gradle
-
+ARG BUILD_ESSENTIAL_VERSION
+ARG CMAKE_VERSION
+ARG GFORTRAN_VERSION
+ARG GIT_VERSION
+ARG LIBBOOST_SERIALIZATION_DEV_VERSION
+ARG LIBJPEG_DEV_VERSION
+ARG LIBOPENMPI_DEV_VERSION
+ARG LIBTOOL_VERSION
+ARG LIBXML2_DEV_VERSION
+ARG PYTHON3_DEV_VERSION
+ARG PYTHON3_PIP_VERSION
+ARG R_BASE_VERSION
+ARG UNZIP_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			build-essential=12.10ubuntu1 \
-			cmake=3.28.3-1build7 \
-			gfortran=4:13.2.0-7ubuntu1 \
-			git=1:2.43.0-1ubuntu7.3 \
-			libboost-serialization-dev=1.83.0.1ubuntu2 \
-			libjpeg-dev=8c-2ubuntu11 \
-			libopenmpi-dev=4.1.6-7ubuntu2 \
-			libtool=2.4.7-7build1 \
-			libxml2-dev=2.9.14+dfsg-1.3ubuntu3.8 \
-			maven=3.8.7-2 \
-			python3-dev=3.12.3-0ubuntu2.1 \
-			python3-pip=24.0+dfsg-1ubuntu1.3 \
-			r-base=4.3.3-2build2 \
-			unzip=6.0-28ubuntu4.1
+			build-essential=${BUILD_ESSENTIAL_VERSION} \
+			cmake=${CMAKE_VERSION} \
+			gfortran=${GFORTRAN_VERSION} \
+			git=${GIT_VERSION} \
+			libboost-serialization-dev=${LIBBOOST_SERIALIZATION_DEV_VERSION} \
+			libjpeg-dev=${LIBJPEG_DEV_VERSION} \
+			libopenmpi-dev=${LIBOPENMPI_DEV_VERSION} \
+			libtool=${LIBTOOL_VERSION} \
+			libxml2-dev=${LIBXML2_DEV_VERSION} \
+			python3-dev=${PYTHON3_DEV_VERSION} \
+			python3-pip=${PYTHON3_PIP_VERSION} \
+			r-base=${R_BASE_VERSION} \
+			unzip=${UNZIP_VERSION}
 
-RUN wget https://services.gradle.org/distributions/gradle-8.7-bin.zip && \
-	unzip gradle-8.7-bin.zip && \
-	rm gradle-8.7-bin.zip && \
-	mv gradle-8.7 ${GRADLE_HOME}
+ARG GRADLE_HOME=/opt/gradle
+ARG GRADLE_VERSION
+ARG MAVEN_HOME=/opt/maven
+ARG MAVEN_VERSION
+RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip && \
+	unzip gradle-${GRADLE_VERSION}-bin.zip && \
+	rm gradle-${GRADLE_VERSION}-bin.zip && \
+	mv gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
+	curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar xzv && \
+	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
+	ln -s ${MAVEN_HOME}/bin/* /usr/bin
 
+ARG BLACK_JUPYTER_VERSION
+ARG DILL_VERSION
+ARG GUPPY3_VERSION
+ARG MATPLOTLIB_VERSION
+ARG MEMORY_PROFILER_VERSION
+ARG MPI4PY_VERSION
+ARG MYPY_VERSION
+ARG PYCODESTYLE_VERSION
+ARG PYDOCSTYLE_VERSION
+ARG PYTEST_VERSION
+ARG TYPES_TABULATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			black[jupyter]==26.3.1 \
-			dill==0.4.1 \
-			guppy3==3.1.6 \
-			matplotlib==3.10.8 \
-			memory_profiler==0.61.0 \
-			mpi4py==4.1.1 \
-			mypy==1.20.2 \
-			pycodestyle==2.14.0 \
-			pydocstyle==6.3.0 \
-			pytest==9.0.3 \
-			types-tabulate==0.10.0.20260408
+			black[jupyter]==${BLACK_JUPYTER_VERSION} \
+			dill==${DILL_VERSION} \
+			guppy3==${GUPPY3_VERSION} \
+			matplotlib==${MATPLOTLIB_VERSION} \
+			memory_profiler==${MEMORY_PROFILER_VERSION} \
+			mpi4py==${MPI4PY_VERSION} \
+			mypy==${MYPY_VERSION} \
+			pycodestyle==${PYCODESTYLE_VERSION} \
+			pydocstyle==${PYDOCSTYLE_VERSION} \
+			pytest==${PYTEST_VERSION} \
+			types-tabulate==${TYPES_TABULATE_VERSION}
 
-COPY builders/deps-versions builders/pre-install-deps /framework/builders/
-COPY dependencies/install_extrae.sh dependencies/install_dlb.sh /framework/dependencies/
+COPY dependencies /framework/dependencies
 
-WORKDIR /framework
+ARG DLB_VERSION
+ARG EXTRAE_VERSION
+RUN cd /framework && \
+	git clone --depth 1 -b v${DLB_VERSION} https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
+	git clone --depth 1 -b master_compss https://github.com/bsc-wdc/extrae.git dependencies/extrae && \
+	git clone --depth 1 -b next-release https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
+	git clone --depth 1 -b master https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
+	/framework/dependencies/pre-install-deps
 
-# Pull Kafka from the official Docker Hub image instead of archive.apache.org
-# (the archive server is slow/unreliable for older releases).
-# Version must stay in sync with KAFKA_VERSION in builders/pre-install-deps.
-COPY --from=apache/kafka:3.8.0 /opt/kafka /opt/COMPSs/Dependencies/kafka
+COPY --exclude=dependencies . /framework
 
-RUN . /framework/builders/deps-versions && \
-	git clone --depth=1 --branch ${EXTRAE_BRANCH} https://github.com/bsc-wdc/extrae.git dependencies/extrae && \
-	git clone --depth=1 --branch ${DLB_TAG} https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
-	git clone --depth=1 --branch ${THREADPOOLCTL_TAG} https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
-	git clone --depth=1 --branch ${RCOMPSS_BRANCH} https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
-	/framework/builders/pre-install-deps --no-kafka && \
-	echo "export KAFKA_HOME=\"/opt/COMPSs/Dependencies/kafka\"" >> /opt/COMPSs/Dependencies/compss-deps.env
-
-# Stage: build and install COMPSs.
-# Starts FROM the pre-built deps registry image when CI_DEPS_IMAGE is set,
-# skipping the deps stage above entirely.
-FROM ${CI_DEPS_IMAGE} AS build
-ARG BUILDKIT_CACHE_MOUNT_NS
-
-COPY . /framework
-
-RUN --mount=type=cache,target=/root/.m2,id=maven \
-	--mount=type=cache,target=/root/.cache/pip,id=pip \
-	python3 -m pip install --break-system-packages kafka-python && \
-	. /opt/COMPSs/Dependencies/compss-deps.env && \
+RUN . /opt/COMPSs/Dependencies/compss-deps.env && \
 	/framework/builders/buildlocal --rcompss
 
 CMD ["/bin/bash"]

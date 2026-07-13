@@ -1,3 +1,6 @@
+# CI/CD
+**/.gitlab-ci.yml
+
 # Git
 .git*
 submodules_get.sh

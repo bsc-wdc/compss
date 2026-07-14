@@ -158,8 +158,8 @@ clean:
                   --push tests
     - docker rmi "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
     - REPOSITORY_IDS=$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")
-    - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] <<< ${REPOSITORY_IDS} | select(.location == $LOCATION) | .id')
-    - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] <<< ${REPOSITORY_IDS} | select(.location == $LOCATION) | .id')
+    - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
+    - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
     - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${CACHE_ID}/tags/${MERGED_BRANCH}"
     - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${TESTS_ID}/tags/${MERGED_BRANCH}"
   rules:

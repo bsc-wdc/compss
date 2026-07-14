@@ -157,7 +157,6 @@ clean:
                   --set tests.tags="${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
                   --push tests
     - docker rmi "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker prune -f
     - REPOSITORY_IDS=$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")
     - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] <<< ${REPOSITORY_IDS} | select(.location == $LOCATION) | .id')
     - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] <<< ${REPOSITORY_IDS} | select(.location == $LOCATION) | .id')

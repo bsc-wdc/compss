@@ -161,6 +161,7 @@
       --master_node="127.0.0.1" \
       --master_port="${rest_port}" \
       --method_name="main" \
+      --stop \
       "simple" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
       ev=$?
 
@@ -221,7 +222,7 @@
     fi
     expected_value=$((job2_in_value + 1))
     if [ ! "${job1_end_value}" == "${expected_value}" ]; then
-      echo "Unexpected integer value obtained from the test. Expecting ${expected_value} and ${job1_end_val} observed!" > >(tee -a "${error_log}")
+      echo "Unexpected integer value obtained from the test. Expecting ${expected_value} and ${job1_end_value} observed!" > >(tee -a "${error_log}")
       exit 1
     fi
     if [ ! "${job1_end_str}" == "${job2_in_str}" ]; then

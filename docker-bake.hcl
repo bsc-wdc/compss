@@ -54,7 +54,7 @@ target "_common" {
     LIBTOOL_VERSION = "2.4.7-7build1"
     LIBXML2_DEV_VERSION = "2.9.14+dfsg-1.3ubuntu3.8"
     MAKE_VERSION = "4.3-4.1build2"
-    OPENSSH_SERVER_VERSION = "1:9.6p1-3ubuntu13.16"
+    OPENSSH_SERVER_VERSION = "1:9.6p1-3ubuntu13.18"
     PAPI_TOOLS_VERSION = "7.1.0-5build1"
     PYTHON3_VERSION = "3.12.3-0ubuntu2.1"
     PYTHON3_DEV_VERSION = "3.12.3-0ubuntu2.1"
@@ -86,7 +86,7 @@ target "_common" {
     PYDOCSTYLE_VERSION = "6.3.0"
     PYTEST_VERSION = "9.0.3"
     PYTZ_VERSION = "2026.2"
-    REDIS_PY_CLUSTER_VERSION = "2.1.3"
+    REDIS_VERSION = "7.4.1"
     ROC_VALIDATOR_VERSION = "0.8.1"
     ROCRATE_VERSION = "0.14.2"
     TABULATE_VERSION = "0.10.0"
@@ -144,11 +144,10 @@ target "cases" {
   inherits = ["_public"]
   name = "compss-${var}"
   matrix = {
-    var = ["full", "orchestra", "tutorial"]
+    var = ["full", "orchestrator", "tutorial"]
   }
   target = "compss-${var}"
   dockerfile = "utils/docker/release/${var}.Dockerfile"
-  platforms = ["linux/amd64"]
   tags = [for tag in TAGS: "compss-${var}:${tag}"]
 }
 

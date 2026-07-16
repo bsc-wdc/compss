@@ -44,7 +44,7 @@ ARG KAFKA_PYTHON_VERSION
 ARG MPI4PY_VERSION
 ARG NUMBA_VERSION
 ARG PYTZ_VERSION
-ARG REDIS_PY_CLUSTER_VERSION
+ARG REDIS_VERSION
 ARG ROCRATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
@@ -55,7 +55,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			mpi4py==${MPI4PY_VERSION} \
 			numba==${NUMBA_VERSION} \
 			pytz==${PYTZ_VERSION} \
-			redis-py-cluster==${REDIS_PY_CLUSTER_VERSION} \
+			redis-py-cluster==${REDIS_VERSION} \
 			rocrate==${ROCRATE_VERSION}
 
 COPY --from=build --link --parents \

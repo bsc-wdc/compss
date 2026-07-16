@@ -40,6 +40,10 @@ def get_yaml_template():
         "  trace_persistence: False\n"
         "    # True to include all Paraver trace files of the application in the resulting crate.\n"
         "    # If False, Paraver trace files of the application won't be included, just referenced. False by default or if not set.\n"
+        "  runtime_logs_persistence: True\n"
+        "    # True to include all COMPSs runtime log files in resulting crate.\n"
+        "    # If False, runtime log files won't be included, nor referenced. True by default or if not set.\n"
+        
         "  inputs: [/abs_path_to/dir_1, rel_path_to/dir_2, file_1, rel_path/file_2]\n"
         "    # Optional: Manually specify the inputs of the workflow. Relative or absolute paths can be used.\n"
         "  outputs: [/abs_path_to/dir_1, rel_path_to/dir_2, file_1, rel_path/file_2]\n"

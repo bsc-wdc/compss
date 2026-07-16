@@ -455,8 +455,8 @@ def main():
     # COMPSs execution logs, traces, etc...
     add_master_out_and_err(compss_crate, main_create_action)
     add_trace_files(compss_crate, compss_wf_info, PATH_LOG, main_create_action)
-    add_all_log_files(compss_crate, PATH_LOG, main_create_action)
-    add_stats_and_plots(compss_crate, PATH_LOG, main_create_action, main_entity)
+    add_all_log_files(compss_crate, compss_wf_info, PATH_LOG, main_create_action)
+    add_stats_and_plots(compss_crate, compss_wf_info, PATH_LOG, main_create_action, main_entity)
 
     if __debug__:
         print(f"PROVENANCE DEBUG | Adding logs TIME: {time.time() - part_time} s")

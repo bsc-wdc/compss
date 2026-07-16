@@ -75,11 +75,11 @@ RUN wget https://download.docker.com/linux/ubuntu/dists/noble/pool/stable/${TARG
 	mv gradle-${GRADLE_VERSION} ${GRADLE_HOME} && \
 	curl -fsSL https://install.julialang.org | sh -s -- -y && \
 	ln -s /root/.juliaup/bin/* /usr/bin && \
-	curl -fsSL https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar xzv && \
+	curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar xzv && \
 	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
 	ln -s ${MAVEN_HOME}/bin/* /usr/bin
 
-# + DataClay + Dislib + PyCOMPSs-CLI
+# + DataClay + Dislib + PyCOMPSs-CLI + Qdislib
 ARG BLACK_JUPYTER_VERSION
 ARG DATACLAY_VERSION
 ARG DECORATOR_VERSION
@@ -98,7 +98,7 @@ ARG PYCODESTYLE_VERSION
 ARG PYDOCSTYLE_VERSION
 ARG PYTEST_VERSION
 ARG PYTZ_VERSION
-ARG REDIS_PY_CLUSTER_VERSION
+ARG REDIS_VERSION
 ARG ROC_VALIDATOR_VERSION
 ARG ROCRATE_VERSION
 ARG TABULATE_VERSION
@@ -125,7 +125,8 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			pydocstyle==${PYDOCSTYLE_VERSION} \
 			pytest==${PYTEST_VERSION} \
 			pytz==${PYTZ_VERSION} \
-			redis-py-cluster==${REDIS_PY_CLUSTER_VERSION} \
+    		qdislib \
+			redis==${REDIS_VERSION} \
 			roc-validator==${ROC_VALIDATOR_VERSION} \
 			rocrate==${ROCRATE_VERSION} \
 			tabulate==${TABULATE_VERSION} \
@@ -154,7 +155,6 @@ RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N '' && \
 		OMPI_ALLOW_RUN_AS_ROOT_CONFIRM="${OMPI_ALLOW_RUN_AS_ROOT_CONFIRM}"
 		EOT
 		#!/usr/bin/env -S bash -le
-		/framework/tests/scripts/configure_hosts_insert
 		service ssh start
 		exec /__cacert_entrypoint.sh "$@"
 		EOF

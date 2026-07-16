@@ -22,7 +22,6 @@ As a reminder, objects are stored as a serialized byte array.
 """
 import uuid
 import redis
-import rediscluster
 import logging
 # Use some existing PyCOMPSs functions to serialize/deserialize
 from pycompss.util.serialization.serializer import serialize_to_bytes
@@ -89,7 +88,7 @@ def init(config_file_path=None, **kwargs):
         # slave hierarchy discovery, we will simply connect to the first
         # node we got
         redis_connection = \
-            rediscluster.RedisCluster(host=hosts[0], port=REDIS_PORT)
+            redis.cluster.RedisCluster(host=hosts[0], port=REDIS_PORT)
     else:
         # We are in standalone mode
         redis_connection = \

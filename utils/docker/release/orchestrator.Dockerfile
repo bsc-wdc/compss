@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre-noble AS compss-orchestra
+FROM eclipse-temurin:21-jre-noble AS compss-orchestrator
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 

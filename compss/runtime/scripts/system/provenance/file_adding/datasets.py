@@ -635,12 +635,19 @@ def add_trace_files(compss_crate, compss_wf_info, log_dir, create_action):
             f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
         )
 
-def add_all_log_files(compss_crate, log_dir, create_action):
+def add_all_log_files(compss_crate, compss_wf_info, log_dir, create_action):
     # Add all COMPSs runtime execution log files. They can be useful for debugging purposes
+    if (
+        "runtime_logs_persistence" not in compss_wf_info
+        or compss_wf_info["runtime_logs_persistence"] is True
+    ):
+        log_persist = True
+    else:
+        log_persist = False
     if log_dir.exists() and log_dir.is_dir():
-        print(f"PROVENANCE | RO-Crate adding all COMPSs log files")
+        print(f"PROVENANCE | RO-Crate adding all COMPSs log files. Persitence is {log_persist}")
         for root, dirs, files in os.walk(log_dir):
-            # Evitar entrar en estos directorios
+            # Avoid these directories
             dirs[:] = [d for d in dirs if d not in {"stats", "monitor", "jobs", "trace"}]
             for file in files:
                 if file.endswith("compss_trace.tar.gz") or (file.endswith(".csv") and Path(root).name == "Log"):
@@ -653,15 +660,35 @@ def add_all_log_files(compss_crate, log_dir, create_action):
                 file_properties["description"] = "COMPSs runtime log file"
                 file_properties["encodingFormat"] = "text/plain"
                 file_properties["about"] = create_action
-                crate_path = Path("runtime_logs") / path.relative_to(log_dir)
-                compss_crate.add_file(
-                    source=path.resolve(),
-                    dest_path=crate_path,
-                    properties=file_properties,
-                )
+                if log_persist:
+                    crate_path = Path("runtime_logs") / path.relative_to(log_dir)
+                    compss_crate.add_file(
+                        source=path.resolve(),
+                        dest_path=crate_path,
+                        properties=file_properties,
+                    )
+                else:
+                    # WorkflowHub cannot handle such a long list of files in the 'hasPart' term, thus, do 
+                    # not add URL references to log files
+                    continue
+                    file_url = "file://" + socket.gethostname() + str(path.resolve())
+                    modified_url = write_external_url(file_url)
+                    compss_crate.add_file(
+                        source=modified_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        properties=file_properties,
+                    )
 
-def add_stats_and_plots(compss_crate, log_dir, create_action, main_entity):
+def add_stats_and_plots(compss_crate, compss_wf_info, log_dir, create_action, main_entity):
     # Adding stats and profiling plots to RO-Crate
+    if (
+        "runtime_logs_persistence" not in compss_wf_info
+        or compss_wf_info["runtime_logs_persistence"] is True
+    ):
+        log_persist = True
+    else:
+        log_persist = False
     resolved_main_entity = main_entity
     for entity in compss_crate.get_entities():
         if "ComputationalWorkflow" in entity.type:
@@ -674,13 +701,13 @@ def add_stats_and_plots(compss_crate, log_dir, create_action, main_entity):
                 if file.endswith(".csv") or file.endswith(".svg"):
                     full_path = os.path.join(root, file)
                     if file.endswith(".svg"):
+                        # Add always, only aggregated plots are generated now
                         relative_file_path = full_path.split("plots/")[1]
                         relative_path = "profiling/" + relative_file_path
                         # Determine metric and node_name based on path depth
                         path_parts = relative_path.split("/")
                         # path_parts example for plots: ["stats", "plots", "gs23r1b30-MASTER", "cpu.svg"]
                         # path_parts example for flat:  ["stats", "static_resource_profiling_gs23r1b30-MASTER.csv"]
-
                         metric = path_parts[-1].split(".")[0]   # filename without extension
                         node_name = path_parts[-2]              # parent directory name
                         description = get_description_plot(metric, node_name)
@@ -695,6 +722,11 @@ def add_stats_and_plots(compss_crate, log_dir, create_action, main_entity):
                             {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/91"},
                         ]
                         file_properties["about"] = resolved_main_entity
+                        compss_crate.add_file(
+                                source=full_path,
+                                dest_path=relative_path,
+                                properties=file_properties,
+                            )
                     else:
                         # CSV files
                         relative_file_path = full_path.split("stats/")[1]
@@ -708,12 +740,24 @@ def add_stats_and_plots(compss_crate, log_dir, create_action, main_entity):
                             {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/800"},
                         ]
                         file_properties["about"] = create_action
-
-                    compss_crate.add_file(
-                        source=full_path,
-                        dest_path=relative_path,
-                        properties=file_properties,
-                    )
+                        if log_persist:
+                            compss_crate.add_file(
+                                source=full_path,
+                                dest_path=relative_path,
+                                properties=file_properties,
+                            )
+                        else:
+                            # WorkflowHub cannot handle such a long list of files in the 'hasPart' term, thus, do 
+                            # not add URL references to log files
+                            continue
+                            file_url = "file://" + socket.gethostname() + str(Path(full_path).resolve())
+                            modified_url = write_external_url(file_url)
+                            compss_crate.add_file(
+                                source=modified_url,
+                                fetch_remote=False,
+                                validate_url=False,
+                                properties=file_properties,
+                            )                        
     else:
         print("Stats folder does not exist")
 

@@ -1,6 +1,3 @@
-# CI/CD
-**/.gitlab-ci.yml
-
 # Java
 **/*.class
 **/*.jar

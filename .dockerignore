@@ -1,5 +1,5 @@
 # CI/CD
-**/.gitlab-ci.yml
+.gitlab-ci.yml
 
 # Git
 .git*

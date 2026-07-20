@@ -21,10 +21,6 @@ variables:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
 
-.docker:
-  before_script:
-    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-
 check:
   stage: check
   extends:
@@ -68,6 +64,10 @@ check:
         exit 1
       fi
 
+.docker:
+  before_script:
+    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+
 build:
   stage: build
   extends:
@@ -84,11 +84,8 @@ build:
                   --push tests
     - docker rmi "${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
 
-tests:
+.tests:
   stage: tests
-  extends:
-    - .mr
-    - .docker
   timeout: 1h
   parallel:
     matrix:
@@ -113,14 +110,12 @@ tests:
       - TEST_FAMILIES: "-f cloud -f fault_tolerance -f pscos -f agents_transfers"
       # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min.
       - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos"
-  variables:
-    COMPSS_IMAGE: "${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
   script:
     - docker pull "${COMPSS_IMAGE}"
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do
-        export COMPSS_CONTAINER="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}_${CI_JOB_ID}_s${s}"
+        export COMPSS_CONTAINER="${BRANCH_NAME}_${CI_JOB_ID}_${s}"
         "${CI_PROJECT_DIR}/tests/scripts/docker_test" -FF ${TEST_FAMILIES} --shard ${s}/${TEST_SHARDS} &> "docker_test_s${s}.log" &
         pids="${pids} $!"
       done
@@ -129,19 +124,38 @@ tests:
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do
-        export COMPSS_CONTAINER="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}_${CI_JOB_ID}_s${s}"
+        export COMPSS_CONTAINER="${BRANCH_NAME}_${CI_JOB_ID}_${s}"
         tail -n $(tac "docker_test_s${s}.log" | grep -nm 1 '*** RUNNING' | cut -f1 -d:) "docker_test_s${s}.log" || true
         docker cp ${COMPSS_CONTAINER}:/root/tests_execution_sandbox/logs . &> /dev/null || true
         docker rm -fv ${COMPSS_CONTAINER} &> /dev/null || true
       done
     - docker rmi ${COMPSS_IMAGE} &> /dev/null || true
   artifacts:
-    name: "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}_${CI_JOB_ID}"
+    name: "${BRANCH_NAME}_${CI_JOB_ID}"
     when: always
     expire_in: 7 days
     paths:
       - docker_test*.log
       - logs
+
+tests:
+  extends:
+    - .mr
+    - .docker
+    - .tests
+  variables:
+    BRANCH_NAME: "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+    COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
+
+night:
+  extends:
+    - .docker
+    - .tests
+  variables:
+    BRANCH_NAME: "${CI_DEFAULT_BRANCH}"
+    COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 clean:
   stage: clean

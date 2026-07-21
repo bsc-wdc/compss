@@ -2531,6 +2531,7 @@ load_external_compss_environment() {
       unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
       export COMPSS_LOG_LEVEL=${log_level}
       export COMPSS_TRACING=${tracing}
+      export COMPSS_TRACING_MONITOR=${tracing_monitor}
       if [ -v "$tracing" ] && [ $tracing != "false" ]; then
         load_tracing_env
       fi

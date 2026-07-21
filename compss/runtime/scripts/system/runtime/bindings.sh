@@ -85,6 +85,7 @@ check_bindings_setup () {
   enable_bindings="false"
   enable_c="false"
   enable_python="false"
+  enable_r="false"
   if [ -z "$lang" ]; then
     lang="UNKNOWN"
     enable_java="true"
@@ -103,6 +104,9 @@ check_bindings_setup () {
   elif [ "$lang" = "python" ]; then
     enable_bindings="true"
     enable_python="true"
+  elif [ "$lang" = "r" ]; then
+    enable_bindings="true"
+    enable_r="true"
   fi
 
   if [ "${enable_bindings}" = "true" ]; then
@@ -269,6 +273,9 @@ EOT
   if [ "${enable_c}" = "true" ]; then
     add_bindings_jvm_opts_c "${jvm_options_file}"
   fi
+  if [ "${enable_r}" = "true" ]; then
+    add_bindings_jvm_opts_r "${jvm_options_file}"
+  fi
 }
 
 add_bindings_jvm_opts_java() {
@@ -302,6 +309,10 @@ add_bindings_jvm_opts_python() {  # PLEASE: Any new parameter added here may be 
 -Dcompss.python.worker_cache=${python_worker_cache}
 -Dcompss.python.cache_profiler=${python_cache_profiler}
 EOT
+}
+
+add_bindings_jvm_opts_r() {
+  :  # no need to to anything for R
 }
 
 

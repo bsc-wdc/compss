@@ -130,6 +130,17 @@ def get_tracing() -> bool:
     return "true" == os.environ["COMPSS_TRACING"]
 
 
+def get_tracing_monitor() -> bool:
+    """Get tracing monitor boolean.
+
+    TIP: The environment variable COMPSS_TRACING_MONITOR is defined in the
+         launch_compss script.
+
+    :return: Tracing boolean.
+    """
+    return "true" == os.environ["COMPSS_TRACING_MONITOR"]
+
+
 def get_storage_conf() -> str:
     """Get storage configuration file.
 

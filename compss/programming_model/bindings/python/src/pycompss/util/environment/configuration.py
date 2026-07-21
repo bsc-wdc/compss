@@ -41,6 +41,7 @@ from pycompss.util.supercomputer.scs import get_master_port
 from pycompss.util.supercomputer.scs import get_master_working_dir
 from pycompss.util.supercomputer.scs import get_storage_conf
 from pycompss.util.supercomputer.scs import get_tracing
+from pycompss.util.supercomputer.scs import get_tracing_monitor
 from pycompss.util.supercomputer.scs import get_uuid
 from pycompss.util.supercomputer.scs import get_xmls
 from pycompss.util.typing_helper import typing
@@ -248,6 +249,7 @@ def updated_variables_in_sc() -> dict:
     # Override tracing considering the parameter defined in
     # pycompss_interactive_sc script and exported by launch_compss
     trace = get_tracing()
+    trace_monitor = get_tracing_monitor()
     updated_vars = {
         "project_xml": project_xml,
         "resources_xml": resources_xml,
@@ -260,6 +262,7 @@ def updated_variables_in_sc() -> dict:
         "log_level": log_level,
         "debug": debug,
         "trace": trace,
+        "trace_monitor": trace_monitor,
     }
     return updated_vars
 
@@ -355,7 +358,8 @@ def create_init_config_file(
     master_working_dir: str,
     graph: bool,
     monitor: int,
-    trace: int,
+    trace: bool,
+    trace_monitor: bool,
     extrae_cfg: str,
     extrae_final_directory: str,
     comm: str,
@@ -426,6 +430,7 @@ def create_init_config_file(
     :param graph: <Boolean> Enable/Disable graph generation.
     :param monitor: None|<Integer> Disable/Frequency of the monitor.
     :param trace: <Boolean> Enable/Disable trace generation.
+    :param trace_monitor: <Boolean> Enable/Disable trace monitor.
     :param extrae_cfg: None|<String> Default extrae configuration/user
                        specific extrae configuration.
     :param extrae_final_directory: None|<String>
@@ -775,7 +780,10 @@ def create_init_config_file(
         if trace:
             jvm_options_file.write("-Dcompss.tracing=true\n")
             jvm_options_file.write("-Dcompss.tracing.extrae=true\n")
-            jvm_options_file.write("-Dcompss.tracing.monitor=false\n")
+            if trace_monitor:
+                jvm_options_file.write("-Dcompss.tracing.monitor=true\n")
+            else:
+                jvm_options_file.write("-Dcompss.tracing.monitor=false\n")
             # Process extrae_xml_path
             extrae_xml_final_path_dir = os.path.join(log_dir, "cfgfiles")
             pathlib.Path(extrae_xml_final_path_dir).mkdir(

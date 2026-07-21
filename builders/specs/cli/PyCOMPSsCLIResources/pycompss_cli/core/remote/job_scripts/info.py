@@ -78,7 +78,7 @@ def info():
         jpy_server_out = ''
         timeout = time.time() + 60*2
         jup_out_file = f'{app_path}/compss-{job_id}.err'
-        while 'The Jupyter Notebook is running at' not in jpy_server_out:
+        while 'is running at' not in jpy_server_out:
             if time.time() > timeout:
                 print(ERROR_KEYWORD)
                 exit(1)

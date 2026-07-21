@@ -44,6 +44,7 @@ dynamic = ["version", "readme"]
 dependencies = [
     "setuptools",
     "rocrate",
+    "rich",
 ]
 
 [project.optional-dependencies]

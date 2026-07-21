@@ -42,7 +42,7 @@ DEFAULT_PROVENANCE_YAML="ro-crate-info.yaml"
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c, python or r"
-TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
+TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, extrae, and monitor"
 
 
 #---------------------------------------------------

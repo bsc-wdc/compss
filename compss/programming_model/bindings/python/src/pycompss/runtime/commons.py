@@ -95,7 +95,7 @@ class Constants:  # pylint: disable=R0902,R0903
         ):
             self.running_in_supercomputer = True
         elif (
-            "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4"
+            "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn5"
         ):
             # Only supported in MN4 currently
             self.running_in_supercomputer = True

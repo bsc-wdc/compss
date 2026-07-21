@@ -86,6 +86,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     o_c: bool = False,
     graph: bool = False,
     trace: bool = False,
+    trace_monitor: bool = False,
     monitor: int = -1,
     project_xml: str = "",
     resources_xml: str = "",
@@ -150,6 +151,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                   (default: False)
     :param trace: Generate trace [ True | False ]
                   (default: False)
+    :param trace_monitor: Connect with monitor [ True | False ]
+                          (default: False)
     :param monitor: Monitor refresh rate
                     (default: None)
     :param project_xml: Project xml file path
@@ -291,6 +294,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         o_c,
         graph,
         trace,
+        trace_monitor,
         monitor,
         project_xml,
         resources_xml,
@@ -397,6 +401,10 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
             )
             print(f"- Overridden debug with: {str(updated_vars['debug'])}")
             print(f"- Overridden trace with: {str(updated_vars['trace'])}")
+            print(
+                f"- Overridden trace_monitor with: "
+                f"{str(updated_vars['trace_monitor'])}"
+            )
         all_vars.update(updated_vars)
 
     # Update the tracing environment if set and set the appropriate trace

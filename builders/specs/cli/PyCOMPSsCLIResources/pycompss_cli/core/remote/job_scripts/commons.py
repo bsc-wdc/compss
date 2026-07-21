@@ -249,7 +249,7 @@ def _export_environment_variables(env_file=None, include=None):
         if env_file:
             print("Exporting environment variables from: " + env_file)
         if include:
-            print("Exporting environment variables: " + include)
+            print("Exporting environment variables: " + str(include))
     return_code, stdout, stderr = command_runner(command)
     for line in stdout.splitlines():
         (key, _, value) = line.partition("=")

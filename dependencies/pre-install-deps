@@ -62,7 +62,7 @@ Options:
                                 translation in the Extrae merger (EXTRAE_BINUTILS_PATH)
                                 Default: ${DEFAULT_BINUTILS_PATH}
 
-    --extrae                    Install Extrae ${EXTRAE_VERSION} (BSC fork)
+    --extrae                    Install Extrae ${EXTRAE_VERSION}
     --no-extrae                 Skip Extrae installation
                                 Default: ${DEFAULT_INSTALL_EXTRAE}
 
@@ -177,7 +177,6 @@ already_installed() {
 
 check_submodule() {
   local submodule_path="$1"
-  local name="$2"
   if [ ! -d "${submodule_path}" ] || [ -z "$(ls -A "${submodule_path}")" ]; then
     echo "ERROR: Submodule '${submodule_path}' is not initialized."
     echo "       Run: git submodule update --init ${submodule_path}"
@@ -199,11 +198,11 @@ install_extrae() {
     return
   fi
 
-  check_submodule "${src}" "dependencies/extrae"
+  wget "https://ftp.tools.bsc.es/extrae/extrae-${EXTRAE_VERSION}-src.tar.bz2"
+  tar xvf "extrae-${EXTRAE_VERSION}-src.tar.bz2"
+  mv "extrae-${EXTRAE_VERSION}" "${src}"
 
-  echo "[extrae] Building Extrae ${EXTRAE_VERSION} from submodule sources..."
-  mkdir -p "${target}"
-
+  echo "[extrae] Building Extrae ${EXTRAE_VERSION} from tarball..."
   export EXTRAE_MPI_HEADERS="${mpi_headers}"
   export EXTRAE_BINUTILS_PATH="${binutils_path}"
   cd "${SOURCES_DIR}/dependencies"

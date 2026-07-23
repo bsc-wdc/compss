@@ -141,7 +141,6 @@ check_tracing_setup () {
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
     export EXTRAE_HOME=${EXTRAE_HOME}
     export EXTRAE_CONFIG_FILE=${extraeFile}
-    export EXTRAE_USE_POSIX_CLOCK=0
   else
     extraeFile="null"
     extraeWDir="null"

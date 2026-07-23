@@ -94,7 +94,7 @@ target "_common" {
 
     # git
     DLB_VERSION="3.6.0"
-    EXTRAE_VERSION="3.5.3"
+    EXTRAE_VERSION="5.0.6"
   }
   platforms = [for arch in ARCHS: "linux/${arch}64"]
 }

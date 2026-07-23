@@ -78,7 +78,6 @@ ARG DLB_VERSION
 ARG EXTRAE_VERSION
 RUN cd /framework && \
 	git clone --depth 1 -b v${DLB_VERSION} https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
-	git clone --depth 1 -b master_compss https://github.com/bsc-wdc/extrae.git dependencies/extrae && \
 	git clone --depth 1 -b next-release https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
 	git clone --depth 1 -b master https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
 	/framework/dependencies/pre-install-deps

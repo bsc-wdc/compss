@@ -164,7 +164,6 @@ def prepare_environment(
 
     extrae_lib = extrae_home + "/lib"
     os.environ["LD_LIBRARY_PATH"] = extrae_lib + ":" + ld_library_path
-    os.environ["EXTRAE_USE_POSIX_CLOCK"] = "0"
 
     control_binding_commons_debug(debug)
 

@@ -64,12 +64,6 @@
 
   <others enabled="no"/>
 
-  <sampling enabled="no"/>
-
-  <dynamic-memory enabled="no"/>
-
-  <input-output enabled="no"/>
-
   <merge enabled="no"/>
 
 </trace>

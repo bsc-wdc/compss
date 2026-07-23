@@ -106,10 +106,15 @@ build:
       # still a big win).
       - TEST_FAMILIES: "-f java"
         TEST_SHARDS: "2"
-      # cloud ~14 + fault_tolerance ~5 + pscos ~5 + agents_transfers ~3 = ~27 min.
+      # cloud ~14 + fault_tolerance ~5 + pscos ~5 + agents_transfers ~3 = ~27 min
+      # estimated, sequential. Shard it like the other family groups above.
       - TEST_FAMILIES: "-f cloud -f fault_tolerance -f pscos -f agents_transfers"
-      # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min.
+        TEST_SHARDS: "2"
+      # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min
+      # estimated, but runs sequentially in practice (~33 min observed) since it
+      # was never sharded like python/java above. Shard it the same way.
       - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos"
+        TEST_SHARDS: "2"
   script:
     # Mirror the whole runner-level trace (docker pull, shard invocations, cleanup)
     # into job.log, since GitLab's own job console has a size cap and truncates
@@ -126,7 +131,9 @@ build:
       for p in ${pids}; do wait "${p}" || exit 1; done
   after_script:
     # after_script runs in a fresh shell, so job.log needs to be re-attached (append mode).
-    - exec >> job.log 2>&1
+    # tee, not a plain redirect, so the tail'd test-results summary below still
+    # streams to the live GitLab job console instead of only landing in job.log.
+    - exec > >(tee -a job.log) 2>&1
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do

@@ -111,6 +111,10 @@ build:
       # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min.
       - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos"
   script:
+    # Mirror the whole runner-level trace (docker pull, shard invocations, cleanup)
+    # into job.log, since GitLab's own job console has a size cap and truncates
+    # long jobs — job.log is the durable, complete record.
+    - exec > >(tee job.log) 2>&1
     - docker pull "${COMPSS_IMAGE}"
     - |
       : "${TEST_SHARDS:=1}"
@@ -121,6 +125,8 @@ build:
       done
       for p in ${pids}; do wait "${p}" || exit 1; done
   after_script:
+    # after_script runs in a fresh shell, so job.log needs to be re-attached (append mode).
+    - exec >> job.log 2>&1
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do
@@ -135,6 +141,7 @@ build:
     when: always
     expire_in: 7 days
     paths:
+      - job.log
       - docker_test*.log
       - logs
 

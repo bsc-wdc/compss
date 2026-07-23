@@ -217,7 +217,7 @@
       exit $ev
     fi
 
-    if [ $(uname) == "Darwin" ]; then   # para linux parece que si que es necesario tambien en Shaheen.
+    if [ "$(uname)" == "Darwin" ]; then   # para linux parece que si que es necesario tambien en Shaheen.
       otherFlags="--enable-pthread"
     else
       otherFlags=""
@@ -225,9 +225,9 @@
 
     is_cray="false"
     if test -d /opt/cray ; then
-       if test `which cc | grep xt-asyncpe | wc -l` != "0" ; then
+       if test "$(which cc | grep xt-asyncpe | wc -l)" != "0" ; then
          is_cray="true"
-       elif test `which cc | grep craype | wc -l` != "0" ; then
+       elif test "$(which cc | grep craype | wc -l)" != "0" ; then
          is_cray="true"
        fi
     fi
@@ -242,47 +242,43 @@
       # Preserve any caller-exported CFLAGS (e.g. site-specific -march flags).
       ./configure \
         CFLAGS="${CFLAGS:+${CFLAGS} }-g -O2 -Wno-implicit-function-declaration" \
-        --enable-gettimeofday-clock \
+        --enable-posix-clock \
         --without-unwind \
         --without-dyninst \
-        "${argBinutils}" \
         "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
         "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
         --with-java-jdk="${JAVA_HOME}" \
         --disable-openmp \
-        --enable-nanos \
+        --disable-nanos \
         --disable-smpss \
         --disable-instrument-io \
         --disable-pebs-sampling \
+        --disable-sampling \
+        --disable-instrument-dynamic-memory \
         --disable-pthread-cond-calls \
         "${otherFlags}" \
         --prefix="${extraeTarget}" \
-        --libdir="${extraeTarget}/lib" \
-        --target=${TARGET_HOST}
+        --with-xml=/usr --with-xml2-libs="/usr/lib/$(uname -m)-linux-gnu"
       ev=$?
     else
       # Cray machine
       ./configure \
         --enable-pthread \
-        --enable-gettimeofday-clock \
+        --enable-posix-clock \
         --without-unwind \
         --without-dyninst \
-        "${argBinutils}" \
         "${argMpi}" "${argMpiMerge}" "${argMpiHeaders}" "${argMpiLibs}" \
         "${argPapi}" "${argPapiHeaders}" "${argPapiLibs}"\
         --with-java-jdk="${JAVA_HOME}" \
         --disable-openmp \
-        --enable-nanos \
+        --disable-nanos \
         --disable-smpss \
         --disable-instrument-io \
         --disable-pebs-sampling \
+        --disable-sampling \
+        --disable-instrument-dynamic-memory \
         --prefix="${extraeTarget}" \
-        --libdir="${extraeTarget}/lib" \
-        --disable-xmltest \
-        --with-binary-type=64 \
-        --host=x86_64-linux-gnu \
-        --target=x86_64-linux-gnu \
-        --with-xml-prefix=/usr \
+        --with-xml=/usr \
         CC=cc CFLAGS='-O3 -g -std=gnu90 -lpthread' LDFLAGS='-O3 -g -std=gnu90 -lpthread' CXX=CC CXXFLAGS='-O3 -g' F77=ftn FFLAGS='-O3 -g -std=gnu90 -lpthread'
       ev=$?
     fi
@@ -291,7 +287,8 @@
       exit $ev
     fi
 
-    make clean install
+    rm -rf "${extraeTarget}"
+    make && make install
     ev=$?
     if [ "$ev" -ne 0 ]; then
       exit $ev

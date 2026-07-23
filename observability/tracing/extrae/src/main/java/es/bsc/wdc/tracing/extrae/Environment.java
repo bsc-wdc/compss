@@ -21,13 +21,11 @@ public enum Environment {
     EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE, //
     EXTRAE_LIB, //
     EXTRAE_CONFIG_FILE, //
-    EXTRAE_USE_POSIX_CLOCK, //
     LD_PRELOAD;//
 
 
     public static final Environment[] REMOVE_ENVIRONMENT_VARIABLES = new Environment[] { //
-        Environment.EXTRAE_CONFIG_FILE, //
-        Environment.EXTRAE_USE_POSIX_CLOCK //
+        Environment.EXTRAE_CONFIG_FILE //
     };
 
     // Extrae environment variables

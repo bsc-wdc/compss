@@ -46,7 +46,7 @@ TracingInterface tracing;
 void registerWorkflow() {
 	pthread_mutex_lock(&workflow_mutex);
 	// double-check to ensure that other threads hadn't registered the workflow while waiting
-	if (workflow == NULL) {  
+	if (workflow == NULL) {
 		workflow = runtime.registerWorkflow();
 		wf_appId = workflow->getId(workflow);
 	}

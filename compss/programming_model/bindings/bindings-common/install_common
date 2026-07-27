@@ -6,6 +6,7 @@
   JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
   ERROR_AUTORECONF="Error: Some error occurred while executing autoreconf"
   ERROR_CONFIGURE="Error: Some error occurred while executing configure"
+  ERROR_CHECK="Error: bindings-common unit tests failed"
   ERROR_INSTALL="Error: Some error occurred while executing install"
 
   #######################################
@@ -13,6 +14,52 @@
   #######################################
   clean_env() {
     ./clean.sh
+  }
+
+  # Build and run the bindings-common unit test suite, aborting the install if
+  # anything fails to compile or any test fails. install() is invoked once per
+  # destination (scriptDir, then the caller's target), but the sources are
+  # identical each time, so only the first call actually runs the suite.
+  UNIT_TESTS_DONE=false
+  run_unit_tests() {
+    local ev
+
+    if [ "${UNIT_TESTS_DONE}" == "true" ]; then
+      return 0
+    fi
+    UNIT_TESTS_DONE=true
+
+    # The test binary runs on the build host, so skip when cross-compiling for
+    # a triplet this machine cannot execute.
+    local build_triplet
+    build_triplet=$(${CC:-gcc} -dumpmachine)
+    if [ -n "${TARGET_HOST}" ] && [ "${TARGET_HOST}" != "${build_triplet}" ]; then
+      echo "Skipping bindings-common unit tests (cross-compiling for ${TARGET_HOST}, build host is ${build_triplet})"
+      return 0
+    fi
+
+    echo "Running bindings-common unit tests (build_triplet=${build_triplet})"
+    # Capture make check's status directly. `if ! make check` would clobber $?
+    # with the negated boolean (always 0 on failure), so the script would
+    # silently succeed when tests failed.
+    set +e
+    make check
+    ev=$?
+    set -e
+    if [ $ev -eq 0 ]; then
+      return 0
+    fi
+
+    # make check prints only a summary; the per-suite logs hold the actual
+    # compile errors and assertion diffs, so dump them for the CI job log.
+    echo "${ERROR_CHECK} (exit code ${ev})"
+    local log
+    for log in tests/*.log; do
+      [ -f "${log}" ] || continue
+      echo "--- ${log} ---"
+      cat "${log}"
+    done
+    exit $ev
   }
 
   install() {
@@ -39,6 +86,9 @@
       echo "${ERROR_CONFIGURE}"
       exit $ev
     fi
+
+    run_unit_tests
+
     make clean install
     ev=$?
     if [ $ev -ne 0 ]; then

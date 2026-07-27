@@ -1,0 +1,127 @@
+bindings-common
+===============
+
+Native C/C++ library shared by the COMPSs language bindings (Python, C/C++,
+etc.). It provides the glue between the bindings and the COMPSs Java runtime
+and exposes a uniform interface over the JNI, named-pipe, and UNIX-socket
+transports.
+
+Layout
+------
+
+  src/                  Library sources (libbindings_common).
+  tests/                Unit tests.
+    harness/            Test doubles for the runtime API and transports.
+    internal/           Test-only headers and the in-tree microtest framework.
+    stubs/              Lightweight header stubs used by the tests.
+  install_common        Helper script used by the parent build to install the
+                        library into a target prefix.
+  autogen.sh            Regenerates the Autotools build system.
+  clean.sh              Removes generated Autotools artefacts.
+
+Requirements
+------------
+
+  - GNU Autotools (autoconf, automake, libtool)
+  - A C++11 compiler (g++ recommended)
+  - JDK with JNI headers; JAVA_HOME must point at it
+  - pthread (linked from the test binary)
+
+The unit tests no longer depend on googletest, gmock, or cmake. The only
+extra runtime requirement beyond what the library itself needs is pthread.
+
+Build
+-----
+
+From this directory:
+
+    ./autogen.sh
+    ./configure
+    make
+
+The shared library is produced at src/.libs/libbindings_common.so. Use the
+top-level COMPSs build (or install_common) to install it into the runtime
+layout consumed by the bindings.
+
+To start from a pristine tree (removes configure, Makefiles, m4, etc.):
+
+    ./clean.sh
+
+Running the tests
+-----------------
+
+The unit tests live under tests/ and are wired into the standard Autotools
+"check" target. After configuring and building the library:
+
+    make check
+
+This builds the test binary (linking against libbindings_common, the test
+harness library, and the in-tree microtest framework) and runs it through
+the Autotools test driver. Per-test logs are written to tests/test-suite.log
+and tests/test_gs_compss.log; on failure those files contain the full output.
+
+The driver prints gtest-compatible status lines (`[ RUN ] / [ OK ] / [ FAILED ]`)
+so existing CI parsing keeps working.
+
+Coverage instrumentation (--coverage) is enabled by default for the test
+build, so .gcno/.gcda files are produced alongside the test objects.
+
+Running a subset of tests
+-------------------------
+
+The test binary accepts a googletest-style glob filter, matched against the
+full `Suite.Name` (plus `/param` for parameterized cases). `*` matches any
+run of characters and `?` matches one, so patterns must cover the whole name
+-- wrap a fragment in `*` to match anywhere:
+
+    ./tests/test_gs_compss --filter='*BarrierGroup*'
+    ./tests/test_gs_compss --filter='*/sockets'       # only the sockets variants
+    ./tests/test_gs_compss --filter='CompssSocketsTest.*'
+
+Several patterns can be separated with `:`, and a `-` introduces patterns to
+exclude:
+
+    ./tests/test_gs_compss --filter='*Barrier*:*Snapshot*'
+    ./tests/test_gs_compss --filter='-*/sockets'      # everything but sockets
+
+For backwards compatibility with prior googletest-based invocations,
+`--gtest_filter=` is accepted as an alias and uses the same syntax.
+
+A filter that selects no tests exits non-zero rather than reporting a vacuous
+success, so a typo in a pattern fails loudly instead of passing silently.
+
+Test layout
+-----------
+
+  tests/test_gs_compss.cc
+        Main suite. Drives the public GS_* runtime API through a polymorphic
+        TransportHarness/RuntimeApi abstraction (in tests/harness/) and runs
+        every parameterized case against both the pipes and sockets
+        transports. Verifies wire-format output and response parsing.
+
+  tests/test_compss_sockets.cc
+        White-box test for the UNIX-socket transport's connect-on-ready and
+        retry-until-server-available behaviour. Reaches the internal entry
+        points via tests/internal/compss_sockets_test_api.h, which keeps
+        these symbols out of the shipped public header.
+
+  tests/internal/microtest.{h,cc}, microtest_main.cc
+        In-tree unit-test framework. ~330 lines total. Provides
+        TEST/TEST_P, EXPECT_*/ASSERT_*, a substring filter and a simple
+        registry. Replaces googletest. See the file headers for the
+        public surface.
+
+  tests/internal/gs_test_reset.cc
+        Test-only translation unit that resets the cached workflow in
+        GS_compss.cc between parameterized cases so tests stay independent
+        when the parameterized suite switches transports. Externs the
+        relevant globals from src/GS_compss.cc rather than adding a hook
+        to production source.
+
+Environment overrides honoured by the test build:
+
+    COMPSS_BINDINGS_DEBUG=1   Set automatically by AM_TESTS_ENVIRONMENT so
+                              that debug_printf branches are exercised.
+
+To re-run the tests after editing sources, just run `make check` again — the
+library and test binary are rebuilt incrementally.

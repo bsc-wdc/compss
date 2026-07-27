@@ -32,6 +32,10 @@
 #include "GS_compss.h"
 #include "common_test_types.h"
 
+// Test-only hook defined in GS_compss.cc; resets the cached workflow so each
+// test sees a fresh registration against the current runtime.
+extern "C" void GS_test_reset_workflow(void);
+
 struct SocketsHarness : public TransportHarness {
     int listenFd{-1};
     int harnessFd{-1};
@@ -59,6 +63,7 @@ struct SocketsHarness : public TransportHarness {
         }
 
         GS_set_socket_endpoint(const_cast<char*>(socketPath.c_str()));
+        GS_test_reset_workflow();
 
         harnessFd = acceptConnection(listenFd);
         closeFd(listenFd);

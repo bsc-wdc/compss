@@ -15,8 +15,7 @@
  *
  */
 
-#include "internal/microtest.h"
-
+#include <gtest/gtest.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -44,52 +43,23 @@ struct TransportBundle {
     RuntimeApi* (*makeRuntime)();
 };
 
-// Per-test transport state. Test bodies refer to these as if they were
-// fixture members; the registered runner repopulates them via setup_for()
-// before each invocation, the way a fixture's SetUp() would.
-std::unique_ptr<TransportHarness> harness;
-std::unique_ptr<RuntimeApi> runtime;
-
-const TransportBundle bundle_pipes{ "pipes", &makePipesHarness, &makePipesRuntime };
-const TransportBundle bundle_sockets{ "sockets", &makeSocketsHarness, &makeSocketsRuntime };
-
-void setup_for(const TransportBundle& bundle) {
-    harness.reset(bundle.makeHarness());
-    runtime.reset(bundle.makeRuntime());
-    harness->reset();
-}
-
 } // anonymous namespace
 
-// Fixture surrogates for the TEST_P macro. Each provides a templated
-// register_test() that pushes one registry entry per parameter, wrapping the
-// body in a runner that runs setup_for() first.
-//
-// Registrar exists purely for its constructor's side effect, so a temporary
-// does the job -- allocating one with new would leak it for the life of the
-// process and show up under a leak checker.
-struct GenericRuntimeTransportTest {
-    template <void (*Body)()>
-    static int register_test(const char* name) {
-        ::microtest::Registrar(
-            "GenericRuntimeTransportTest", name, "pipes",
-            []{ setup_for(bundle_pipes); Body(); });
-        ::microtest::Registrar(
-            "GenericRuntimeTransportTest", name, "sockets",
-            []{ setup_for(bundle_sockets); Body(); });
-        return 0;
+class RuntimeTransportTest : public ::testing::TestWithParam<TransportBundle> {
+protected:
+    std::unique_ptr<TransportHarness> harness;
+    std::unique_ptr<RuntimeApi> runtime;
+
+    void SetUp() override {
+        auto bundle = GetParam();
+        harness.reset(bundle.makeHarness());
+        runtime.reset(bundle.makeRuntime());
+        harness->reset();
     }
 };
 
-struct PipeRuntimeTransportTest {
-    template <void (*Body)()>
-    static int register_test(const char* name) {
-        ::microtest::Registrar(
-            "PipeRuntimeTransportTest", name, "pipes",
-            []{ setup_for(bundle_pipes); Body(); });
-        return 0;
-    }
-};
+class GenericRuntimeTransportTest : public RuntimeTransportTest {};
+class PipeRuntimeTransportTest : public RuntimeTransportTest {};
 
 TEST_P(PipeRuntimeTransportTest, PipeOn_NoCommandWritten) {
     // PIPE_On is marked as not currently implemented for pipes and should not write a command.
@@ -157,7 +127,7 @@ TEST_P(PipeRuntimeTransportTest, PipeOff_NoCommandWritten) {
 TEST_P(GenericRuntimeTransportTest, PipeCancelApplicationTasks_WritesCommand) {
     long appId = 12345L;
     runtime->cancelApplicationTasks(appId);
-    EXPECT_EQ(harness->commands(), "CANCEL_APPLICATION_TASKS \n");
+    EXPECT_EQ(harness->commands(), "CANCEL_APPLICATION_TASKS 12345\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeRegisterCE_WritesCommand) {
@@ -219,15 +189,11 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_WritesCorrectCommand) {
         }
     };
 
-    runtime->executeTaskNew(appId, signature, onFailure, timeout, priority, numNodes,
+    runtime->executeTask(appId, signature, onFailure, timeout, priority, numNodes,
                             reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
 
-    // The on-failure policy travels on the wire as its numeric failure_policy
-    // code (generated into runtime_semantics.h), not as the source string.
     std::string expectedCommand =
-        "EXECUTE_NESTED_TASK my.package.MyClass.anotherMethod(long) "
-        + std::to_string(failure_policy::IGNORE) +
-        " 5000 false 2 true 10 false true false 0 2 [ "
+        "EXECUTE_NESTED_TASK my.package.MyClass.anotherMethod(long) IGNORE 5000 false 2 true 10 false true false 0 2 [ "
         " { \"Value\" : \"9876543210\", \"DataType\" : 5, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"longParam\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false }, "
         " { \"Value\" : NULL , \"DataType\" : 32, \"Direction\" : 1, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"nullResult\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
 
@@ -243,7 +209,7 @@ TEST_P(GenericRuntimeTransportTest, PipeAccessedFile_WritesCommandAndParsesResul
 
     int result = runtime->accessedFile(appId, fileName);
 
-    EXPECT_EQ(harness->commands(), "FILE_ACCESSED test_file.txt\n");
+    EXPECT_EQ(harness->commands(), "FILE_ACCESSED 1 test_file.txt\n");
     EXPECT_EQ(result, 1);
 
     // Simulate runtime returning 0 (false) for file not accessed
@@ -251,7 +217,7 @@ TEST_P(GenericRuntimeTransportTest, PipeAccessedFile_WritesCommandAndParsesResul
 
     result = runtime->accessedFile(appId, fileName);
 
-    EXPECT_EQ(harness->commands(), "FILE_ACCESSED test_file.txt\nFILE_ACCESSED test_file.txt\n");
+    EXPECT_EQ(harness->commands(), "FILE_ACCESSED 1 test_file.txt\nFILE_ACCESSED 1 test_file.txt\n");
     EXPECT_EQ(result, 0);
 }
 
@@ -262,7 +228,7 @@ TEST_P(GenericRuntimeTransportTest, PipeCloseFile_WritesCommand) {
 
     runtime->closeFile(appId, fileName, mode);
 
-    EXPECT_EQ(harness->commands(), "CLOSE_FILE another_file.txt 2\n");
+    EXPECT_EQ(harness->commands(), "CLOSE_FILE 1 another_file.txt 2\n");
     EXPECT_TRUE(harness->commands().find("CLOSE_FILE") != std::string::npos);
 }
 
@@ -277,7 +243,7 @@ TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_WritesCommandAndParsesResult)
 
     int result = runtime->deleteFile(appId, fileName, waitForData, applicationDelete);
 
-    EXPECT_EQ(harness->commands(), "DELETE_FILE file_to_delete.txt true false\n");
+    EXPECT_EQ(harness->commands(), "DELETE_FILE 1 file_to_delete.txt true false\n");
     // The current PipesRuntime::deleteFile returns 0 as a dummy, but the command is written.
     // We are testing the command formatting here, not the return value of PipesRuntime::deleteFile
     // which needs to be adjusted in a later step if the actual parsed value is needed.
@@ -294,7 +260,7 @@ TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_FalseWaitTrueApplicationDelet
 
     runtime->deleteFile(appId, (char*)fileName.c_str(), wait, applicationDelete);
 
-    EXPECT_EQ(harness->commands(), "DELETE_FILE file_to_delete_false_true.txt false true\n");
+    EXPECT_EQ(harness->commands(), "DELETE_FILE 1 file_to_delete_false_true.txt false true\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_TrueWaitTrueApplicationDelete_WritesCommand) {
@@ -307,7 +273,7 @@ TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_TrueWaitTrueApplicationDelete
 
     runtime->deleteFile(appId, (char*)fileName.c_str(), wait, applicationDelete);
 
-    EXPECT_EQ(harness->commands(), "DELETE_FILE file_to_delete_true_true.txt true true\n");
+    EXPECT_EQ(harness->commands(), "DELETE_FILE 1 file_to_delete_true_true.txt true true\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_FalseWaitFalseApplicationDelete_WritesCommand) {
@@ -320,7 +286,7 @@ TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_FalseWaitFalseApplicationDele
 
     runtime->deleteFile(appId, (char*)fileName.c_str(), wait, applicationDelete);
 
-    EXPECT_EQ(harness->commands(), "DELETE_FILE file_to_delete_false_false.txt false false\n");
+    EXPECT_EQ(harness->commands(), "DELETE_FILE 1 file_to_delete_false_false.txt false false\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeGetFile_WritesCommandAndParsesResult) {
@@ -332,7 +298,7 @@ TEST_P(GenericRuntimeTransportTest, PipeGetFile_WritesCommandAndParsesResult) {
 
     int result = runtime->getFile(appId, fileName);
 
-    EXPECT_EQ(harness->commands(), "GET_FILE file_to_get.txt\n");
+    EXPECT_EQ(harness->commands(), "GET_FILE 1 file_to_get.txt\n");
     // The current PipesRuntime::getFile returns 0 as a dummy, but the command is written.
     // We are testing the command formatting here, not the return value of PipesRuntime::getFile
     // which needs to be adjusted in a later step if the actual parsed value is needed.
@@ -348,7 +314,7 @@ TEST_P(GenericRuntimeTransportTest, PipeGetDirectory_WritesCommandAndParsesResul
 
     int result = runtime->getDirectory(appId, dirName);
 
-    EXPECT_EQ(harness->commands(), "GET_DIRECTORY dir_to_get\n");
+    EXPECT_EQ(harness->commands(), "GET_DIRECTORY 1 dir_to_get\n");
     // The current PipesRuntime::getDirectory returns 0 as a dummy, but the command is written.
     // We are testing the command formatting here, not the return value of PipesRuntime::getDirectory
     // which needs to be adjusted in a later step if the actual parsed value is needed.
@@ -363,7 +329,7 @@ TEST_P(GenericRuntimeTransportTest, PipeBarrier_WritesCommand) {
 
     runtime->barrier(appId);
 
-    EXPECT_EQ(harness->commands(), "BARRIER \n");
+    EXPECT_EQ(harness->commands(), "BARRIER 1\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeBarrierNew_WritesCommand) {
@@ -375,13 +341,13 @@ TEST_P(GenericRuntimeTransportTest, PipeBarrierNew_WritesCommand) {
 
     runtime->barrierNew(appId, noMoreTasks);
 
-    EXPECT_EQ(harness->commands(), "BARRIER_NEW true \n");
+    EXPECT_EQ(harness->commands(), "BARRIER_NEW 1 true \n");
 
     harness->reset();
     noMoreTasks = false;
     harness->enqueueResponse("SYNCH\n");
     runtime->barrierNew(appId, noMoreTasks);
-    EXPECT_EQ(harness->commands(), "BARRIER_NEW false \n");
+    EXPECT_EQ(harness->commands(), "BARRIER_NEW 1 false \n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeBarrierGroup_WritesCommandAndNoException) {
@@ -393,7 +359,7 @@ TEST_P(GenericRuntimeTransportTest, PipeBarrierGroup_WritesCommandAndNoException
 
     std::string exception = runtime->barrierGroup(appId, groupName);
 
-    EXPECT_EQ(harness->commands(), "BARRIER_GROUP myGroup\n");
+    EXPECT_EQ(harness->commands(), "BARRIER_GROUP 1 myGroup\n");
     EXPECT_TRUE(exception.empty());
 }
 
@@ -407,7 +373,7 @@ TEST_P(GenericRuntimeTransportTest, PipeBarrierGroup_WritesCommandAndParsesUnexp
 
     std::string exception = runtime->barrierGroup(appId, groupName);
 
-    EXPECT_EQ(harness->commands(), "BARRIER_GROUP myGroup\n");
+    EXPECT_EQ(harness->commands(), "BARRIER_GROUP 1 myGroup\n");
     EXPECT_TRUE(exception.empty());
 }
 
@@ -418,12 +384,12 @@ TEST_P(GenericRuntimeTransportTest, PipeOpenTaskGroup_WritesCommand) {
 
     runtime->openTaskGroup(groupName, implicitBarrier, appId);
 
-    EXPECT_EQ(harness->commands(), "OPEN_TASK_GROUP myTaskGroup true \n");
+    EXPECT_EQ(harness->commands(), "OPEN_TASK_GROUP 1 myTaskGroup true \n");
 
     harness->reset();
     implicitBarrier = false;
     runtime->openTaskGroup(groupName, implicitBarrier, appId);
-    EXPECT_EQ(harness->commands(), "OPEN_TASK_GROUP myTaskGroup false \n");
+    EXPECT_EQ(harness->commands(), "OPEN_TASK_GROUP 1 myTaskGroup false \n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeCloseTaskGroup_WritesCommand) {
@@ -432,7 +398,7 @@ TEST_P(GenericRuntimeTransportTest, PipeCloseTaskGroup_WritesCommand) {
 
     runtime->closeTaskGroup(groupName, appId);
 
-    EXPECT_EQ(harness->commands(), "CLOSE_TASK_GROUP myTaskGroup\n");
+    EXPECT_EQ(harness->commands(), "CLOSE_TASK_GROUP 1 myTaskGroup\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeCancelTaskGroup_WritesCommandAndNoException) {
@@ -444,7 +410,7 @@ TEST_P(GenericRuntimeTransportTest, PipeCancelTaskGroup_WritesCommandAndNoExcept
 
     std::string exception = runtime->cancelTaskGroup(groupName, appId);
 
-    EXPECT_EQ(harness->commands(), "CANCEL_TASK_GROUP myCancelGroup\n");
+    EXPECT_EQ(harness->commands(), "CANCEL_TASK_GROUP 1 myCancelGroup\n");
     EXPECT_TRUE(exception.empty());
 }
 
@@ -458,7 +424,7 @@ TEST_P(GenericRuntimeTransportTest, PipeCancelTaskGroup_WritesCommandAndHandlesU
 
     std::string exception = runtime->cancelTaskGroup(groupName, appId);
 
-    EXPECT_EQ(harness->commands(), "CANCEL_TASK_GROUP weirdGroup\n");
+    EXPECT_EQ(harness->commands(), "CANCEL_TASK_GROUP 2 weirdGroup\n");
     EXPECT_TRUE(exception.empty());
 }
 
@@ -470,7 +436,7 @@ TEST_P(GenericRuntimeTransportTest, PipeSnapshot_WritesCommand) {
 
     runtime->snapshot(appId);
 
-    EXPECT_EQ(harness->commands(), "SNAPSHOT \n");
+    EXPECT_EQ(harness->commands(), "SNAPSHOT 1\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeGetAppDir_WritesCommandAndParsesResult) {
@@ -507,10 +473,7 @@ TEST_P(GenericRuntimeTransportTest, PipeGetObject_WritesCommandAndParsesResult) 
 
     std::string objectPath = runtime->getObject(appId, objectId);
 
-    // NOTE: command_builders.cc currently emits "GET_OBJECT<id>" with no
-    // separator between the verb and the object id (likely a bug). The test
-    // matches current behaviour; revisit if the wire format is fixed.
-    EXPECT_EQ(harness->commands(), "GET_OBJECTmyObjectId\n");
+    EXPECT_EQ(harness->commands(), "GET_OBJECT1 myObjectId\n");
     EXPECT_EQ(objectPath, expectedObjectPath);
 }
 
@@ -523,14 +486,26 @@ TEST_P(GenericRuntimeTransportTest, PipeDeleteObject_WritesCommandAndParsesResul
 
     int result = runtime->deleteObject(appId, objectId);
 
-    // NOTE: command_builders.cc currently emits "DELETE_OBJECT<id>" with no
-    // separator between the verb and the object id (likely a bug). The test
-    // matches current behaviour; revisit if the wire format is fixed.
-    EXPECT_EQ(harness->commands(), "DELETE_OBJECTmyObjectToDelete\n");
+    EXPECT_EQ(harness->commands(), "DELETE_OBJECT1 myObjectToDelete\n");
     // The current PipesRuntime::deleteObject returns 0 as a dummy, but the command is written.
     // We are testing the command formatting here, not the return value of PipesRuntime::deleteObject
     // which needs to be adjusted in a later step if the actual parsed value is needed.
     // EXPECT_EQ(result, 1); // This would fail due to dummy return
+}
+
+TEST_P(PipeRuntimeTransportTest, PipeSetWallClock_WritesCommand) {
+    long appId = 1L;
+    long wallClockTime = 1678886400000; // Example timestamp
+    bool stopRT = true;
+
+    runtime->setWallClock(appId, wallClockTime, stopRT);
+
+    EXPECT_TRUE(harness->commands().empty());
+
+    harness->reset();
+    stopRT = false;
+    runtime->setWallClock(appId, wallClockTime, stopRT);
+    EXPECT_TRUE(harness->commands().empty());
 }
 
 TEST_P(GenericRuntimeTransportTest, PipeOpenFile_WritesCommandAndParsesResult) {
@@ -544,7 +519,7 @@ TEST_P(GenericRuntimeTransportTest, PipeOpenFile_WritesCommandAndParsesResult) {
     std::string openedPath;
     runtime->openFile(appId, fileName, mode, openedPath);
 
-    EXPECT_EQ(harness->commands(), "OPEN_FILE input_data.txt 1\n");
+    EXPECT_EQ(harness->commands(), "OPEN_FILE 7 input_data.txt 1\n");
     EXPECT_EQ(openedPath, "/compss/path/input_data.txt");
 }
 
@@ -620,13 +595,11 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_NoParams_WritesCorrectComman
     int numReturns = 0;
     std::vector<Parameter> params = {};
 
-    runtime->executeTaskNew(appId, signature, onFailure, timeout, priority, numNodes,
+    runtime->executeTask(appId, signature, onFailure, timeout, priority, numNodes,
                             reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
 
     std::string expected =
-        "EXECUTE_NESTED_TASK pkg.Foo.bar() "
-        + std::to_string(failure_policy::IGNORE) +
-        " 1 false 1 false 0 false false false 0 0 [  ] \n";
+        "EXECUTE_NESTED_TASK pkg.Foo.bar() IGNORE 1 false 1 false 0 false false false 0 0 [  ] \n";
     EXPECT_EQ(harness->commands(), expected);
 }
 
@@ -658,13 +631,11 @@ TEST_P(GenericRuntimeTransportTest, PipeExecuteTask_PriorityReduceReplicatedHasT
         }
     };
 
-    runtime->executeTaskNew(appId, signature, onFailure, timeout, priority, numNodes,
+    runtime->executeTask(appId, signature, onFailure, timeout, priority, numNodes,
                             reduce, reduceChunkSize, replicated, distributed, hasTarget, numReturns, params);
 
     std::string expected =
-        "EXECUTE_NESTED_TASK pkg.Toggle.sig(int) "
-        + std::to_string(failure_policy::RETRY) +
-        " 321 true 2 true 5 true false true 1 1 [  { \"Value\" : \"7\", \"DataType\" : 4, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"y\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
+        "EXECUTE_NESTED_TASK pkg.Toggle.sig(int) RETRY 321 true 2 true 5 true false true 1 1 [  { \"Value\" : \"7\", \"DataType\" : 4, \"Direction\" : 0, \"IOStream\" : 3, \"Prefix\" : \"\", \"Name\" : \"y\", \"ContType\" : \"null\", \"Weight\" : \"1.0\", \"KeepRename\" : false } ] \n";
     EXPECT_EQ(harness->commands(), expected);
 }
 
@@ -678,17 +649,18 @@ TEST_P(GenericRuntimeTransportTest, PipeDeleteFile_TrueWaitFalseApplicationDelet
 
     runtime->deleteFile(appId, (char*)fileName.c_str(), wait, applicationDelete);
 
-    EXPECT_EQ(harness->commands(), "DELETE_FILE file_to_delete_true_false.txt true false\n");
+    EXPECT_EQ(harness->commands(), "DELETE_FILE 4 file_to_delete_true_false.txt true false\n");
 }
 
 TEST_P(GenericRuntimeTransportTest, CancelApplicationTasksFollowedByExecuteTaskKeepsTransportFunctional) {
     runtime->cancelApplicationTasks(77);
 
     std::vector<Parameter> params;
-    runtime->executeTaskNew(5,
+    runtime->executeTask(5,
                          "ChainedClass",
                          "IGNORE",
                          0,
+                         "linked",
                          0,
                          1,
                          false,
@@ -700,12 +672,28 @@ TEST_P(GenericRuntimeTransportTest, CancelApplicationTasksFollowedByExecuteTaskK
                          params);
 
     std::string commands = harness->commands();
-    auto cancelPos = commands.find("CANCEL_APPLICATION_TASKS \n");
+    auto cancelPos = commands.find("CANCEL_APPLICATION_TASKS 77\n");
     auto execPos = commands.find("EXECUTE_NESTED_TASK");
     ASSERT_NE(cancelPos, std::string::npos);
     ASSERT_NE(execPos, std::string::npos);
     EXPECT_LT(cancelPos, execPos);
 }
 
-// Parameterization is handled by the templated register_test() helpers on
-// each fixture surrogate above; no INSTANTIATE_TEST_SUITE_P needed.
+INSTANTIATE_TEST_SUITE_P(
+    GenericSuite,
+    GenericRuntimeTransportTest,
+    ::testing::Values(
+        TransportBundle{ "pipes", &makePipesHarness, &makePipesRuntime },
+        TransportBundle{ "sockets", &makeSocketsHarness, &makeSocketsRuntime }
+    ),
+    [](const testing::TestParamInfo<GenericRuntimeTransportTest::ParamType>& info){ return std::string(info.param.name); }
+);
+
+INSTANTIATE_TEST_SUITE_P(
+    PipesSuite,
+    PipeRuntimeTransportTest,
+    ::testing::Values(
+        TransportBundle{ "pipes", &makePipesHarness, &makePipesRuntime }
+    ),
+    [](const testing::TestParamInfo<PipeRuntimeTransportTest::ParamType>& info){ return std::string(info.param.name); }
+);

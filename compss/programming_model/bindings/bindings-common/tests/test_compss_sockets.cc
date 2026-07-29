@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-#include "internal/microtest.h"
+#include <gtest/gtest.h>
 
 #include <atomic>
 #include <chrono>
@@ -30,7 +30,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "internal/compss_sockets_test_api.h"
+#include "compss_sockets.h"
 
 namespace {
 
@@ -266,10 +266,10 @@ TEST(CompssSocketsTest, ConnectsWhenServerReady) {
     ASSERT_GE(accepted_fd.load(), 0);
 
     // Issue a command to confirm the transport path is functional.
-    SOCKET_WF_cancelApplicationTasks(nullptr);
+    SOCKET_Cancel_Application_Tasks(123);
 
     std::string commands = server.drain_commands();
-    EXPECT_NE(commands.find("CANCEL_APPLICATION_TASKS"), std::string::npos);
+    EXPECT_NE(commands.find("CANCEL_APPLICATION_TASKS 123\n"), std::string::npos);
 
     SOCKET_set_endpoint(nullptr);
 }
@@ -299,11 +299,11 @@ TEST(CompssSocketsTest, RetriesUntilServerAvailable) {
     accept_thread.join();
     ASSERT_GE(accepted_fd.load(), 0);
 
-    SOCKET_WF_cancelApplicationTasks(nullptr);
+    SOCKET_Cancel_Application_Tasks(456);
 
     // Commands should arrive once the late connection succeeds.
     std::string commands = server.drain_commands();
-    EXPECT_NE(commands.find("CANCEL_APPLICATION_TASKS"), std::string::npos);
+    EXPECT_NE(commands.find("CANCEL_APPLICATION_TASKS 456\n"), std::string::npos);
 
     SOCKET_set_endpoint(nullptr);
 }

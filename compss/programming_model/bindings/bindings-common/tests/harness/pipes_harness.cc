@@ -29,10 +29,6 @@
 #include "GS_compss.h"
 #include "common_test_types.h"
 
-// Test-only hook defined in GS_compss.cc; resets the cached workflow so each
-// test sees a fresh registration against the current runtime.
-extern "C" void GS_test_reset_workflow(void);
-
 struct TempFile {
     std::string path;
     explicit TempFile(const std::string &prefix) {
@@ -69,7 +65,6 @@ struct PipesHarness : public TransportHarness {
         std::ofstream(cmd.path.c_str(), std::ios::trunc).close();
         std::ofstream(res.path.c_str(), std::ios::trunc).close();
         GS_set_pipes(const_cast<char*>(cmd.path.c_str()), const_cast<char*>(res.path.c_str()));
-        GS_test_reset_workflow();
     }
 
     void enqueueResponse(const std::string &line) override {

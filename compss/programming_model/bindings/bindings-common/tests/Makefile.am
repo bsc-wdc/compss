@@ -15,11 +15,14 @@
 #  limitations under the License.
 #
 
-AM_CPPFLAGS = -I$(srcdir)/stubs -I$(srcdir)/harness -I$(srcdir) -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(srcdir)/stubs -I$(srcdir)/harness -I$(top_srcdir)/src
 
 # Run tests with debug prints enabled so both branches of debug_printf are exercised
 AM_TESTS_ENVIRONMENT = COMPSS_BINDINGS_DEBUG=1
 
+# Allow overriding GTest flags via environment when configuring, e.g.:
+#   CXXFLAGS="..." CPPFLAGS="..." LDFLAGS="..." LIBS="-lgtest -lpthread"
+# If not provided, try default system libs.
 AM_LDFLAGS =
 
 # Enable coverage on test builds
@@ -32,20 +35,16 @@ libpipes_only_la_SOURCES = $(top_srcdir)/src/compss_pipes.cc \
                            $(top_srcdir)/src/common.cc \
                            $(top_srcdir)/src/command_builders.cc
 libpipes_only_la_CPPFLAGS = -I$(srcdir)/stubs -I$(top_srcdir)/src
-libharness_la_SOURCES = harness/transport.h harness/runtime_api.h harness/pipes_harness.cc harness/sockets_harness.cc harness/common_test_types.h internal/gs_test_reset.cc internal/compss_sockets_test_api.h internal/microtest.h internal/microtest.cc internal/microtest_main.cc
+libharness_la_SOURCES = harness/transport.h harness/runtime_api.h harness/pipes_harness.cc harness/sockets_harness.cc harness/common_test_types.h
 
 check_PROGRAMS = test_gs_compss
 TESTS = $(check_PROGRAMS)
 
 test_gs_compss_SOURCES = test_gs_compss.cc test_compss_sockets.cc
-# libharness/libpipes_only are built in this directory, so name them directly.
-# Spelling them as $(top_builddir)/tests/... makes them paths make has no rule
-# for, which only resolves because check-am happens to build them first --
-# `make test_gs_compss` on its own then fails.
-test_gs_compss_LDADD = libharness.la \
-                          libpipes_only.la \
+test_gs_compss_LDADD = $(top_builddir)/tests/libharness.la \
+                          $(top_builddir)/tests/libpipes_only.la \
                           $(top_builddir)/src/libbindings_common.la \
-                          -lpthread
+                          -lgtest -lgtest_main -lpthread
 
 clean:
 	rm -f *.o *.lo *~ $(check_PROGRAMS)

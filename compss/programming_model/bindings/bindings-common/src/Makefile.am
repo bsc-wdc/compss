@@ -20,7 +20,7 @@ lib_LTLIBRARIES = libbindings_common.la
 
 libbindings_common_la_SOURCES = BindingDataManager.cc BindingExecutor.cc JavaNioConnStreamBuffer.cc AbstractCache.cc compss_worker.cc common.cc GS_compss.cc compss_jni.cc command_builders.cc compss_pipes.cc compss_sockets.cc common_jni.cc tracing_jni.cc
 libbindings_common_la_CPPFLAGS = -I$(JAVA_HOME)/include $(CPP_OS) -I.
-libbindings_common_la_LDFLAGS = -shared -L$(JAVA_LIB_DIR) -ljvm -Wl,-rpath,$(JAVA_LIB_DIR)
+libbindings_common_la_LDFLAGS = -shared -L$(JAVA_LIB_DIR) -ljvm
 
 ACLOCAL_AMFLAGS =-I m4
 

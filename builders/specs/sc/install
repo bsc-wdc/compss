@@ -49,7 +49,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvBTACPr-: flag; do
+  while getopts hvBTACPrN-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -227,6 +227,11 @@ get_args() {
     # Install extrae
     echo "- Install extrae"
     cd "${SCRIPT_DIR}"/Dependencies
+    extrae_ver=${EXTRAE_VERSION:-5.1.0}
+    wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
+    tar xvf "extrae-${extrae_ver}-src.tar.bz2"
+    rm "extrae-${extrae_ver}-src.tar.bz2"
+    mv "extrae-${extrae_ver}" extrae
     ./install_extrae.sh "${SCRIPT_DIR}"/Dependencies/extrae "${targetDir}"/Dependencies/extrae true
     cd "${SCRIPT_DIR}"
     echo "   Success"

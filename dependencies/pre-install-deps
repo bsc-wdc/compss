@@ -200,6 +200,7 @@ install_extrae() {
 
   wget "https://ftp.tools.bsc.es/extrae/extrae-${EXTRAE_VERSION}-src.tar.bz2"
   tar xvf "extrae-${EXTRAE_VERSION}-src.tar.bz2"
+  rm "extrae-${EXTRAE_VERSION}-src.tar.bz2"
   mv "extrae-${EXTRAE_VERSION}" "${src}"
 
   echo "[extrae] Building Extrae ${EXTRAE_VERSION} from tarball..."

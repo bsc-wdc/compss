@@ -884,6 +884,7 @@ install_compss() {
         cd "${TMP_DIR}"/dependencies/
         wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
         tar xvf "extrae-${extrae_ver}-src.tar.bz2"
+        rm "extrae-${extrae_ver}-src.tar.bz2"
         mv "extrae-${extrae_ver}" extrae
         ./install_extrae.sh "${TMP_DIR}/dependencies/extrae" "${extraeDir}" true > "${bindingOut}" 2>&1
         ev=$?

@@ -170,6 +170,7 @@
   extrae_ver=${EXTRAE_VERSION:-5.1.0}
   wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
   tar xvf "extrae-${extrae_ver}-src.tar.bz2"
+  rm "extrae-${extrae_ver}-src.tar.bz2"
   mv "extrae-${extrae_ver}" extrae
   if [ "${extrae_no_mpi}" == "true" ]; then
     # Sequential installation

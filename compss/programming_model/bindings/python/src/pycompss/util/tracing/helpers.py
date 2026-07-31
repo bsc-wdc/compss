@@ -464,7 +464,7 @@ def __parse_affinity_event_id(event_id: typing.Any) -> int:
         except ValueError:
             # The event_id is a string with multiple cores
             # Get only the first core
-            event_id = int(event_id.split(",")[0].split("-")[0])
+            event_id = int(str(event_id).split(",")[0].split("-")[0])
         event_id += 1  # since it starts with 0
     return event_id
 

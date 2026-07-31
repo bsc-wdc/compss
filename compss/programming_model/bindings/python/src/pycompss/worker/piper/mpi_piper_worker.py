@@ -53,7 +53,7 @@ from pycompss.worker.piper.commons.utils_logger import load_loggers
 COMM = MPI.COMM_WORLD
 SIZE = COMM.Get_size()
 RANK = COMM.Get_rank()
-PROCESSES = {}  # IN_PIPE -> PROCESS ID
+PROCESSES: dict[str, typing.Any] = {}  # IN_PIPE -> PROCESS ID
 
 
 def is_worker() -> bool:

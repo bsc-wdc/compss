@@ -27,6 +27,7 @@ import logging
 import os
 import sys
 import time
+from pathlib import Path
 
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.util.context import CONTEXT
@@ -67,8 +68,10 @@ from pycompss.util.interactive.state import show_tasks_info
 from pycompss.util.interactive.state import show_tasks_status
 from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.util.logger.helpers import init_logging
+from pycompss.util.logger.helpers import rotate_log
 from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.process.manager import initialize_multiprocessing
+from pycompss.util.interactive.worker_manager import WorkerManager
 
 # Storage imports
 from pycompss.util.storages.persistent import master_init_storage
@@ -78,6 +81,10 @@ from pycompss.util.storages.persistent import master_stop_storage
 from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
+
+WORKER_MANAGER = WorkerManager(
+    CONSTANTS.persistent_worker_starter, CONSTANTS.persistent_worker_state_file
+)
 
 
 def start(  # pylint: disable=too-many-arguments, too-many-locals
@@ -266,6 +273,24 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     if CONTEXT.in_pycompss():
         print("The runtime is already running")
         return None
+
+    # Check the running worker processes
+    if CONSTANTS.running_in_supercomputer:
+        if len(WORKER_MANAGER) == 0:
+            workers = WORKER_MANAGER.discover()
+            if verbose:
+                print(f"- Found {len(workers)} workers:")
+                for worker in workers:
+                    print(f"\t- PID: {worker.pid}")
+        else:
+            rotate_log(Path(os.environ["COMPSS_LOG_DIR"]))
+            restarted_workers = WORKER_MANAGER.restart()
+            print("Restarting workers... please, wait a moment...")
+            if verbose:
+                print(f"- Restarted {len(restarted_workers)} workers:")
+                for rest_worker in restarted_workers:
+                    print(f"\t- PID: {rest_worker.pid}")
+            time.sleep(4)
 
     EXTRA_LAUNCH_STATUS.set_graphing(graph)
     EXTRA_LAUNCH_STATUS.set_disable_external(disable_external)

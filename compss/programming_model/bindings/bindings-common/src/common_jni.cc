@@ -27,7 +27,6 @@ using namespace std;
 // Global JVM reference (managed once, shared by all components of binding commons)
 int jvmUsers = 0; // Number of users of the JVM. Used to manage the lifecycle of the JVM instance.
 JavaVM* globalJvm = NULL;
-JNIEnv* globalJniEnv = NULL;
 pthread_mutex_t globalJniAccessMutex;
 
 void create_vm() {
@@ -44,7 +43,11 @@ void create_vm() {
 
     string line; // buffer for line read
     debug_printf("[BINDING-COMMONS]  -  @create_vm  -  reading file in JVM_OPTIONS_FILE\n" );
-    const char* file = strdup(getenv("JVM_OPTIONS_FILE")); // path to the file with jvm options
+    char* envFile = getenv("JVM_OPTIONS_FILE"); // path to the file with jvm options
+    if (envFile == NULL) {
+        return;
+    }
+    const char* file = strdup(envFile);
     ifstream fin; // input file stream
 
     fin.open(file);
@@ -127,7 +130,6 @@ void create_vm() {
     } else {
         debug_printf("[BINDING-COMMONS]  -  @create_vm  -  JVM Ready\n");
     }
-    globalJniEnv = env;
 }
 
 void destroy_vm() {
@@ -136,28 +138,23 @@ void destroy_vm() {
         debug_printf("[BINDING-COMMONS]  -  @destroy_vm  -  JVM still in use by %i users.\n", jvmUsers);
         return;
     }
-    
+
     int ret = globalJvm->DestroyJavaVM();   // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
     if (ret < 0) {
         debug_printf("[BINDINGS-COMMON]  -  @destroy_vm  -  Unable to Destroy JVM - %i\n", ret);
     }
-    // delete jvm; 
+    // delete jvm;
     // free(): invalid pointer: 0x00007fbc11ba8020 ***
     globalJvm = NULL;
-    globalJniEnv = NULL;
     pthread_mutex_destroy(&globalJniAccessMutex);
 }
-
-
-
-
 
 int check_and_attach(JavaVM* jvm, JNIEnv* &env) {
     if (jvm == NULL){
 		debug_printf("[BINDING-COMMONS]  -  @check_an_attach - No JVM provided.\n");
 		exit(1);
 	}
-    int res = jvm->GetEnv((void **)&env, (int)JNI_VERSION_1_8);
+    jint res = jvm->GetEnv((void**)&env, JNI_VERSION_1_8);
     if (res == JNI_EDETACHED) {
         if (jvm->AttachCurrentThread((void **) &env, NULL) != 0) {
             printf("ERROR: Failed to attach thread to the JVM");
@@ -167,6 +164,8 @@ int check_and_attach(JavaVM* jvm, JNIEnv* &env) {
             debug_printf("[BINDING-COMMONS]  -  @check_an_attach - Thread Attached to JVM.\n");
             return 1;
         }
+    } else if (res == JNI_OK) {
+        return 0;
     } else {
         // Already attached
         return 0;
@@ -186,9 +185,10 @@ ThreadStatus* access_request() {
     status->isLocked = 1;
 
     // Attach thread to JVM
-    status->localJniEnv = globalJniEnv;
     status->localJvm = globalJvm;
-    status->isAttached = check_and_attach(globalJvm, status->localJniEnv); // WARN: Updates isAttached and localEnv
+    JNIEnv* env = NULL;
+    status->isAttached = check_and_attach(globalJvm, env);
+    status->localJniEnv = env;
 
     // Return status
     return status;
@@ -198,10 +198,14 @@ ThreadStatus* access_request() {
  * Revokes the current thread to access the JVM. The given status cannot be user after this callee.
  */
 void access_revoke(ThreadStatus* status) {
+
+    if (status == NULL) {
+        return;
+    }
+
     // Detach thread from JVM
     if (status->localJvm != NULL && status->isAttached == 1) {
         status->localJvm->DetachCurrentThread();
-
         status->localJniEnv = NULL;
         status->localJvm = NULL;
         status->isAttached = 0;
@@ -210,12 +214,11 @@ void access_revoke(ThreadStatus* status) {
     // Unlock mutex
     if (status->isLocked == 1) {
         pthread_mutex_unlock(&globalJniAccessMutex);
-
         status->isLocked = 0;
     }
 
     // Free status memory
-    free(status);
+    delete status;
 }
 
 

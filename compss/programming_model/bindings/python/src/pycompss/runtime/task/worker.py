@@ -181,7 +181,7 @@ class TaskWorker:
                 LOGGER.debug("Redirecting stdout to: %s", str(job_out))
                 LOGGER.debug("Redirecting stderr to: %s", str(job_err))
             with (
-                std_redirector(job_out, job_err)
+                std_redirector(str(job_out), str(job_err))
                 if redirect_std
                 else not_std_redirector()
             ):

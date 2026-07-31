@@ -27,7 +27,7 @@ import copy
 import json
 import logging
 import os
-import pathlib
+from pathlib import Path
 from contextlib import contextmanager
 from logging import config
 
@@ -116,7 +116,7 @@ def __find_source_files(path, extensions):
             if "." in file and file.split(".")[1] in extensions:
                 relative = root.replace(main_home, "")
                 file_path = os.path.join(relative, file)
-                yield str(pathlib.Path(file_path).with_suffix(""))
+                yield str(Path(file_path).with_suffix(""))
 
 
 def __add_loggers(
@@ -366,3 +366,24 @@ def keep_logger() -> typing.Iterator[None]:
     :return: None
     """
     yield  # here the code runs
+
+
+def rotate_log(log_path: Path):
+    """Rename the log path adding an incremental numerical suffix each time.
+
+    :param log_path: Path to the dir to be rotated.
+
+    Ejemplo:
+        >>> rotate_log(Path("/path/to/1234"))
+        # If exists, move to /path/to/1234_1
+        # If invoked again with /path/to/1234, it moves to /path/to/1234_2
+        # And so on.
+    """
+    if log_path.exists():
+        n = 1
+        while True:
+            new_path = log_path.parent / f"{log_path.name}_{n}"
+            if not new_path.exists():
+                break
+            n += 1
+        log_path.rename(new_path)

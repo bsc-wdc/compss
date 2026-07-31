@@ -24,7 +24,9 @@ This file contains the common definitions of the Python binding.
 """
 
 import os
-from tempfile import mkdtemp
+import getpass
+from pathlib import Path
+from tempfile import mkdtemp, gettempdir
 
 from pycompss.util.typing_helper import typing  # noqa: F401
 
@@ -54,6 +56,8 @@ class Constants:  # pylint: disable=R0902,R0903
         "default_checkpoint_policy",
         "temp_dir_prefix",
         "temp_obj_prefix",
+        "persistent_worker_starter",
+        "persistent_worker_state_file",
     )
 
     def __init__(self) -> None:
@@ -94,11 +98,18 @@ class Constants:  # pylint: disable=R0902,R0903
             and os.environ["COMPSS_RUNNING_IN_SC"] == "true"
         ):
             self.running_in_supercomputer = True
-        elif (
-            "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn5"
-        ):
-            # Only supported in MN4 currently
+        elif "BSC_MACHINE" in os.environ and os.environ[
+            "BSC_MACHINE"
+        ].startswith("mn"):
+            # Only supported in Marenostrum currently
             self.running_in_supercomputer = True
+        # Workers information for persistent worker manager
+        self.persistent_worker_starter = "persistent_worker_starter.sh"
+        _user_name = getpass.getuser()
+        _job_id = os.environ.get("SLURM_JOB_ID", "interactive")
+        self.persistent_worker_state_file = (
+            Path(gettempdir()) / f"worker_manager_state_{_job_id}.json"
+        )
         # Tracing hook environment variable
         self.tracing_hook_env_var = "COMPSS_TRACING_HOOK"
         # Extra content type format

@@ -2052,6 +2052,7 @@ class TaskMaster:
                 logger.debug("Multiple objects return found.")
             for _, ret_v in self.returns.items():
                 # Build the appropriate future object
+                future_object_element: typing.Any = None
                 if ret_v.content in _PYTHON_TO_COMPSS:
                     # Primitives, string, dic, list, tuple
                     future_object_element = Future()

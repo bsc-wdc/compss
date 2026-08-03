@@ -71,6 +71,11 @@
   module purge
   module load gcc/6.3.0 slurm/17.02.10
   cd Dependencies
+  extrae_ver=${EXTRAE_VERSION:-5.1.0}
+  wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
+  tar xvf "extrae-${extrae_ver}-src.tar.bz2"
+  rm "extrae-${extrae_ver}-src.tar.bz2"
+  mv "extrae-${extrae_ver}" extrae
   ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae false
   module load openmpi-2.1.1/gcc-6.3.0
   ./install_extrae.sh $(pwd)/extrae "${targetDir}"/Dependencies/extrae-openmpi true

@@ -26,6 +26,7 @@ from mmap import mmap, ACCESS_READ
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
+from rocrate.model.computerlanguage import ComputerLanguage
 
 from provenance.processing.entities import get_manually_defined_software_requirements
 
@@ -206,15 +207,42 @@ def add_file_to_crate(
             print(
                 f"PROVENANCE DEBUG | Adding main source file: {file_path.name}, file_name: {file_name}"
             )
-        compss_crate.add_workflow(
-            source=file_name,
-            dest_path=path_in_crate,
-            main=True,
-            lang="COMPSs",
-            lang_version=compss_ver,
-            properties=file_properties,
-            gen_cwl=False,
+
+        # compss_crate.add_workflow(
+        #     source=file_name,
+        #     dest_path=path_in_crate,
+        #     main=True,
+        #     lang="COMPSs",
+        #     lang_version=compss_ver,
+        #     properties=file_properties,
+        #     gen_cwl=False,
+        # )
+
+
+        compss_lang = ComputerLanguage(
+           compss_crate,
+           identifier="#compss",
+           properties={
+               "name": "COMPSs Programming Model",
+               "alternateName": "COMPSs",
+               "url": "http://compss.bsc.es/",
+               "citation": "https://doi.org/10.14279/depositonce-25823",
+               "version": compss_ver,
+           }
         )
+        compss_crate.add(compss_lang)
+        compss_crate.add_workflow(
+           source=file_name,
+           dest_path=path_in_crate,
+           main=True,
+           lang=compss_lang,
+           lang_version=compss_ver,
+           properties=file_properties,
+           gen_cwl=False,
+        )
+
+
+
 
         # complete_graph.svg
         # When dot is not found, it may create the file, but be empty

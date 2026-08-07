@@ -169,6 +169,8 @@ def _get_raw_code() -> typing.List[str]:
     import IPython  # noqa
 
     ipython = IPython.get_ipython()
+    if ipython is None:
+        raise Exception("ipython is None")
     raw_code = ipython.user_ns["In"]  # type: typing.List[str]
     return raw_code
 

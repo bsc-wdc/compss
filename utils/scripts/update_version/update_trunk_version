@@ -61,11 +61,11 @@ usage() {
 
   #---------------------------------------------------------------------
   # Modify utils/docker/
-  echo "- Modifying utils/docker files..."
-  cd "${base_trunk_dir}/utils/docker/agent"
-  file="build_image"
-  echo "    $file"
-  sed -i 's/COMPSs_VERSION="'${previousVersion}'"/COMPSs_VERSION="'${newVersion}'"/g' "$file"
+  #echo "- Modifying utils/docker files..."
+  #cd "${base_trunk_dir}/utils/docker/agent"
+  #file="build_image"
+  #echo "    $file"
+  #sed -i 's/COMPSs_VERSION="'${previousVersion}'"/COMPSs_VERSION="'${newVersion}'"/g' "$file"
   cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------

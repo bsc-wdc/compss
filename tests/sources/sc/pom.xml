@@ -7,7 +7,7 @@
     <!-- GENERAL INFORMATION -->
     <groupId>es.bsc.compss.tests</groupId>
     <artifactId>compss-sc-tests</artifactId>
-    <version>3.4.post2607</version>
+    <version>3.4.post2608</version>
     <packaging>pom</packaging>
 
     <!-- PROJECT INFORMATION -->

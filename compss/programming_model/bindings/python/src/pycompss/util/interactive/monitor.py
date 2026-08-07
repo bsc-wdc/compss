@@ -73,7 +73,7 @@ def __show_monitoring_info(log_path: str) -> None:
     :return: None.
     """
     monitoring_info = read_monitoring_file(log_path)
-    if len(monitoring_info) == 0:
+    if len(monitoring_info) == 0 or display is None or HTML is None:
         # Do not show anything if there is no information to display
         return
     # Display table with values

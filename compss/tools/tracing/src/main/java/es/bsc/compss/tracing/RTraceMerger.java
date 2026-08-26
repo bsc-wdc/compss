@@ -223,6 +223,7 @@ public class RTraceMerger extends TraceMerger {
         }
 
         // Maintain trace structure from master Trace
+        LOGGER.debug("Generate new trace...");
         PRVTrace tmpTrace = PRVTrace.generateNew(dir, tmpName, date, duration, infrastructure, masterThreads, events);
         LOGGER.debug("Merge events...");
         mergeEvents(this.inputTraces, modifications, tmpTrace);

@@ -112,7 +112,7 @@ public abstract class TraceMerger {
      */
     protected static void mergeEvents(Trace[] inputTraces, TraceTransformation[][] transformations, Trace output)
         throws Exception {
-        try (RecordAppender eventAppedner = output.getRecordAppender()) {
+        try (RecordAppender eventAppender = output.getRecordAppender()) {
             int numTraces = inputTraces.length;
             int fullyRead = 0;
             RecordScanner[] records = new RecordScanner[numTraces];
@@ -133,24 +133,30 @@ public abstract class TraceMerger {
                     topRecords[traceIdx] = prvLine.toString();
                 }
             }
-
             LOGGER.debug("Populating trace content");
             // Merging Prv contents
             while (fullyRead < numTraces) {
-                int earliestLinePos = 0;
+                int earliestLinePos = -1;
                 for (int traceIdx = 0; traceIdx < topRecords.length; traceIdx++) {
                     if (topRecords[traceIdx] != null && !topRecords[traceIdx].isEmpty()) {
                         PRVLine prvLine = PRVLine.parse(topRecords[traceIdx]);
-                        if (prvLine.goesBefore(topRecords[earliestLinePos])) {
+                        if (earliestLinePos == -1) {
                             earliestLinePos = traceIdx;
+                        } else {
+                            if (prvLine.goesBefore(topRecords[earliestLinePos])) {
+                                earliestLinePos = traceIdx;
+                            }
                         }
                     } else {
                         LOGGER.debug("WARNING: topRecords is empty or null.");
                     }
                 }
-
+                if (earliestLinePos == -1) {
+                    LOGGER.debug("No more records to process.");
+                    break;
+                }
                 String toWrite = topRecords[earliestLinePos];
-                eventAppedner.append(toWrite);
+                eventAppender.append(toWrite);
                 String newLine = records[earliestLinePos].next();
                 if (newLine != null) {
                     PRVLine prvLine = PRVLine.parse(newLine);

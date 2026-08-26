@@ -443,7 +443,7 @@
     echo "- Deploying R-binding files"
     cd "${TMP_DIR}"/compss/programming_model/bindings/RCOMPSs || exit 1
     export COMPSS_HOME=${targetDir}
-    ./install.sh "${targetDir}"/Bindings/RCOMPSs true
+    ./install_rcompss.sh "${targetDir}"/Bindings/RCOMPSs true
     ev=$?
     unset COMPSS_HOME
     if [ $ev -ne 0 ]; then

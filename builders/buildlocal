@@ -1201,7 +1201,8 @@ install_compss() {
     if [ "${rcompss}" == "true" ]; then
       log_info "- Deploying R-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/RCOMPSs"
-      ./install.sh "${targetDir}/Bindings/RCOMPSs" "${tracing}" > "${bindingOut}" 2>&1 && :
+      export COMPSS_HOME="${targetDir}"
+      ./install_rcompss.sh "${tracing}" > "${bindingOut}" 2>&1 && :
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install R-binding"

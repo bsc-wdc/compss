@@ -7,8 +7,11 @@ ARG CMAKE_VERSION
 ARG GFORTRAN_VERSION
 ARG GIT_VERSION
 ARG LIBBOOST_SERIALIZATION_DEV_VERSION
+ARG LIBBZ2_DEV_VERSION
 ARG LIBJPEG_DEV_VERSION
+ARG LIBLZMA_DEV_VERSION
 ARG LIBOPENMPI_DEV_VERSION
+ARG LIBPCRE2_DEV_VERSION
 ARG LIBTOOL_VERSION
 ARG LIBXML2_DEV_VERSION
 ARG PYTHON3_DEV_VERSION
@@ -26,8 +29,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			gfortran=${GFORTRAN_VERSION} \
 			git=${GIT_VERSION} \
 			libboost-serialization-dev=${LIBBOOST_SERIALIZATION_DEV_VERSION} \
+                        libbz2-dev=${LIBBZ2_DEV_VERSION} \
 			libjpeg-dev=${LIBJPEG_DEV_VERSION} \
+                        liblzma-dev=${LIBLZMA_DEV_VERSION} \
 			libopenmpi-dev=${LIBOPENMPI_DEV_VERSION} \
+                        libpcre2-dev=${LIBPCRE2_DEV_VERSION} \
 			libtool=${LIBTOOL_VERSION} \
 			libxml2-dev=${LIBXML2_DEV_VERSION} \
 			python3-dev=${PYTHON3_DEV_VERSION} \
@@ -78,7 +84,7 @@ ARG DLB_VERSION
 ARG EXTRAE_VERSION
 RUN cd /framework && \
 	git clone --depth 1 -b v${DLB_VERSION} https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
-	git clone --depth 1 -b next-release https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
+	git clone --depth 1 -b main https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
 	git clone --depth 1 -b master https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
 	/framework/dependencies/pre-install-deps
 

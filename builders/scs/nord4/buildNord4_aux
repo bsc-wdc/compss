@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 openjdk/21.0.1.12 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git" # pcre2/10.45 R/4.4.3" # No R support due to missing packages nor internet connection
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 openjdk/21.0.1.12 papi/6.0.0 gcc/7.2.0 boost/1.64.0 dlb/git" # pcre2/10.45 R/4.4.3" # No R support due to missing packages nor internet connection
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   run_before_py3_modules="ignore"

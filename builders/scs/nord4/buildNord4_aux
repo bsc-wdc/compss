@@ -33,13 +33,9 @@
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   run_before_py3_modules="ignore"
-  py3_modules="python/3.9.10"
+  py3_modules="python/3.10.2"
   run_before_py3_other_modules="module load openssl/1.1.1f"
-  py3_other_modules="ANACONDA/5.1.0_py3 python/3.7.4 python/3.8.2 python/3.10.2 ANACONDA/2019.10 ANACONDA/2022.10"
-  # ANACONDA/2020.11 dropped: ships setuptools <61 and a backports package that
-  # shadows the newer user-site setuptools' vendored backports.tarfile, so pip
-  # cannot load the PEP517 build backend (setuptools>=61) required by PyCOMPSs.
-  # python/3.12.0 Does not have setuptools
+  py3_other_modules="python/3.12.0"
   # python/3.13.2 Does not have setuptools
 
   # DEFINE CONFIGURATION PARAMETERS

@@ -27,11 +27,11 @@ from hashlib import sha256
 
 try:
     import matplotlib.pyplot as plt
-except:
+except ImportError:
     print(
-        "Error: matplotlib is not installed. Please install it using 'pip install matplotlib'."
-    )
-    exit(1)
+        "PROVENANCE | WARNING: matplotlib is not installed. Plots will not be generated. "
+        "Install it with 'pip install matplotlib' to enable plot generation."
+    )    
 
 from pathlib import Path
 from datetime import timezone

@@ -116,7 +116,8 @@ def generate_plots(stats_path) -> str:
         # Launch the tool
         if __debug__:
             print(f"PROVENANCE | PROFILING | Launching plotting tool with command:\n{' '.join(cmd)}")
-        subprocess.run(cmd, check=True)
+        #subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
 
         # replace mode_flag with --scope=all
         cmd[-4] = "--scope=all"
@@ -126,9 +127,12 @@ def generate_plots(stats_path) -> str:
         print(f"PROVENANCE | PROFILING | Profiling plots generation TIME: {elapsed_time:.2f} s.")
 
         return plots_folder if os.path.exists(plots_folder) else None
-
+        
     except subprocess.CalledProcessError as e:
         print(f"PROVENANCE | PROFILING | ERROR: The profiling tool failed with exit code {e.returncode}.")
+        if __debug__:
+            stderr_output = e.stderr.strip() if e.stderr else "(no stderr captured)"
+            print(f"PROVENANCE | PROFILING | DEBUG: {stderr_output}")
     except Exception as e:
         print(f"PROVENANCE | PROFILING | ERROR: Could not generate the profiling plots. Exception: {e}")
 

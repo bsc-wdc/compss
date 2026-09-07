@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent.rest.types;
 
+import es.bsc.compss.data.StorageHandler;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
@@ -23,7 +24,6 @@ import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.lang.reflect.Array;
 import storage.StorageException;
-import storage.StorageItf;
 
 /**
  * This class contains all the information to pass a parameter value through the REST Agent interface in XML format.
@@ -173,7 +173,7 @@ public abstract class ApplicationParameterValue {
             if (className.compareTo(value.getClass().getCanonicalName()) == 0) {
                 val = value;
             } else {
-                val = StorageItf.getByID((String) value);
+                val = StorageHandler.getByID((String) value);
             }
             return val;
         }

@@ -23,7 +23,16 @@
       kill -SIGINT ${pid}
     done
   }
-  trap kill_agents EXIT
+
+  function copy_logs() {
+    cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  }
+  
+  function exit_handler() {
+    kill_agents
+    copy_logs
+  }
+  trap exit_handler EXIT
 
 
   function validate_parallel_running_tasks() {
@@ -815,9 +824,6 @@
   validate_parallel_running_tasks "${starts}" "${ends}" "1" "1"
   echo  "Task executions properly scheduled and executed." > >(tee -a "${output_log}")
 
-
-  # Copy LOG files
-  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   exit_value=0
 
   #----------------------------------------------------------------------------------

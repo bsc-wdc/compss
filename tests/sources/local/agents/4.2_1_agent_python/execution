@@ -22,7 +22,16 @@
       kill -SIGINT ${pid}
     done
   }
-  trap kill_agents EXIT
+
+  function copy_logs() {
+    cp -rf "${log_dir}" "${target_log_folder}"
+  }
+  
+  function exit_handler() {
+    kill_agents
+    copy_logs
+  }
+  trap exit_handler EXIT
 
   function validate_parallel_running_tasks() {
     starts="${1}"
@@ -236,8 +245,6 @@
     rm -rf /tmp/COMPSsWorker01/*
     AGENT_PIDS=""
 
-    # Copy LOG files
-    cp -rf "${log_dir}" "${target_log_folder}"
     port_offset=$((port_offset + 100 ))
   done
 

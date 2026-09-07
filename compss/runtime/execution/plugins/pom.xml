@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-execution-plugins</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-execution</artifactId>
+        <version>3.4.post2609</version>
+    </parent>
+
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Execution Plugins</name>
+    <description>Collection of available plugins to execute tasks on a node.</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2015</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- COMPSs common classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-commons</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-execution-api</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-execution-core</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- Classes to validate the behavior of the execution -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-execution-test-commons</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>wdc-tracing-api</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>c</module>
+        <module>java</module>
+        <module>python</module>
+        <module>r</module>
+        <module>binary</module>
+        <module>opencl</module>
+        <module>all</module>
+    </modules>
+
+    <!-- BUILD -->
+    <build>
+        <plugins>
+            <!-- Compile Java code -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+
+            <!-- Create jar with dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.artifactId}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

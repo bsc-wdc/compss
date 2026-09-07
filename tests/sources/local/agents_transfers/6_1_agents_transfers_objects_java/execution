@@ -26,7 +26,16 @@ function kill_agents() {
         fi
     done
 }
-trap kill_agents EXIT
+
+function copy_logs() {
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+}
+
+function exit_handler() {
+  kill_agents
+  copy_logs
+}
+trap exit_handler EXIT
 
 
 echo ""
@@ -88,7 +97,5 @@ else
   echo -e '\033[0;32m'"The results are correct"'\033[0m'
 fi
 
-# Copy LOG files
-cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
 
 

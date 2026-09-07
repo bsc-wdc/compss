@@ -1,0 +1,145 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-execution-core</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-execution</artifactId>
+		<version>3.4.post2609</version>
+	</parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Execution Core</name>
+	<description>All necessary classes to handle the execution of tasks within a node. </description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- COMPSs Dependencies -->
+		<!-- Common Runtime classes -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-commons</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Public API of the module -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-execution-api</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Log4j -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>es.bsc.wdc</groupId>
+			<artifactId>ThreadAffinity</artifactId>
+			<version>${java-affinity.version}</version>
+		</dependency>
+
+		<!-- JSON used for parsing a task result JSON -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>${json.version}</version>
+		</dependency>
+
+
+		<!-- Streaming used in BinaryRunner-->
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>distro-stream</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>client</artifactId>
+		</dependency>
+
+
+		<!-- TEST Dependencies -->
+		<!-- Classes to validate the behavior of the execution -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-execution-test-commons</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- Compile Java code -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+			</plugin>
+
+			<!-- Create jar with dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<shadedArtifactAttached>false</shadedArtifactAttached>
+							<finalName>${project.artifactId}</finalName>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

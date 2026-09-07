@@ -18,6 +18,9 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.data.BindingDataManager;
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.data.StorageHandler;
+import es.bsc.compss.data.serializers.Serializer;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
@@ -30,13 +33,9 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.serializers.Serializer;
-import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -51,7 +50,6 @@ import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
-import storage.StorageItf;
 
 public class LogicalData {
 
@@ -748,19 +746,12 @@ public class LogicalData {
                         break;
                     case PERSISTENT:
                         PersistentLocation pLoc = (PersistentLocation) loc;
-                        if (Tracer.isActivated()) {
-                            Tracer.emitEvent(StorageEvent.STORAGE_GETBYID);
-                        }
                         try {
                             this.pscoId[0] = pLoc.getId();
-                            return StorageItf.getByID(this.pscoId[0]);
+                            return StorageHandler.getByID(this.pscoId[0]);
                         } catch (StorageException se) {
                             // Check next location since cannot retrieve the object from the storage Back-end
                             continue;
-                        } finally {
-                            if (Tracer.isActivated()) {
-                                Tracer.emitEventEnd(StorageEvent.STORAGE_GETBYID);
-                            }
                         }
                     case BINDING:
                         // We should never reach this
@@ -815,20 +806,12 @@ public class LogicalData {
                         return;
                     case PERSISTENT:
                         PersistentLocation pLoc = (PersistentLocation) loc;
-
-                        if (Tracer.isActivated()) {
-                            Tracer.emitEvent(StorageEvent.STORAGE_GETBYID);
-                        }
                         try {
-                            this.value[0] = StorageItf.getByID(pLoc.getId());
+                            this.value[0] = StorageHandler.getByID(pLoc.getId());
                             this.pscoId[0] = pLoc.getId();
                         } catch (StorageException se) {
                             // Check next location since cannot retrieve the object from the storage Back-end
                             continue;
-                        } finally {
-                            if (Tracer.isActivated()) {
-                                Tracer.emitEventEnd(StorageEvent.STORAGE_GETBYID);
-                            }
                         }
 
                         try {

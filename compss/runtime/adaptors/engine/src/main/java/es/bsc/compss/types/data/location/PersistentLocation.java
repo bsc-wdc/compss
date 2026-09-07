@@ -16,16 +16,14 @@
  */
 package es.bsc.compss.types.data.location;
 
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
-import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.wdc.tracing.Tracer;
 import java.util.LinkedList;
 import java.util.List;
 import storage.StorageException;
-import storage.StorageItf;
 
 public class PersistentLocation extends DataLocation {
 
@@ -114,17 +112,10 @@ public class PersistentLocation extends DataLocation {
 
     private List<String> getLocations() {
         List<String> locations = null;
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(StorageEvent.STORAGE_GETLOCATIONS);
-        }
         try {
-            locations = StorageItf.getLocations(this.id);
+            locations = StorageHandler.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(StorageEvent.STORAGE_GETLOCATIONS);
-            }
         }
         return locations;
     }

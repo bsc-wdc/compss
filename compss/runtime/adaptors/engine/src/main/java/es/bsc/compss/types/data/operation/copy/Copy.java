@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.data.operation.copy;
 
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.data.FileOpsManager.FileOpListener;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
@@ -23,8 +25,6 @@ import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.OperationEndState;
-import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.FileOpsManager.FileOpListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;

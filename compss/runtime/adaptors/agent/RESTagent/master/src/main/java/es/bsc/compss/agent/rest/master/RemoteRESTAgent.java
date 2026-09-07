@@ -17,6 +17,7 @@
 package es.bsc.compss.agent.rest.master;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.semantics.data.DataType;
@@ -51,7 +52,6 @@ import java.util.List;
 import java.util.Set;
 import org.glassfish.jersey.client.ClientConfig;
 import storage.StorageException;
-import storage.StorageItf;
 import storage.StubItf;
 
 /**
@@ -322,7 +322,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // Get the current locations
         List<String> currentLocations;
         try {
-            currentLocations = StorageItf.getLocations(pscoId);
+            currentLocations = StorageHandler.getLocations(pscoId);
         } catch (StorageException se) {
             // Cannot obtain current locations from back-end
             sc.end(OperationEndState.OP_FAILED, se);
@@ -334,7 +334,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
             LOGGER.debug("Performing new replica for PSCO " + pscoId);
 
             // TODO: WARN New replica is NOT necessary because we can't prefetch data
-            // StorageItf.newReplica(pscoId, targetHostname);
+            // StorageHandler.newReplica(pscoId, targetHostname);
         } else {
             LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
@@ -368,7 +368,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
         try {
-            String newId = StorageItf.newVersion(pscoId, preserveSource, Comm.getAppHost().getName());
+            String newId = StorageHandler.newVersion(pscoId, preserveSource, Comm.getAppHost().getName());
             LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {

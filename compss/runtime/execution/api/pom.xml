@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-execution-api</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-execution</artifactId>
+        <version>3.4.post2609</version>
+    </parent>
+
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Execution API</name>
+    <description>API offered to interact with the execution module </description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+
+    <!-- DEPENDENCIES -->
+    <dependencies>
+
+        <!-- COMPSs Dependencies -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- COMPSs Runtime API for Nested invocations -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-runtime-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Streaming -->
+        <dependency>
+            <groupId>es.bsc.distro-stream-lib</groupId>
+            <artifactId>server</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!-- BUILD -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

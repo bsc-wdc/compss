@@ -17,12 +17,12 @@
 package es.bsc.compss.util.test;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.data.serializers.Serializer;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.util.serializers.Serializer;
 import java.io.IOException;
 import org.junit.Test;
 

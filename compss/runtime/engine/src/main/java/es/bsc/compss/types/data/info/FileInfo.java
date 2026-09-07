@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.FileOpsManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -29,7 +30,6 @@ import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOpsManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;

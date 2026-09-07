@@ -24,6 +24,9 @@ import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.data.BindingDataManager;
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.data.FileOpsManager.FileOpListener;
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.invokers.types.CParams;
@@ -46,7 +49,7 @@ import es.bsc.compss.types.data.operation.copy.CompletedCopyException;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationExecutionRequest;
+import es.bsc.compss.types.execution.InvocationExecutionListener;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
@@ -69,8 +72,6 @@ import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.FileOpsManager.FileOpListener;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
@@ -87,7 +88,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import storage.StorageException;
-import storage.StorageItf;
 import storage.StubItf;
 
 /**
@@ -1160,7 +1160,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      * @param job Local job to run.
      */
     public void runJob(LocalJob job) {
-        InvocationExecutionRequest.Listener listener = new InvocationExecutionRequest.Listener() {
+        InvocationExecutionListener listener = new InvocationExecutionListener() {
 
             @Override
             public void onResultAvailable(InvocationParam param) {
@@ -1182,8 +1182,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
         };
-        InvocationExecutionRequest exec = new InvocationExecutionRequest(job, listener);
-        this.executionManager.enqueue(exec);
+        this.executionManager.enqueue(job, listener);
     }
 
     @Override
@@ -1313,7 +1312,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case PSCO_T:
                 String pscoId = (String) localParam.getValue();
                 try {
-                    Object o = StorageItf.getByID(pscoId);
+                    Object o = StorageHandler.getByID(pscoId);
                     invParam.setValue(o);
                 } catch (StorageException se) {
                     throw new UnloadableValueException(se);

@@ -36,12 +36,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Classes to host task executions-->
-            <dependency>
-                <groupId>es.bsc.compss</groupId>
-                <artifactId>compss-adaptors-execution</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             
             <!-- Adaptor engine classes -->
             <dependency>

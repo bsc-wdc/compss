@@ -57,7 +57,13 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-execution-api</artifactId>
+            <version>3.4.post2609</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<!-- BUILD -->
 	<build>

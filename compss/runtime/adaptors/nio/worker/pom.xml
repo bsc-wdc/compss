@@ -39,11 +39,25 @@
 			<artifactId>compss-adaptors-nio-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- Classes to host task executions -->
+
+		<!-- Classes to host task executions-->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-adaptors-execution</artifactId>
+			<artifactId>compss-execution-api</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-execution-core</artifactId>
+		</dependency>
+
+		<!-- Classes to execute tasks -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-execution-all-plugins</artifactId>
+		</dependency>
+
+
 		<!-- COMPSs Runtime Interface for Nested invocations -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>

@@ -23,7 +23,16 @@
       kill -SIGINT ${pid} 1>/dev/null 2>/dev/null
     done
   }
-  trap kill_agents EXIT
+
+  function copy_logs() {
+    cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  }
+
+  function exit_handler() {
+    kill_agents
+    copy_logs
+  }
+  trap exit_handler EXIT
 
 
   function validate_max__parallel_running_tasks() {
@@ -433,11 +442,8 @@ compss_agent_start \
     done
   done
   echo "Agent properly shuts down on request"
-
-  # Copy LOG files
-  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+ 
   exit_value=0
-
   #----------------------------------------------------------------------------------
   # Return execution status
   exit ${exit_value}

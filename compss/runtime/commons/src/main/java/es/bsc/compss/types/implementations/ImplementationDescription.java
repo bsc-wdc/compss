@@ -80,7 +80,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
      *             parameters by the implementation type.
      */
     @SuppressWarnings("unchecked")
-    public static final <T extends WorkerResourceDescription, D extends ImplementationDefinition>
+    public static <T extends WorkerResourceDescription, D extends ImplementationDefinition>
         ImplementationDescription<T, D> defineImplementation(String implType, String implSignature,
             boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog,
             ContainerDescription container, String... implTypeArgs) throws IllegalArgumentException {
@@ -91,7 +91,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                 throw new IllegalArgumentException("Incorrect parameters for type HTTP on " + implSignature);
             }
             String serviceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
-            List<String> servicesList = new ArrayList<String>();
+            List<String> servicesList = new ArrayList<>();
             servicesList.add(serviceName);
             id = new ImplementationDescription<>((D) new HTTPDefinition(implTypeArgs, 0), implSignature,
                 localProcessing, (T) new HTTPResourceDescription(servicesList, 1), prolog, epilog);

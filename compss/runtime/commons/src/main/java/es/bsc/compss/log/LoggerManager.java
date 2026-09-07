@@ -18,8 +18,8 @@ package es.bsc.compss.log;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
+import es.bsc.compss.data.FileOperations;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOperations;
 import java.io.File;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -16,12 +16,11 @@
  */
 package es.bsc.compss.nio.worker.components;
 
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.data.StorageHandler;
+import es.bsc.compss.data.serializers.Serializer;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
-import es.bsc.compss.types.tracing.StorageEvent;
-import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.serializers.Serializer;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -29,7 +28,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
-import storage.StorageItf;
 import storage.StorageObject;
 
 public class DataRegister {
@@ -159,19 +157,12 @@ public class DataRegister {
             LOGGER.debug("   - Retrieving psco " + this.storageId + " from Storage");
             Object obj;
             // Get Object from its ID
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(StorageEvent.STORAGE_GETBYID);
-            }
             try {
-                obj = StorageItf.getByID(this.storageId);
+                obj = StorageHandler.getByID(this.storageId);
                 return obj;
             } catch (StorageException e) {
                 LOGGER.error("Cannot getByID PSCO " + this.storageId, e);
                 throw e;
-            } finally {
-                if (NIOTracer.isActivated()) {
-                    NIOTracer.emitEventEnd(StorageEvent.STORAGE_GETBYID);
-                }
             }
         }
 
@@ -210,7 +201,7 @@ public class DataRegister {
      */
     public Object cloneValue() throws StorageException, ClassNotFoundException, IOException, NoSourcesException {
         if (this.storageId != null) {
-            return StorageItf.getByID(this.storageId);
+            return StorageHandler.getByID(this.storageId);
         }
 
         if (!this.inMemory) {

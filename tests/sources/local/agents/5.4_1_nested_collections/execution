@@ -23,7 +23,16 @@
       kill -SIGINT ${pid}
     done
   }
-  trap kill_agents EXIT
+
+  function copy_logs() {
+    cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  }
+  
+  function exit_handler() {
+    kill_agents
+    copy_logs
+  }
+  trap exit_handler EXIT
 
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -102,9 +111,6 @@ sleep 5
   fi
   echo "All task executed as expected and with the expected values." 
 
-
-  # Copy LOG files
-  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   exit_value=0
 
   #----------------------------------------------------------------------------------

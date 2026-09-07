@@ -17,6 +17,8 @@
 package es.bsc.compss.comm;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
@@ -35,7 +37,6 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -56,7 +57,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
-import storage.StorageItf;
 import storage.StubItf;
 
 /**
@@ -171,7 +171,7 @@ public class Comm {
         } else {
             LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
             try {
-                StorageItf.init(STORAGE_CONF);
+                StorageHandler.init(STORAGE_CONF);
             } catch (StorageException e) {
                 ErrorManager.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
             }
@@ -328,7 +328,7 @@ public class Comm {
         if (STORAGE_CONF != null) {
             try {
                 LOGGER.info("Stopping Storage...");
-                StorageItf.finish();
+                StorageHandler.finish();
             } catch (StorageException se) {
                 LOGGER.error("Error releasing storage library: " + se.getMessage(), se);
             }

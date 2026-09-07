@@ -37,11 +37,24 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Storage -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-storage</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Tracing API classes for supporting Tracing events in COMPSs -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>wdc-tracing-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Apache Commons - FileUtils-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
 
 		<!-- Classes to handle the JVM environment -->

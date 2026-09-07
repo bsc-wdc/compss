@@ -37,6 +37,14 @@
 			<artifactId>compss-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- Execution API -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-execution-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- COMPSs Runtime Interface for Nested invocations -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
@@ -87,11 +95,7 @@
 			<artifactId>client</artifactId>
 		</dependency>
 
-		<!-- Apache Commons -->
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
+
 
 		<!-- Log4j -->
 		<dependency>

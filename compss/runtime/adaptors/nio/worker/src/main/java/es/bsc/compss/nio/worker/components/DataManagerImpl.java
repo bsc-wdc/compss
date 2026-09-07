@@ -21,6 +21,8 @@ import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
@@ -33,7 +35,6 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
-import es.bsc.compss.util.FileOpsManager;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -52,7 +53,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
-import storage.StorageItf;
 
 public class DataManagerImpl implements DataManager {
 
@@ -135,7 +135,7 @@ public class DataManagerImpl implements DataManager {
         } else {
             WORKER_LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
             try {
-                StorageItf.init(STORAGE_CONF);
+                StorageHandler.init(STORAGE_CONF);
             } catch (StorageException se) {
                 throw new InitializationException("Error loading storage configuration file: " + STORAGE_CONF, se);
             }
@@ -182,7 +182,7 @@ public class DataManagerImpl implements DataManager {
         if (STORAGE_CONF != null) {
             WORKER_LOGGER.debug("Stopping Storage...");
             try {
-                StorageItf.finish();
+                StorageHandler.finish();
             } catch (StorageException e) {
                 WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
             }

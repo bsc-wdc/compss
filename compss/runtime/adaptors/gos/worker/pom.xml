@@ -40,9 +40,15 @@
         <!-- Classes to host task executions-->
         <dependency>
             <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-execution</artifactId>
-            <version>${project.version}</version>
+            <artifactId>compss-execution-core</artifactId>
         </dependency>
+
+        <!-- Classes to execute tasks -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-execution-all-plugins</artifactId>
+        </dependency>
+
         <!-- COMPSs Runtime Interface for Nested invocations -->
         <dependency>
             <groupId>es.bsc.compss</groupId>

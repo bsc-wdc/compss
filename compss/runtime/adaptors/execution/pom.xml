@@ -13,9 +13,9 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>COMPSs Back-end Executors</name>
-	<description>Common classes shared among the runtime engine and every adaptor implementation to handle and run the
-        execution of tasks.
+	<name>COMPSs Back-end Executors - TO BE REMOVED</name>
+	<description>
+        Empty module to be used as by the installation scripts while they are not updated to the new structure. It will be removed in future versions.
     </description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2015</inceptionYear>
@@ -32,73 +32,6 @@
 
 	<!-- DEPENDENCIES -->
 	<dependencies>
-		<!-- COMPSs Dependencies -->
-		<!-- Common Runtime classes -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-commons</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<!-- Generic Adaptors classes -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-adaptors-commons</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- JSON -->
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>${json.version}</version>
-		</dependency>
-
-		<!-- Nested tasks -->
-		<!-- Runtime API-->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-runtime-api</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Instrumenter -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-loader</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!-- Storage -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-storage</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>es.bsc.wdc</groupId>
-			<artifactId>ThreadAffinity</artifactId>
-			<version>${java-affinity.version}</version>
-		</dependency>
-
-		<!-- Log4j -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- JUnit -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-		
 	</dependencies>
 
 	<!-- BUILD -->
@@ -111,35 +44,6 @@
 				<version>${maven-compiler-plugin.version}</version>
 			</plugin>
 
-			<!-- Create jar with dependencies -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<shadedArtifactAttached>false</shadedArtifactAttached>
-							<finalName>${project.artifactId}</finalName>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 </project>

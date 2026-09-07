@@ -65,13 +65,13 @@ import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
@@ -269,10 +269,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         try {
             this.executionManager.init();
-            // Starting the Python mirror here is avoiding the overhead of mirror creation
+            // Starting the language mirror here is avoiding the overhead of mirror creation
             // right before the task execution
-            if (lang.toUpperCase().equals(String.valueOf(COMPSsConstants.Lang.PYTHON))) {
-                this.executionManager.startMirror();
+            try {
+                this.executionManager.startMirror(MethodType.METHOD, COMPSsConstants.Lang.valueOf(lang.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                ErrorManager.warn("Unknown language:" + lang);
             }
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
@@ -678,8 +680,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Execute the job
         TaskExecutionListener tel = new TaskExecutionListener(this);
-        InvocationExecutionRequest e = new InvocationExecutionRequest(task, tel);
-        this.executionManager.enqueue(e);
+        this.executionManager.enqueue(task, tel);
 
         // Notify the master that the data has been transfered
         // The message is sent after the task enqueue because the connection can

@@ -30,7 +30,7 @@ public final class StorageItf {
     /**
      * Constructor.
      */
-    public StorageItf() {
+    private StorageItf() {
 
     }
 

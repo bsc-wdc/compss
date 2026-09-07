@@ -20,10 +20,12 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.data.StorageHandler;
+import es.bsc.compss.data.serializers.Serializer;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationExecutionRequest;
+import es.bsc.compss.types.execution.InvocationExecutionListener;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
@@ -49,7 +51,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
@@ -62,7 +63,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.Semaphore;
 import storage.StorageException;
-import storage.StorageItf;
 
 /**
  * The worker class is executed on the remote resources in order to execute the tasks.
@@ -73,7 +73,7 @@ public class GATWorker implements InvocationContext {
     private static final String ERROR_STREAMING_FINISH = "ERROR: Cannot stop Streaming Client";
 
     private static final String ERROR_STORAGE_CONF_INIT = "ERROR: Cannot load storage configuration file: ";
-    private static final String ERROR_STORAGE_CONF_FINISH = "ERROR: Cannot stop StorageItf";
+    private static final String ERROR_STORAGE_CONF_FINISH = "ERROR: Cannot stop Storage";
 
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
@@ -147,7 +147,7 @@ public class GATWorker implements InvocationContext {
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
         if (!storageConf.isEmpty()) {
             try {
-                StorageItf.init(storageConf);
+                StorageHandler.init(storageConf);
             } catch (StorageException se) {
                 ErrorManager.fatal(ERROR_STORAGE_CONF_INIT + storageConf, se);
             }
@@ -179,7 +179,7 @@ public class GATWorker implements InvocationContext {
         // Stop storage if necessary
         if (!storageConf.isEmpty()) {
             try {
-                StorageItf.finish();
+                StorageHandler.finish();
             } catch (StorageException se) {
                 System.err.println(ERROR_STORAGE_CONF_FINISH);
                 se.printStackTrace(); // NOSONAR need to be printed in job out/err
@@ -402,7 +402,7 @@ public class GATWorker implements InvocationContext {
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 String pscoId = (String) np.getValue();
                 try {
-                    StorageItf.getByID(pscoId);
+                    StorageHandler.getByID(pscoId);
                 } catch (StorageException se) {
                     throw new UnloadableValueException(se);
                 }
@@ -471,7 +471,7 @@ public class GATWorker implements InvocationContext {
         // Execute the job
         final ExecutionEnd status = new ExecutionEnd();
         final Semaphore sem = new Semaphore(0);
-        InvocationExecutionRequest.Listener listener = new InvocationExecutionRequest.Listener() {
+        InvocationExecutionListener listener = new InvocationExecutionListener() {
 
             @Override
             public void onResultAvailable(InvocationParam param) {
@@ -484,8 +484,7 @@ public class GATWorker implements InvocationContext {
                 sem.release();
             }
         };
-        InvocationExecutionRequest e = new InvocationExecutionRequest(task, listener);
-        this.executionManager.enqueue(e);
+        this.executionManager.enqueue(task, listener);
 
         // Wait for completion
         try {

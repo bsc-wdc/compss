@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-execution</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-runtime</artifactId>
+        <version>3.4.post2609</version>
+    </parent>
+
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Execution</name>
+    <description>Collection of utilities to execute any type of task within a node</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2015</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- COMPSs common classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- Resource configuration classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-resources-schema</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-project-schema</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+             <!-- COMPSs Nested detection classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-loader</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-runtime-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+             <!-- COMPSs storage classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-storage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>api</module>
+        <module>test-commons</module>
+        <module>core</module>
+        <module>plugins</module>
+    </modules>
+</project>

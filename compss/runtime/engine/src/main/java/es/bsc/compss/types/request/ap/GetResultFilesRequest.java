@@ -19,6 +19,7 @@ package es.bsc.compss.types.request.ap;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -31,14 +32,11 @@ import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.tracing.APRequestEvent;
-import es.bsc.compss.types.tracing.StorageEvent;
-import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import storage.StorageException;
-import storage.StorageItf;
 
 public class GetResultFilesRequest implements APRequest {
 
@@ -178,17 +176,10 @@ public class GetResultFilesRequest implements APRequest {
         for (DataLocation loc : data.getLocations()) {
             if (loc instanceof PersistentLocation) {
                 String pscoId = ((PersistentLocation) loc).getId();
-                if (Tracer.isActivated()) {
-                    Tracer.emitEvent(StorageEvent.STORAGE_CONSOLIDATE);
-                }
                 try {
-                    StorageItf.consolidateVersion(pscoId);
+                    StorageHandler.consolidateVersion(pscoId);
                 } catch (StorageException e) {
                     LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
-                } finally {
-                    if (Tracer.isActivated()) {
-                        Tracer.emitEventEnd(StorageEvent.STORAGE_CONSOLIDATE);
-                    }
                 }
                 LOGGER.debug("Returned because persistent object");
                 return;

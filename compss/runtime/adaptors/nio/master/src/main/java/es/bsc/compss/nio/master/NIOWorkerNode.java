@@ -23,6 +23,7 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
@@ -72,7 +73,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
-import es.bsc.compss.types.tracing.StorageEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -84,7 +84,6 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import storage.StorageException;
-import storage.StorageItf;
 
 public class NIOWorkerNode extends COMPSsWorker {
 
@@ -476,19 +475,12 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Get the current locations
         List<String> currentLocations;
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(StorageEvent.STORAGE_GETLOCATIONS);
-        }
         try {
-            currentLocations = StorageItf.getLocations(pscoId);
+            currentLocations = StorageHandler.getLocations(pscoId);
         } catch (StorageException se) {
             // Cannot obtain current locations from back-end
             sc.end(OperationEndState.OP_FAILED, se);
             return;
-        } finally {
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEventEnd(StorageEvent.STORAGE_GETLOCATIONS);
-            }
         }
 
         if (!currentLocations.contains(targetHostname)) {
@@ -540,11 +532,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(StorageEvent.STORAGE_NEWVERSION);
-        }
         try {
-            String newId = StorageItf.newVersion(pscoId, preserveSource, targetHostname);
+            String newId = StorageHandler.newVersion(pscoId, preserveSource, targetHostname);
             LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {
@@ -556,10 +545,6 @@ public class NIOWorkerNode extends COMPSsWorker {
         } catch (Exception e) {
             sc.end(OperationEndState.OP_FAILED, e);
             return;
-        } finally {
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEventEnd(StorageEvent.STORAGE_NEWVERSION);
-            }
         }
 
         // Notify successful end

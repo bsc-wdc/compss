@@ -19,6 +19,7 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.ExternalStreamHandler;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.types.Application;
@@ -26,7 +27,6 @@ import es.bsc.compss.types.data.EngineDataInstanceId;
 import es.bsc.compss.types.data.info.DataVersion;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.params.ExternalStreamData;
-import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 

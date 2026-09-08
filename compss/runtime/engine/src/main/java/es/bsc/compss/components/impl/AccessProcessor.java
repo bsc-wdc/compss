@@ -62,7 +62,6 @@ import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
-import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.List;
@@ -74,6 +73,8 @@ import org.apache.logging.log4j.Logger;
  * Component to handle the tasks accesses to files and object.
  */
 public class AccessProcessor extends RequestDispatcher<APRequest> implements CheckpointManager.User {
+
+    public static final int COMPONENT_ID = 2;
 
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
@@ -117,12 +118,12 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
 
             @Override
             public int getId() {
-                return Threads.AP.id;
+                return COMPONENT_ID;
             }
 
             @Override
             public String getDescription() {
-                return Threads.AP.description;
+                return "Access Processor";
             }
         };
     }

@@ -57,13 +57,13 @@ public abstract class PersistentInvoker extends ExternalInvoker {
     protected void invokeExternalMethod() throws JobExecutionException {
         int jobId = invocation.getJobId();
         String taskCMD = command.getAsString();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Executing in binding: " + taskCMD);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Executing in binding: {}", taskCMD);
         }
 
         String result = executeInBinding(taskCMD);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Result: " + result);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Result: {}", result);
         }
         ExternalTaskStatus taskStatus = new ExternalTaskStatus(result.split(" "));
 
@@ -74,7 +74,7 @@ public abstract class PersistentInvoker extends ExternalInvoker {
         }
 
         // Update parameters
-        LOGGER.debug("Updating parameters for job " + jobId);
+        logger.debug("Updating parameters for job {}", jobId);
         Collection<ParameterResult> results = taskStatus.getResults();
 
         Iterator<? extends InvocationParam> cip = invocation.getParams().iterator();
@@ -83,7 +83,7 @@ public abstract class PersistentInvoker extends ExternalInvoker {
             updateParam(cip.next(), cr.next());
         }
 
-        LOGGER.debug("Job " + jobId + " has finished with exit value 0");
+        logger.debug("Job {} has finished with exit value 0", jobId);
     }
 
     private void updateParam(InvocationParam param, ParameterResult result) {

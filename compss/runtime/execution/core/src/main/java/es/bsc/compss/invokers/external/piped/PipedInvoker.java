@@ -84,7 +84,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
             this.wf = null;
             int jobId = this.invocation.getJobId();
             if (!this.pipes.sendCommand((PipeCommand) this.command)) {
-                LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
+                logger.error("ERROR: Could not execute job {} because cannot write in pipe", jobId);
                 throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
             }
 
@@ -250,7 +250,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 if (this.wf == null) {
                                     this.wf = becomesNestedApplication(null);
                                     long appId = this.wf.getId();
-                                    LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+                                    logger.info("Job {} becomes app {}", this.invocation.getJobId(), appId);
                                 }
                                 this.wf.openTaskGroup(groupName, barrier);
 
@@ -286,7 +286,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                     throw new JobExecutionException("Job " + jobId + " exit with value " + exitValue);
                                 }
                                 // Update parameters
-                                LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
+                                logger.debug("Updating parameters for job {}", this.invocation.getJobId());
                                 Iterator<ParameterResult> taskResults = taskStatus.getResults().iterator();
                                 for (InvocationParam param : this.invocation.getParams()) {
                                     if (taskResults.hasNext()) {
@@ -310,7 +310,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case COMPSS_EXCEPTION:
                                 throw new COMPSsException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
                             default:
-                                LOGGER.warn("Unexpected tag on PipedInvoker: " + rcvdCommand + ". Skipping message");
+                                logger.warn("Unexpected tag on PipedInvoker: {}. Skipping message", rcvdCommand);
                                 break;
                         }
                     }

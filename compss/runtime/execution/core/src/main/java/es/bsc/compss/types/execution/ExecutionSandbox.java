@@ -28,13 +28,12 @@ import org.apache.logging.log4j.Logger;
 
 public class ExecutionSandbox {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-
-
-    private static enum DataComparison {
+    private enum DataComparison {
         SAME_DATA_VERSION, SAME_DATA_MAJOR_VERSION, SAME_DATA_MINOR_VERSION, DIFF_DATA, ERROR
     }
 
+
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     private final File folder;
     private final String folderAbsolutePath;
@@ -69,9 +68,9 @@ public class ExecutionSandbox {
         if (!isSpecific) {
             // Clean-up previous versions if any
             if (folder.exists()) {
-                LOGGER.debug("Deleting folder " + folder.toString());
+                logger.debug("Deleting folder {}", folder);
                 if (!folder.delete()) {
-                    LOGGER.warn("Cannot delete working dir folder: " + folder.toString());
+                    logger.warn("Cannot delete working dir folder: {}", folder);
                 }
             }
         }
@@ -99,12 +98,13 @@ public class ExecutionSandbox {
                     internalPath = manageOverlapInSymlink(dataId, internalName, internalP, externalFile);
                 } else {
                     // IN / INOUT File is originally located in the working dir
-                    LOGGER.info("IN or INOUT file is originally located in the working dir: " + internalFile.getName());
+                    logger.info("IN or INOUT file is originally located in the working dir: {}",
+                        internalFile.getName());
                     return null;
                 }
             } else {
                 Path externalP = externalFile.toPath();
-                LOGGER.debug("Creating symlink " + internalP + " pointing to " + externalP);
+                logger.debug("Creating symlink {} pointing to {}", internalP, externalP);
                 Files.createSymbolicLink(internalP, externalP);
             }
         } else {
@@ -126,7 +126,7 @@ public class ExecutionSandbox {
 
         final String nRename = external.getName();
 
-        LOGGER.debug("Checking if " + nRename + " is equal to " + oRename);
+        logger.debug("Checking if {} is equal to {}", nRename, oRename);
         switch (checkDataVersion(nRename, oRename)) {
             case SAME_DATA_VERSION:
             case SAME_DATA_MINOR_VERSION:
@@ -134,7 +134,7 @@ public class ExecutionSandbox {
                 break;
             case SAME_DATA_MAJOR_VERSION: {
                 Path nExternalP = external.toPath();
-                LOGGER.debug("Updating Symbolic link " + existingLink + "->" + nExternalP.toString());
+                logger.debug("Updating Symbolic link {}->{}", existingLink, nExternalP.toString());
                 Files.delete(existingLink);
                 Files.createSymbolicLink(existingLink, nExternalP);
                 resultLink = existingLink.toString();
@@ -145,13 +145,13 @@ public class ExecutionSandbox {
                 String newInternalName = this.folderAbsolutePath + dataId + "_" + internalName;
                 File newSandboxFile = new File(newInternalName);
                 Path nInternalP = newSandboxFile.toPath();
-                LOGGER.debug("Creating Symbolic link " + nInternalP.toString() + "->" + nExternalP.toString());
+                logger.debug("Creating Symbolic link {}->{}", nInternalP.toString(), nExternalP.toString());
                 Files.createSymbolicLink(newSandboxFile.toPath(), nExternalP);
                 resultLink = newInternalName;
             }
                 break;
             case ERROR:
-                LOGGER.warn("ERROR: There was an error extracting data versions for " + oRename + " and " + nRename);
+                logger.warn("ERROR: There was an error extracting data versions for {} and {}", oRename, nRename);
         }
         return resultLink;
     }
@@ -208,25 +208,24 @@ public class ExecutionSandbox {
             // IN, INOUT
             if (Files.isSymbolicLink(iPath)) {
                 // If a symbolic link is created remove it
-                LOGGER.debug("Deleting symlink " + iPath);
-                FileOperations.deleteFile(internalFile, LOGGER);
+                logger.debug("Deleting symlink {}", iPath);
+                FileOperations.deleteFile(internalFile, logger);
 
             } else {
                 // Rewrite inout param by moving the new file to the renaming
-                LOGGER.debug("Moving from " + internalFile + " to " + externalFile);
-                FileOperations.deleteFile(externalFile, LOGGER);
-                FileOperations.moveFile(internalFile, externalFile, LOGGER);
+                logger.debug("Moving from {} to {}", internalFile, externalFile);
+                FileOperations.deleteFile(externalFile, logger);
+                FileOperations.moveFile(internalFile, externalFile, logger);
             }
 
         } else { // OUT
             if (Files.isSymbolicLink(iPath)) {
                 // Unexpected case
-                String msg = "ERROR: Unexpected case. A Problem occurred with File " + internalFile
-                    + ". Either this file or the original name " + externalPath + " does not exist.";
-                LOGGER.error(msg);
+                logger.error("ERROR: Unexpected case. A problem occurred with file {}."
+                    + "Either this file or the original name {} does not exist.", internalFile, externalPath);
             } else {
                 // If an output file is created move to the renamed path (OUT Case)
-                FileOperations.moveFile(internalFile, externalFile, LOGGER);
+                FileOperations.moveFile(internalFile, externalFile, logger);
             }
         }
     }
@@ -239,10 +238,10 @@ public class ExecutionSandbox {
             // Only clean task sandbox if it is not specific
             if (folder != null && folder.exists() && folder.isDirectory()) {
                 try {
-                    LOGGER.debug("Deleting sandbox " + folder.toPath());
-                    FileOperations.deleteFile(folder, LOGGER);
+                    logger.debug("Deleting sandbox {}", folder.toPath());
+                    FileOperations.deleteFile(folder, logger);
                 } catch (IOException e) {
-                    LOGGER.warn("Error deleting sandbox " + e.getMessage(), e);
+                    logger.warn("Error deleting sandbox {}", e.getMessage(), e);
                 }
             }
         }

@@ -55,8 +55,6 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor> {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-
     // Logger messages
     private static final String ERROR_NOT_IMPL_EXC = "Not yet implemented. Specific exception should be raised";
     private static final String ERROR_PB_START = "Error starting ProcessBuilder";
@@ -72,6 +70,8 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
             + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
+
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     protected final String mirrorId;
     protected final ExecutorContext mirroredContext;
@@ -122,12 +122,11 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
     private void startPipeBuilder(InvocationContext context) {
         String installDir = context.getInstallDir();
         String piperScript = installDir + PIPER_SCRIPT_RELATIVE_PATH + PIPE_SCRIPT_NAME;
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("PIPE Script: " + piperScript);
-        }
+        logger.debug("PIPE Script: {}", piperScript);
+
         int initialExecutorCount = mirroredContext.getSize();
         String args = constructPipeBuilderArgs(context, initialExecutorCount);
-        LOGGER.debug("Init piper PipeBuilder. Args: " + args);
+        logger.debug("Init piper PipeBuilder. Args: {}", args);
         ProcessBuilder pb = new ProcessBuilder(piperScript, args);
         try {
             // Set NW environment
@@ -150,7 +149,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
 
             // Launch process builder
             this.pipeBuilderProcess = pb.start();
-            LOGGER.debug("Starting stdout/stderr gobblers ...");
+            logger.debug("Starting stdout/stderr gobblers ...");
             try {
                 this.pipeBuilderProcess.getOutputStream().close();
             } catch (IOException e) {
@@ -169,8 +168,8 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
 
             // Enable pipes, monitor and commands
             this.pipeBuildeOutGobbler =
-                new StreamGobbler(this.pipeBuilderProcess.getInputStream(), null, LOGGER, false);
-            this.pipeBuildeErrGobbler = new StreamGobbler(this.pipeBuilderProcess.getErrorStream(), null, LOGGER, true);
+                new StreamGobbler(this.pipeBuilderProcess.getInputStream(), null, logger, false);
+            this.pipeBuildeErrGobbler = new StreamGobbler(this.pipeBuilderProcess.getErrorStream(), null, logger, true);
             this.pipeBuildeOutGobbler.start();
             this.pipeBuildeErrGobbler.start();
 
@@ -221,13 +220,13 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
         cmd.append(initialExecutorCount).append(TOKEN_SEP);
         cmd.append(readPipes);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("WRITE PIPE Files: " + writePipes + "\n");
-            LOGGER.debug("READ PIPE Files: " + readPipes + "\n");
+        if (logger.isDebugEnabled()) {
+            logger.debug("WRITE PIPE Files: {}\n", writePipes);
+            logger.debug("READ PIPE Files: {}\n", readPipes);
 
             // Data pipes
-            LOGGER.debug("WRITE DATA PIPE: " + pipeBuilderPipe + ".outbound");
-            LOGGER.debug("READ DATA PIPE: " + pipeBuilderPipe + ".inbound");
+            logger.debug("WRITE DATA PIPE: {}.outbound", pipeBuilderPipe);
+            logger.debug("READ DATA PIPE: {}.inbound", pipeBuilderPipe);
         }
 
         cmd.append(Tracer.isExtraeActivated()).append(TOKEN_SEP);
@@ -257,12 +256,12 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
             }
             int workerPID = startedCMD.getPid();
 
-            LOGGER.info("Monitor Worker " + workerPID);
+            logger.info("Monitor Worker {}", workerPID);
             this.monitor.monitor(workerPID, new MirrorMonitor.MonitorElementListener() {
 
                 @Override
                 public void onDead() {
-                    LOGGER.info("Received death notification for mirror {}'s worker process.", mirrorId);
+                    logger.info("Received death notification for mirror {}'s worker process.", mirrorId);
                     pipeWorkerPipe.noLongerExists();
                     pipeWorkerPipe.delete();
                     workerEndSem.release();
@@ -303,7 +302,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
     }
 
     private void stopExecutors() {
-        LOGGER.info("Stopping executor pipes for mirror " + this.mirrorId);
+        logger.info("Stopping executor pipes for mirror {}", this.mirrorId);
 
         // Emit one event when the executors are going to be stopped
         if (Tracer.isActivated()) {
@@ -317,7 +316,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
             PipedExecutor pExec = entry.getValue();
             if (pExec.canRun()) {
                 shutdownExecutor(pExec);
-                LOGGER.debug("EXECUTOR {} shut down!", entry.getKey());
+                logger.debug("EXECUTOR {} shut down!", entry.getKey());
             }
         }
     }
@@ -325,7 +324,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
     private void stopWorker() {
         stopExecutors();
 
-        LOGGER.info("Stopping mirror " + this.mirrorId);
+        logger.info("Stopping mirror {}", this.mirrorId);
         if (this.pipeWorkerPipe.sendCommand(new QuitPipeCommand())) {
             try {
                 this.pipeWorkerPipe.waitForCommand(new QuitPipeCommand());
@@ -347,42 +346,42 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
     }
 
     private void waitForWorkerEnd() {
-        LOGGER.info("Waiting for mirror " + this.mirrorId + "'s worker process end");
+        logger.info("Waiting for mirror {}'s worker process end", this.mirrorId);
         try {
             workerEndSem.acquire();
         } catch (InterruptedException ie) {
             // No need to do anything
         }
-        LOGGER.info("Mirror " + this.mirrorId + "'s worker process has finished. Continuing mirror shutdown");
+        logger.info("Mirror {}'s worker process has finished. Continuing mirror shutdown", this.mirrorId);
     }
 
     private void stopPiper() {
-        LOGGER.info("Stopping piper process");
+        logger.info("Stopping piper process");
 
         boolean errorOnPipe = false;
         if (this.pipeBuilderPipe.sendCommand(new QuitPipeCommand())) {
             try {
                 this.pipeBuilderPipe.waitForCommand(new QuitPipeCommand());
             } catch (ClosedPipeException cpe) {
-                LOGGER.error(ERROR_W_PIPE, cpe);
+                logger.error(ERROR_W_PIPE, cpe);
                 errorOnPipe = true;
             }
         } else {
-            LOGGER.error(ERROR_W_PIPE);
+            logger.error(ERROR_W_PIPE);
             errorOnPipe = true;
         }
 
         try {
             if (errorOnPipe) {
                 if (this.pipeBuilderProcess.isAlive()) {
-                    LOGGER.info("Error passing QUIT message. Killing piper process");
+                    logger.info("Error passing QUIT message. Killing piper process");
                     this.pipeBuilderProcess.destroy();
                 }
             } else {
-                LOGGER.info("Waiting for finishing piper process");
+                logger.info("Waiting for finishing piper process");
                 int exitCode = pipeBuilderProcess.waitFor();
 
-                LOGGER.info("piper process finished");
+                logger.info("piper process finished");
                 if (exitCode != 0) {
                     ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
                 }
@@ -410,7 +409,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
             }
         }
         this.pipeBuilderPipe.delete();
-        LOGGER.info("ExternalThreadPool finished");
+        logger.info("ExternalThreadPool finished");
     }
 
     @Override
@@ -480,7 +479,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
                 this.pipeWorkerPipe.waitForCommand(reply);
                 return reply.getPids().get(0);
             } catch (ClosedPipeException ie) {
-                LOGGER.error("Trying to send a command through a closed pipe");
+                logger.error("Trying to send a command through a closed pipe");
                 throw new UnsupportedOperationException(ERROR_NOT_IMPL_EXC);
             }
         } else {
@@ -489,7 +488,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
     }
 
     private void registerReadyExecutor(PipedExecutor pExec, int pid) {
-        LOGGER.info("Monitor Executor " + pid);
+        logger.info("Monitor Executor {}", pid);
         pExec.deployed();
         this.monitor.monitor(pid, new MirrorMonitor.MonitorElementListener() {
 
@@ -514,7 +513,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
         if (pExec != null) {
             // Executor alive on the mirror.
             shutdownExecutor(pExec);
-            LOGGER.debug("EXECUTOR " + executorId + " shut down!");
+            logger.debug("EXECUTOR {} shut down!", executorId);
         }
     }
 
@@ -539,7 +538,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
             try {
                 this.pipeWorkerPipe.waitForCommand(new RemovedExecutorPipeCommand(execPipe));
             } catch (ClosedPipeException cpe) {
-                LOGGER.error(ERROR_W_PIPE, cpe);
+                logger.error(ERROR_W_PIPE, cpe);
             }
         } // else : Worker is dead and executor probably too since it is not responding. Ignore
 

@@ -30,13 +30,13 @@ import org.apache.logging.log4j.Logger;
  */
 public class JobQueue {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_POOL);
 
     /** Job requests. **/
     private final BlockingQueue<ExecutorRequest> queue;
 
     /** Stack storing the objects blocking the waiting threads. */
-    private BlockingDeque<Object> waitingLocks;
+    private final BlockingDeque<Object> waitingLocks;
 
 
     /**
@@ -54,7 +54,7 @@ public class JobQueue {
      */
     public void enqueue(ExecutorRequest request) {
 
-        LOGGER.debug("Enqueueing " + request.toString());
+        logger.debug("Enqueueing {}", request.toString());
         synchronized (this) {
             this.queue.add(request);
 
@@ -67,7 +67,7 @@ public class JobQueue {
                     lock = this.waitingLocks.removeFirst();
                 }
                 synchronized (lock) {
-                    LOGGER.debug("Releasing lock " + lock.hashCode());
+                    logger.debug("Releasing lock {}", lock.hashCode());
                     lock.notify();
                 }
             }
@@ -96,7 +96,7 @@ public class JobQueue {
                 try {
                     lock.wait();
                 } catch (InterruptedException ie) {
-                    LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
+                    logger.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
                     return null;
                 }
             }
@@ -128,7 +128,7 @@ public class JobQueue {
                 try {
                     lock.wait();
                 } catch (InterruptedException ie) {
-                    LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
+                    logger.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
                     return null;
                 }
             }
@@ -143,12 +143,12 @@ public class JobQueue {
      */
     public void wakeUpAll() {
         // Wake up all waiting threads
-        LOGGER.info("Waking up " + waitingLocks.size() + " locks.");
+        logger.info("Waking up {} locks.", +waitingLocks.size());
         synchronized (this) {
             while (!this.waitingLocks.isEmpty()) {
                 Object lock = this.waitingLocks.pop();
                 synchronized (lock) {
-                    LOGGER.debug("Release lock" + lock.hashCode());
+                    logger.debug("Release lock {}", lock.hashCode());
                     lock.notify();
                 }
             }

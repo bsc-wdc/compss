@@ -94,7 +94,7 @@ public class MPIInvoker extends Invoker<Workflow> {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked MPI " + this.mpiDef.getBinary() + " in " + this.context.getHostName());
+        logger.info("Invoked MPI {} in {}", this.mpiDef.getBinary(), this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -117,7 +117,7 @@ public class MPIInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -249,7 +249,7 @@ public class MPIInvoker extends Invoker<Workflow> {
             // todo: nm: if the env variable is defined, use that
             // -e COMPSS_CONTAINER=${COMPSS_CONTAINER}
             String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
-            LOGGER.info("COMPSs docker container: {}", compssContainer);
+            logger.info("COMPSs docker container: {}", compssContainer);
             if (compssContainer != null && !compssContainer.isEmpty()) {
                 cmd[pos++] = "--volumes-from";
                 cmd[pos++] = compssContainer;
@@ -300,7 +300,7 @@ public class MPIInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling MPI process");
+        logger.debug("Cancelling MPI process");
         if (this.br != null) {
             this.br.cancelProcess();
         }
@@ -310,7 +310,7 @@ public class MPIInvoker extends Invoker<Workflow> {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = mpiDef.getPPN();
-        if (LOGGER.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             System.out.println("[MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
         }
         System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));
@@ -321,7 +321,7 @@ public class MPIInvoker extends Invoker<Workflow> {
             System.setProperty(OMP_NUM_THREADS, String.valueOf(threads));
 
             // LOG ENV VARS
-            if (LOGGER.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 System.out.println("[MPI INVOKER] OVERWRITING COMPSS_NUM_THREADS: " + threads);
             }
         }

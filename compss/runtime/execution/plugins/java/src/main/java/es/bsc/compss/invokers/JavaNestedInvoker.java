@@ -63,13 +63,14 @@ public class JavaNestedInvoker extends JavaInvoker {
             try {
                 ceiClass = Class.forName(ceiName);
             } catch (ClassNotFoundException ex) {
-                LOGGER.warn("Requesting a Nested Invoker with not found CEI " + ceiName + " for Job "
-                    + invocation.getJobId() + ". Proxying invoker to a regular Java Invoker.");
+                logger.warn("Requesting a Nested Invoker with not found CEI {} for Job {}."
+                    + " Proxying invoker to a regular Java Invoker.", ceiName, invocation.getJobId());
                 ceiClass = null;
             }
         } else {
-            LOGGER.warn("Requesting a Nested Invoker with no CEI for Job " + invocation.getJobId()
-                + ". Proxying invoker to a regular Java Invoker.");
+            logger.warn(
+                "Requesting a Nested Invoker with no CEI for Job {}." + " Proxying invoker to a regular Java Invoker.",
+                invocation.getJobId());
             ceiClass = null;
         }
         this.ceiClass = ceiClass;
@@ -82,12 +83,12 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
             try {
                 // Call class modifier
-                LOGGER.debug("Modifying application " + className);
+                logger.debug("Modifying application {}", className);
                 methodClass = ITAppModifier.modifyToMemory(className, ceiClass, false, false);
                 // Find the corresponding method
                 method = ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());
             } catch (Throwable e) {
-                LOGGER.warn("Could not instrument the method to detect nested tasks.", e);
+                logger.warn("Could not instrument the method to detect nested tasks.", e);
                 throw new JobExecutionException("Could not instrument the method to detect nested tasks.", e);
             } finally {
 

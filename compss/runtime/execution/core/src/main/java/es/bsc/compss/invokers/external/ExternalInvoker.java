@@ -249,7 +249,7 @@ public abstract class ExternalInvoker extends Invoker<Workflow> {
                 break;
             case BINDING_OBJECT_T:
                 String extObjValue = np.getValue().toString();
-                LOGGER.debug("Generating command args for Binding_object " + extObjValue);
+                logger.debug("Generating command args for Binding_object {}", extObjValue);
                 BindingObject bo = BindingObject.generate(extObjValue);
 
                 String originalData = "";
@@ -294,9 +294,9 @@ public abstract class ExternalInvoker extends Invoker<Workflow> {
     @SuppressWarnings("unchecked")
     private static void writeCollection(InvocationParamCollection<InvocationParam> ipc) {
         String pathToWrite = (String) ipc.getValue();
-        LOGGER.debug("Writting Collection file " + pathToWrite + " ");
+        logger.debug("Writting Collection file {} ", pathToWrite);
         if (new File(pathToWrite).exists()) {
-            LOGGER.debug("Collection file " + pathToWrite + " already written");
+            logger.debug("Collection file {} already written", pathToWrite);
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
                 for (InvocationParam subParam : ipc.getCollectionParameters()) {
@@ -309,7 +309,7 @@ public abstract class ExternalInvoker extends Invoker<Workflow> {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("Error writting collection to file", e);
+                logger.error("Error writting collection to file", e);
                 e.printStackTrace(); // NOSONAR need to print in the job out/err
             }
         }
@@ -426,7 +426,7 @@ public abstract class ExternalInvoker extends Invoker<Workflow> {
     @SuppressWarnings("unchecked")
     private static void deleteCollection(InvocationParamCollection<InvocationParam> ipc) {
         String pathToWrite = (String) ipc.getValue();
-        LOGGER.debug("Removing Collection file " + pathToWrite + " ");
+        logger.debug("Removing Collection file {} ", pathToWrite);
         (new File(pathToWrite)).delete();
 
         for (InvocationParam subParam : ipc.getCollectionParameters()) {

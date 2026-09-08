@@ -37,9 +37,6 @@ import org.apache.logging.log4j.Logger;
 
 public class PythonMirror extends PipedMirror {
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
-
     // Worker paths
     private static final String BINDINGS_RELATIVE_PATH =
         File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
@@ -52,6 +49,9 @@ public class PythonMirror extends PipedMirror {
     // Environment variable names
     private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
     private static final String ENV_PYTHONPATH = "PYTHONPATH";
+
+    // Logger
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
     // Piped Executor Cache
     private static final ThreadLocal<PipedExecutor> executor = new ThreadLocal<>();
@@ -121,7 +121,7 @@ public class PythonMirror extends PipedMirror {
 
         // Add Python interpreter call
         cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
-        if (!LOGGER.isDebugEnabled()) {
+        if (!logger.isDebugEnabled()) {
             // If not logging, then use the optimized flag
             cmd.append("-O").append(TOKEN_SEP);
         }
@@ -153,7 +153,7 @@ public class PythonMirror extends PipedMirror {
         cmd.append(context.getLogDir()).append(TOKEN_SEP);
         cmd.append(context.getAnalysisDir()).append(TOKEN_SEP);
         cmd.append(context.getRuntimeAPI() != null).append(TOKEN_SEP);
-        cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
+        cmd.append(logger.isDebugEnabled()).append(TOKEN_SEP);
         cmd.append(Tracer.isExtraeActivated()).append(TOKEN_SEP);
         cmd.append(context.getStorageConf()).append(TOKEN_SEP);
         cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
@@ -225,9 +225,9 @@ public class PythonMirror extends PipedMirror {
                     ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
                 }
             } else {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(
-                        "Working directorty for python trace files: " + workingDir + " already exists!.. Skipping!");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Working directory for python trace files: {} already exists!.. Skipping!",
+                        workingDir);
                 }
             }
         }

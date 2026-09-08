@@ -40,7 +40,6 @@ import es.bsc.compss.types.request.td.WorkerUpdateRequest;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
-import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
@@ -57,6 +56,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?>>
     implements ResourceUser, ActionOrchestrator {
+
+    public static final int COMPONENT_ID = 3;
 
     // Schedulers jars path
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
@@ -195,12 +196,12 @@ public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?
 
             @Override
             public int getId() {
-                return Threads.TD.id;
+                return COMPONENT_ID;
             }
 
             @Override
             public String getDescription() {
-                return Threads.TD.description;
+                return "Task Dispatcher";
             }
         };
     }

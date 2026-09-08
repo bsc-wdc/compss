@@ -19,7 +19,7 @@ package es.bsc.compss.data;
 import es.bsc.compss.data.serializers.Serializer;
 import es.bsc.compss.data.tracing.FileOpsEvent;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.tracing.Threads;
+import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -35,6 +35,10 @@ import org.apache.logging.log4j.Logger;
 
 public class FileOpsManager {
 
+    public static final String COMPONENTS_DESCRIPTION = " File system";
+    public static final int LOW_PRIORITY_COMPONENT_ID = 4;
+    public static final int HIGH_PRIORITY_COMPONENT_ID = 5;
+
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
@@ -42,8 +46,8 @@ public class FileOpsManager {
     private static final ExecutorService LOW_PRIORITY;
 
     static {
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.enablePThreads(2);
+        if (Tracer.isActivated()) {
+            Tracer.enablePThreads(2);
         }
         LOW_PRIORITY = Executors.newSingleThreadExecutor();
         HIGH_PRIORITY = Executors.newFixedThreadPool(1);
@@ -54,11 +58,11 @@ public class FileOpsManager {
             public Object call() {
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                 Thread.currentThread().setName("Low priority FS");
-                if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                    es.bsc.wdc.tracing.Tracer.disablePThreads(1);
-                    es.bsc.wdc.tracing.Tracer.activeComponent(Threads.FSL.id, Threads.FSL.description);
-                    es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.INIT_FS);
-                    es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
+                if (Tracer.isActivated()) {
+                    Tracer.disablePThreads(1);
+                    Tracer.activeComponent(LOW_PRIORITY_COMPONENT_ID, COMPONENTS_DESCRIPTION);
+                    Tracer.emitEvent(FileOpsEvent.INIT_FS);
+                    Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
                 }
 
                 return new Object();
@@ -70,11 +74,11 @@ public class FileOpsManager {
             @Override
             public Object call() {
                 Thread.currentThread().setName("High priority FS");
-                if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                    es.bsc.wdc.tracing.Tracer.disablePThreads(1);
-                    es.bsc.wdc.tracing.Tracer.activeComponent(Threads.FSH.id, Threads.FSH.description);
-                    es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.INIT_FS);
-                    es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
+                if (Tracer.isActivated()) {
+                    Tracer.disablePThreads(1);
+                    Tracer.activeComponent(LOW_PRIORITY_COMPONENT_ID, COMPONENTS_DESCRIPTION);
+                    Tracer.emitEvent(FileOpsEvent.INIT_FS);
+                    Tracer.emitEventEnd(FileOpsEvent.INIT_FS);
                 }
                 return new Object();
             }
@@ -422,16 +426,16 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Serializing object to " + target);
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_SERIALIZE);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_SERIALIZE);
         }
         try {
             Serializer.serialize(o, target);
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_SERIALIZE);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_SERIALIZE);
             }
         }
     }
@@ -440,8 +444,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Serializing object to " + target);
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_SERIALIZE);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_SERIALIZE);
         }
         try {
             return Serializer.deserialize(target);
@@ -450,8 +454,8 @@ public class FileOpsManager {
         } catch (ClassNotFoundException ex) {
             throw ex;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_SERIALIZE);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_SERIALIZE);
             }
         }
     }
@@ -460,8 +464,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Copying file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_COPY);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_COPY);
         }
 
         try {
@@ -469,8 +473,8 @@ public class FileOpsManager {
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_COPY);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_COPY);
             }
         }
     }
@@ -479,16 +483,16 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Copying directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_COPY);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_COPY);
         }
         try {
             FileUtils.copyDirectory(source, target);
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_COPY);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_COPY);
             }
         }
     }
@@ -498,8 +502,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Deleting file " + f.getAbsolutePath());
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_DELETE);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_DELETE);
         }
         try {
             FileOperations.deleteFile(f, LOGGER);
@@ -507,8 +511,8 @@ public class FileOpsManager {
             LOGGER.error("Cannot delete file " + f.getAbsolutePath(), e);
             throw e;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_DELETE);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_DELETE);
             }
         }
     }
@@ -517,8 +521,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Moving file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_MOVE);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_MOVE);
         }
 
         try {
@@ -529,8 +533,8 @@ public class FileOpsManager {
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_MOVE);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_MOVE);
             }
         }
     }
@@ -539,8 +543,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Moving directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-            es.bsc.wdc.tracing.Tracer.emitEvent(FileOpsEvent.LOCAL_MOVE);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(FileOpsEvent.LOCAL_MOVE);
         }
 
         try {
@@ -551,8 +555,8 @@ public class FileOpsManager {
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (es.bsc.wdc.tracing.Tracer.isActivated()) {
-                es.bsc.wdc.tracing.Tracer.emitEventEnd(FileOpsEvent.LOCAL_MOVE);
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(FileOpsEvent.LOCAL_MOVE);
             }
         }
     }

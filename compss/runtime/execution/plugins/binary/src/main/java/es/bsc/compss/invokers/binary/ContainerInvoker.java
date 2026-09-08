@@ -113,16 +113,15 @@ public class ContainerInvoker extends Invoker<Workflow> {
 
     @Override
     public void invokeMethod() throws JobExecutionException {
-        LOGGER.info("Invoked Container execution (internalType = " + this.internalExecutionType + ", internalBinary = "
-            + this.internalBinary + ", internalFunction = " + this.internalFunction + ") in "
-            + this.context.getHostName());
+        logger.info("Invoked Container execution (internalType = {}, internalBinary = {}, internalFunction = {}) in {}",
+            this.internalExecutionType, this.internalBinary, this.internalFunction, this.context.getHostName());
 
         // Execute container
         Object retValue;
         try {
             retValue = runInvocation();
         } catch (InvokeExecutionException iee) {
-            LOGGER.error("Exception running container", iee);
+            logger.error("Exception running container", iee);
             throw new JobExecutionException(iee);
         }
 
@@ -138,7 +137,7 @@ public class ContainerInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -146,9 +145,9 @@ public class ContainerInvoker extends Invoker<Workflow> {
         switch (this.internalExecutionType) {
             case CET_PYTHON:
                 // Real return value is updated in the container_worker.py
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Python Container Execution of Job " + this.invocation.getJobId() + " (Task "
-                        + this.invocation.getTaskId() + ") has exit value " + retValue.toString());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Python Container Execution of Job {} (Task {}) has exit value {}",
+                        this.invocation.getJobId(), this.invocation.getTaskId(), retValue.toString());
                 }
                 break;
             case CET_BINARY:
@@ -273,7 +272,7 @@ public class ContainerInvoker extends Invoker<Workflow> {
             numOptions = options.length;
         }
         String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
-        LOGGER.info("COMPSs docker container: {}", compssContainer);
+        logger.info("COMPSs docker container: {}", compssContainer);
         boolean insideContainer = compssContainer != null && !compssContainer.isEmpty();
         int numCmdArgs = numOptions + containerCallParams.size() + (insideContainer ? 2 : 4);
         switch (this.container.getEngine()) {
@@ -523,7 +522,7 @@ public class ContainerInvoker extends Invoker<Workflow> {
                 break;
             case BINDING_OBJECT_T:
                 String extObjValue = np.getValue().toString();
-                LOGGER.debug("Generating command args for Binding_object " + extObjValue);
+                logger.debug("Generating command args for Binding_object {}", extObjValue);
                 BindingObject bo = BindingObject.generate(extObjValue);
 
                 String originalData = "";
@@ -573,9 +572,9 @@ public class ContainerInvoker extends Invoker<Workflow> {
     @SuppressWarnings("unchecked")
     private static void writeCollection(InvocationParamCollection<InvocationParam> ipc) {
         String pathToWrite = (String) ipc.getValue();
-        LOGGER.debug("Writting Collection file " + pathToWrite + " ");
+        logger.debug("Writting Collection file {}", pathToWrite);
         if (new File(pathToWrite).exists()) {
-            LOGGER.debug("Collection file " + pathToWrite + " already written");
+            logger.debug("Collection file {} already written", pathToWrite);
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8")) {
                 for (InvocationParam subParam : ipc.getCollectionParameters()) {
@@ -588,7 +587,7 @@ public class ContainerInvoker extends Invoker<Workflow> {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.error("Error writting collection to file", e);
+                logger.error("Error writting collection to file", e);
                 e.printStackTrace(); // NOSONAR need to print in the job out/err
             }
         }
@@ -600,7 +599,7 @@ public class ContainerInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling binary process");
+        logger.debug("Cancelling binary process");
         if (this.br != null) {
             this.br.cancelProcess();
         }

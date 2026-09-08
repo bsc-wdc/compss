@@ -92,7 +92,7 @@ public class MpmdMPIInvoker extends Invoker<Workflow> {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoking MPMDMPI " + this.definition + " in " + this.context.getHostName());
+        logger.info("Invoking MPMDMPI {} in {}", this.definition, this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -115,7 +115,7 @@ public class MpmdMPIInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -194,7 +194,7 @@ public class MpmdMPIInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling MPI process");
+        logger.debug("Cancelling MPI process");
         if (this.br != null) {
             this.br.cancelProcess();
         }
@@ -204,7 +204,7 @@ public class MpmdMPIInvoker extends Invoker<Workflow> {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = definition.getPPN();
-        if (LOGGER.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             System.out.println("[MPMD MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
         }
         System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));
@@ -215,7 +215,7 @@ public class MpmdMPIInvoker extends Invoker<Workflow> {
             System.setProperty(OMP_NUM_THREADS, String.valueOf(threads));
 
             // LOG ENV VARS
-            if (LOGGER.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 System.out.println("[MPMD MPI INVOKER] OVERWRITING COMPSS_NUM_THREADS: " + threads);
             }
         }

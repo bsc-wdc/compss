@@ -17,7 +17,7 @@
 package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.log.LoggerManager;
-import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.semantics.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;

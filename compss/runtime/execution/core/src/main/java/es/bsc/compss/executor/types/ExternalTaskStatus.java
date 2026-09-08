@@ -32,10 +32,10 @@ import org.apache.logging.log4j.Logger;
  */
 public class ExternalTaskStatus {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-
     private static final String NUMBER_FORMAT_WARN = "WARN: Number format exception on {}. Setting type 0";
     private static final String CANNOT_PARSE_ERROR = "Could not parse Collection results {}";
+
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     private final Integer exitValue;
     private final List<ParameterResult> results;
@@ -67,7 +67,7 @@ public class ExternalTaskStatus {
             int numParams = Integer.parseInt(line[3]);
 
             if (4 + 2 * numParams != line.length) {
-                LOGGER.warn("WARN: Skipping endTask parameters because of malformation.");
+                logger.warn("WARN: Skipping endTask parameters because of malformation.");
                 numParams = (line.length - 4) / 2;
             }
             // Process parameters
@@ -76,7 +76,7 @@ public class ExternalTaskStatus {
                 try {
                     paramTypeOrdinalIndex = Integer.parseInt(line[4 + 2 * i]);
                 } catch (NumberFormatException nfe) {
-                    LOGGER.warn(NUMBER_FORMAT_WARN, line[4 + 2 * i], nfe);
+                    logger.warn(NUMBER_FORMAT_WARN, line[4 + 2 * i], nfe);
                 }
                 DataType paramType = DataType.values()[paramTypeOrdinalIndex];
 
@@ -87,7 +87,7 @@ public class ExternalTaskStatus {
                 this.results.add(createResult(paramType, paramValue));
             }
         } else {
-            LOGGER.warn("WARN: endTask message does not have task result parameters");
+            logger.warn("WARN: endTask message does not have task result parameters");
         }
     }
 
@@ -118,12 +118,12 @@ public class ExternalTaskStatus {
                 try {
                     result = parseCollection(it);
                 } catch (Exception e) {
-                    LOGGER.warn(CANNOT_PARSE_ERROR, value);
+                    logger.warn(CANNOT_PARSE_ERROR, value);
                     return null;
                 }
                 c = it.next();
             } else {
-                LOGGER.warn(CANNOT_PARSE_ERROR, value);
+                logger.warn(CANNOT_PARSE_ERROR, value);
                 return null;
             }
         }

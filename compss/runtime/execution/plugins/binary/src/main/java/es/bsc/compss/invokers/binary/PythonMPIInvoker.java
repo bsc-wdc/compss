@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.invokers.external;
+package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.InvokeExecutionException;
@@ -22,6 +22,7 @@ import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
+import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
@@ -105,13 +106,13 @@ public class PythonMPIInvoker extends ExternalInvoker {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
         if (this.invocation.isDebugEnabled()) {
-            LOGGER.debug("Exit value of MPI executor of job " + this.invocation.getJobId() + " of task "
-                + this.invocation.getTaskId() + ": " + retObj.toString());
+            logger.debug("Exit value of MPI executor of job {} of task {}: {}", this.invocation.getJobId(),
+                this.invocation.getTaskId(), retObj.toString());
         }
 
         if (retObj.toString().compareTo("0") != 0) {
@@ -135,7 +136,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
             PythonParams pp = (PythonParams) lp;
             pythonInterpreter = pp.checkCoverageAndGetPythonInterpreter();
         } else {
-            LOGGER.error("Incorrect language parameters for PYTHON MPI task. No Python language parameters");
+            logger.error("Incorrect language parameters for PYTHON MPI task. No Python language parameters");
             throw new InvokeExecutionException(
                 "Incorrect language parameters for PYTHON MPI task. No Python language parameters");
         }
@@ -188,7 +189,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
                 cmd[numBasePythonMpiArgs - (2 + pythonInterpreterArray.length - i)] = pythonInterpreterArray[i];
             }
         } else {
-            LOGGER.error("Incorrect python interpreter parameter");
+            logger.error("Incorrect python interpreter parameter");
             throw new InvokeExecutionException("Incorrect python interpreter parameter");
         }
         String installDir = this.context.getInstallDir();
@@ -245,7 +246,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling PythonMPI process");
+        logger.debug("Cancelling PythonMPI process");
         if (this.br != null) {
             this.br.cancelProcess();
         }
@@ -265,7 +266,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
     protected void setEnvironmentVariables() {
         super.setEnvironmentVariables();
         int ppn = this.mpiDef.getPPN();
-        if (LOGGER.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             System.out.println("[PYTHON MPI INVOKER] OVERWRITING COMPSS_NUM_PROCS: " + this.computingUnits);
         }
         System.setProperty(COMPSS_NUM_PROCS, String.valueOf(this.computingUnits));
@@ -275,7 +276,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
             System.setProperty(OMP_NUM_THREADS, String.valueOf(threads));
 
             // LOG ENV VARS
-            if (LOGGER.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 System.out.println("[INVOKER] OVEWRITING COMPSS_NUM_THREADS: " + threads);
             }
         }

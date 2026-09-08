@@ -37,8 +37,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class BindToMap implements ThreadBinder {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_BINDER);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_BINDER);
+    private static final boolean debug = logger.isDebugEnabled();
 
     private ArrayList<ArrayList<Integer>> idList = new ArrayList<>();
     private int[] bindedComputingUnits;
@@ -145,8 +145,8 @@ public class BindToMap implements ThreadBinder {
      * @return summary description of the cpu resources of the node
      */
     public static String processLsCpuOutput(String cmdOutput) {
-        if (DEBUG) {
-            LOGGER.debug("Parsing LSCPU Output : " + cmdOutput);
+        if (debug) {
+            logger.debug("Parsing LSCPU Output : {}", cmdOutput);
         }
         String[] cmdLines = cmdOutput.split("\n");
         Integer numSockets = null;
@@ -202,12 +202,12 @@ public class BindToMap implements ThreadBinder {
         String cpuMap;
         if (numSockets == null || numSockets <= 0) {
             // Do general affinity: per core
-            LOGGER.debug("CPU Map constructed by General Affinity");
+            logger.debug("CPU Map constructed by General Affinity");
             cpuMap = "0-" + String.valueOf(numCpus);
         } else {
             if (!numaDescription.isEmpty()) {
                 // Do affinity per NUMA Node
-                LOGGER.debug("CPU Map constructed by Affinity per Numa Node");
+                logger.debug("CPU Map constructed by Affinity per Numa Node");
                 StringBuilder sb = new StringBuilder();
                 boolean first = true;
                 for (String descr : numaDescription) {
@@ -221,7 +221,7 @@ public class BindToMap implements ThreadBinder {
                 cpuMap = sb.toString();
             } else {
                 // Do affinity per socket
-                LOGGER.debug("CPU Map constructed by Affinity per socket");
+                logger.debug("CPU Map constructed by Affinity per socket");
                 StringBuilder sb = new StringBuilder();
                 int cpusPerSocket = coresPerSocket * threadsPerCore;
                 for (int i = 0; i < numSockets; ++i) {
@@ -236,7 +236,7 @@ public class BindToMap implements ThreadBinder {
             }
         }
 
-        LOGGER.info("CPU Map: " + cpuMap);
+        logger.info("CPU Map: {}", cpuMap);
         return cpuMap;
     }
 
@@ -285,7 +285,7 @@ public class BindToMap implements ThreadBinder {
             updateSocketPriority();
         }
 
-        if (DEBUG) {
+        if (debug) {
             StringBuilder sb = new StringBuilder("[ThreadBinderCPUs] Task " + jobId + " binded to cores ");
             if (assignedCoreUnits.length != 0) {
                 sb.append(assignedCoreUnits[0]);
@@ -293,7 +293,7 @@ public class BindToMap implements ThreadBinder {
             for (int i = 1; i < assignedCoreUnits.length; ++i) {
                 sb.append(" ").append(assignedCoreUnits[i]);
             }
-            LOGGER.debug(sb.toString());
+            logger.debug(sb.toString());
         }
         return assignedCoreUnits;
     }
@@ -344,9 +344,9 @@ public class BindToMap implements ThreadBinder {
                 totalAmountThreads++;
             }
         }
-        if (DEBUG) {
+        if (debug) {
             for (int i = 0; i < this.idList.size(); ++i) {
-                LOGGER.debug("[ThreadBinderCPUs] Socket " + i);
+                logger.debug("[ThreadBinderCPUs] Socket {}", i);
                 StringBuilder sb = new StringBuilder("[ThreadBinderCPUs] Registered slots: ");
                 StringBuilder sb2 = new StringBuilder("[ThreadBinderCPUs] Registered ids: ");
                 for (int j = 0; j < this.idList.get(i).size(); ++j) {
@@ -354,8 +354,8 @@ public class BindToMap implements ThreadBinder {
                     sb.append(this.bindedComputingUnits[coreNum]).append(" ");
                     sb2.append(coreNum).append(" ");
                 }
-                LOGGER.debug(sb.toString());
-                LOGGER.debug(sb2.toString());
+                logger.debug(sb.toString());
+                logger.debug(sb2.toString());
             }
         }
     }

@@ -31,12 +31,6 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
-        <!-- JAVASSIST -->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-        </dependency>
-
         <!-- REDIS CLIENT -->
         <dependency>
             <groupId>redis.clients</groupId>

@@ -59,12 +59,6 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class Invoker<W extends Workflow> implements WorkflowListener {
 
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
-    protected static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
-
-    protected static final boolean DP_ENABLED =
-        Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
-
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type ";
@@ -78,6 +72,11 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
     public static final String COMPSS_BINDED_GPUS = "COMPSS_BINDED_GPUS";
     public static final String COMPSS_BINDED_CPUS = "COMPSS_BINDED_CPUS";
     public static final String IB_SUFFIX = "-ib0";
+
+    protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_INVOKER);
+    protected static final Logger dpLogger = LogManager.getLogger(Loggers.DATA_PROVENANCE);
+    protected static final boolean dpEnabled =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     protected final InvocationContext context;
     protected final Invocation invocation;
@@ -309,18 +308,18 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
      * @throws JobExecutionException Exception serializing the exist value.
      */
     public void serializeBinaryExitValue(InvocationParam returnParam, Object exitValue) throws JobExecutionException {
-        LOGGER.debug("Checking binary exit value serialization");
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("- Param Type: " + returnParam.getType().name());
-            LOGGER.debug("- Preserve source data: " + returnParam.isPreserveSourceData());
-            LOGGER.debug("- Write final value: " + returnParam.isWriteFinalValue());
-            LOGGER.debug("- Prefix: " + returnParam.getPrefix());
+        logger.debug("Checking binary exit value serialization");
+        if (logger.isDebugEnabled()) {
+            logger.debug("- Param Type: {}", returnParam.getType().name());
+            logger.debug("- Preserve source data: {}", returnParam.isPreserveSourceData());
+            logger.debug("- Write final value: {}", returnParam.isWriteFinalValue());
+            logger.debug("- Prefix: {}", returnParam.getPrefix());
         }
 
         if (returnParam.getType().equals(DataType.FILE_T)) {
             // Write exit value to the file
             String renaming = returnParam.getOriginalName();
-            LOGGER.info("Writing Binary Exit Value (" + exitValue.toString() + ") to " + renaming);
+            logger.info("Writing Binary Exit Value ({}) to {}", exitValue.toString(), renaming);
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(renaming))) {
                 String value = "0000I" + exitValue + "\n.\n";
@@ -342,23 +341,18 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
             ExecType prolog = desc.getProlog();
             executeBinary(prolog);
 
-            if (DP_ENABLED) {
+            if (dpEnabled) {
                 logProvenanceOfParameters(invocation.getParams(), "IN");
             }
 
             invokeMethod();
 
-            if (DP_ENABLED) {
+            if (dpEnabled) {
                 logProvenanceOfParameters(invocation.getParams(), "OUT");
             }
 
             ExecType epilog = desc.getEpilog();
             executeBinary(epilog);
-
-        } catch (JobExecutionException jee) {
-            throw jee;
-        } catch (COMPSsException e) {
-            throw e;
         } catch (InvokeExecutionException e) {
             throw new JobExecutionException(e);
         } finally {
@@ -388,7 +382,7 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
             System.setProperty(COMPSS_BINDED_CPUS, cpus);
         }
         // LOG ENV VARS
-        if (LOGGER.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             System.out.println("[INVOKER] COMPSS_HOSTNAMES: " + this.workers);
             System.out.println("[INVOKER] COMPSS_NUM_NODES: " + this.numWorkers);
             System.out.println("[INVOKER] COMPSS_NUM_THREADS: " + this.computingUnits);
@@ -432,7 +426,7 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
 
     protected W becomesNestedApplication(String parallelismSource) throws JobExecutionException {
         W wf = registerWorkflow(parallelismSource);
-        LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + wf.getId());
+        logger.info("Job {} becomes app {}", this.invocation.getJobId(), wf.getId());
         for (InvocationParam p : this.invocation.getParams()) {
             handleInputValue(wf, p);
         }
@@ -553,7 +547,7 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
                 + hostname + " METHOD=" + impl.getSignature().split("\\.")[1] + " PARAMETER=" + p.getName()
                 + " BASICTYPE=" + p.getValueClass() + " COMPSSTYPE=" + p.getType() + " CONTENT=" + p.getValue()
                 + " DIRECTION=" + direction;
-            DP_LOGGER.info(paramInfo);
+            dpLogger.info(paramInfo);
         }
     }
 }

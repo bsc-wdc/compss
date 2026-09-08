@@ -104,7 +104,7 @@ public class RunCOMPSsInvoker extends Invoker<Workflow> {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked " + this.compssDef.getAppName() + " in " + this.context.getHostName());
+        logger.info("Invoked {} in {}", this.compssDef.getAppName(), this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -127,7 +127,7 @@ public class RunCOMPSsInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -402,7 +402,7 @@ public class RunCOMPSsInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling COMPSs process");
+        logger.debug("Cancelling COMPSs process");
         if (this.br != null) {
             this.br.cancelProcess();
         }

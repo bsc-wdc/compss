@@ -22,7 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 public class CanceledTask {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
     private final int taskId;
 
@@ -35,7 +35,7 @@ public class CanceledTask {
      * Sets the task to cancel.
      */
     public void cancel() {
-        LOGGER.info("Task " + this.taskId + " has been canceled.");
+        logger.info("Task {} has been canceled.", this.taskId);
         COMPSsWorker.setCancelled(this.taskId, CancelReason.COMPSS_EXCEPTION);
     }
 }

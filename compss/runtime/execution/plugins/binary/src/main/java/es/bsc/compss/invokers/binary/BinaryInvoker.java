@@ -82,14 +82,14 @@ public class BinaryInvoker extends Invoker<Workflow> {
 
     @Override
     public void invokeMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.binary + " in " + this.context.getHostName());
+        logger.info("Invoked {} in {}", this.binary, this.context.getHostName());
 
         // Execute binary
         Object retValue;
         try {
             retValue = runInvocation();
         } catch (InvokeExecutionException iee) {
-            LOGGER.error("Exception running binary", iee);
+            logger.error("Exception running binary", iee);
             throw new JobExecutionException(iee);
         }
 
@@ -105,7 +105,7 @@ public class BinaryInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -226,7 +226,7 @@ public class BinaryInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling binary process");
+        logger.debug("Cancelling binary process");
         if (this.br != null) {
             this.br.cancelProcess();
         }

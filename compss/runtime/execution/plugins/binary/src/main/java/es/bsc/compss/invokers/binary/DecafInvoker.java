@@ -80,7 +80,7 @@ public class DecafInvoker extends Invoker<Workflow> {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked " + this.decafDef.getDfScript() + " in " + this.context.getHostName());
+        logger.info("Invoked {} in {}", this.decafDef.getDfScript(), this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -103,7 +103,7 @@ public class DecafInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -215,7 +215,7 @@ public class DecafInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling Decaf process");
+        logger.debug("Cancelling Decaf process");
         if (this.br != null) {
             this.br.cancelProcess();
         }

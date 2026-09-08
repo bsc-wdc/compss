@@ -74,29 +74,33 @@ import org.apache.logging.log4j.Logger;
 
 public class Executor implements Runnable, InvocationRunner {
 
-    // Loggers
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-    private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
-    private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
-    private static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
-
-    private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
+    // Conversion
+    private static final int NANO_TO_MS = 1_000_000;
 
     // Error messages
     private static final String ERROR_OUT_FILES =
         "ERROR: One or more OUT files have not" + " been created by task with Method Definition [";
 
-    // JVM Flag for timers
-    public static final boolean IS_TIMER_COMPSS_ENABLED;
+    // Loggers
+    private static final Logger workerLogger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+    private static final boolean workerDebug = workerLogger.isDebugEnabled();
 
-    // Conversion
-    private static final int NANO_TO_MS = 1_000_000;
+    private static final Logger dpLogger = LogManager.getLogger(Loggers.DATA_PROVENANCE);
+    private static final boolean dpEnabled;
+
+    private static final Logger timerLogger = LogManager.getLogger(Loggers.TIMER);
+    public static final boolean timerEnabled;
 
     static {
+        // Load data provenance property
+        String isDPEnabledProperty = System.getProperty(COMPSsConstants.DATA_PROVENANCE);
+        dpEnabled = isDPEnabledProperty != null && !isDPEnabledProperty.isEmpty() && !isDPEnabledProperty.equals("null")
+            && Boolean.parseBoolean(isDPEnabledProperty);
+
         // Load timer property
         String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
-        IS_TIMER_COMPSS_ENABLED = isTimerCOMPSsEnabledProperty != null && !isTimerCOMPSsEnabledProperty.isEmpty()
-            && !isTimerCOMPSsEnabledProperty.equals("null") && Boolean.valueOf(isTimerCOMPSsEnabledProperty);
+        timerEnabled = isTimerCOMPSsEnabledProperty != null && !isTimerCOMPSsEnabledProperty.isEmpty()
+            && !isTimerCOMPSsEnabledProperty.equals("null") && Boolean.parseBoolean(isTimerCOMPSsEnabledProperty);
     }
 
     // Attached component NIOWorker
@@ -127,7 +131,7 @@ public class Executor implements Runnable, InvocationRunner {
      * @param executorName Executor Name
      */
     public Executor(InvocationContext context, ExecutorContext platform, int executorId, String executorName) {
-        LOGGER.info("Executor " + executorName + " init");
+        workerLogger.info("Executor {} init", executorName);
         this.context = context;
         this.platform = platform;
         this.id = executorId;
@@ -142,7 +146,7 @@ public class Executor implements Runnable, InvocationRunner {
      */
     public void start() {
         // Nothing to do since everything is deleted in each task execution
-        LOGGER.info("Executor started");
+        workerLogger.info("Executor started");
     }
 
     /**
@@ -163,13 +167,13 @@ public class Executor implements Runnable, InvocationRunner {
      * Stop executor.
      */
     public void finish() {
-        LOGGER.info("Executor " + this.name + " finishing");
+        workerLogger.info("Executor {} finishing", this.name);
         // Nothing to do since everything is deleted in each task execution
         if (Tracer.isActivated()) {
             emitAffinityEndEvents();
         }
         this.platform.finishedExecutor(this);
-        LOGGER.info("Executor " + this.name + " finished");
+        workerLogger.info("Executor {} finished", this.name);
     }
 
     /**
@@ -204,12 +208,12 @@ public class Executor implements Runnable, InvocationRunner {
         ExecutorRequest execution = this.platform.newThread();
         while (true) {
             if (execution == null) {
-                LOGGER.error("ERROR: Execution is null!!!!!");
+                workerLogger.error("ERROR: Execution is null!!!!!");
             } else {
                 try {
                     execution.run(this);
                 } catch (ExecutorRequest.StopExecutorException se) {
-                    LOGGER.debug("Stop request on Executor " + this.name);
+                    workerLogger.debug("Stop request on Executor {}", this.name);
                     break;
                 }
             }
@@ -230,15 +234,15 @@ public class Executor implements Runnable, InvocationRunner {
         this.invocation = inv;
         this.invocationListener = listener;
 
-        if (DP_ENABLED) {
-            DP_LOGGER.info("TASK=" + this.invocation.getTaskId() + " STARTTIME="
-                + OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")));
+        if (dpEnabled) {
+            dpLogger.info("TASK={} STARTTIME={}", this.invocation.getTaskId(),
+                OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")));
         }
 
         boolean success = false;
         invocation.executionStarts();
-        if (WORKER_DEBUG) {
-            LOGGER.debug("Dequeuing job " + invocation.getJobId());
+        if (workerDebug) {
+            workerLogger.debug("Dequeuing job {}", invocation.getJobId());
         }
 
         try {
@@ -255,14 +259,14 @@ public class Executor implements Runnable, InvocationRunner {
             }
         } finally {
 
-            if (WORKER_DEBUG) {
-                LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
+            if (workerDebug) {
+                workerLogger.debug("Job {} finished (success: {})", invocation.getJobId(), success);
             }
             invocation.executionEnds();
 
-            if (DP_ENABLED) {
-                DP_LOGGER.info("TASK=" + this.invocation.getTaskId() + " ENDTIME="
-                    + OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")));
+            if (dpEnabled) {
+                dpLogger.info("TASK={} ENDTIME={}", this.invocation.getTaskId(),
+                    OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX")));
             }
 
             invocation = null;
@@ -281,7 +285,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
         if (lang != null && lang != Lang.JAVA && lang != Lang.PYTHON && lang != Lang.C && lang != Lang.R) {
             String errMsg = "Incorrect language " + lang + " in job " + invocation.getJobId();
-            LOGGER.error(errMsg);
+            workerLogger.error(errMsg);
             // Print to the job.err file
             this.context.getThreadErrStream().println(errMsg);
             throw new JobExecutionException("Incorrect language " + lang);
@@ -290,7 +294,7 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void logExecutionException(Exception e) {
-        LOGGER.error("ERROR: Executing task " + e.getMessage(), e);
+        workerLogger.error("ERROR: Executing task {}", e.getMessage(), e);
 
         // Writing in the task .err/.out
         PrintStream out = this.context.getThreadOutStream();
@@ -305,9 +309,9 @@ public class Executor implements Runnable, InvocationRunner {
             emitingTaskStartEvents();
         }
 
-        long timeTotalStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeTotalStart = System.nanoTime();
+        long tsTotalStart = 0L;
+        if (timerEnabled) {
+            tsTotalStart = System.nanoTime();
         }
         try {
             resourcesWrapperAndRun();
@@ -317,11 +321,11 @@ public class Executor implements Runnable, InvocationRunner {
                 emitTaskEndEvents();
             }
             // Write timer if needed
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeTotalEnd = System.nanoTime();
-                final float timeTotalElapsed = (timeTotalEnd - timeTotalStart) / (float) NANO_TO_MS;
+            if (timerEnabled) {
+                final long tsTotalEnd = System.nanoTime();
+                final float lapseTotal = (tsTotalEnd - tsTotalStart) / (float) NANO_TO_MS;
                 final int jobId = invocation.getJobId();
-                TIMER_LOGGER.info("[TIMER] Total time for job " + jobId + ": " + timeTotalElapsed + " ms");
+                timerLogger.info("[TIMER] Total time for job {}: {} ms", jobId, lapseTotal);
             }
         }
     }
@@ -329,7 +333,7 @@ public class Executor implements Runnable, InvocationRunner {
     private void resourcesWrapperAndRun() throws Exception {
         final int jobId = invocation.getJobId();
 
-        if (IS_TIMER_COMPSS_ENABLED) {
+        if (timerEnabled) {
             obtainExecutionResourcesWithTimer(jobId, invocation.getRequirements());
         } else {
             obtainExecutionResources(jobId, invocation.getRequirements());
@@ -338,7 +342,7 @@ public class Executor implements Runnable, InvocationRunner {
         try {
             sandBoxWrapperAndRun();
         } finally {
-            if (IS_TIMER_COMPSS_ENABLED) {
+            if (timerEnabled) {
                 releaseResourcesWithTimer(jobId);
             } else {
                 releaseResources(jobId);
@@ -351,7 +355,7 @@ public class Executor implements Runnable, InvocationRunner {
 
         try {
             // Set the Task working directory
-            if (IS_TIMER_COMPSS_ENABLED) {
+            if (timerEnabled) {
                 twd = createTaskSandboxWithTimer();
             } else {
                 twd = createTaskSandbox();
@@ -359,14 +363,14 @@ public class Executor implements Runnable, InvocationRunner {
 
             filesWrapperAndRun(twd);
             // Clean the task sandbox working dir if no error
-            if (IS_TIMER_COMPSS_ENABLED) {
+            if (timerEnabled) {
                 cleanTaskSandboxWithTimer(twd);
             } else {
                 cleanTaskSandbox(twd);
             }
         } catch (COMPSsException e) {
             // Clean the task sandbox working dir if no error
-            if (IS_TIMER_COMPSS_ENABLED) {
+            if (timerEnabled) {
                 cleanTaskSandboxWithTimer(twd);
             } else {
                 cleanTaskSandbox(twd);
@@ -379,7 +383,7 @@ public class Executor implements Runnable, InvocationRunner {
         boolean alreadyFailed = false;
         boolean producesEmptyResultsOnFailure = invocation.producesEmptyResultsOnFailure();
         try {
-            if (IS_TIMER_COMPSS_ENABLED) {
+            if (timerEnabled) {
                 // Bind files to task sandbox working dir
                 stageInWithTimer(twd);
                 redirectStreamsAndRunWithTimer(twd);
@@ -401,14 +405,14 @@ public class Executor implements Runnable, InvocationRunner {
             if (!alreadyFailed || producesEmptyResultsOnFailure) {
                 // Unbind files from task sandbox working dir
                 try {
-                    if (IS_TIMER_COMPSS_ENABLED) {
+                    if (timerEnabled) {
                         stageOutWithTimer(twd, !alreadyFailed, producesEmptyResultsOnFailure);
                     } else {
                         stageOut(twd, !alreadyFailed, producesEmptyResultsOnFailure);
                     }
                 } catch (Exception ex) {
                     if (alreadyFailed) {
-                        LOGGER.warn("Another exception after unbinding files: " + ex.getMessage(), ex);
+                        workerLogger.warn("Another exception after unbinding files: {}", ex.getMessage(), ex);
                         PrintStream out = this.context.getThreadOutStream();
                         out.println("Another exception unbinding files: " + ex.getMessage());
                         PrintStream err = this.context.getThreadErrStream();
@@ -419,11 +423,11 @@ public class Executor implements Runnable, InvocationRunner {
                     }
                 }
             }
-            if (DP_ENABLED) {
-                DP_LOGGER.info("TASK=" + invocation.getTaskId() + " LOGFILE="
-                    + this.context.getStandardStreamsPath(invocation) + ".out");
-                DP_LOGGER.info("TASK=" + invocation.getTaskId() + " LOGFILE="
-                    + this.context.getStandardStreamsPath(invocation) + ".err");
+            if (dpEnabled) {
+                dpLogger.info("TASK={} LOGFILE={}.out", invocation.getTaskId(),
+                    this.context.getStandardStreamsPath(invocation));
+                dpLogger.info("TASK={} LOGFILE={}.err", invocation.getTaskId(),
+                    this.context.getStandardStreamsPath(invocation));
             }
         }
     }
@@ -431,14 +435,16 @@ public class Executor implements Runnable, InvocationRunner {
     private void redirectStreamsAndRunWithTimer(ExecutionSandbox twd) throws Exception {
         int jobId = invocation.getJobId();
         // Execute task
-        LOGGER.debug("Executing task invocation for Job " + jobId);
-        long timeExecTaskStart = 0L;
-        timeExecTaskStart = System.nanoTime();
+        workerLogger.debug("Executing task invocation for Job {}", jobId);
+        long tsExecStart = 0L;
+        if (timerEnabled) {
+            tsExecStart = System.nanoTime();
+        }
 
         redirectStreamsAndRun(twd);
-        final long timeExecTaskEnd = System.nanoTime();
-        final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
-        TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
+        final long tsExecEnd = System.nanoTime();
+        final float lapseExec = (tsExecEnd - tsExecStart) / (float) NANO_TO_MS;
+        timerLogger.info("[TIMER] Execute job {}: {} ms", jobId, lapseExec);
     }
 
     private void redirectStreamsAndRun(ExecutionSandbox twd) throws Exception {
@@ -455,11 +461,11 @@ public class Executor implements Runnable, InvocationRunner {
         try {
             runInvocation(twd);
         } catch (COMPSsException ce) {
-            LOGGER.warn("[EXECUTOR] executeTask - COMPSs Exception received");
+            workerLogger.warn("[EXECUTOR] executeTask - COMPSs Exception received");
             out.println("[EXECUTOR] executeTask - COMPSs Exception received");
             throw ce;
         } catch (Exception jee) {
-            LOGGER.error("[EXECUTOR] executeTask - Error in task execution");
+            workerLogger.error("[EXECUTOR] executeTask - Error in task execution");
             out.println("[EXECUTOR] executeTask - Error in task execution");
             PrintStream err = this.context.getThreadErrStream();
             err.println("[EXECUTOR] executeTask - Error in task execution");
@@ -485,22 +491,22 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void obtainExecutionResourcesWithTimer(int jobId, ResourceDescription requirements)
         throws UnsufficientAvailableResourcesException {
-
-        long timeAssignResourcesStart = 0L;
-        timeAssignResourcesStart = System.nanoTime();
+        long tsAssignResStart = 0L;
+        if (timerEnabled) {
+            tsAssignResStart = System.nanoTime();
+        }
         try {
             obtainExecutionResources(jobId, requirements);
         } finally {
-            final long timeAssignResourcesEnd = System.nanoTime();
-            final float timeAssignResourcesElapsed =
-                (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER.debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+            final long tsAssignResEnd = System.nanoTime();
+            final float lapseAssignRes = (tsAssignResEnd - tsAssignResStart) / (float) NANO_TO_MS;
+            timerLogger.debug("[TIMER] Assign resources for job {}: {} ms", jobId, lapseAssignRes);
         }
     }
 
     private void obtainExecutionResources(int jobId, ResourceDescription requirements)
         throws UnsufficientAvailableResourcesException {
-        LOGGER.debug("Assigning resources for Job " + jobId);
+        workerLogger.debug("Assigning resources for Job {}", jobId);
         try {
             this.resources = this.platform.acquireResources(jobId, requirements, resources);
             assignExecutionResources();
@@ -519,7 +525,7 @@ public class Executor implements Runnable, InvocationRunner {
             try {
                 ThreadAffinity.setCurrentThreadAffinity(this.resources.getAssignedCPUs());
             } catch (Exception e) {
-                LOGGER.warn("Error setting affinity for Job " + this.invocation.getJobId(), e);
+                workerLogger.warn("Error setting affinity for Job {}", this.invocation.getJobId(), e);
             }
         }
     }
@@ -527,57 +533,53 @@ public class Executor implements Runnable, InvocationRunner {
     @Override
     public void stalledCodeExecution() {
         int jobId = invocation.getJobId();
-        LOGGER.debug("Release binded resources for Job " + jobId);
-        long timeUnassignResourcesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeUnassignResourcesStart = System.nanoTime();
+        workerLogger.debug("Release bound resources for Job {}", jobId);
+        long tsUnassignResStart = 0L;
+        if (timerEnabled) {
+            tsUnassignResStart = System.nanoTime();
         }
         this.platform.blockedRunner(invocation, this, this.resources);
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeUnassignResourcesEnd = System.nanoTime();
-            final float timeUnassignResourcesElapsed =
-                (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER
-                .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
+        if (timerEnabled) {
+            final long tsUnassignResEnd = System.nanoTime();
+            final float lapseUnassignRes = (tsUnassignResEnd - tsUnassignResStart) / (float) NANO_TO_MS;
+            timerLogger.debug("[TIMER] Unassign resources for job {}: {} ms", jobId, lapseUnassignRes);
         }
     }
 
     @Override
     public void readyToContinueExecution(Semaphore sem) {
-        long timeAssignResourcesStart = 0L;
-        if (IS_TIMER_COMPSS_ENABLED) {
-            timeAssignResourcesStart = System.nanoTime();
+        long tsAssignResStart = 0L;
+        if (timerEnabled) {
+            tsAssignResStart = System.nanoTime();
         }
         this.platform.unblockedRunner(invocation, this, this.resources, sem);
         assignExecutionResources();
 
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeAssignResourcesEnd = System.nanoTime();
-            final float timeAssignResourcesElapsed =
-                (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
+        if (timerEnabled) {
+            final long tsAssignResEnd = System.nanoTime();
+            final float lapseAssignRes = (tsAssignResEnd - tsAssignResStart) / (float) NANO_TO_MS;
             final int jobId = invocation.getJobId();
-            TIMER_LOGGER
-                .debug("[TIMER] Re-assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+            timerLogger.debug("[TIMER] Re-assign resources for job {} : {} ms", jobId, lapseAssignRes);
         }
     }
 
     private void releaseResourcesWithTimer(int jobId) {
-        long timeUnassignResourcesStart = 0L;
-        timeUnassignResourcesStart = System.nanoTime();
+        long timeUnassignResStart = 0L;
+        if (timerEnabled) {
+            timeUnassignResStart = System.nanoTime();
+        }
         try {
             this.platform.releaseResources(jobId);
         } finally {
-            final long timeUnassignResourcesEnd = System.nanoTime();
-            final float timeUnassignResourcesElapsed =
-                (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER
-                .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
+            final long timeUnassignResEnd = System.nanoTime();
+            final float lapseUnassignRes = (timeUnassignResEnd - timeUnassignResStart) / (float) NANO_TO_MS;
+            timerLogger.debug("[TIMER] Unassign resources for job {} : {} ms", jobId, lapseUnassignRes);
         }
 
     }
 
     private void releaseResources(int jobId) {
-        LOGGER.debug("Release binded resources for Job " + jobId);
+        workerLogger.debug("Release binded resources for Job " + jobId);
         this.platform.releaseResources(jobId);
     }
     /*
@@ -586,15 +588,16 @@ public class Executor implements Runnable, InvocationRunner {
 
     private ExecutionSandbox createTaskSandboxWithTimer() throws Exception {
         // Start timer
-        long timeSandboxStart = 0L;
-        timeSandboxStart = System.nanoTime();
+        long tsSandboxStart = 0L;
+        if (timerEnabled) {
+            tsSandboxStart = System.nanoTime();
+        }
         try {
             return createTaskSandbox();
         } finally {
-            final long timeSandboxEnd = System.nanoTime();
-            final float timeSandboxElapsed = (timeSandboxEnd - timeSandboxStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER
-                .debug("[TIMER] Create sandbox for job " + invocation.getJobId() + ": " + timeSandboxElapsed + " ms");
+            final long tsSandboxEnd = System.nanoTime();
+            final float lapseSandbox = (tsSandboxEnd - tsSandboxStart) / (float) NANO_TO_MS;
+            timerLogger.debug("[TIMER] Create sandbox for job {}: {} ms", invocation.getJobId(), lapseSandbox);
         }
     }
 
@@ -606,7 +609,7 @@ public class Executor implements Runnable, InvocationRunner {
      */
     private ExecutionSandbox createTaskSandbox() throws Exception {
         final int jobId = invocation.getJobId();
-        LOGGER.debug("Creating task sandbox for Job " + jobId);
+        workerLogger.debug("Creating task sandbox for Job {}", jobId);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TaskExecutionEvent.CREATING_TASK_SANDBOX);
@@ -694,23 +697,24 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void cleanTaskSandboxWithTimer(ExecutionSandbox twd) {
-        long timeCleanSandboxStart = 0L;
-
-        timeCleanSandboxStart = System.nanoTime();
+        long tsSandboxStart = 0L;
+        if (timerEnabled) {
+            tsSandboxStart = System.nanoTime();
+        }
         try {
             cleanTaskSandbox(twd);
         } finally {
-            final long timeCleanSandboxEnd = System.nanoTime();
-            final float timeCleanSandboxElapsed = (timeCleanSandboxEnd - timeCleanSandboxStart) / (float) NANO_TO_MS;
+            final long tsSandboxEnd = System.nanoTime();
+            final float lapseSandbox = (tsSandboxEnd - tsSandboxStart) / (float) NANO_TO_MS;
             final int jobId = invocation.getJobId();
-            TIMER_LOGGER.debug("[TIMER] Clean sandbox for job " + jobId + ": " + timeCleanSandboxElapsed + " ms");
+            timerLogger.debug("[TIMER] Clean sandbox for job {}: {} ms", jobId, lapseSandbox);
         }
 
     }
 
     private void cleanTaskSandbox(ExecutionSandbox twd) {
         final int jobId = invocation.getJobId();
-        LOGGER.debug("Cleaning task sandbox for Job " + jobId);
+        workerLogger.debug("Cleaning task sandbox for Job {}", jobId);
 
         if (twd != null) {
             try {
@@ -727,16 +731,16 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void stageInWithTimer(ExecutionSandbox sandbox) throws Exception {
-        long timeBindOriginalFilesStart = 0L;
-        timeBindOriginalFilesStart = System.nanoTime();
+        long tsBindStart = 0L;
+        if (timerEnabled) {
+            tsBindStart = System.nanoTime();
+        }
         try {
             stageIn(sandbox);
         } finally {
-            final long timeBindOriginalFilesEnd = System.nanoTime();
-            final float timeBindOriginalFilesElapsed =
-                (timeBindOriginalFilesEnd - timeBindOriginalFilesStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER.debug("[TIMER] Bind original files for job " + invocation.getJobId() + ": "
-                + timeBindOriginalFilesElapsed + " ms");
+            final long tsBindEnd = System.nanoTime();
+            final float lapseBind = (tsBindEnd - tsBindStart) / (float) NANO_TO_MS;
+            timerLogger.debug("[TIMER] Bind original files for job {}: {} ms", invocation.getJobId(), lapseBind);
         }
     }
 
@@ -748,7 +752,7 @@ public class Executor implements Runnable, InvocationRunner {
      */
     private void stageIn(ExecutionSandbox sandbox) throws Exception {
         final int jobId = invocation.getJobId();
-        LOGGER.debug("Binding renamed files to sandboxed original names for Job " + jobId);
+        workerLogger.debug("Binding renamed files to sandboxed original names for Job {}", jobId);
         try {
 
             for (InvocationParam param : invocation.getParams()) {
@@ -757,19 +761,19 @@ public class Executor implements Runnable, InvocationRunner {
                 } else {
                     // collection should enter here
                     String renamedFilePath = (String) param.getValue();
-                    LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                    workerLogger.debug("Parameter keeps rename: {}", renamedFilePath);
                     param.setRenamedName(renamedFilePath);
                     param.setOriginalName(renamedFilePath);
                 }
             }
             if (invocation.getTarget() != null) {
-                LOGGER.debug("Invocation has non-null target");
+                workerLogger.debug("Invocation has non-null target");
                 InvocationParam param = invocation.getTarget();
                 if (!param.isKeepRename()) {
                     bindOriginalFilenameToRenames(param, sandbox);
                 } else {
                     String renamedFilePath = (String) param.getValue();
-                    LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                    workerLogger.debug("Parameter keeps rename: {}", renamedFilePath);
                     param.setRenamedName(renamedFilePath);
                     param.setOriginalName(renamedFilePath);
                 }
@@ -779,7 +783,7 @@ public class Executor implements Runnable, InvocationRunner {
                     bindOriginalFilenameToRenames(param, sandbox);
                 } else {
                     String renamedFilePath = (String) param.getValue();
-                    LOGGER.debug("Parameter keeps rename: " + renamedFilePath);
+                    workerLogger.debug("Parameter keeps rename: {}", renamedFilePath);
                     param.setRenamedName(renamedFilePath);
                     param.setOriginalName(renamedFilePath);
                 }
@@ -804,7 +808,7 @@ public class Executor implements Runnable, InvocationRunner {
         } else {
             if (param.getType() == DataType.FILE_T) {
                 String renamedPath = (String) param.getValue();
-                LOGGER.debug("Renamed File Path is " + renamedPath);
+                workerLogger.debug("Renamed File Path is {}", renamedPath);
                 param.setRenamedName(renamedPath);
 
                 File renamedFile = new File(renamedPath);
@@ -816,7 +820,7 @@ public class Executor implements Runnable, InvocationRunner {
 
                     String inSandboxPath = sandbox.addFile(dataId, renamedFile, originalName);
                     if (inSandboxPath != null) {
-                        LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                        workerLogger.debug("Setting Original Name to {}", inSandboxPath);
                         param.setOriginalName(inSandboxPath);
                         param.setValue(inSandboxPath);
                     } else {
@@ -836,17 +840,17 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void stageOutWithTimer(ExecutionSandbox sandbox, boolean raiseExceptionIfNonExistent,
         boolean createifNonExistent) throws IOException, JobExecutionException {
-        long timeUnbindOriginalFilesStart = 0L;
-        timeUnbindOriginalFilesStart = System.nanoTime();
+        long tsUnbindStart = 0L;
+        if (timerEnabled) {
+            tsUnbindStart = System.nanoTime();
+        }
         try {
             stageOut(sandbox, raiseExceptionIfNonExistent, createifNonExistent);
         } finally {
-            final long timeUnbindOriginalFilesEnd = System.nanoTime();
-            final float timeUnbindOriginalFilesElapsed =
-                (timeUnbindOriginalFilesEnd - timeUnbindOriginalFilesStart) / (float) NANO_TO_MS;
+            final long tsUnbindEnd = System.nanoTime();
+            final float lapseUnbind = (tsUnbindEnd - tsUnbindStart) / (float) NANO_TO_MS;
             final int jobId = invocation.getJobId();
-            TIMER_LOGGER.debug(
-                "[TIMER] Unbind original files for job " + jobId + ": " + timeUnbindOriginalFilesElapsed + " ms");
+            timerLogger.debug("[TIMER] Unbind original files for job {}: {} ms", jobId, lapseUnbind);
         }
     }
 
@@ -859,7 +863,7 @@ public class Executor implements Runnable, InvocationRunner {
         throws JobExecutionException {
         // Unbind files from task sandbox working dir
         final int jobId = invocation.getJobId();
-        LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
+        workerLogger.debug("Removing renamed files to sandboxed original names for Job {}", jobId);
         String message = null;
         boolean failure = false;
         for (InvocationParam param : invocation.getParams()) {
@@ -953,7 +957,7 @@ public class Executor implements Runnable, InvocationRunner {
                 String inSandboxPath = param.getOriginalName();
                 String renamedFilePath = param.getRenamedName();
 
-                LOGGER.debug("Treating file " + inSandboxPath);
+                workerLogger.debug("Treating file {}", inSandboxPath);
                 File internalFile = new File(inSandboxPath);
                 File externalFile = new File(renamedFilePath);
                 try {
@@ -963,7 +967,7 @@ public class Executor implements Runnable, InvocationRunner {
                         } else {
                             if (externalFile.exists()) {
                                 // Is an IN and the data was already updated
-                                LOGGER.debug("Repeated data for " + internalFile + ". Nothing to do");
+                                workerLogger.debug("Repeated data for {}. Nothing to do", internalFile);
                             } else {
                                 // Error output file does not exist
                                 String msg = "WARN: Output file " + inSandboxPath + " does not exist";

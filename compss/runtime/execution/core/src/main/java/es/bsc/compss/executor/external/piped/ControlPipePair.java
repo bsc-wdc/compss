@@ -32,7 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 public class ControlPipePair {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     private boolean readerAlive = false;
     private boolean closed = false;
@@ -151,8 +151,8 @@ public class ControlPipePair {
                     try {
                         command = pipe.readCommand();
                     } catch (UnknownCommandException uce) {
-                        LOGGER.warn(
-                            "UNKNOWN COMMAND RECEIVED TRHOUGH PIPE " + pipe.getInboundPipe() + ": " + uce.getMessage());
+                        logger.warn("UNKNOWN COMMAND RECEIVED THROUGH PIPE {}: {}", pipe.getInboundPipe(),
+                            uce.getMessage());
                         continue;
                     }
                     synchronized (ControlPipePair.this) {

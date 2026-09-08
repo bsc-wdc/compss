@@ -18,11 +18,11 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointGroup;
+import es.bsc.compss.components.monitor.colors.ColorConfiguration;
+import es.bsc.compss.components.monitor.colors.ColorNode;
 import es.bsc.compss.semantics.data.access.AccessMode;
 import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.colors.ColorConfiguration;
-import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.accessid.EngineDataAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;

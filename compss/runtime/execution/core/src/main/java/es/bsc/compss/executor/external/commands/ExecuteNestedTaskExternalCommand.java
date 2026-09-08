@@ -16,9 +16,6 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-import es.bsc.compss.log.Loggers;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -27,12 +24,6 @@ import org.json.JSONTokener;
  * Command to request an execution to the runtime.
  */
 public class ExecuteNestedTaskExternalCommand implements ExternalCommand {
-
-    // Number of fields per parameter
-    public static final int NUM_FIELDS_PER_PARAM = 9;
-
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-
 
     public enum EntryPoint {
         SIGNATURE, CLASS_METHOD

@@ -19,9 +19,9 @@ package es.bsc.compss.tracing;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ExecutorInfraType;
+import es.bsc.compss.types.tracing.RuntimeThreads;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
-import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
 import es.bsc.compss.types.tracing.paraver.PRVApplication;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
@@ -136,7 +136,7 @@ public class PrvSorter implements ThreadTranslator {
             String machineId = Integer.toString(i + 1);
             // for thread 1.X.1 -> X.1.1, main thread has no event and thus is not by addThread()
             PRVThreadIdentifier oldMainId = new PRVThreadIdentifier("1", machineId, "1");
-            PRVThreadIdentifier newMainId = computeNewThreadId(oldMainId, Threads.ExtraeTaskType.RUNTIME, 1);
+            PRVThreadIdentifier newMainId = computeNewThreadId(oldMainId, RuntimeThreads.ExtraeTaskType.RUNTIME, 1);
             threadTranslations.put(oldMainId, newMainId);
             String label;
             if (i == 0) {
@@ -150,13 +150,13 @@ public class PrvSorter implements ThreadTranslator {
             int runtimeThreadsNum = 2;
 
             Map<Integer, PRVThreadIdentifier> runtimeIdentifiedThreads = m.getRuntimeIdentifiers();
-            for (Threads t : Threads.values()) {
+            for (RuntimeThreads t : RuntimeThreads.values()) {
                 if (t.isRuntime()) {
                     int idEvent = t.id;
                     PRVThreadIdentifier oldThread = runtimeIdentifiedThreads.get(idEvent);
                     if (oldThread != null) {
                         int threadId = runtimeThreadsNum++;
-                        Threads.ExtraeTaskType task = Threads.ExtraeTaskType.RUNTIME;
+                        RuntimeThreads.ExtraeTaskType task = RuntimeThreads.ExtraeTaskType.RUNTIME;
                         ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
                         threadTranslations.put(oldThread, newThread);
 
@@ -191,13 +191,13 @@ public class PrvSorter implements ThreadTranslator {
                 PRVThreadIdentifier oldThread = executor.getKey();
                 int threadId = Integer.parseInt(executor.getValue());
 
-                Threads.ExtraeTaskType task = Threads.ExtraeTaskType.EXECUTOR;
+                RuntimeThreads.ExtraeTaskType task = RuntimeThreads.ExtraeTaskType.EXECUTOR;
                 ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId + 1);
                 threadTranslations.put(oldThread, newThread);
 
                 String oldLabel = newThread.toString();
                 String newThreadId = oldLabel.replace(":", ".");
-                String newLabel = createLabel(newThreadId, Threads.EXEC.id);
+                String newLabel = createLabel(newThreadId, RuntimeThreads.EXEC.id);
 
                 Thread executorThread = new Thread(newThread, newLabel);
                 executors.appendComponent(executorThread);
@@ -206,7 +206,7 @@ public class PrvSorter implements ThreadTranslator {
             for (PRVThreadIdentifier oldThread : m.getThreads()) {
                 if (!threadTranslations.containsKey(oldThread)) {
                     int threadId = runtimeThreadsNum++;
-                    Threads.ExtraeTaskType task = Threads.ExtraeTaskType.RUNTIME;
+                    RuntimeThreads.ExtraeTaskType task = RuntimeThreads.ExtraeTaskType.RUNTIME;
                     PRVThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
                     threadTranslations.put(oldThread, newThread);
 
@@ -230,7 +230,7 @@ public class PrvSorter implements ThreadTranslator {
         }
     }
 
-    private static PRVThreadIdentifier computeNewThreadId(PRVThreadIdentifier id, Threads.ExtraeTaskType type,
+    private static PRVThreadIdentifier computeNewThreadId(PRVThreadIdentifier id, RuntimeThreads.ExtraeTaskType type,
         int threadId) {
         String thread = Integer.toString(threadId);
         String task = type.getLabel();
@@ -244,7 +244,7 @@ public class PrvSorter implements ThreadTranslator {
     }
 
     private String createLabel(String threadId, int identifierEvent) {
-        String label = Threads.getLabelByID(identifierEvent);
+        String label = RuntimeThreads.getLabelByID(identifierEvent);
         return label + " (" + threadId + ")";
     }
 
@@ -308,7 +308,7 @@ public class PrvSorter implements ThreadTranslator {
         public void identifiedThreadFunction(PRVThreadIdentifier threadId, String function) {
             if (function != null) {
                 Integer threadTypeId = new Integer(function);
-                if (threadTypeId == Threads.EXEC.id) {
+                if (threadTypeId == RuntimeThreads.EXEC.id) {
                     if (knownExecutors.get(threadId) != null) {
                         this.unknownExecutors.add(threadId);
                     }

@@ -78,7 +78,7 @@ public class JuliaInvoker extends Invoker<Workflow> {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked " + this.juliaDef.getJuliaScript() + " in " + this.context.getHostName());
+        logger.info("Invoked {} in {}", this.juliaDef.getJuliaScript(), this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -101,7 +101,7 @@ public class JuliaInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -203,7 +203,7 @@ public class JuliaInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling Julia process");
+        logger.debug("Cancelling Julia process");
         if (this.br != null) {
             this.br.cancelProcess();
         }

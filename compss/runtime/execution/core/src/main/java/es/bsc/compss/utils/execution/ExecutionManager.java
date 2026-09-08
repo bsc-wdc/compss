@@ -35,7 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 public class ExecutionManager {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
     private final ExecutionPlatform cpuExecutors;
     private final ExecutionPlatform ioExecutors;
@@ -78,7 +78,7 @@ public class ExecutionManager {
      * @throws InitializationException Error initializing execution Manager
      */
     public void init() throws InitializationException {
-        LOGGER.info("Init Execution Manager");
+        logger.info("Init Execution Manager");
         this.cpuExecutors.start();
         if (this.ioExecutors.getSize() > 0) {
             this.ioExecutors.start();
@@ -89,7 +89,7 @@ public class ExecutionManager {
      * Starts the language mirror.
      */
     public void startMirror(MethodType mt, COMPSsConstants.Lang l) {
-        LOGGER.info("Init {} {} Mirror", mt, l);
+        logger.info("Init {} {} Mirror", mt, l);
         this.cpuExecutors.startMirror(mt, l);
     }
 
@@ -116,7 +116,7 @@ public class ExecutionManager {
      * Stops the ExecutorRequest Manager and its pool of threads.
      */
     public void stop() {
-        LOGGER.info("Stopping Threads...");
+        logger.info("Stopping Threads...");
         // Stop the job threads
         this.cpuExecutors.stop();
         if (this.ioExecutors.getSize() > 0) {

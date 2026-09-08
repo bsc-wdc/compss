@@ -57,12 +57,6 @@
 			<artifactId>compss-execution-all-plugins</artifactId>
 		</dependency>
 
-
-		<!-- COMPSs Runtime Interface for Nested invocations -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-api</artifactId>
-		</dependency>
 		<!-- COMPSs Loader Interface for Nested invocations -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>

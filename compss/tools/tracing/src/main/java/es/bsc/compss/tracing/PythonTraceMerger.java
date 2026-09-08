@@ -20,12 +20,12 @@ import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.ExecutorInfraType;
+import es.bsc.compss.types.tracing.RuntimeThreads;
 import es.bsc.compss.types.tracing.SynchEvent;
 import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.SystemStructure;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
-import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
@@ -164,7 +164,7 @@ public class PythonTraceMerger extends TraceMerger {
                         if (identifierEventValue != null) {
                             PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
                             Integer threadTypeId = new Integer(identifierEventValue);
-                            if (threadTypeId != Threads.EXEC.id) {
+                            if (threadTypeId != RuntimeThreads.EXEC.id) {
                                 pythonRuntime.put(threadId, threadTypeId);
                             }
                         }

@@ -18,7 +18,6 @@ package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.implementations.definition.ContainerDescription.ContainerEngine;
 import es.bsc.compss.util.EnvironmentLoader;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -92,7 +91,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
     public ContainerDefinition(String[] implTypeArgs, int offset) {
         String engineStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         engineStr = engineStr.toUpperCase();
-        ContainerEngine engine = ContainerEngine.valueOf(engineStr);
+        ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
         String image = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         String options = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
         this.container = new ContainerDescription(engine, image, options);

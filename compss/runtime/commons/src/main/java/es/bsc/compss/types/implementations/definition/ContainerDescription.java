@@ -27,10 +27,23 @@ public class ContainerDescription implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
-    public static enum ContainerEngine {
-        DOCKER, // Docker container engine
-        SINGULARITY, // Singularity container engine
-        UDOCKER; // uDocker container engine
+    public enum ContainerEngine {
+
+        DOCKER("run"), // Docker container engine
+        SINGULARITY("exec"), // Singularity container engine
+        UDOCKER("run"); // uDocker container engine
+
+
+        private final String runCommand;
+
+
+        ContainerEngine(String runCommand) {
+            this.runCommand = runCommand;
+        }
+
+        public String getRunCommand() {
+            return runCommand;
+        }
     }
 
 

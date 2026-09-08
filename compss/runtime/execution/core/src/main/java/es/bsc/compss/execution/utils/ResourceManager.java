@@ -35,7 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 public class ResourceManager {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
     private final List<PendingRequest> pendingRequests;
     private final ThreadBinder binderCPUs;
@@ -57,7 +57,7 @@ public class ResourceManager {
     public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
         throws InvalidMapException {
         // Instantiate CPU binders
-        LOGGER.debug("Instantiate CPU Binder with " + cusCPU + " CUs");
+        logger.debug("Instantiate CPU Binder with {} CUs", cusCPU);
 
         ThreadBinder binderCPUsTmp;
         try {
@@ -75,7 +75,7 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER
+            logger
                 .warn("Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
                     + ThreadBinder.BINDER_AUTOMATIC + ")");
             String resourceMap = BindToMap.getResourceCpuDescription();
@@ -85,7 +85,7 @@ public class ResourceManager {
 
         // Instantiate GPU Binders
         ThreadBinder binderGPUsTmp;
-        LOGGER.debug("Instantiate GPU Binder with " + cusGPU + " CUs");
+        logger.debug("Instantiate GPU Binder with {} CUs", cusGPU);
         try {
             switch (gpuMap) {
                 case ThreadBinder.BINDER_DISABLED:
@@ -100,7 +100,7 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER
+            logger
                 .warn("Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
                     + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderGPUsTmp = new BindToResource(cusGPU);
@@ -109,7 +109,7 @@ public class ResourceManager {
 
         // Instantiate FPGA Binders
         ThreadBinder binderFPGAsTmp;
-        LOGGER.debug("Instantiate FPGA Binder with " + cusFPGA + " CUs");
+        logger.debug("Instantiate FPGA Binder with {} CUs", cusFPGA);
         try {
             switch (fpgaMap) {
                 case ThreadBinder.BINDER_DISABLED:
@@ -124,7 +124,7 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER
+            logger
                 .warn("Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
                     + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderFPGAsTmp = new BindToResource(cusFPGA);

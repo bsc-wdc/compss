@@ -16,22 +16,40 @@
  */
 package es.bsc.compss.types.tracing;
 
-public enum Threads {
+import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.data.FileOpsManager;
+import es.bsc.compss.execution.ExecutionPlatform;
 
-    APP(1, "APP", "App thread", ExtraeTaskType.APPLICATION), //
-    MAIN(1, "MAIN", "Main thread", ExtraeTaskType.RUNTIME), //
-    AP(2, "RUNTIME AP", "Access Processor thread", ExtraeTaskType.RUNTIME), //
-    TD(3, "RUNTIME TD", "Task Dispacher thread", ExtraeTaskType.RUNTIME), //
-    FSL(4, "RUNTIME FS L", "File system thread", ExtraeTaskType.RUNTIME), //
-    FSH(5, "RUNTIME FS H", "File system thread", ExtraeTaskType.RUNTIME), //
-    TIMER(6, "RUNTIME TIMER", "Timer thread", ExtraeTaskType.RUNTIME), //
-    WC(7, "RUNTIME WALLCLOCK", "WallClock thread", ExtraeTaskType.RUNTIME), // Deprecated
-    EXEC(8, "EXECUTOR", "Executor thread", ExtraeTaskType.EXECUTOR), //
-    PYTHON_WORKER(9, "PYTHON WORKER", "Python worker", ExtraeTaskType.RUNTIME), //
-    CACHE(10, "PYTHON OBJECT CACHE", "Python Cache manager", ExtraeTaskType.RUNTIME);
+public enum RuntimeThreads {
+
+    APP(1, "APP", ExtraeTaskType.APPLICATION), //
+    MAIN(1, "MAIN", ExtraeTaskType.RUNTIME), //
+    AP(AccessProcessor.COMPONENT_ID, "RUNTIME AP", ExtraeTaskType.RUNTIME), //
+    TD(TaskDispatcher.COMPONENT_ID, "RUNTIME TD", ExtraeTaskType.RUNTIME), //
+    FSL(FileOpsManager.LOW_PRIORITY_COMPONENT_ID, "RUNTIME FS L", ExtraeTaskType.RUNTIME), //
+    FSH(FileOpsManager.HIGH_PRIORITY_COMPONENT_ID, "RUNTIME FS H", ExtraeTaskType.RUNTIME), //
+    TIMER(ExecutionPlatform.EXECUTION_TIMER_COMPONENT_ID, "RUNTIME TIMER", ExtraeTaskType.RUNTIME), //
+    EXEC(ExecutionPlatform.EXECUTOR_COMPONENT_ID, "EXECUTOR", ExtraeTaskType.EXECUTOR), //
+    PYTHON_WORKER(9, "PYTHON WORKER", ExtraeTaskType.RUNTIME), //
+    CACHE(10, "PYTHON OBJECT CACHE", ExtraeTaskType.RUNTIME);
 
 
-    public static enum ExtraeTaskType {
+    private static RuntimeThreads[] idToThread;
+
+    static {
+        int maxId = 0;
+        for (RuntimeThreads t : RuntimeThreads.values()) {
+            maxId = Math.max(maxId, t.id);
+        }
+        idToThread = new RuntimeThreads[maxId + 1];
+        for (RuntimeThreads t : RuntimeThreads.values()) {
+            idToThread[t.id] = t;
+        }
+    }
+
+
+    public enum ExtraeTaskType {
 
         APPLICATION("1"), //
         RUNTIME("1"), //
@@ -53,14 +71,12 @@ public enum Threads {
 
     public final int id;
     public final String label;
-    public final String description;
     private final ExtraeTaskType task;
 
 
-    private Threads(int id, String label, String description, ExtraeTaskType task) {
+    RuntimeThreads(int id, String label, ExtraeTaskType task) {
         this.id = id;
         this.label = label;
-        this.description = description;
         this.task = task;
     }
 
@@ -76,14 +92,13 @@ public enum Threads {
      *         thread); the label corresponding to the thread identified by the id passed in
      */
     public static String getLabelByID(int id) {
-        if (id < 0 || id >= Threads.values().length) {
+        if (id < 0 || id >= idToThread.length) {
             return null;
         } else {
             if (id < 2) {
                 return "";
             } else {
-                return Threads.values()[id].label;
-
+                return idToThread[id].label;
             }
         }
     }

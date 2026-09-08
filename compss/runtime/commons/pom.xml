@@ -30,12 +30,6 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
-        <!-- COMPSs API classes used to interact with the runtime -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- Storage -->
         <dependency>

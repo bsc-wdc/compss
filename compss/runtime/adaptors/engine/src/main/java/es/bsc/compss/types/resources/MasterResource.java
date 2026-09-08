@@ -20,8 +20,18 @@ import java.util.Map;
 
 public interface MasterResource extends Resource {
 
-    public String getWorkingDirectory();
+    /**
+     * Returns the path of the folder that the master will use as working directory.
+     *
+     * @return path of the master's working directory.
+     */
+    String getWorkingDirectory();
 
-    public void updateDisks(Map<String, String> sharedDisks);
+    /**
+     * Configures the shared disks of the master node.
+     *
+     * @param sharedDisks map of disks mounted on the master node
+     */
+    void updateDisks(Map<String, String> sharedDisks);
 
 }

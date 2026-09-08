@@ -78,7 +78,7 @@ public class OmpSsInvoker extends Invoker<Workflow> {
 
     @Override
     public void invokeMethod() throws JobExecutionException {
-        LOGGER.info("Invoked " + this.ompssBinary + " in " + this.context.getHostName());
+        logger.info("Invoked {} in {}", this.ompssBinary, this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -102,7 +102,7 @@ public class OmpSsInvoker extends Invoker<Workflow> {
                 this.br.closeStreams(this.invocation.getParams(), pythonInterpreter);
             }
         } catch (StreamCloseException se) {
-            LOGGER.error("Exception closing binary streams", se);
+            logger.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
         }
 
@@ -165,7 +165,7 @@ public class OmpSsInvoker extends Invoker<Workflow> {
 
     @Override
     public void cancelMethod() {
-        LOGGER.debug("Cancelling OmpSs process");
+        logger.debug("Cancelling OmpSs process");
         if (this.br != null) {
             this.br.cancelProcess();
         }

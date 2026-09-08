@@ -145,8 +145,8 @@ public class JavaInvoker extends Invoker<JavaWorkflow> {
         }
 
         try {
-            LOGGER.info("Invoked " + this.method.getName() + (target == null ? "" : " on object " + target) + " in "
-                + this.context.getHostName());
+            logger.info("Invoked {}{} in {}", this.method.getName(), target == null ? "" : " on object " + target,
+                this.context.getHostName());
             Object retValue = this.method.invoke(target, values);
             for (InvocationParam np : this.invocation.getResults()) {
                 np.setValue(retValue);

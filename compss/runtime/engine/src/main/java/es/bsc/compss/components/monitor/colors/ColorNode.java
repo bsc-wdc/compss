@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.colors;
+package es.bsc.compss.components.monitor.colors;
 
 public class ColorNode {
 

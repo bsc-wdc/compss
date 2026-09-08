@@ -65,7 +65,6 @@ import org.apache.logging.log4j.Logger;
 
 public class PipePair implements ExternalExecutor<PipeCommand> {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     // Logger messages
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
     private static final String WRITE_PIPE_CLOSING_NOT_EXISTS = "Deleted pipe being written blocks the execution";
@@ -79,6 +78,8 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private static final int MAX_WRITE_PIPE_RETRIES = 3;
     private static final int PIPE_ERROR_WAIT_TIME = 50;
     private static final long PIPE_READ_COMMAND_PERIOD = 20;
+
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
     private final String pipePath;
 
@@ -123,13 +124,13 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         try {
             Files.delete(f.toPath());
         } catch (IOException e) {
-            LOGGER.warn("Inbound pipe can not be removed: " + e.getMessage());
+            logger.warn("Inbound pipe can not be removed: {}", e.getMessage());
         }
         f = new File(this.pipePath + ".outbound");
         try {
             Files.delete(f.toPath());
         } catch (IOException e) {
-            LOGGER.warn("Outbound pipe can not be removed: " + e.getMessage());
+            logger.warn("Outbound pipe can not be removed: {}", e.getMessage());
         }
     }
 
@@ -137,7 +138,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     public boolean sendCommand(PipeCommand command) {
         synchronized (this) {
             if (this.closed) {
-                LOGGER.warn("Trying to send a command through a closed pipe");
+                logger.warn("Trying to send a command through a closed pipe");
                 return false;
             }
             this.senders++;
@@ -147,8 +148,8 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         try {
             String taskCMD = command.getAsString();
             String writePipe = this.pipePath + ".outbound";
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("EXECUTOR COMMAND: " + taskCMD + " @ " + writePipe);
+            if (logger.isDebugEnabled()) {
+                logger.debug("EXECUTOR COMMAND: {} @ {}", taskCMD, writePipe);
             }
             taskCMD = taskCMD + TOKEN_NEW_LINE;
 
@@ -166,7 +167,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             }
         } finally {
             if (!done) {
-                LOGGER.debug("Failed to send " + command + " on pipe " + this.getPipesLocation());
+                logger.debug("Failed to send {} on pipe {}", command, this.getPipesLocation());
             }
             synchronized (this) {
                 this.senders--;
@@ -184,7 +185,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         try {
             if (writer == null) {
                 if (!new File(pipe).exists()) {
-                    LOGGER.debug("Warn pipe doesn't exist. Retry");
+                    logger.debug("Warn pipe doesn't exist. Retry");
                     // We should wait until the file is created otherwise it's not ceated by mkfifo
                 } else {
                     writer = new FileOutputStream(pipe, true);
@@ -248,15 +249,15 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     }
                 }
             }
-            LOGGER.debug(Thread.currentThread().getName() + " READS -" + line + "-(" + line.length() + ")");
+            logger.debug("{} READS -{}-({})", Thread.currentThread().getName(), line, line.length());
             String[] parts = line.split(" (?=[^\\]}]*([\\[{]|$))");
             readCommand = readCommand(line, parts);
         } catch (IOException ioe) {
             throw new ExternalExecutorException(ioe);
         }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("EXECUTOR COMMAND: " + readCommand + " @ " + getInboundPipe());
+        if (logger.isDebugEnabled()) {
+            logger.debug("EXECUTOR COMMAND: {} @ {}", readCommand, getInboundPipe());
         }
         return readCommand;
     }
@@ -296,27 +297,27 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 break;
             case QUIT:
                 // This quit is received from our proper shutdown, not from bindings. We just end
-                LOGGER.debug("Received quit message");
+                logger.debug("Received quit message");
                 readCommand = new QuitPipeCommand();
                 break;
             case END_TASK:
                 if (command.length < 3) {
-                    LOGGER.warn("WARN: Skipping endTask line because is malformed");
+                    logger.warn("WARN: Skipping endTask line because is malformed");
                     break;
                 }
                 // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
                 readCommand = new EndTaskPipeCommand(command);
-                LOGGER.debug("Received endTask message: " + readCommand.getAsString());
+                logger.debug("Received endTask message: " + readCommand.getAsString());
                 break;
             case COMPSS_EXCEPTION:
                 if (command.length < 2) {
-                    LOGGER.warn("WARN: Skipping endTask line because is malformed");
+                    logger.warn("WARN: Skipping endTask line because is malformed");
                     break;
                 }
                 // Line of the form: "compssException" ID exceptionMessage
                 readCommand = new CompssExceptionPipeCommand(command);
-                LOGGER.debug(
-                    "Received compssException message: " + ((CompssExceptionPipeCommand) readCommand).getMessage());
+                logger.debug("Received compssException message: {}",
+                    ((CompssExceptionPipeCommand) readCommand).getMessage());
                 break;
             case ERROR:
                 String[] expected = Arrays.copyOfRange(command, 1, command.length);
@@ -418,7 +419,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     fos.write(message.getBytes());
                     fos.flush();
                 } catch (IOException ioe) {
-                    LOGGER.error("Error: writting message to pipe", ioe);
+                    logger.error("Error: writting message to pipe", ioe);
                     ioe.printStackTrace(); // NOSONAR need to print in job out/err
                 }
             }

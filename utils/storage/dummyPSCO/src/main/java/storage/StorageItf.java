@@ -33,11 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.Descriptor;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -353,28 +348,22 @@ public final class StorageItf {
                     }
 
                     // Retrieve method from Object and descriptor
-                    ClassPool pool = ClassPool.getDefault();
                     Method methodToExecute = null;
                     for (Method methodAvailable : obj.getClass().getDeclaredMethods()) {
-                        int n = methodAvailable.getParameterAnnotations().length;
-                        Class<?>[] cParams = methodAvailable.getParameterTypes();
-                        CtClass[] ctParams = new CtClass[n];
-                        for (int i = 0; i < n; i++) {
-                            try {
-                                ctParams[i] = pool.getCtClass(((Class<?>) cParams[i]).getName());
-                            } catch (NotFoundException e) {
-                                throw new Exception(ERROR_CLASS_NOT_FOUND + " " + cParams[i].getName(), e);
-                            }
-                        }
+                        // Build method descriptor using StringBuilder
+                        StringBuilder descriptorBuilder = new StringBuilder();
+                        descriptorBuilder.append(methodAvailable.getName());
 
-                        String methodAvailableDescriptor;
-                        try {
-                            methodAvailableDescriptor = methodAvailable.getName() + Descriptor
-                                .ofMethod(pool.getCtClass(methodAvailable.getReturnType().getName()), ctParams);
-                        } catch (NotFoundException e) {
-                            throw new Exception(ERROR_CLASS_NOT_FOUND + " " + methodAvailable.getReturnType().getName(),
-                                e);
+                        descriptorBuilder.append("(");
+                        for (Class<?> param : methodAvailable.getParameterTypes()) {
+                            descriptorBuilder.append(getTypeDescriptor(param));
                         }
+                        descriptorBuilder.append(")");
+
+                        Class<?> returnType = methodAvailable.getReturnType();
+                        descriptorBuilder.append(getTypeDescriptor(returnType));
+
+                        String methodAvailableDescriptor = descriptorBuilder.toString();
 
                         if (descriptor.equals(methodAvailableDescriptor)) {
                             methodToExecute = methodAvailable;
@@ -406,6 +395,37 @@ public final class StorageItf {
         }.start();
 
         return localUUID;
+    }
+
+    /**
+     * Converts a Java class to its method descriptor format. Same syntax as JNI.
+     *
+     * @param type the Java class to convert
+     * @return the descriptor string for the type
+     */
+    private static String getTypeDescriptor(Class<?> type) {
+        if (type == void.class) {
+            return "V";
+        } else if (type == boolean.class) {
+            return "Z";
+        } else if (type == byte.class) {
+            return "B";
+        } else if (type == char.class) {
+            return "C";
+        } else if (type == short.class) {
+            return "S";
+        } else if (type == int.class) {
+            return "I";
+        } else if (type == long.class) {
+            return "J";
+        } else if (type == float.class) {
+            return "F";
+        } else if (type == double.class) {
+            return "D";
+        } else {
+            // Object type
+            return "L" + type.getName().replace(".", "/") + ";";
+        }
     }
 
     /**

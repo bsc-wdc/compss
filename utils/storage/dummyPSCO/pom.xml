@@ -31,12 +31,6 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
-        <!-- JAVASSIST -->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-        </dependency>
-
         <!-- LOG4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

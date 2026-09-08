@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.implementations;
 
-import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.semantics.Constants;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;

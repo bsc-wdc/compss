@@ -81,11 +81,11 @@ public class StorageInvoker extends JavaInvoker {
         }
 
         // Call Storage executeTask
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in "
-                + context.getHostName());
+        if (logger.isDebugEnabled()) {
+            logger.info("External ExecuteTask {} with target PSCO Id {} in {}", method.getName(), id,
+                context.getHostName());
         } else {
-            LOGGER.info("External ExecuteTask " + method.getName());
+            logger.info("External ExecuteTask {}", method.getName());
         }
 
         List<? extends InvocationParam> params = invocation.getParams();
@@ -99,7 +99,7 @@ public class StorageInvoker extends JavaInvoker {
         try {
             String callResult = StorageHandler.executeTask(id, descriptor, values, context.getHostName(), callback);
 
-            LOGGER.debug(callResult);
+            logger.debug(callResult);
 
             // Wait for execution
             callback.waitForCompletion();
@@ -122,7 +122,7 @@ public class StorageInvoker extends JavaInvoker {
             try {
                 retValue = callback.getResult();
             } catch (StorageException e) {
-                LOGGER.warn(WARN_RET_VALUE_EXCEPTION, e);
+                logger.warn(WARN_RET_VALUE_EXCEPTION, e);
                 retValue = null;
             }
         }
@@ -185,7 +185,7 @@ public class StorageInvoker extends JavaInvoker {
         @Override
         protected void eventListener(CallbackEvent e) {
             this.event = e;
-            LOGGER.debug("Received event task finished with callback id " + event.getRequestID());
+            logger.debug("Received event task finished with callback id {}", event.getRequestID());
 
             synchronized (this) {
                 this.notifyAll();

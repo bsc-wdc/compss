@@ -33,6 +33,13 @@
         <!-- COMPSs PM classes -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- COMPSs Runtime -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
             <artifactId>compss-runtime-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -111,6 +118,37 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Create jar with dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <finalName>${project.artifactId}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>

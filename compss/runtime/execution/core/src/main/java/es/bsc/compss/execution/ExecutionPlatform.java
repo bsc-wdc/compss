@@ -38,7 +38,6 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.ExecutorInfraEvent;
 import es.bsc.compss.types.tracing.ExecutorInfraType;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
-import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.Comparator;
@@ -61,7 +60,10 @@ import org.apache.logging.log4j.Logger;
  */
 public class ExecutionPlatform implements ExecutorContext {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
+    public static final int EXECUTION_TIMER_COMPONENT_ID = 6;
+    public static final int EXECUTOR_COMPONENT_ID = 8;
+
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_POOL);
 
     private final String platformName;
     private final InvocationContext context;
@@ -81,24 +83,24 @@ public class ExecutionPlatform implements ExecutorContext {
     private final Map<Class<?>, ExecutorContextMirror<?>> mirrors;
 
     private Timer timer;
-    private Set<Integer> toCancel;
-    private Map<Integer, RunningJob> executingJobs;
+    private final Set<Integer> toCancel;
+    private final Map<Integer, RunningJob> executingJobs;
 
 
     private static class RunningJob extends TimerTask {
 
-        private int taskId;
-        private Invoker<?> invoker;
+        private final int taskId;
+        private final Invoker<?> invoker;
 
 
-        private RunningJob(int taskId, Invoker invoker) {
+        private RunningJob(int taskId, Invoker<?> invoker) {
             this.taskId = taskId;
             this.invoker = invoker;
         }
 
         @Override
         public void run() {
-            LOGGER.info("Task " + this.taskId + " timed out");
+            logger.info("Task {} timed out", this.taskId);
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(TaskExecutionEvent.TASK_TIMEOUT);
             }
@@ -120,7 +122,7 @@ public class ExecutionPlatform implements ExecutorContext {
      */
     public ExecutionPlatform(String platformName, InvocationContext context, ExecutionPlatformConfiguration config,
         ResourceManager resManager) {
-        LOGGER.info("Initializing execution platform " + platformName);
+        logger.info("Initializing execution platform {}", platformName);
         this.platformName = platformName;
 
         this.context = context;
@@ -171,17 +173,17 @@ public class ExecutionPlatform implements ExecutorContext {
      * Creates and starts the threads of the pool and waits until they are created.
      */
     public final synchronized void start() {
-        LOGGER.info("Starting execution platform " + this.platformName);
+        logger.info("Starting execution platform {}", this.platformName);
         startTimer();
         // Start is in inverse order so that Thread 1 is the last available
         for (Thread t : this.workerThreads.descendingSet()) {
-            LOGGER.info("Starting Thread " + t.getName());
+            logger.info("Starting Thread " + t.getName());
             t.start();
         }
         int size = this.workerThreads.size();
         this.startSemaphore.acquireUninterruptibly(size);
         this.started = true;
-        LOGGER.info("Started execution platform " + this.platformName + " with " + size);
+        logger.info("Started execution platform {} with {}", this.platformName, size);
     }
 
     /**
@@ -196,20 +198,20 @@ public class ExecutionPlatform implements ExecutorContext {
      * threads and wait until they process the null objects inserted which will stop them.
      */
     public final void stop() {
-        LOGGER.info("Stopping execution platform " + this.platformName);
+        logger.info("Stopping execution platform {}", this.platformName);
         /*
          * Empty queue to discard any pending requests and make threads finish
          */
         int size = this.workerThreads.size();
         removeWorkerThreads(size);
-        LOGGER.info("Stopping mirrors for execution platform " + this.platformName);
+        logger.info("Stopping mirrors for execution platform {}", this.platformName);
         for (ExecutorContextMirror<?> mirror : this.mirrors.values()) {
             mirror.stop();
         }
         this.mirrors.clear();
         stopTimer();
         this.started = false;
-        LOGGER.info("Stopped execution platform " + this.platformName);
+        logger.info("Stopped execution platform {}", this.platformName);
     }
 
     private void startTimer() {
@@ -223,7 +225,7 @@ public class ExecutionPlatform implements ExecutorContext {
                 @Override
                 public void run() {
                     Tracer.disablePThreads(1);
-                    Tracer.activeComponent(Threads.TIMER.id, Threads.TIMER.description);
+                    Tracer.activeComponent(EXECUTION_TIMER_COMPONENT_ID, "Timer");
                 }
             }, 0);
         }
@@ -260,7 +262,7 @@ public class ExecutionPlatform implements ExecutorContext {
         synchronized (this) {
             int numFrozenThreads = this.frozenSemaphore.getQueueLength();
             if (numFrozenThreads > 0) {
-                LOGGER.info("Recovering " + numFrozenThreads + " frozen executors");
+                logger.info("Recovering {} frozen executors", numFrozenThreads);
                 int wakeUpThreads = numFrozenThreads;
                 if (numFrozenThreads > numWorkerThreads) {
                     wakeUpThreads = numWorkerThreads;
@@ -280,32 +282,8 @@ public class ExecutionPlatform implements ExecutorContext {
             }
             for (int i = 0; i < numWorkerThreads; i++) {
                 int executorId = this.nextThreadId++;
-                Executor executor = new Executor(this.context, this, executorId, "executor" + executorId) {
-
-                    @Override
-                    public void run() {
-                        if (Tracer.isActivated()) {
-                            Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_COUNTS);
-                            Tracer.activeComponent(Threads.EXEC.id, Threads.EXEC.description);
-                            Tracer.emitEvent(ExecutorInfraType.EXECUTOR_IDENTIFICATION, executorId);
-                            Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_ACTIVE);
-                            Tracer.disablePThreads(1);
-                        }
-                        startSem.release();
-                        super.run();
-                        synchronized (ExecutionPlatform.this) {
-                            ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
-                        }
-                        ExecutionPlatform.this.stopSemaphore.release();
-                        if (Tracer.isActivated()) {
-                            Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_ACTIVE);
-                            Tracer.inactiveComponent();
-                            Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_COUNTS);
-                        }
-                    }
-
-                };
-                Thread t = new Thread(executor);
+                Executor e = createExecutor(executorId, startSem);
+                Thread t = new Thread(e);
                 t.setName(this.platformName + " executor thread # " + executorId);
                 this.workerThreads.add(t);
                 if (this.started) {
@@ -318,6 +296,34 @@ public class ExecutionPlatform implements ExecutorContext {
         }
     }
 
+    private Executor createExecutor(int executorId, Semaphore startSem) {
+        return new Executor(this.context, this, executorId, "executor" + executorId) {
+
+            @Override
+            public void run() {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_COUNTS);
+                    Tracer.activeComponent(EXECUTOR_COMPONENT_ID, "Executor thread");
+                    Tracer.emitEvent(ExecutorInfraType.EXECUTOR_IDENTIFICATION, executorId);
+                    Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_ACTIVE);
+                    Tracer.disablePThreads(1);
+                }
+                startSem.release();
+                super.run();
+                synchronized (ExecutionPlatform.this) {
+                    ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
+                }
+                ExecutionPlatform.this.stopSemaphore.release();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_ACTIVE);
+                    Tracer.inactiveComponent();
+                    Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_COUNTS);
+                }
+            }
+
+        };
+    }
+
     /**
      * Remove worker threads from execution platform.
      * 
@@ -325,11 +331,11 @@ public class ExecutionPlatform implements ExecutorContext {
      */
     public final void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {
-            LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
+            logger.info("Stopping {} executors from execution platform {}", numWorkerThreads, this.platformName);
             synchronized (this) {
                 int numFrozenThreads = this.frozenSemaphore.getQueueLength();
                 if (numFrozenThreads > 0) {
-                    LOGGER.info("Resuming " + numFrozenThreads + " frozen executors to stop them");
+                    logger.info("Resuming {} frozen executors to stop them", numFrozenThreads);
                     int wakeUpThreads = numFrozenThreads;
                     if (numFrozenThreads > numWorkerThreads) {
                         wakeUpThreads = numWorkerThreads;
@@ -343,16 +349,16 @@ public class ExecutionPlatform implements ExecutorContext {
             for (int i = 0; i < numWorkerThreads; i++) {
                 this.queue.enqueue(new StopExecutorRequest());
             }
-            LOGGER.info("Waking up all locks");
+            logger.info("Waking up all locks");
             this.queue.wakeUpAll();
 
             // Wait until all threads have completed their last request
-            LOGGER.info("Waiting for " + numWorkerThreads + " threads finished");
+            logger.info("Waiting for {} threads finished", numWorkerThreads);
             this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
 
             // Stop specific language components
             joinThreads();
-            LOGGER.info("Stopped " + numWorkerThreads + " executors from execution platform " + this.platformName);
+            logger.info("Stopped {} executors from execution platform {}", numWorkerThreads, this.platformName);
         }
     }
 
@@ -385,10 +391,10 @@ public class ExecutionPlatform implements ExecutorContext {
     public void cancelJob(int jobId) {
         RunningJob job = this.executingJobs.get(jobId);
         if (job == null) {
-            LOGGER.debug("Job " + jobId + " is to be cancelled");
+            logger.debug("Job {} is to be cancelled", jobId);
             this.toCancel.add(jobId);
         } else {
-            LOGGER.debug("Cancelling running job " + jobId);
+            logger.debug("Cancelling running job {}", jobId);
             // Cancel timeout task (if enabled)
             job.cancel();
             // Interrupt job execution
@@ -399,7 +405,7 @@ public class ExecutionPlatform implements ExecutorContext {
     @Override
     public void registerRunningJob(Invocation invocation, Invoker invoker) {
         int jobId = invocation.getJobId();
-        LOGGER.debug("Registering job " + jobId);
+        logger.debug("Registering job {}", jobId);
         RunningJob job = new RunningJob(invocation.getTaskId(), invoker);
         this.executingJobs.put(jobId, job);
         if (this.toCancel.contains(jobId)) {
@@ -407,7 +413,7 @@ public class ExecutionPlatform implements ExecutorContext {
         } else {
             long timeout = invocation.getTimeOut();
             if (timeout > 0) {
-                LOGGER.debug("Setting timeout for job " + jobId + " with timeout " + timeout);
+                logger.debug("Setting timeout for job {} with timeout {}", jobId, timeout);
                 // set timeout (in seconds)
                 timer.schedule(job, timeout * 1000);
             }
@@ -423,9 +429,9 @@ public class ExecutionPlatform implements ExecutorContext {
 
     @Override
     public void blockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources assignedResources) {
-        LOGGER.debug("Stalled execution of job " + invocation.getJobId());
+        logger.debug("Stalled execution of job {}", invocation.getJobId());
         if (reuseResourcesOnBlockedInvocation) {
-            LOGGER.debug("Releasing resources assigned to job " + invocation.getJobId());
+            logger.debug("Releasing resources assigned to job {}", invocation.getJobId());
             int jobId = invocation.getJobId();
             this.rm.releaseResources(jobId);
             this.addWorkerThreads(1);
@@ -436,9 +442,9 @@ public class ExecutionPlatform implements ExecutorContext {
     @Override
     public void unblockedRunner(Invocation invocation, InvocationRunner runner, InvocationResources previousAllocation,
         Semaphore sem) {
-        LOGGER.debug("Execution of job " + invocation.getJobId() + " ready to continue");
+        logger.debug("Execution of job {} ready to continue", invocation.getJobId());
         if (reuseResourcesOnBlockedInvocation) {
-            LOGGER.debug("Reacquiring resources assigned to job " + invocation.getJobId());
+            logger.debug("Reacquiring resources assigned to job {}", invocation.getJobId());
             this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
             this.freezeThreads(1);
             int jobId = invocation.getJobId();
@@ -458,9 +464,10 @@ public class ExecutionPlatform implements ExecutorContext {
                 if (Tracer.isActivated()) {
                     Tracer.emitEventEnd(ExecutorInfraEvent.EXECUTOR_ACTIVE);
                 }
-                LOGGER.info(Thread.currentThread().getName() + " freezes");
+                String threadName = Thread.currentThread().getName();
+                logger.info("{} freezes", threadName);
                 ExecutionPlatform.this.frozenSemaphore.acquireUninterruptibly();
-                LOGGER.info(Thread.currentThread().getName() + " unfrozen");
+                logger.info("{} unfreezes", threadName);
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(ExecutorInfraEvent.EXECUTOR_ACTIVE);
                 }
@@ -479,7 +486,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
     @Override
     public void unregisterRunningJob(int jobId) {
-        LOGGER.debug("Unregistering job " + jobId);
+        logger.debug("Unregistering job {}", jobId);
         RunningJob job = this.executingJobs.remove(jobId);
         // Cancel timeout interruption, if enabled
         job.cancel();

@@ -201,6 +201,10 @@ def main():
         )
         if in_url:
             fixed_ins.append(in_url)
+        else:
+            print(f"PROVENANCE | WARNING: A workflow overall INPUT (file or dataset) has not been added to the metadata because it has not been found ({item})")
+            print(f"\tPLEASE double check if this input had to be deleted. Not recording an input that the workflow needs may lead to "
+                  f"potential reproducibiliy issues")
     print(
         f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
         f"{time.time() - part_time} s"
@@ -214,6 +218,8 @@ def main():
         )
         if out_url:
             fixed_outs.append(out_url)
+        else:
+            print(f"PROVENANCE | WARNING: A workflow overall OUTPUT (file or dataset) has not been added to the metadata because it has not been found ({item})")
     print(
         f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
         f"{time.time() - part_time} s"
@@ -306,6 +312,7 @@ def main():
                         added_value = None
 
                     if not added_value:
+                        print(f"PROVENANCE | WARNING: Task {task.tid} parameter {param.name} = {param.value} has not been added to the metadata because it has not been found")
                         continue
                     param.value = added_value
                     if param.is_array:

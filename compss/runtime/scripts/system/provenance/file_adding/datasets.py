@@ -68,8 +68,7 @@ def add_dataset_file_to_crate(
     :param in_url: File added as input or output
     :param persist: True to attach the file to the crate, False otherwise
     :param common_paths: List of identified common paths among all dataset files, all finish with '/'
-
-    :returns: The original url if persist is false, the crate_path if persist is true
+    :returns: The original url if persist is false, the crate_path if persist is true, 'None' if the file or dataset cannot be added
     """
 
     # method_time = time.time()
@@ -166,12 +165,10 @@ def add_dataset_file_to_crate(
             # add_file_time = time.time() - add_file_time
     except AttributeError:
         print(f"PROVENANCE | WARNING: Could not process URL: {in_url}.")
-        return in_url
+        return None
     except FileNotFoundError:
-        print(
-            f"PROVENANCE | WARNING: Could not add file {url_parts.path}. The file does not exist."
-        )
-        return in_url
+        # print(f"PROVENANCE | WARNING: Could not add file {url_parts.path}. The file does not exist.")
+        return None
 
     try:
         if url_parts.scheme == "dir":  # DIRECTORY parameter
@@ -407,7 +404,8 @@ def add_dataset_file_to_crate(
 
     # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
     except:
-        print(f"PROVENANCE | WARNING: Could not add directory {url_parts.path}.")
+        # print(f"PROVENANCE | WARNING: Could not add directory {url_parts.path}.")
+        return None
 
     #return fix_dir_url(in_url)
     return write_external_url(fix_dir_url(in_url)) if not persist else fix_dir_url(in_url)

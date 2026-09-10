@@ -36,6 +36,7 @@ specific_log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}"
 exec_target_log_folder="${target_log_folder}/${app_name}_0${retry_num}"
 mkdir -p "${exec_target_log_folder}"
 expectedTime=720s
+SOCKET_PATH=$(mktemp -u /tmp/compss.XXXXXX.sock)
 
 #----------------------------------------------------------------------------------
 # Start agent
@@ -43,11 +44,25 @@ compss_agent_start \
     --pythonpath="${PYTHONPATH}" \
     --debug \
     --hostname=COMPSsWorker01 \
-    --socket=/tmp/compss.sock \
+    --socket=${SOCKET_PATH} \
     --log_dir="${specific_log_dir}" \
     --rest_port=46101 &
 
-sleep 3
+timeout=20
+elapsed=0
+
+while [ ! -S "${SOCKET_PATH}" ] && [ "${elapsed}" -lt "${timeout}" ]; do
+    sleep 1
+    elapsed=$((elapsed + 1))
+done
+
+if [ ! -S "${SOCKET_PATH}" ]; then
+    echo "ERROR: Socket ${SOCKET_PATH} was not created within ${timeout}s"
+    exit 1
+fi
+
+echo "Socket ${SOCKET_PATH} is ready"
+
 
 # Set LD lib path
 export LD_LIBRARY_PATH="${JAVA_HOME}/lib/server:${SCRIPT_DIR}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH:-}"
@@ -57,7 +72,7 @@ export LD_LIBRARY_PATH="${JAVA_HOME}/lib/server:${SCRIPT_DIR}/Bindings/bindings-
     --pythonpath="${PYTHONPATH}" \
     --debug \
     --tracing=false \
-    --socket=/tmp/compss.sock \
+    --socket=${SOCKET_PATH} \
     --specific_log_dir="${specific_log_dir}" \
     "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
@@ -78,6 +93,8 @@ fi
 if [ ${exit_value} -ne 0 ]; then
   exit ${exit_value}
 fi
+
+rm -rf ${SOCKET_PATH}
 
 #----------------------------------------------------------------------------------
 # Return execution status

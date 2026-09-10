@@ -174,12 +174,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                     ap = new AccessProcessor(td);
                     if ("true".equals(System.getProperty(COMPSsConstants.SOCKET_MODE))) {
                         String socketPath = System.getProperty(COMPSsConstants.SOCKET_PATH);
+                        LOGGER.debug("Starting socket API server at {}", socketPath);
                         ss = new SocketServer(this, socketPath);
                         try {
                             ss.start();
                         } catch (IOException ioe) {
                             ErrorManager.fatal("Unable to start runtime socket server", ioe);
                         }
+                        LOGGER.debug("Started socket API server at {}", socketPath);
                     }
 
                     // Initialize runtime tools components

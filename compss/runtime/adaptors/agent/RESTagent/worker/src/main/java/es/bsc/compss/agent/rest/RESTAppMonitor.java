@@ -26,10 +26,10 @@ import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -100,7 +100,7 @@ public class RESTAppMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void specificOnException(COMPSsException e) {
+    public void specificOnException(WorkflowException e) {
         // Do nothing
     }
 
@@ -253,7 +253,7 @@ public class RESTAppMonitor extends AppMonitor implements RESTAgentRequestHandle
         }
 
         @Override
-        public void specificOnException(COMPSsException e) {
+        public void specificOnException(WorkflowException e) {
             profile.setEndNotification(System.currentTimeMillis());
         }
 

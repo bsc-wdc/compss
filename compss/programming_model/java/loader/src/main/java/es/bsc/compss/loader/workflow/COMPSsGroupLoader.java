@@ -18,6 +18,8 @@ package es.bsc.compss.loader.workflow;
 
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.worker.COMPSsException;
 
 public class COMPSsGroupLoader extends COMPSsGroup {
 
@@ -53,7 +55,11 @@ public class COMPSsGroupLoader extends COMPSsGroup {
     public void close() throws Exception {
         this.wf.closeTaskGroup(this.groupName);
         if (this.barrier == true) {
-            this.wf.barrierGroup(this.groupName);
+            try {
+                this.wf.barrierGroup(this.groupName);
+            } catch (WorkflowException we) {
+                throw new COMPSsException(we.getMessage());
+            }
         }
     }
 }

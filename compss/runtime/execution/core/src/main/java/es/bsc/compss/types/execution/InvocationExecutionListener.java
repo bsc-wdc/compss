@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.execution;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 
 public interface InvocationExecutionListener {
 
@@ -32,8 +32,8 @@ public interface InvocationExecutionListener {
      *
      * @param invocation Task invocation.
      * @param success Whether the task was successful or not.
-     * @param e COMPSsException for task groups.
+     * @param e WorkflowException for task groups.
      */
-    void notifyEnd(Invocation invocation, boolean success, COMPSsException e);
+    void notifyEnd(Invocation invocation, boolean success, WorkflowException e);
 
 }

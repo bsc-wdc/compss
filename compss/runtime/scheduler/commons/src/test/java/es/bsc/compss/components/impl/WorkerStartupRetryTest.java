@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.exceptions.InitNodeException;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.fake.FakeWorker;
@@ -32,7 +33,6 @@ import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -96,7 +96,7 @@ public class WorkerStartupRetryTest {
             }
 
             @Override
-            public void actionException(AllocatableAction action, COMPSsException e) {
+            public void actionException(AllocatableAction action, WorkflowException e) {
                 tsRef.get().exceptionOnAction(action, e);
             }
         };

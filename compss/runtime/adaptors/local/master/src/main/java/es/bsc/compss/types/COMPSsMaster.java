@@ -29,6 +29,7 @@ import es.bsc.compss.data.FileOpsManager.FileOpListener;
 import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.exceptions.CannotLoadException;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
@@ -74,7 +75,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
@@ -1169,7 +1169,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
 
             @Override
-            public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
+            public void notifyEnd(Invocation invocation, boolean success, WorkflowException e) {
                 job.profileEndNotification();
                 if (success) {
                     job.completed();

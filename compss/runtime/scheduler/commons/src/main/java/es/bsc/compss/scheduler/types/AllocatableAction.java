@@ -17,6 +17,7 @@
 package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.ActionNotWaitingException;
@@ -29,7 +30,6 @@ import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -217,11 +217,11 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Notify action raised a COMPSs exception to the orchestrator.
+     * Notify action raised a Workflow exception to the orchestrator.
      */
-    protected void notifyOrchestratorException(COMPSsException e) {
+    protected void notifyOrchestratorException(WorkflowException e) {
         if (DEBUG) {
-            LOGGER.debug("Notify COMPSs Exception of " + this);
+            LOGGER.debug("Notify WorkflowException of " + this);
         }
         this.orchestrator.actionException(this, e);
     }
@@ -275,17 +275,17 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Notify action raised a COMPSs exception to registered listeners.
+     * Notify action raised a Workflow exception to registered listeners.
      */
-    protected void notifyListenersException(COMPSsException e) {
+    protected void notifyListenersException(WorkflowException e) {
         if (DEBUG) {
-            LOGGER.debug("Notify COMPSs Exception of " + this);
+            LOGGER.debug("Notify WorkflowException of " + this);
         }
         for (ActionListener listener : listeners) {
             try {
                 listener.onActionException(this, e);
             } catch (Exception e2) {
-                LOGGER.debug("Error notifying COMPSsException action " + this + " completed state to " + listener, e2);
+                LOGGER.debug("Error notifying WorkflowException action {} completed state to {}", this, listener, e2);
             }
         }
     }
@@ -969,7 +969,7 @@ public abstract class AllocatableAction {
      *
      * @param e COMPSs Exception raised
      */
-    public final List<AllocatableAction> exception(COMPSsException e) {
+    public final List<AllocatableAction> exception(WorkflowException e) {
         // Mark as finished
         this.state = State.FAILED;
 
@@ -1156,7 +1156,7 @@ public abstract class AllocatableAction {
      * @param e Exception arisen during the action
      * @return Other Allocatable actions to be cancelled due to the exception
      */
-    protected abstract Collection<AllocatableAction> doException(COMPSsException e);
+    protected abstract Collection<AllocatableAction> doException(WorkflowException e);
 
     /**
      * Triggers the unsuccessful action completion notification.

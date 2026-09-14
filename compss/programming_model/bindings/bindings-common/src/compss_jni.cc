@@ -105,35 +105,34 @@ jmethodID midFloatCon;    /* ID of the java.lang.Float class constructor method 
 jclass clsDouble;         /* java.lang.Double class */
 jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method */
 
-
 // ******************************
 // Private helper methods
 // ******************************
 
 
 /**
- * Gets the containing message of a given a COMPSsException. Does not stop the execution.
+ * Gets the containing message of a given a WorkflowException. Does not stop the execution.
  */
-void check_and_get_compss_exception(ThreadStatus* status, char** buf) {
+void check_and_get_workflow_exception(ThreadStatus* status, char** buf) {
     jthrowable exception = status->localJniEnv->ExceptionOccurred();
     if (exception) {
         // Log exception
         status->localJniEnv->ExceptionDescribe();
 
-        // Parse COMPSsException
+        // Parse WorkflowException
         jclass exceptionClazz = status->localJniEnv->GetObjectClass((jobject) exception);
         jclass classClazz = status->localJniEnv->GetObjectClass((jobject) exceptionClazz);
         jmethodID classGetNameMethod = status->localJniEnv->GetMethodID(classClazz, "getName", "()Ljava/lang/String;");
-        jstring classNameStr = (jstring)status->localJniEnv->CallObjectMethod(exceptionClazz, classGetNameMethod);
-        if (strcmp(status->localJniEnv->GetStringUTFChars(classNameStr ,0), "es.bsc.compss.worker.COMPSsException") != 0) {
+        jstring jclassNameStr = (jstring)status->localJniEnv->CallObjectMethod(exceptionClazz, classGetNameMethod);
+        const char* classNameChars = status->localJniEnv->GetStringUTFChars(jclassNameStr, 0);
+        if (strcmp(classNameChars, "es.bsc.compss.exceptions.WorkflowException") != 0) {
             status->localJniEnv->ExceptionClear();
         } else {
-            const char* classNameChars = status->localJniEnv->GetStringUTFChars(classNameStr, NULL);
             if (classNameChars != NULL) {
                 jmethodID throwableGetMessageMethod = status->localJniEnv->GetMethodID(exceptionClazz, "getMessage", "()Ljava/lang/String;");
                 jstring messageStr = (jstring) status->localJniEnv->CallObjectMethod(exception, throwableGetMessageMethod);
                 if (messageStr != NULL) {
-                    const char* messageChars = status->localJniEnv->GetStringUTFChars( messageStr, NULL);
+                    const char* messageChars = status->localJniEnv->GetStringUTFChars(messageStr, NULL);
                     if (messageChars != NULL) {
                         *buf = strdup(messageChars);
                         status->localJniEnv->ReleaseStringUTFChars(messageStr, messageChars);
@@ -143,8 +142,8 @@ void check_and_get_compss_exception(ThreadStatus* status, char** buf) {
                     }
                     status->localJniEnv->DeleteLocalRef(messageStr);
                 }
-                status->localJniEnv->ReleaseStringUTFChars(classNameStr, classNameChars);
-                status->localJniEnv->DeleteLocalRef(classNameStr);
+                status->localJniEnv->ReleaseStringUTFChars(jclassNameStr, classNameChars);
+                status->localJniEnv->DeleteLocalRef(jclassNameStr);
             }
             status->localJniEnv->DeleteLocalRef(classClazz);
             status->localJniEnv->DeleteLocalRef(exceptionClazz);
@@ -688,7 +687,7 @@ void JNI_WF_cancelTaskGroup(CompssWorkflow* self, const char* groupName, char** 
 
     jstring jGroup = env->NewStringUTF(groupName);
     env->CallVoidMethod(wf->jWorkflow, mid_wf_cancelTaskGroup, jGroup);
-    check_and_get_compss_exception(status, exceptionMessage);
+    check_and_get_workflow_exception(status, exceptionMessage);
     env->DeleteLocalRef(jGroup);
 
     access_revoke(status);
@@ -760,7 +759,7 @@ void JNI_WF_barrierGroup(CompssWorkflow* self, const char* groupName, char** exc
 
     jstring jGroup = env->NewStringUTF(groupName);
     env->CallVoidMethod(wf->jWorkflow, mid_wf_barrierGroup, jGroup);
-    check_and_get_compss_exception(status, exceptionMessage);
+    check_and_get_workflow_exception(status, exceptionMessage);
     env->DeleteLocalRef(jGroup);
 
     access_revoke(status);

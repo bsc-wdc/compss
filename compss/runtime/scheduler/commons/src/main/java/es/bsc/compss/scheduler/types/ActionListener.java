@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 
 /**
  * Listener interface for receiving lifecycle notifications about the execution of an {@link AllocatableAction}.
@@ -56,6 +56,6 @@ public interface ActionListener<A extends AllocatableAction> {
      * @param action Action which raised the exception.
      * @param e COMPSs action exception.
      */
-    void onActionException(A action, COMPSsException e);
+    void onActionException(A action, WorkflowException e);
 
 }

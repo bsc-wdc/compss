@@ -29,6 +29,7 @@ import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.data.MultiOperationFetchListener;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
@@ -79,7 +80,6 @@ import es.bsc.compss.types.tracing.TransferType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 import es.bsc.wdc.tracing.ConfigManager;
 import es.bsc.wdc.tracing.Tracer;
@@ -550,9 +550,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         CommandNIOTaskDone cmd = null;
-        if (e instanceof COMPSsException) {
+        if (e instanceof WorkflowException) {
             cmd = new CommandNIOTaskDone(tr, successful, nt.getProfile(), invocation.getHistory().toString(),
-                (COMPSsException) e);
+                (WorkflowException) e);
         } else {
             cmd = new CommandNIOTaskDone(tr, successful, nt.getProfile(), invocation.getHistory().toString(), null);
         }

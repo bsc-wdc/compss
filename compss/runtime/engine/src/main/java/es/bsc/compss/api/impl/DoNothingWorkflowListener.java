@@ -20,7 +20,7 @@ import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.WorkflowListener;
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 import java.util.concurrent.Semaphore;
 
 public class DoNothingWorkflowListener implements WorkflowListener {
@@ -40,7 +40,7 @@ public class DoNothingWorkflowListener implements WorkflowListener {
     }
 
     @Override
-    public void onException(COMPSsException e) {
+    public void onException(WorkflowException e) {
     }
 
     @Override
@@ -136,7 +136,7 @@ public class DoNothingWorkflowListener implements WorkflowListener {
         }
 
         @Override
-        public void onException(COMPSsException e) {
+        public void onException(WorkflowException e) {
         }
 
 

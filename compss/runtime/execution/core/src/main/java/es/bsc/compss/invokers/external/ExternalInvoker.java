@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers.external;
 
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.Invoker;
@@ -35,7 +36,6 @@ import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.PrintWriter;
@@ -395,7 +395,7 @@ public abstract class ExternalInvoker extends Invoker<Workflow> {
     }
 
     @Override
-    public final void invokeMethod() throws JobExecutionException, COMPSsException {
+    public final void invokeMethod() throws JobExecutionException, WorkflowException {
         invokeExternalMethod();
 
         // Remove parameters
@@ -414,7 +414,7 @@ public abstract class ExternalInvoker extends Invoker<Workflow> {
         }
     }
 
-    protected abstract void invokeExternalMethod() throws JobExecutionException, COMPSsException;
+    protected abstract void invokeExternalMethod() throws JobExecutionException, WorkflowException;
 
     private static void deleteParameter(InvocationParam np) {
         if (np.isCollective()) {

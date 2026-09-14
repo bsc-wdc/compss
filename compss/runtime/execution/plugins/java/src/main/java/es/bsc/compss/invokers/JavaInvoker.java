@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.invokers;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.workflow.JavaWorkflow;
@@ -28,6 +29,7 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.worker.COMPSsWorker;
 import es.bsc.compss.worker.CanceledTask;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -98,7 +100,13 @@ public class JavaInvoker extends Invoker<JavaWorkflow> {
     }
 
     @Override
-    public void invokeMethod() throws JobExecutionException, COMPSsException {
+    protected void setEnvironmentVariables() {
+        System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
+        super.setEnvironmentVariables();
+    }
+
+    @Override
+    public void invokeMethod() throws JobExecutionException, WorkflowException {
         runMethod();
 
         for (InvocationParam np : this.invocation.getParams()) {
@@ -112,7 +120,7 @@ public class JavaInvoker extends Invoker<JavaWorkflow> {
         }
     }
 
-    protected void runMethod() throws JobExecutionException, COMPSsException {
+    protected void runMethod() throws JobExecutionException, WorkflowException {
         List<? extends InvocationParam> params = this.invocation.getParams();
         int paramCount = this.method.getParameterCount();
         Object[] values = new Object[paramCount];
@@ -161,7 +169,7 @@ public class JavaInvoker extends Invoker<JavaWorkflow> {
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause != null && cause instanceof COMPSsException) {
-                throw (COMPSsException) cause;
+                throw new WorkflowException(cause.getMessage());
             } else {
                 throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
             }

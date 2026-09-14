@@ -21,6 +21,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.data.serializers.Serializer;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.gos.executor.types.ExecutionEnd;
 import es.bsc.compss.gos.master.utils.ForbiddenCharacters;
 import es.bsc.compss.invokers.types.CParams;
@@ -57,7 +58,6 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.utils.execution.ExecutionManager;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -563,7 +563,7 @@ public class GOSWorker implements InvocationContext {
             }
 
             @Override
-            public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
+            public void notifyEnd(Invocation invocation, boolean success, WorkflowException e) {
                 status.setSuccess(success);
                 sem.release();
             }

@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.types.job;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.worker.COMPSsException;
 
 /**
  * Abstract Representation of a listener for the job execution.
@@ -162,6 +162,6 @@ public interface JobListener<P extends Parameter> {
      * @param job Job that raised the exception
      * @param e Exception raised
      */
-    public void jobException(Job<?> job, COMPSsException e);
+    public void jobException(Job<?> job, WorkflowException e);
 
 }

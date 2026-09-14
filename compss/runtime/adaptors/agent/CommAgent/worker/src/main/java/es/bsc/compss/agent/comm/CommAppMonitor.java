@@ -25,13 +25,13 @@ import es.bsc.compss.agent.comm.messages.types.CommResult;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -113,7 +113,7 @@ public class CommAppMonitor extends AppMonitor {
     }
 
     @Override
-    protected void specificOnException(COMPSsException e) {
+    protected void specificOnException(WorkflowException e) {
 
     }
 
@@ -227,7 +227,7 @@ public class CommAppMonitor extends AppMonitor {
         }
 
         @Override
-        protected void specificOnException(COMPSsException e) {
+        protected void specificOnException(WorkflowException e) {
         }
 
         @Override

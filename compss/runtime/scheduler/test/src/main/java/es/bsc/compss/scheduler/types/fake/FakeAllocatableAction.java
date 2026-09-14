@@ -17,6 +17,7 @@
 package es.bsc.compss.scheduler.types.fake;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -30,7 +31,6 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -100,7 +100,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    protected Collection<AllocatableAction> doException(COMPSsException e) {
+    protected Collection<AllocatableAction> doException(WorkflowException e) {
         return new LinkedList<>();
     }
 

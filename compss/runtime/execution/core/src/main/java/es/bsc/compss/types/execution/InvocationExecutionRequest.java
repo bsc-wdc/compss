@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.types.execution;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.worker.COMPSsException;
 
 public class InvocationExecutionRequest extends ExecutorRequest {
 
@@ -58,7 +58,7 @@ public class InvocationExecutionRequest extends ExecutorRequest {
         try {
             executor.processInvocation(invocation, listener);
             this.listener.notifyEnd(this.invocation, true, null);
-        } catch (COMPSsException ce) {
+        } catch (WorkflowException ce) {
             this.listener.notifyEnd(this.invocation, false, ce);
         } catch (Throwable e) {
             this.listener.notifyEnd(this.invocation, false, null);
@@ -82,7 +82,7 @@ public class InvocationExecutionRequest extends ExecutorRequest {
         }
 
         @Override
-        public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
+        public void notifyEnd(Invocation invocation, boolean success, WorkflowException e) {
             // Ignore
         }
     }

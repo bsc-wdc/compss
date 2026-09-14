@@ -29,6 +29,7 @@ import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.data.LogicalData;
@@ -36,7 +37,6 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -50,7 +50,7 @@ public abstract class AppMonitor implements WorkflowListener {
 
     private Workflow wf;
     private TaskResult[] taskResults;
-    private COMPSsException exception;
+    private WorkflowException exception;
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
@@ -118,7 +118,7 @@ public abstract class AppMonitor implements WorkflowListener {
         return this.wf.getId();
     }
 
-    public COMPSsException getException() {
+    public WorkflowException getException() {
         return exception;
     }
 
@@ -148,12 +148,12 @@ public abstract class AppMonitor implements WorkflowListener {
     protected abstract void specificOnCancellation();
 
     @Override
-    public final void onException(COMPSsException e) {
+    public final void onException(WorkflowException e) {
         AppMonitor.this.exception = e;
         specificOnException(e);
     }
 
-    protected abstract void specificOnException(COMPSsException e);
+    protected abstract void specificOnException(WorkflowException e);
 
     @Override
     public final void onCompletion() {
@@ -294,13 +294,13 @@ public abstract class AppMonitor implements WorkflowListener {
         protected abstract void specificOnCancellation();
 
         @Override
-        public final void onException(COMPSsException e) {
+        public final void onException(WorkflowException e) {
             AppMonitor.this.exception = e;
             specificOnException(e);
             AppMonitor.this.onException(e);
         }
 
-        protected abstract void specificOnException(COMPSsException e);
+        protected abstract void specificOnException(WorkflowException e);
 
         @Override
         public final void onCompletion() {

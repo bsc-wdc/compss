@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 
 public interface Barrier {
 
-    public void setException(COMPSsException exception);
+    public void setException(WorkflowException exception);
 
-    public COMPSsException getException();
+    public WorkflowException getException();
 
     public void release();
 

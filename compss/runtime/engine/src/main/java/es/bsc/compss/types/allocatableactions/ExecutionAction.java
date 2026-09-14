@@ -19,6 +19,7 @@ package es.bsc.compss.types.allocatableactions;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
@@ -46,7 +47,6 @@ import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -351,16 +351,16 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
      * Code executed when an exception has occurred on the job.
      *
      * @param job Job of exception.
-     * @param e COMPSsException raised by the job
+     * @param e WorkflowException raised by the job
      */
     @Override
-    public final void jobException(Job<?> job, COMPSsException e) {
+    public final void jobException(Job<?> job, WorkflowException e) {
         LOGGER.debug("Job " + job.getJobId() + " raised an Exception");
         this.profile.end(System.currentTimeMillis());
 
-        if (e instanceof COMPSsException && this.task.hasTaskGroups()) {
+        if (e instanceof WorkflowException && this.task.hasTaskGroups()) {
             for (TaskGroup t : this.task.getTaskGroupList()) {
-                t.setException((COMPSsException) e);
+                t.setException((WorkflowException) e);
             }
         }
 
@@ -496,12 +496,12 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
     }
 
     @Override
-    protected Collection<AllocatableAction> doException(COMPSsException e) {
+    protected Collection<AllocatableAction> doException(WorkflowException e) {
         LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
         Collection<AllocatableAction> otherActionsFromGroups = new LinkedList<>();
         for (TaskGroup group : taskGroups) {
             if (!group.getName().equals("App" + this.task.getApplication().getId())) {
-                group.setException((COMPSsException) e);
+                group.setException((WorkflowException) e);
                 group.addToCollectionExecutionForTasksOtherThan(otherActionsFromGroups, this.getTask());
             }
         }

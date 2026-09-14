@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.tracing;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.function.Supplier;
 
@@ -68,7 +68,7 @@ public class APITracer {
     @FunctionalInterface
     public interface ThrowingRunnable {
 
-        void run() throws COMPSsException;
+        void run() throws WorkflowException;
     }
 
 
@@ -77,9 +77,9 @@ public class APITracer {
      *
      * @param event event to wrap the method
      * @param work method to execute
-     * @throws COMPSsException exception raised by the user during the method execution.
+     * @throws WorkflowException exception raised by the user during the method execution.
      */
-    public static void traced(APIEvent event, ThrowingRunnable work) throws COMPSsException {
+    public static void traced(APIEvent event, ThrowingRunnable work) throws WorkflowException {
         boolean active = Tracer.isActivated();
         if (active) {
             Tracer.emitEvent(event);

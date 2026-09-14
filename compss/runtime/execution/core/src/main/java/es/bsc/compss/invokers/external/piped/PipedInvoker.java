@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.api.Workflow;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
@@ -51,7 +52,6 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Iterator;
 
 public abstract class PipedInvoker extends ExternalInvoker {
@@ -79,7 +79,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
     }
 
     @Override
-    public void invokeExternalMethod() throws JobExecutionException, COMPSsException {
+    public void invokeExternalMethod() throws JobExecutionException, WorkflowException {
         try {
             this.wf = null;
             int jobId = this.invocation.getJobId();
@@ -233,7 +233,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 if (this.wf != null) {
                                     try {
                                         this.wf.barrierGroup(groupName);
-                                    } catch (COMPSsException ce) {
+                                    } catch (WorkflowException ce) {
                                         this.pipes.sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
                                         synch = false;
                                     }
@@ -308,7 +308,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 }
                                 return;
                             case COMPSS_EXCEPTION:
-                                throw new COMPSsException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
+                                throw new WorkflowException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
                             default:
                                 logger.warn("Unexpected tag on PipedInvoker: {}. Skipping message", rcvdCommand);
                                 break;
@@ -318,7 +318,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                     throw new JobExecutionException("Job " + jobId + "Notification pipe closed", e);
                 }
             }
-        } catch (COMPSsException | JobExecutionException | RuntimeException e) {
+        } catch (WorkflowException | JobExecutionException | RuntimeException e) {
             throw e;
         } finally {
             if (this.wf != null) {

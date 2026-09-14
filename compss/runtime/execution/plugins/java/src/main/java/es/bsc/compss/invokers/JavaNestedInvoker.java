@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.LoaderConstants;
@@ -28,7 +29,6 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.wdc.tracing.Tracer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -101,7 +101,7 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    protected void runMethod() throws JobExecutionException, COMPSsException {
+    protected void runMethod() throws JobExecutionException, WorkflowException {
         if (this.ceiClass == null) {
             super.runMethod();
         } else {

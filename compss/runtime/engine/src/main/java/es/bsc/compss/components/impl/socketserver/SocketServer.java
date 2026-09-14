@@ -20,6 +20,7 @@ import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.components.impl.socketserver.ipc.ConnectionHandler;
 import es.bsc.compss.components.impl.socketserver.ipc.Server;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
 import es.bsc.compss.executor.external.piped.commands.AccessedFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.BarrierPipeCommand;
@@ -45,7 +46,6 @@ import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -153,10 +153,10 @@ public class SocketServer extends Server {
          *
          * @param rawLine textual command.
          * @throws IOException if the response cannot be sent.
-         * @throws COMPSsException if the runtime reports an error.
+         * @throws WorkflowException if the runtime reports an error.
          * @throws UnknownCommandException when the command tag is not supported.
          */
-        private void processCommand(String rawLine) throws IOException, COMPSsException, UnknownCommandException {
+        private void processCommand(String rawLine) throws IOException, WorkflowException, UnknownCommandException {
             PipeCommand command = parseCommand(rawLine);
             if (command == null) {
                 return;
@@ -312,9 +312,9 @@ public class SocketServer extends Server {
          * Executes a nested task requested by the client.
          *
          * @param cmd command describing the task execution.
-         * @throws COMPSsException if the runtime reports a failure.
+         * @throws WorkflowException if the runtime reports a failure.
          */
-        private void handleExecuteNestedTask(ExecuteNestedTaskPipeCommand cmd) throws COMPSsException {
+        private void handleExecuteNestedTask(ExecuteNestedTaskPipeCommand cmd) throws WorkflowException {
             wf.executeTask(cmd.getSignature(), cmd.getOnFailure(), cmd.getTimeOut(), cmd.getPrioritary(),
                 cmd.getNumNodes(), cmd.isReduce(), cmd.getReduceChunkSize(), cmd.isReplicated(), cmd.isDistributed(),
                 cmd.hasTarget(), cmd.getNumReturns(), cmd.getParameterCount(), cmd.getParameters());
@@ -462,7 +462,7 @@ public class SocketServer extends Server {
             try {
                 this.wf.barrierGroup(cmd.getGroupName());
                 sendCommand(new SynchPipeCommand());
-            } catch (COMPSsException ce) {
+            } catch (WorkflowException ce) {
                 sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
             }
         }
@@ -495,7 +495,7 @@ public class SocketServer extends Server {
             try {
                 this.wf.cancelTaskGroup(cmd.getGroupName());
                 sendCommand(new SynchPipeCommand());
-            } catch (COMPSsException ce) {
+            } catch (WorkflowException ce) {
                 sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
             }
         }

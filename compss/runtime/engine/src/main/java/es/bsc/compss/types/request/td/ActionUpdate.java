@@ -18,10 +18,10 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TDRequestEvent;
-import es.bsc.compss.worker.COMPSsException;
 
 /**
  * The ActionUpdate class represents the notification of an update on the state of an allocatable action.
@@ -50,7 +50,7 @@ public class ActionUpdate extends TaskDispatcher.AsynchTDRequest {
     /**
      * COMPSs Exception.
      */
-    private COMPSsException exception;
+    private WorkflowException exception;
 
 
     /**
@@ -67,7 +67,7 @@ public class ActionUpdate extends TaskDispatcher.AsynchTDRequest {
         this.exception = null;
     }
 
-    public void setCOMPSsException(COMPSsException e) {
+    public void setException(WorkflowException e) {
         this.exception = e;
     }
 

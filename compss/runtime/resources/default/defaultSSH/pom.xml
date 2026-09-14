@@ -55,13 +55,11 @@
 	<plugins>
 		<plugin>
 			<artifactId>maven-compiler-plugin</artifactId>
-			<version>${maven-compiler-plugin.version}</version>
 		</plugin>
 		<!-- Crea el Jar amb les dependencies -->
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-shade-plugin</artifactId>
-			<version>${maven-shade-plugin.version}</version>
 			<executions>
 				<execution>
 					<phase>package</phase>

@@ -18,10 +18,10 @@ package es.bsc.compss.types.request.ap;
 
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Barrier;
 import es.bsc.compss.types.tracing.APRequestEvent;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
 public class BarrierRequest implements APRequest, Barrier {
@@ -29,7 +29,7 @@ public class BarrierRequest implements APRequest, Barrier {
     private final String barrierName;
     private final Application app;
 
-    private COMPSsException exception;
+    private WorkflowException exception;
 
     private boolean released;
     private final Semaphore sem;
@@ -75,12 +75,12 @@ public class BarrierRequest implements APRequest, Barrier {
     }
 
     @Override
-    public final void setException(COMPSsException exception) {
+    public final void setException(WorkflowException exception) {
         this.exception = exception;
     }
 
     @Override
-    public final COMPSsException getException() {
+    public final WorkflowException getException() {
         return exception;
     }
 
@@ -104,9 +104,9 @@ public class BarrierRequest implements APRequest, Barrier {
     /**
      * Waits for all tasks to complete releasing and recovering the resources if needed.
      * 
-     * @throws COMPSsException User-code exception raised on any of the tasks for which the barrier awaits
+     * @throws WorkflowException User-code exception raised on any of the tasks for which the barrier awaits
      */
-    public final void waitForCompletion() throws COMPSsException {
+    public final void waitForCompletion() throws WorkflowException {
         // Wait for request processing
         sem.acquireUninterruptibly();
 
@@ -129,7 +129,7 @@ public class BarrierRequest implements APRequest, Barrier {
         }
 
         if (exception != null) {
-            LOGGER.debug(this.barrierName + " raised a COMPSsException ( " + exception.getMessage() + ")");
+            LOGGER.debug(this.barrierName + " raised a WorkflowException ( " + exception.getMessage() + ")");
             throw exception;
         }
     }

@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -148,14 +148,14 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * Registers a barrier request on the group. When all tasks are completed, the barrier will be released and any
-     * possible COMPSsException raised due to the tasks of the group notified.
+     * possible WorkflowException raised due to the tasks of the group notified.
      *
      * @param request object to notify the end of the group
      */
     public void registerBarrier(Barrier request) {
         LOGGER.debug("Added barrier for group " + this.name);
         int currentGraphSource = this.barrier.getGraphSource();
-        COMPSsException currentException = this.barrier.getException();
+        WorkflowException currentException = this.barrier.getException();
         request.setException(currentException);
         request.setGraphSource(currentGraphSource);
         if (hasPendingTasks()) {
@@ -174,7 +174,7 @@ public class TaskGroup implements AutoCloseable {
     }
 
     /**
-     * Returns if there has been any task throwing a COMPSs Exception.
+     * Returns if there has been any task throwing a WorkflowException.
      *
      * @return
      */
@@ -183,20 +183,20 @@ public class TaskGroup implements AutoCloseable {
     }
 
     /**
-     * Returns the COMPSs Exception.
+     * Returns the Workflow Exception.
      *
      * @return
      */
-    public COMPSsException getException() {
+    public WorkflowException getException() {
         return this.barrier.getException();
     }
 
     /**
-     * A task of the group has raised a COMPSsException.
+     * A task of the group has raised a WorkflowException.
      *
      * @param e Exception raised due to the execution of the tasks of the group
      */
-    public void setException(COMPSsException e) {
+    public void setException(WorkflowException e) {
         LOGGER.debug("Exception set for group " + this.name);
         this.barrier.setException(e);
     }
@@ -229,17 +229,17 @@ public class TaskGroup implements AutoCloseable {
 
     private static class PendingBarrier implements Barrier {
 
-        private COMPSsException exception;
+        private WorkflowException exception;
         private int graphSource = Integer.MIN_VALUE;
 
 
         @Override
-        public void setException(COMPSsException exception) {
+        public void setException(WorkflowException exception) {
             this.exception = exception;
         }
 
         @Override
-        public COMPSsException getException() {
+        public WorkflowException getException() {
             return this.exception;
         }
 

@@ -89,6 +89,11 @@
         <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
         <maven-jaxb2-plugin.version>4.0.11</maven-jaxb2-plugin.version>
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
+        <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
+        <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 
         <!-- Project encoding -->
@@ -228,6 +233,110 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <!-- BUILD -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Formats Java source files. -->
+                <plugin>
+                    <groupId>net.revelc.code.formatter</groupId>
+                    <artifactId>formatter-maven-plugin</artifactId>
+                    <version>${code-format.version}</version>
+                </plugin>
+                <!-- Sorts Java imports. -->
+                <plugin>
+                    <groupId>net.revelc.code</groupId>
+                    <artifactId>impsort-maven-plugin</artifactId>
+                    <version>${impsort.version}</version>
+                </plugin>
+                <!-- Checks source code style. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven-checkstyle-plugin.version}</version>
+                </plugin>
+                <!-- Cleans Maven build output. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin.version}</version>
+                </plugin>
+                <!-- Compiles Java source code. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                </plugin>
+                <!-- Generates Java classes from XML schemas. -->
+                <plugin>
+                    <groupId>org.jvnet.jaxb</groupId>
+                    <artifactId>jaxb-maven-plugin</artifactId>
+                    <version>${maven-jaxb2-plugin.version}</version>
+                </plugin>
+                <!-- Copies resources into the build output. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
+                </plugin>
+                <!-- Creates shaded JARs with dependencies. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
+                </plugin>
+                <!-- Runs unit and integration tests. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <!-- Builds WAR web application archives. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>${maven-war-plugin.version}</version>
+                </plugin>
+                <!-- Executes external commands from Maven. -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec-maven-plugin.version}</version>
+                </plugin>
+                <!-- Adds generated or external source directories. -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-maven-plugin.version}</version>
+                </plugin>
+                <!-- Customizes generated JAR manifests. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+                <!-- Generates build numbers from SCM metadata. -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>buildnumber-maven-plugin</artifactId>
+                    <version>${buildnumber-maven-plugin.version}</version>
+                </plugin>
+                <!-- Stores Eclipse m2e lifecycle metadata. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>${lifecycle-mapping.version}</version>
+                </plugin>
+                <!-- Collects code coverage reports. -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <!-- SUB-MODULES -->
     <modules>

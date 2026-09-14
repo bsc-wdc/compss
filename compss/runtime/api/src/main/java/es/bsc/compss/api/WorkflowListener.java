@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 import java.util.concurrent.Semaphore;
 
 public interface WorkflowListener {
@@ -34,11 +34,11 @@ public interface WorkflowListener {
     public void onReadyToContinue(Semaphore sem);
 
     /**
-     * Invoked when the workflow has raised a COMPSsException and has been canceled.
+     * Invoked when the workflow has raised a WorkflowException and has been canceled.
      *
      * @param e Exception raised during the workflow execution
      */
-    public void onException(COMPSsException e);
+    public void onException(WorkflowException e);
 
     /**
      * Invoked when the workflow has been canceled.

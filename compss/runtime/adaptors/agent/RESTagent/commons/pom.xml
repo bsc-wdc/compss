@@ -76,7 +76,6 @@
             <!-- Compile Java code -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
                 </configuration>

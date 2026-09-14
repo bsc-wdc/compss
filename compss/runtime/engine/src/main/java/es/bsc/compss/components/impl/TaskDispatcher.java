@@ -18,6 +18,7 @@ package es.bsc.compss.components.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.ResourceUser;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
@@ -43,7 +44,6 @@ import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.concurrent.Semaphore;
@@ -207,7 +207,7 @@ public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?
     }
 
     @Override
-    public void handleRequest(TDRequest<?> request) throws ShutdownException, COMPSsException {
+    public void handleRequest(TDRequest<?> request) throws ShutdownException, WorkflowException {
         request.process(scheduler);
     }
 
@@ -261,9 +261,9 @@ public class TaskDispatcher extends RequestDispatcher<TaskDispatcher.TDRequest<?
 
     // Notification thread
     @Override
-    public void actionException(AllocatableAction action, COMPSsException e) {
+    public void actionException(AllocatableAction action, WorkflowException e) {
         ActionUpdate request = new ActionUpdate(this, action, ActionUpdate.Update.EXCEPTION);
-        request.setCOMPSsException(e);
+        request.setException(e);
         request.offer("action exception");
     }
 

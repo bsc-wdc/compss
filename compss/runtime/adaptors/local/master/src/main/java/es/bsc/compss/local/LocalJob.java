@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.local;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
@@ -33,7 +34,6 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -150,7 +150,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
     }
 
     @Override
-    public void exception(COMPSsException e) {
+    public void exception(WorkflowException e) {
         if (this.history == JobHistory.CANCELLED) {
             LOGGER.error("Ignoring notification since the job was cancelled");
             removeTmpData();

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 
 public interface TaskMonitor extends ParameterCollectionMonitor {
 
@@ -65,7 +65,7 @@ public interface TaskMonitor extends ParameterCollectionMonitor {
      * 
      * @param e Exception raised during the task execution
      */
-    public void onException(COMPSsException e);
+    public void onException(WorkflowException e);
 
     /**
      * Actions to be performed by monitor on task execution success.

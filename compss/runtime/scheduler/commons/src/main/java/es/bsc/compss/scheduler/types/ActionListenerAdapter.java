@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 
 /**
  * Convenience base implementation of {@link ActionListener}. All methods are empty, so subclasses can override only the
@@ -40,7 +40,7 @@ public abstract class ActionListenerAdapter<A extends AllocatableAction> impleme
     }
 
     @Override
-    public void onActionException(A action, COMPSsException e) {
+    public void onActionException(A action, WorkflowException e) {
         // Do nothing
     }
 

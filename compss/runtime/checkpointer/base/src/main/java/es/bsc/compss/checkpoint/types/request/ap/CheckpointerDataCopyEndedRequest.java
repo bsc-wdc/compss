@@ -20,9 +20,9 @@ import es.bsc.compss.checkpoint.CheckpointRecord;
 import es.bsc.compss.checkpoint.types.CheckpointDataVersion;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.CheckpointEvent;
-import es.bsc.compss.worker.COMPSsException;
 
 public class CheckpointerDataCopyEndedRequest extends CheckpointerRequestImpl {
 
@@ -47,7 +47,7 @@ public class CheckpointerDataCopyEndedRequest extends CheckpointerRequestImpl {
 
     @Override
     public void process(AccessProcessor ap, TaskDispatcher td, CheckpointRecord cp)
-        throws ShutdownException, COMPSsException {
+        throws ShutdownException, WorkflowException {
         cp.dataCheckpointed(dataVersion);
     }
 }

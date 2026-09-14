@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.exceptions.WorkflowException;
 
 public interface Workflow {
 
@@ -80,7 +80,7 @@ public interface Workflow {
     /**
      * Cancels all tasks belonging to a group of the workflow.
      */
-    void cancelTaskGroup(String groupName) throws COMPSsException;
+    void cancelTaskGroup(String groupName) throws WorkflowException;
 
     /**
      * Cancels all tasks of the workflow.
@@ -110,9 +110,9 @@ public interface Workflow {
      * wait is given as a parameter.
      *
      * @param groupName Name of the group to wait.
-     * @throws COMPSsException Custom COMPSs exception to handle groups.
+     * @throws WorkflowException Custom COMPSs exception to handle groups.
      */
-    void barrierGroup(String groupName) throws COMPSsException;
+    void barrierGroup(String groupName) throws WorkflowException;
 
     /*
      * ************************************************************************************************************

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.objects.StorageTestObject;
 import es.bsc.compss.invokers.test.objects.TestObject;
@@ -45,7 +46,6 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,7 +74,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void emptyInvoker() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void emptyInvoker() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(genDummy("FakeClass", "fakeMethod", 0, 0, "", new MethodResourceDescription()));
@@ -101,7 +101,7 @@ public class TestInvoker {
 
     @Test
     public void booleanInputParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -136,7 +136,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void charInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void charInputParameter() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -173,7 +173,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void byteInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void byteInputParameter() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -210,7 +210,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void shortInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void shortInputParameter()
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -248,7 +249,7 @@ public class TestInvoker {
 
     @Test
     public void integerInputParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -285,7 +286,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void longInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void longInputParameter() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -322,7 +323,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void floatInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void floatInputParameter()
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -359,7 +361,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void doubleInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void doubleInputParameter()
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -396,7 +399,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void stringInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void stringInputParameter()
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -434,7 +438,7 @@ public class TestInvoker {
 
     @Test
     public void multiplePrimitiveInputParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0,
@@ -482,7 +486,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void objectInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void objectInputParameter()
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -521,7 +526,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void objectInoutParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void objectInoutParameter()
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -563,7 +569,7 @@ public class TestInvoker {
 
     @Test
     public void targetInWithEmptyParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String renaming = "d5v3_754478989756456.IT";
@@ -601,7 +607,7 @@ public class TestInvoker {
 
     @Test
     public void targetInoutWithEmptyParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -643,7 +649,7 @@ public class TestInvoker {
 
     @Test
     public void resultWithEmptyParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -686,7 +692,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void pSCOInputParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void pSCOInputParameter() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -726,7 +732,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInputParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
@@ -766,7 +772,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void pSCOInoutParameter() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void pSCOInoutParameter() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -808,7 +814,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInoutParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
@@ -851,7 +857,7 @@ public class TestInvoker {
 
     @Test
     public void persistingObjectInoutParameter()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
 
@@ -893,7 +899,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void pSCOInputTarget() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void pSCOInputTarget() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -933,7 +939,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInputTarget()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String id = UUID.randomUUID().toString();
@@ -973,7 +979,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void pSCOInoutTarget() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+    public void pSCOInoutTarget() throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1015,7 +1021,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInoutTarget()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
@@ -1057,7 +1063,7 @@ public class TestInvoker {
 
     @Test
     public void persistingObjectInoutTarget()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1102,7 +1108,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectResult()
-        throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
+        throws InvalidMapException, IOException, JobExecutionException, WorkflowException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1177,7 +1183,7 @@ public class TestInvoker {
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         try {
             invoker.runInvocation(null);
-        } catch (COMPSsException e) {
+        } catch (WorkflowException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

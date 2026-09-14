@@ -19,8 +19,8 @@ package es.bsc.compss.loader.workflow;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.WorkflowListener;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.loader.workflow.data.ObjectRegistry;
-import es.bsc.compss.worker.COMPSsException;
 
 public class JavaWorkflow implements Workflow {
 
@@ -156,7 +156,7 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
-    public void cancelTaskGroup(String groupName) throws COMPSsException {
+    public void cancelTaskGroup(String groupName) throws WorkflowException {
         workflow.cancelTaskGroup(groupName);
     }
 
@@ -181,7 +181,7 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
-    public void barrierGroup(String groupName) throws COMPSsException {
+    public void barrierGroup(String groupName) throws WorkflowException {
         workflow.barrierGroup(groupName);
     }
 

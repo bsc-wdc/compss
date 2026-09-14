@@ -19,6 +19,7 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointBuilder;
 import es.bsc.compss.checkpoint.CheckpointManager;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.AbstractTask;
@@ -63,7 +64,6 @@ import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
@@ -129,7 +129,7 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
     }
 
     @Override
-    public void handleRequest(APRequest request) throws ShutdownException, COMPSsException {
+    public void handleRequest(APRequest request) throws ShutdownException, WorkflowException {
         request.process(this, taskDispatcher);
     }
 
@@ -250,9 +250,9 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
      *
      * @param app Application .
      * @param groupName Name of the task group
-     * @throws COMPSsException Exception thrown by user
+     * @throws WorkflowException Exception thrown by user
      */
-    public void barrierGroup(Application app, String groupName) throws COMPSsException {
+    public void barrierGroup(Application app, String groupName) throws WorkflowException {
         BarrierGroupRequest bgr = new BarrierGroupRequest(app, groupName);
         this.offerRequest(bgr, "wait for all tasks");
         bgr.waitForCompletion();
@@ -270,7 +270,7 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
 
         try {
             br.waitForCompletion();
-        } catch (COMPSsException ce) {
+        } catch (WorkflowException ce) {
             // This exception should be forwarded through the API
         }
 
@@ -287,7 +287,7 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
         this.offerRequest(eoar, "no more tasks");
         try {
             eoar.waitForCompletion();
-        } catch (COMPSsException ce) {
+        } catch (WorkflowException ce) {
             // This exception should be forwarded through the API
         }
 

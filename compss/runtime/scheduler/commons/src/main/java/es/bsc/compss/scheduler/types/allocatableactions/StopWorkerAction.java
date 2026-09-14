@@ -17,6 +17,7 @@
 package es.bsc.compss.scheduler.types.allocatableactions;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -38,7 +39,6 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
@@ -172,7 +172,7 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    protected Collection<AllocatableAction> doException(COMPSsException e) {
+    protected Collection<AllocatableAction> doException(WorkflowException e) {
         return new LinkedList<>();
     }
 

@@ -10,16 +10,16 @@ public class SimpleExtAdaptation {
 
     private static final String counterName = "counter";
 
+
     /**
-     * Polls until {@code ResourceManager.getAllWorkers().size() == expected} or the
-     * deadline is reached, checking every second.  Fails fast and exits on timeout.
+     * Polls until {@code ResourceManager.getAllWorkers().size() == expected} or the deadline is reached, checking every
+     * second. Fails fast and exits on timeout.
      *
-     * @param expected  target worker count
+     * @param expected target worker count
      * @param timeoutMs maximum milliseconds to wait
-     * @param label     description printed in failure/success messages
+     * @param label description printed in failure/success messages
      */
-    private static void waitForWorkerCount(int expected, long timeoutMs, String label)
-        throws InterruptedException {
+    private static void waitForWorkerCount(int expected, long timeoutMs, String label) throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMs;
         int current;
         do {
@@ -33,13 +33,11 @@ public class SimpleExtAdaptation {
         // One last check after the deadline expires
         current = ResourceManager.getAllWorkers().size();
         if (current != expected) {
-            System.out.println("FAIL: " + label + " timed out: expected " + expected
-                + " workers, got " + current);
+            System.out.println("FAIL: " + label + " timed out: expected " + expected + " workers, got " + current);
             System.exit(-1);
         }
         System.out.println("** " + label + " OK (workers=" + current + ") **");
     }
-
 
     public static void main(String[] args) {
         if (args.length != 5) {
@@ -93,8 +91,8 @@ public class SimpleExtAdaptation {
                 fis = new FileInputStream(counterName + i);
                 int finalValue = fis.read();
                 int expected = initialValue + 1;
-                System.out.println("[LOG] Final counter" + i + " value is " + finalValue
-                    + " (expected: " + expected + ")");
+                System.out
+                    .println("[LOG] Final counter" + i + " value is " + finalValue + " (expected: " + expected + ")");
                 fis.close();
                 if (finalValue != expected) {
                     System.out.println("FAIL: Incorrect final value at counter" + i);

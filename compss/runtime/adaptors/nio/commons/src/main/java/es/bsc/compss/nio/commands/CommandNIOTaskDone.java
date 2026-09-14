@@ -17,10 +17,10 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -30,7 +30,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
     private boolean successful;
     private NIOTaskResult tr;
     private String jobHistory;
-    private COMPSsException compssException;
+    private WorkflowException compssException;
     private NIOTaskProfile profile;
 
 
@@ -50,7 +50,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
      * @param profile NIOTask execution times report
      */
     public CommandNIOTaskDone(NIOTaskResult tr, boolean successful, NIOTaskProfile profile, String jobHistory,
-        COMPSsException e) {
+        WorkflowException e) {
         this.tr = tr;
         this.jobHistory = jobHistory;
         this.successful = successful;
@@ -63,11 +63,11 @@ public class CommandNIOTaskDone extends RetriableCommand {
         agent.receivedNIOTaskDone(c, this.tr, this.profile, this.successful, this.compssException);
     }
 
-    public COMPSsException getCompssException() {
+    public WorkflowException getCompssException() {
         return this.compssException;
     }
 
-    public void setCompssException(COMPSsException e) {
+    public void setCompssException(WorkflowException e) {
         this.compssException = e;
     }
 
@@ -80,7 +80,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
         this.successful = in.readBoolean();
         this.tr = (NIOTaskResult) in.readObject();
         this.jobHistory = in.readUTF();
-        this.compssException = (COMPSsException) in.readObject();
+        this.compssException = (WorkflowException) in.readObject();
         this.profile = (NIOTaskProfile) in.readObject();
     }
 

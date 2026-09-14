@@ -17,6 +17,7 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
@@ -60,7 +61,6 @@ import es.bsc.compss.util.JSONStateManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.wdc.tracing.Tracer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -296,7 +296,7 @@ public class TaskScheduler {
         }
 
         @Override
-        public void onActionException(AllocatableAction action, COMPSsException e) {
+        public void onActionException(AllocatableAction action, WorkflowException e) {
             //Shouldn't happen
         }
 
@@ -662,7 +662,7 @@ public class TaskScheduler {
      *
      * @param action Action raising the error.
      */
-    public final void exceptionOnAction(AllocatableAction action, COMPSsException e) {
+    public final void exceptionOnAction(AllocatableAction action, WorkflowException e) {
         LOGGER.info("[TaskScheduler] Exception on action " + action);
         ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
         List<AllocatableAction> resourceFreeActions = actionFinished(action);

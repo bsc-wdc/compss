@@ -17,6 +17,7 @@
 package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
@@ -41,7 +42,6 @@ import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -203,7 +203,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     @Override
-    protected Collection<AllocatableAction> doException(COMPSsException e) {
+    protected Collection<AllocatableAction> doException(WorkflowException e) {
         ErrorManager.warn(
             "Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has raised a COMPSs Exception.");
         return new LinkedList<>();

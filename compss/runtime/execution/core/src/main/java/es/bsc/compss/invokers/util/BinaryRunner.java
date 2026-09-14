@@ -25,7 +25,7 @@ import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.semantics.Constants;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.StreamGobbler;

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.nio.master;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
@@ -37,7 +38,6 @@ import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -150,8 +150,8 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
         if (successful) {
             this.completed(ntr);
         } else {
-            if (e instanceof COMPSsException) {
-                this.exception(ntr, (COMPSsException) e);
+            if (e instanceof WorkflowException) {
+                this.exception(ntr, (WorkflowException) e);
             } else {
                 this.failed(ntr, JobEndStatus.EXECUTION_FAILED);
             }
@@ -163,7 +163,7 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
         super.completed();
     }
 
-    private void exception(NIOTaskResult ntr, COMPSsException e) {
+    private void exception(NIOTaskResult ntr, WorkflowException e) {
         registerAllJobOutputs(ntr);
         super.exception(e);
     }

@@ -80,7 +80,6 @@
 			<!-- Compile Java code -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
 			</plugin>
 
 			<!-- Copy dependencies into lib folder -->
@@ -106,7 +105,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -133,7 +131,6 @@
 			<!--Copy jar file to adaptor basedir -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>${maven-resources-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>copy-final-jar</id>
@@ -159,7 +156,6 @@
 			<!-- Remove final *.jar from project basedir -->
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
-				<version>${maven-clean-plugin.version}</version>
 				<configuration>
 					<filesets>
 						<fileset>
@@ -177,7 +173,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
 					<reuseForks>false</reuseForks>
 					<forkCount>1</forkCount>

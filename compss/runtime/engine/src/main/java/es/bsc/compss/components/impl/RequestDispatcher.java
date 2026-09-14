@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -156,9 +156,9 @@ public abstract class RequestDispatcher<T extends Request> implements Runnable {
      *
      * @param request request to handle
      * @throws ShutdownException the request has to stop the thread
-     * @throws COMPSsException Exception raised by user
+     * @throws WorkflowException Exception raised by user
      */
-    public abstract void handleRequest(T request) throws ShutdownException, COMPSsException;
+    public abstract void handleRequest(T request) throws ShutdownException, WorkflowException;
 
 
     private static class RequestQueue<T> {

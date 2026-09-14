@@ -18,13 +18,13 @@ package es.bsc.compss.types.request.ap;
 
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.listener.StaticMultioperationSemaphore;
 import es.bsc.compss.types.tracing.APRequestEvent;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -63,7 +63,7 @@ public class CancelTaskGroupRequest implements APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskDispatcher td) throws ShutdownException, COMPSsException {
+    public void process(AccessProcessor ap, TaskDispatcher td) throws ShutdownException, WorkflowException {
         LOGGER.debug("Cancelling tasks of group " + groupName);
         cancelGroup(td);
     }

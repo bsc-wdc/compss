@@ -17,10 +17,10 @@
 package es.bsc.compss.scheduler.types.fake;
 
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
-import es.bsc.compss.worker.COMPSsException;
 import java.util.concurrent.Semaphore;
 
 public class FakeActionOrchestrator implements ActionOrchestrator {
@@ -67,7 +67,7 @@ public class FakeActionOrchestrator implements ActionOrchestrator {
 
     // Notification thread
     @Override
-    public void actionException(AllocatableAction action, COMPSsException e) {
+    public void actionException(AllocatableAction action, WorkflowException e) {
         this.ts.exceptionOnAction(action, e);
     }
 

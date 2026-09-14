@@ -23,4 +23,13 @@ public class Constants {
      */
     public static final String UNASSIGNED = "[unassigned]";
 
+    /*
+     * Empty prefix for parameters.
+     */
+    public static final String PREFIX_EMPTY = "null";
+
+    /*
+     * Skip prefix for parameters.
+     */
+    public static final String PREFIX_SKIP = "#";
 }

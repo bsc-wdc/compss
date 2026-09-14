@@ -19,14 +19,15 @@ package es.bsc.compss.executor;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.InvokerFactory;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.semantics.Constants;
 import es.bsc.compss.semantics.data.DataType;
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
@@ -58,7 +59,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TaskExecutionType;
-import es.bsc.compss.worker.COMPSsException;
 import es.bsc.wdc.affinity.ThreadAffinity;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
@@ -226,11 +226,11 @@ public class Executor implements Runnable, InvocationRunner {
      *
      * @param inv invocation to run
      * @param listener element to notify changes in the execution
-     * @throws COMPSsException COMPSs exception raised by the user code
+     * @throws WorkflowException COMPSs exception raised by the user code
      * @throws Exception Error preparing, running or post-processing the invocation
      */
     public void processInvocation(Invocation inv, InvocationExecutionListener listener)
-        throws COMPSsException, Exception {
+        throws WorkflowException, Exception {
         this.invocation = inv;
         this.invocationListener = listener;
 
@@ -248,12 +248,12 @@ public class Executor implements Runnable, InvocationRunner {
         try {
             execute();
             success = true;
-        } catch (COMPSsException e) {
+        } catch (WorkflowException e) {
             throw e;
         } catch (Exception e) {
             Throwable rootCause = ExceptionUtils.getRootCause(e);
-            if (rootCause instanceof COMPSsException) {
-                throw (COMPSsException) rootCause;
+            if (rootCause instanceof WorkflowException) {
+                throw (WorkflowException) rootCause;
             } else {
                 throw e;
             }
@@ -368,7 +368,7 @@ public class Executor implements Runnable, InvocationRunner {
             } else {
                 cleanTaskSandbox(twd);
             }
-        } catch (COMPSsException e) {
+        } catch (WorkflowException e) {
             // Clean the task sandbox working dir if no error
             if (timerEnabled) {
                 cleanTaskSandboxWithTimer(twd);
@@ -392,7 +392,7 @@ public class Executor implements Runnable, InvocationRunner {
                 stageIn(twd);
                 redirectStreamsAndRun(twd);
             }
-        } catch (COMPSsException e) {
+        } catch (WorkflowException e) {
             logExecutionException(e);
             alreadyFailed = true;
             producesEmptyResultsOnFailure = true;
@@ -460,7 +460,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
         try {
             runInvocation(twd);
-        } catch (COMPSsException ce) {
+        } catch (WorkflowException ce) {
             workerLogger.warn("[EXECUTOR] executeTask - COMPSs Exception received");
             out.println("[EXECUTOR] executeTask - COMPSs Exception received");
             throw ce;
@@ -479,7 +479,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void runInvocation(ExecutionSandbox twd) throws COMPSsException, JobExecutionException {
+    private void runInvocation(ExecutionSandbox twd) throws WorkflowException, JobExecutionException {
         Invoker<?> invoker = InvokerFactory.Registry.getInvoker(this, this.context, invocation, twd, resources);
         try {
             this.platform.registerRunningJob(invocation, invoker);

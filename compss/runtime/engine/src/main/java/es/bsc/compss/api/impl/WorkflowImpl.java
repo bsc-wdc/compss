@@ -26,6 +26,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.data.FileOpsManager;
 import es.bsc.compss.exceptions.CommException;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.data.access.AccessMode;
@@ -68,7 +69,6 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -527,7 +527,7 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public void cancelTaskGroup(String groupName) throws COMPSsException {
+    public void cancelTaskGroup(String groupName) throws WorkflowException {
         APITracer.traced(APIEvent.CANCEL_GROUP, (APITracer.ThrowingRunnable) () -> {
             AP.cancelTaskGroup(this, groupName);
             // This is required that changes in metadata have been applied before
@@ -542,7 +542,7 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
-    public void barrierGroup(String groupName) throws COMPSsException {
+    public void barrierGroup(String groupName) throws WorkflowException {
         APITracer.traced(APIEvent.WAIT_FOR_GROUP_TASKS, (APITracer.ThrowingRunnable) () -> {
             // Regular barrier
             AP.barrierGroup(this, groupName);

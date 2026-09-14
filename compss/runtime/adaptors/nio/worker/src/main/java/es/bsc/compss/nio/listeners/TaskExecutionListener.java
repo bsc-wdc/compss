@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.nio.listeners;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationExecutionListener;
 import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.worker.COMPSsException;
 
 public class TaskExecutionListener implements InvocationExecutionListener {
 
@@ -37,7 +37,7 @@ public class TaskExecutionListener implements InvocationExecutionListener {
     }
 
     @Override
-    public void notifyEnd(Invocation invocation, boolean success, COMPSsException exception) {
+    public void notifyEnd(Invocation invocation, boolean success, WorkflowException exception) {
         this.nw.sendTaskDone(invocation, success, exception);
     }
 

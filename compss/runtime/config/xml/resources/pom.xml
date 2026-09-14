@@ -49,12 +49,10 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.jvnet.jaxb</groupId>
                 <artifactId>jaxb-maven-plugin</artifactId>
-                <version>${maven-jaxb2-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>

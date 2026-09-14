@@ -21,6 +21,7 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.api.WorkflowListener;
 import es.bsc.compss.exceptions.InvokeExecutionException;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.invokers.types.StdIOStream;
@@ -42,8 +43,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.FunctionExecutionEvent;
 import es.bsc.compss.types.tracing.TaskExecutionType;
-import es.bsc.compss.worker.COMPSsException;
-import es.bsc.compss.worker.COMPSsWorker;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -293,9 +292,9 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
      *
      * @param runner Element hosting the code execution
      * @throws JobExecutionException When an error in the task execution occurs.
-     * @throws COMPSsException When the task needs to be stopped (task groups, failure management).
+     * @throws WorkflowException When the task needs to be stopped (task groups, failure management).
      */
-    public void runInvocation(InvocationRunner runner) throws JobExecutionException, COMPSsException {
+    public void runInvocation(InvocationRunner runner) throws JobExecutionException, WorkflowException {
         this.runner = runner;
         invoke();
     }
@@ -331,7 +330,7 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
         }
     }
 
-    private void invoke() throws JobExecutionException, COMPSsException {
+    private void invoke() throws JobExecutionException, WorkflowException {
         emitStartTask();
         try {
             AbstractMethodImplementation impl = this.invocation.getMethodImplementation();
@@ -366,7 +365,6 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
 
     protected void setEnvironmentVariables() {
         // Setup properties
-        System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
         System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));
         System.setProperty(COMPSS_HOSTNAMES, this.workers);
         System.setProperty(COMPSS_NODES, buildWorkersString(hostnames, 1));
@@ -407,7 +405,7 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
         }
     }
 
-    protected abstract void invokeMethod() throws JobExecutionException, COMPSsException;
+    protected abstract void invokeMethod() throws JobExecutionException, WorkflowException;
 
     protected abstract void cancelMethod();
 
@@ -475,7 +473,7 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
     }
 
     @Override
-    public void onException(COMPSsException e) {
+    public void onException(WorkflowException e) {
     }
 
     @Override

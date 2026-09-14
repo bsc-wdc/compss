@@ -18,6 +18,7 @@ package es.bsc.compss.types.job;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.FailurePolicy;
@@ -39,7 +40,6 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
-import es.bsc.compss.worker.COMPSsException;
 import java.io.File;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -631,7 +631,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      * 
      * @param exception exception raised during the execution
      */
-    public void exception(COMPSsException exception) {
+    public void exception(WorkflowException exception) {
         JOB_LOGGER.error("Received an exception notification for job " + this.jobId);
 
         if (this.isBeingCancelled()) {

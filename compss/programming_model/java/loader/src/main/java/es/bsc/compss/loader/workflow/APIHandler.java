@@ -17,6 +17,7 @@
 
 package es.bsc.compss.loader.workflow;
 
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.loader.workflow.data.StreamRegistry;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -48,7 +49,11 @@ public final class APIHandler {
      * @param groupName Name of the group to perform the barrier.
      */
     public static void barrierGroup(JavaWorkflow wf, String groupName) throws COMPSsException {
-        wf.barrierGroup(groupName);
+        try {
+            wf.barrierGroup(groupName);
+        } catch (WorkflowException we) {
+            throw new COMPSsException(we.getMessage());
+        }
     }
 
     /**
@@ -58,7 +63,11 @@ public final class APIHandler {
      * @param groupName Name of the group to cancel.
      */
     public static void cancelGroup(JavaWorkflow wf, String groupName) throws COMPSsException {
-        wf.cancelTaskGroup(groupName);
+        try {
+            wf.cancelTaskGroup(groupName);
+        } catch (WorkflowException we) {
+            throw new COMPSsException(we.getMessage());
+        }
     }
 
     /**

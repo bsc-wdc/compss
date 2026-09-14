@@ -18,10 +18,10 @@ package es.bsc.compss.types.request.ap;
 
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.worker.COMPSsException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,8 +40,8 @@ public interface APRequest extends Request {
      * @param ap AccessProcessor processing the request.
      * @param td Task Dispatcher attached to the processing AccessProcessor.
      * @throws ShutdownException If the component has been shutdown.
-     * @throws COMPSsException Exception thrown by user
+     * @throws WorkflowException Exception thrown by user
      */
-    void process(AccessProcessor ap, TaskDispatcher td) throws ShutdownException, COMPSsException;
+    void process(AccessProcessor ap, TaskDispatcher td) throws ShutdownException, WorkflowException;
 
 }

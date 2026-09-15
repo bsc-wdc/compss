@@ -1,7 +1,8 @@
 [Unit]
-Description=COMPSs CI age-based Docker cleanup
+Description=COMPSs CI Docker cleanup
 After=docker.service
-Requires=docker.service
+# Not Requires=: the script may restart docker, and Requires= would stop this unit with it.
+Wants=docker.service
 
 [Service]
 Type=oneshot

@@ -25,6 +25,7 @@ import os.path
 import uuid
 from datetime import timezone
 from pathlib import Path
+from importlib.metadata import version as package_version
 
 import sys
 import time
@@ -69,7 +70,13 @@ def main():
     global PROVENANCE_RUN_ENABLED, PARAM_SIZE_LIMIT
     exec_time = time.time()
     yaml_template = get_yaml_template()
-    compss_crate = ROCrate()
+
+    # From ro-crate-py version 0.15.0, a parameter "version" can be passed to the creation
+    rocrate_py_version = package_version("rocrate")
+    if tuple(map(int, rocrate_py_version.split(".")[:2])) >= (0, 15):
+        compss_crate = ROCrate(version="1.1")
+    else:
+        compss_crate = ROCrate()
     end_time = iso_now()
 
     generate_plots(STATS_PATH)

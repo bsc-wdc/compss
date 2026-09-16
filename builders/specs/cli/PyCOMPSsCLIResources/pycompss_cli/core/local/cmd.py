@@ -39,9 +39,10 @@ class _CrateContext:
     crate: ROCrate
     is_compss_wf: bool = False
     root: Entity | None = None
+    metadata_descriptor: Entity | None = None
     main_entity: Entity | None = None
     create_action: Entity | None = None
-    profiles: list[str] = field(default_factory=list)
+    compliance: set[str] = field(default_factory=set)
     paraver_traces: list[Entity] = field(default_factory=list)
     task_stats: dict = field(
         default_factory=lambda: {
@@ -882,13 +883,37 @@ def _render_general_info(tree, ctx: _CrateContext, verbose: bool):
     if verbose:
         _render_software_reqs(tree, ctx.main_entity)
 
-    if verbose and ctx.profiles:
+    if verbose and ctx.compliance:
         prof_tree = tree.add("RO-Crate compliance")
-        for prof in ctx.profiles:
+        first = next(
+            (c for c in ctx.compliance if c.startswith("RO-Crate specification")),
+            None,
+        )
+        ordered_compliance = (
+            [first] + [c for c in ctx.compliance if c != first]
+            if first
+            else list(ordered_compliance)
+        )
+        for prof in ordered_compliance:
             prof_tree.add(f"[green]{prof}")
 
 
-def _collect_profiles(ctx, entity):
+def _collect_compliance(ctx, roc_md, entity):
+    # First check RO-Crate specification version in the Metadata Descriptor
+    rocrate_prefix = "https://w3id.org/ro/crate/"
+    md_conforms_to = roc_md.get("conformsTo")
+    if md_conforms_to:
+        if not isinstance(md_conforms_to, list):
+                md_conforms_to = [md_conforms_to]
+        for spec in md_conforms_to:
+            if isinstance(spec, ContextEntity):
+                ctx.compliance.add(f"{spec.get('name', '')} ({spec.get('version', '')})")
+            elif isinstance(spec, str):
+                if spec.startswith(rocrate_prefix):
+                    ctx.compliance.add(f"RO-Crate specification ({spec.removeprefix(rocrate_prefix)})")
+                else:
+                    ctx.compliance.add(spec)
+
     conforms_to = entity.get("conformsTo")
     if not conforms_to:
         return
@@ -898,9 +923,9 @@ def _collect_profiles(ctx, entity):
 
     for prof in conforms_to:
         if isinstance(prof, ContextEntity):
-            ctx.profiles.append(f"{prof.get('name', '')} ({prof.get('version', '')})")
+            ctx.compliance.add(f"{prof.get('name', '')} ({prof.get('version', '')})")
         elif isinstance(prof, str):
-            ctx.profiles.append(prof)
+            ctx.compliance.add(prof)
 
 
 def _update_task_stats(stats, action):
@@ -921,7 +946,8 @@ def _inspect_crate(path, crate: ROCrate) -> _CrateContext:
 
     ctx.root = crate.root_dataset
     ctx.main_entity = ctx.root.get("mainEntity")
-    _collect_profiles(ctx, crate.root_dataset)
+    ctx.metadata_descriptor = crate.dereference("ro-crate-metadata.json")
+    _collect_compliance(ctx, ctx.metadata_descriptor, crate.root_dataset)
 
     if crate.mainEntity.get("programmingLanguage").id == "#compss":
         ctx.is_compss_wf = True

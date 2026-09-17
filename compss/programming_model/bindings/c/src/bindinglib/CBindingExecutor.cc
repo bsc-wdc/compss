@@ -161,6 +161,10 @@ int CBindingExecutor::executeTask(const char * command, char *&result) {
     }
     gettimeofday(&t_ex_end, NULL);
     double ex_msecs = (((t_ex_end.tv_sec - t_cp_end.tv_sec) * 1000000) + (t_ex_end.tv_usec - t_cp_end.tv_usec))/1000;
+    for (unsigned int i = 0; i < executeArgs.size(); i++) {
+        delete[] executeArgsC[i];
+    }
+    delete[] executeArgsC;
     if (is_debug()) {
         cout << "[Persistent C (Th " << th_id <<")] Closing task output files..." << endl << flush;
 
@@ -169,6 +173,8 @@ int CBindingExecutor::executeTask(const char * command, char *&result) {
 
         jobOut->close();
         jobErr->close();
+        delete jobOut;
+        delete jobErr;
     }
 
     if (is_debug()) {

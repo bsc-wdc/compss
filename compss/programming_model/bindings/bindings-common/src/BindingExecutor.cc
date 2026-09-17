@@ -52,6 +52,7 @@ JNIEXPORT jstring JNICALL Java_es_bsc_compss_invokers_external_persistent_Persis
     env->ReleaseStringUTFChars(args_java, args);
     debug_printf("[Binding-Executor] Result is : %s", result);
     jstring result_java = env->NewStringUTF(result);
+    free(result);
     return result_java;
 }
 

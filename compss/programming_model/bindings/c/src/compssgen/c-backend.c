@@ -1772,7 +1772,8 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg, Types c
             fprintf(outFile, "\t\t\t %s = argv[arg_offset][0];\n", arg->name);
             break;
         case boolean_dt:
-            fprintf(outFile, "\t\t\t %s = argv[arg_offset]? 1 : 0;\n", arg->name);
+            // The runtime sends booleans as the text "true" or "false"
+            fprintf(outFile, "\t\t\t %s = strcmp(argv[arg_offset], \"true\") == 0 ? 1 : 0;\n", arg->name);
             break;
         case enum_dt:
             fprintf(outFile, "\t\t\t %s = static_cast<%s>(atoi(argv[arg_offset]));\n", arg->name, arg->classname);
@@ -2052,6 +2053,7 @@ static void add_argument_free(FILE *outFile, argument *arg) {
     case array_double_dt:
         //TODO: Add array cases
         fprintf(outFile, "\t\t\t\t //Add array free management\n");
+        fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         break;
     case void_dt:
     case any_dt:
@@ -2429,7 +2431,7 @@ void generate_worker_executor(Types current_types) {
 
     // Get OpName and OpCode
     fprintf(workerFile, "\t enum operationCode opCod;\n");
-    fprintf(workerFile, "\t char *opName = strdup(argv[METHOD_NAME_POS]);\n");
+    fprintf(workerFile, "\t const char *opName = argv[METHOD_NAME_POS];\n");
     fprintf(workerFile, "\t for(int i=0; i < N_OPS; i++) {\n");
     fprintf(workerFile, "\t\t if(strcmp(operationName[i], opName) == 0) {\n");
     fprintf(workerFile, "\t\t\t opCod=(enum operationCode)i;\n");

@@ -119,7 +119,7 @@ def update_tasks_code_file(function: typing.Callable, file_path: str) -> None:
     if new_imports or new_globals or new_classes or new_functions or new_tasks:
         is_updated = True
 
-    if not first_time and is_updated:
+    if not first_time and is_updated and os.path.exists(file_path):
         from pycompss.api.api import compss_delete_file
 
         compss_delete_file(file_path)

@@ -243,7 +243,7 @@ def __delete_file(app_id: int, file_name: str) -> bool:
         if result:
             LOGGER.debug("File %s successfully deleted.", file_name)
         else:
-            LOGGER.error("Failed to remove file %s.", file_name)
+            LOGGER.warning("Failed to remove file %s.", file_name)
     return result
 
 

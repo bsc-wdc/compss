@@ -187,17 +187,24 @@ public abstract class LookaheadTS extends TaskScheduler {
             ActionSet unassignedActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
+        // PriorityQueue.contains is a linear scan; with thousands of unassigned actions it made every task end
+        // cost O(n^2). Track the added entries by the hash code ObjectValue.equals compares instead. Sized up front so
+        // it never rehashes: the default load factor is 0.75.
+        int candidates =
+            dataFreeActions.size() + resourceFreeActions.size() + unassignedActions.getNumberTotalActions();
+        Set<Integer> added = new HashSet<>(candidates * 4 / 3 + 1);
         for (AllocatableAction freeAction : dataFreeActions) {
             Score actionScore = generateActionScore(freeAction);
             Score fullScore = freeAction.schedulingScore(resource, actionScore);
             ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, fullScore);
             executableActions.add(obj);
+            added.add(obj.hashCode());
         }
         for (AllocatableAction freeAction : resourceFreeActions) {
             Score actionScore = generateActionScore(freeAction);
             Score fullScore = freeAction.schedulingScore(resource, actionScore);
             ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, fullScore);
-            if (!executableActions.contains(obj)) {
+            if (added.add(obj.hashCode())) {
                 executableActions.add(obj);
             }
         }
@@ -206,7 +213,7 @@ public abstract class LookaheadTS extends TaskScheduler {
             Score actionScore = generateActionScore(freeAction);
             Score fullScore = freeAction.schedulingScore(resource, actionScore);
             ObjectValue<AllocatableAction> obj = new ObjectValue<>(freeAction, fullScore);
-            if (!executableActions.contains(obj)) {
+            if (added.add(obj.hashCode())) {
                 executableActions.add(obj);
             }
         }

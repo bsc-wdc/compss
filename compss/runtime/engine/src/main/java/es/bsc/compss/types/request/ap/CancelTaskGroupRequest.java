@@ -25,7 +25,7 @@ import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.listener.StaticMultioperationSemaphore;
 import es.bsc.compss.types.tracing.APRequestEvent;
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.Semaphore;
 
 public class CancelTaskGroupRequest implements APRequest {
@@ -71,7 +71,7 @@ public class CancelTaskGroupRequest implements APRequest {
     protected final void cancelGroup(TaskDispatcher td) {
         TaskGroup tg = app.removeGroup(groupName);
         if (tg != null) {
-            List<Task> tasks = tg.getTasks();
+            Collection<Task> tasks = tg.getTasks();
             int taskCount = tasks.size();
             StaticMultioperationSemaphore listener = new StaticMultioperationSemaphore(taskCount, sem);
             LOGGER.debug("Cancelling " + taskCount + " tasks.");

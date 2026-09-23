@@ -20,8 +20,8 @@ import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,8 +36,9 @@ public class TaskGroup implements AutoCloseable {
     // Application to whom the group belongs.
     private Application app;
 
-    // Tasks belong to the group
-    private final List<Task> tasks;
+    // Tasks belong to the group, in insertion order. A set because removeTask runs once per task end and a list
+    // made it scan the whole group each time.
+    private final Set<Task> tasks;
 
     // Has group been closed (true) or is it still open (false) and new tasks can be added
     private boolean closed;
@@ -56,7 +57,7 @@ public class TaskGroup implements AutoCloseable {
     public TaskGroup(String groupName, Application app) {
         this.name = groupName;
         this.app = app;
-        this.tasks = new LinkedList<>();
+        this.tasks = new LinkedHashSet<>();
         this.closed = false;
         this.barrierSet = false;
         this.barrier = new PendingBarrier();
@@ -93,9 +94,9 @@ public class TaskGroup implements AutoCloseable {
     /**
      * Returns tasks of group.
      *
-     * @return list of tasks belonging to the group
+     * @return tasks belonging to the group, in insertion order
      */
-    public List<Task> getTasks() {
+    public Collection<Task> getTasks() {
         return tasks;
     }
 

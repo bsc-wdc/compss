@@ -274,6 +274,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         print("The runtime is already running")
         return None
 
+    initialize_logging = True
+
     # Check the running worker processes
     if CONSTANTS.running_in_supercomputer:
         if len(WORKER_MANAGER) == 0:
@@ -286,6 +288,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
             rotate_log(Path(os.environ["COMPSS_LOG_DIR"]))
             restarted_workers = WORKER_MANAGER.restart()
             print("Restarting workers... please, wait a moment...")
+            initialize_logging = False
             if verbose:
                 print(f"- Restarted {len(restarted_workers)} workers:")
                 for rest_worker in restarted_workers:
@@ -470,7 +473,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     print("* - Log path : " + log_path)
 
     # Setup logging
-    init_logging(LOG_REMITTENT.MASTER, log_level, log_path)
+    if initialize_logging:
+        init_logging(LOG_REMITTENT.MASTER, log_level, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     # Setup tmp path

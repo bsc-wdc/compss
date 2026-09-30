@@ -415,7 +415,7 @@ get_args() {
             args_pass="$args_pass --$OPTARG"
             ;;
           worker_in_master_cpus=*)
-            worker_in_master_cpuse=${OPTARG//worker_in_master_cpus=/}
+            worker_in_master_cpus=${OPTARG//worker_in_master_cpus=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           io_executors=*)

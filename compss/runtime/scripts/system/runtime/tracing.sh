@@ -177,6 +177,7 @@ EOT
 start_tracing() {
   if [ "${tracing_extrae}" == "${TRACING_ENABLED}" ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
+    export EXTRAE_UNSET_PRELOAD=true
     export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
   else
     if [ "${lang}" == "r" ]; then

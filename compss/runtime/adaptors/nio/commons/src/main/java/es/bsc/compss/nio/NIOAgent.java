@@ -65,6 +65,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -567,13 +568,15 @@ public abstract class NIOAgent {
                 LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will compress and transfer directory " + path
                     + " as data " + d.getDataMgmtId());
             }
-            String zipFile = path.concat(COMPRESSED_DIR_EXTENSION);
+            // Each transfer gets its own zip file: concurrent transfers of the same directory must not share it
+            String zipFile = path + "." + UUID.randomUUID().toString() + COMPRESSED_DIR_EXTENSION;
             boolean zipCreated = createZip(path, zipFile);
             if (!zipCreated) {
                 ErrorManager.warn("Can't send directory '" + path + "'" + "' via connection " + c.hashCode()
                     + " because '" + COMPRESSED_DIR_EXTENSION + "' file couldn't be created.");
                 releaseSendSlot(c);
                 handleDataToSendNotAvailable(c, d);
+                return;
             }
             c.sendDataFile(zipFile, true);
         } else {

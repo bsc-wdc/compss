@@ -740,6 +740,9 @@ public class TaskScheduler {
 
         if (action.getOnFailure() != FailurePolicy.CANCEL_SUCCESSORS && !action.isCancelled()) {
             handleDependencyFreeActionsAndBlock(dataFreeActions, resourceFree, resource);
+        } else if (resource != null) {
+            // The action has released its resources: try to run the actions that were waiting for them
+            handleDependencyFreeActionsAndBlock(new LinkedList<>(), resourceFree, resource);
         }
     }
 

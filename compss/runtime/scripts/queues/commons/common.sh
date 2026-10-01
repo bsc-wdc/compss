@@ -60,7 +60,7 @@ Usage: $0 [options] application_name application_arguments
 
     --version, -v                           Print COMPSs version
 
-    --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
+    --sc_cfg=<name | path>                  SuperComputer configuration file to use. A name in queues/supercomputers/ or a path
                                             Mandatory
                                             Default: ${DEFAULT_SC_CFG}
 

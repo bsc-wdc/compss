@@ -369,6 +369,26 @@ generate_resources
 echo "--------${HOSTNAME}-OUT----" >"${OUT_FILE}"
 echo "--------${HOSTNAME}-ERR----" >"${ERR_FILE}"
 
+# Source the environment scripts (--env_script) and keep the remaining options for the agent
+agent_options=()
+for option in "${@}"; do
+  case "${option}" in
+    --env_script=*)
+      for script in $(echo "${option//--env_script=/}" | tr ":" " "); do
+        if [ "${script}" != "null" ] && [ -f "${script}" ]; then
+          echo "Loading environment script ${script}" >> "${INFO_FILE}"
+          # shellcheck disable=SC1090
+          source "${script}"
+        fi
+      done
+      ;;
+    *)
+      agent_options+=("${option}")
+      ;;
+  esac
+done
+set -- "${agent_options[@]}"
+
 echo "${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
 "--hostname=${HOSTNAME}${network}" \
 "--rest_port=46101" \

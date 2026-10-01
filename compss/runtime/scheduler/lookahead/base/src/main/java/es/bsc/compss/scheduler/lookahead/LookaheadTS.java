@@ -355,6 +355,9 @@ public abstract class LookaheadTS extends TaskScheduler {
         while (!executableActions.isEmpty() && rp.checkAvailability()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
+            if (isCancelled(freeAction)) {
+                continue;
+            }
             Score actionScore = obj.getScore();
 
             this.upgradedActions = new HashSet<>();
@@ -375,10 +378,27 @@ public abstract class LookaheadTS extends TaskScheduler {
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
-            handler.unassigned(freeAction);
+            if (!isCancelled(freeAction)) {
+                handler.unassigned(freeAction);
+            }
         }
         this.upgradedActions = oldUpgradedActions;
 
+    }
+
+    /**
+     * Returns whether the action has been cancelled. Cancelled actions can stay in the lists of unassigned actions, but
+     * they cannot be assigned to a resource anymore, so they must not be scheduled.
+     *
+     * @param action Action to check.
+     * @return {@literal true}, if the action has been cancelled; {@literal false}, otherwise.
+     */
+    private static boolean isCancelled(AllocatableAction action) {
+        if (action.isCancelled() || action.isCancelling()) {
+            LOGGER.debug("[ReadyScheduler] Skipping cancelled action " + action);
+            return true;
+        }
+        return false;
     }
 
     private void tryToScheduleAndLaunch(AllocatableAction action, Score actionScore, ResourceScheduler<?> resource)

@@ -67,7 +67,7 @@ show_trace_submission_opts() {
   # Show usage
   cat <<EOT
   Queue system configuration:
-    --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
+    --sc_cfg=<name | path>                  SuperComputer configuration file to use. A name in queues/supercomputers/ or a path
                                             Default: ${DEFAULT_SC_CFG}
 
   General submision arguments:

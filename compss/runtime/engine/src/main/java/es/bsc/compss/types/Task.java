@@ -55,6 +55,9 @@ public class Task extends AbstractTask {
     // Execution count information
     private int executionCount;
 
+    // Flag to check if the task end has already been processed
+    private boolean ended;
+
     // Task Monitor
     private final TaskMonitor taskMonitor;
 
@@ -469,6 +472,12 @@ public class Task extends AbstractTask {
             LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
             return;
         }
+        // All the executions of a replicated task can end before the first end notification is processed
+        if (this.ended) {
+            LOGGER.debug("Task " + taskId + " has already ended. Ignoring notification");
+            return;
+        }
+        this.ended = true;
 
         switch (taskState) {
             case FAILED:
@@ -476,6 +485,8 @@ public class Task extends AbstractTask {
                 if (failurePolicy == FailurePolicy.RETRY || failurePolicy == FailurePolicy.FAIL) {
                     // Raise error
                     ErrorManager.error(TASK_FAILED + this);
+                    // Notify the monitor: agents do not stop on errors and wait for it to end the application
+                    this.getTaskMonitor().onFailure();
                     return;
                 }
                 if (failurePolicy == FailurePolicy.IGNORE || failurePolicy == FailurePolicy.CANCEL_SUCCESSORS) {

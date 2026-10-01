@@ -28,6 +28,7 @@ import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import java.io.BufferedWriter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,9 @@ public class DotGraph implements GraphHandler {
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
+    // First task of each commutative group, used as the graph node of the group once its tasks have finished
+    private final Map<String, Integer> commutativeGroupFirstTask;
+
 
     /**
      * Constructs a new Graph Handler.
@@ -53,6 +57,7 @@ public class DotGraph implements GraphHandler {
         this.gm.addSynchroToGraph(0);
 
         this.taskDetectedAfterSync = false;
+        this.commutativeGroupFirstTask = new HashMap<>();
     }
 
     @Override
@@ -88,7 +93,9 @@ public class DotGraph implements GraphHandler {
 
     @Override
     public void taskBelongsToCommutativeGroup(Task task, CommutativeGroupTask group) {
-        this.gm.addTaskToCommutativeGroup(task, group.getCommutativeIdentifier().toString());
+        String comId = group.getCommutativeIdentifier().toString();
+        this.commutativeGroupFirstTask.putIfAbsent(comId, task.getId());
+        this.gm.addTaskToCommutativeGroup(task, comId);
     }
 
     @Override
@@ -175,10 +182,17 @@ public class DotGraph implements GraphHandler {
      */
     private void addEdgeFromCommutativeToTask(Task dest, int dataId, int dataVersion, CommutativeGroupTask cgt,
         boolean comToTask) {
-        String src = String.valueOf(cgt.getCommutativeTasks().get(0).getId());
+        String comId = cgt.getCommutativeIdentifier().toString();
+        Integer firstTaskId = this.commutativeGroupFirstTask.get(comId);
+        if (firstTaskId == null) {
+            // The group has no task in the graph: the data comes from the last synchronization point
+            addDataEdgeFromMainToTask(dest, dataId, dataVersion);
+            return;
+        }
+        // The tasks of the group are removed from it as they finish, so the group may be empty here
+        String src = String.valueOf(firstTaskId);
         String dst = String.valueOf(dest.getId());
         String dep = dataId + "v" + dataVersion;
-        String comId = cgt.getCommutativeIdentifier().toString();
         if (comToTask) {
             this.gm.addEdgeToGraphFromGroup(src, dst, dep, comId, "clusterCommutative", EdgeType.DATA_DEPENDENCY);
         } else {

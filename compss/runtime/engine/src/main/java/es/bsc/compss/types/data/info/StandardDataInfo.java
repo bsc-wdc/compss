@@ -224,8 +224,13 @@ public abstract class StandardDataInfo<T extends DataParams> extends DataInfo<T>
         Application app = rdar.getAccess().getApp();
         if (lastWriter != null) {
             app.getGH().mainAccessToData(lastWriter, EdgeType.DATA_DEPENDENCY, accessedData);
-            lastWriter.addListener(rdar);
-            rdar.addPendingOperation();
+            // A commutative group stays as last writer after all its tasks have finished; it will not notify again
+            boolean endedGroup = lastWriter instanceof CommutativeGroupTask
+                && ((CommutativeGroupTask) lastWriter).getCommutativeTasks().isEmpty();
+            if (!endedGroup) {
+                lastWriter.addListener(rdar);
+                rdar.addPendingOperation();
+            }
         }
         for (AbstractTask task : this.concurrentReaders) {
             app.getGH().mainAccessToData(task, EdgeType.DATA_DEPENDENCY, accessedData);

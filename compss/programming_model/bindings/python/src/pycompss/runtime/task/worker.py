@@ -1303,12 +1303,17 @@ class TaskWorker:
             # Skip returns
             if is_return(arg.name):
                 continue
+            # Skip parameters without a default value
+            original_name = get_name_from_kwarg(arg.name)
+            if original_name not in default_values:
+                continue
+            default_value = default_values[original_name]
             if self.is_parameter_an_object(arg.name):
                 # Update object
-                arg.content = default_values[arg.name]
+                arg.content = default_value
             else:
                 # Update file
-                copyfile(str(default_values[arg.name]), str(arg.content))
+                copyfile(str(default_value), str(arg.content))
 
     def manage_inouts(self, args: tuple, python_mpi: bool) -> None:
         """Deal with INOUTS.

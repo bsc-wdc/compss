@@ -46,7 +46,7 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
     --heterogeneous                         Indicates submission is going to be heterogeneous
                                             Default: Disabled
   Queue system configuration:
-    --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
+    --sc_cfg=<name | path>                  SuperComputer configuration file to use. A name in queues/supercomputers/ or a path
                                             Default: ${DEFAULT_SC_CFG}
 
   Submission configuration:

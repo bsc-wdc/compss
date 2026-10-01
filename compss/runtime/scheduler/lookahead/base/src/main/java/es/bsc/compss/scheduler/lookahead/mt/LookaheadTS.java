@@ -414,6 +414,11 @@ public abstract class LookaheadTS extends TaskScheduler {
             while (executableActionsIterator.hasNext() && !candidateResources.isEmpty()) {
                 ObjectValue<AllocatableAction> obj = executableActionsIterator.next();
                 AllocatableAction freeAction = obj.getObject();
+                if (freeAction.isCancelled() || freeAction.isCancelling()) {
+                    // Cancelled actions cannot be assigned to a resource anymore
+                    objectValueToErase.add(obj);
+                    continue;
+                }
                 if (DEBUG) {
                     LOGGER.debug("[ReadyScheduler] -- Trying to schedule " + freeAction);
                 }

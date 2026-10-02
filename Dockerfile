@@ -53,28 +53,22 @@ RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.
 	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
 	ln -s ${MAVEN_HOME}/bin/* /usr/bin
 
-ARG BLACK_JUPYTER_VERSION
 ARG DILL_VERSION
 ARG GUPPY3_VERSION
 ARG MATPLOTLIB_VERSION
 ARG MEMORY_PROFILER_VERSION
 ARG MPI4PY_VERSION
 ARG MYPY_VERSION
-ARG PYCODESTYLE_VERSION
-ARG PYDOCSTYLE_VERSION
 ARG PYTEST_VERSION
 ARG TYPES_TABULATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			black[jupyter]==${BLACK_JUPYTER_VERSION} \
 			dill==${DILL_VERSION} \
 			guppy3==${GUPPY3_VERSION} \
 			matplotlib==${MATPLOTLIB_VERSION} \
 			memory_profiler==${MEMORY_PROFILER_VERSION} \
 			mpi4py==${MPI4PY_VERSION} \
 			mypy==${MYPY_VERSION} \
-			pycodestyle==${PYCODESTYLE_VERSION} \
-			pydocstyle==${PYDOCSTYLE_VERSION} \
 			pytest==${PYTEST_VERSION} \
 			types-tabulate==${TYPES_TABULATE_VERSION}
 
@@ -93,4 +87,4 @@ COPY --exclude=dependencies . /framework
 RUN . /opt/COMPSs/Dependencies/compss-deps.env && \
 	/framework/builders/buildlocal --rcompss
 
-CMD ["/bin/bash"]
+CMD ["/bin/bash", "-l"]

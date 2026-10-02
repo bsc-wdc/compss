@@ -2,19 +2,14 @@ workflow:
   auto_cancel:
     on_job_failure: all
 
-stages:
-  - check
-  - build
-  - tests
-  - clean
-
 variables:
   CACHE_IMAGE: "${CI_REGISTRY_IMAGE}/cache"
   TESTS_IMAGE: "${CI_REGISTRY_IMAGE}/tests"
   REGISTRY_API: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories"
 #  BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
+  BUILDX_BUILDER: "container-builder"
 
-.mr:
+.merge_request:
   interruptible: true
   rules:
     - if: $CI_MERGE_REQUEST_DRAFT == "true"
@@ -22,9 +17,9 @@ variables:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
 
 check:
-  stage: check
+  stage: .pre
   extends:
-    - .mr
+    - .merge_request
   script:
     - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
     - | # REBASE
@@ -44,10 +39,11 @@ check:
         fi
       fi
     # HEADERS SETUP, CODE FORMAT & STYLE CHECK
-    - ./utils/scripts/header_setup/replace_all.sh
+    - utils/scripts/header_setup/replace_all.sh
     - git add -u
     - git commit -m "Headers added" || true
     - mvn -U clean validate
+    - compss/programming_model/bindings/python/scripts/style/apply_black.sh
     - git add -u
     - git commit -m "Code formatted" || true
     - | # PUSH
@@ -55,7 +51,10 @@ check:
       if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/${CI_COMMIT_REF_NAME}")" ]; then
         if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_PROJECT_ID" ]; then
           echo "ERROR: Header setup, code format and/or style check failed."
-          echo "Please run locally: utils/scripts/header_setup/replace_all.sh && mvn -U clean validate"
+          echo "Please run locally these commands:"
+          echo "$ utils/scripts/header_setup/replace_all.sh"
+          echo "$ mvn -U clean validate"
+          echo "$ compss/programming_model/bindings/python/scripts/style/apply_black.sh"
           echo "Commit fixes and push again."
           exit 1
         fi
@@ -63,30 +62,35 @@ check:
         echo "Fixes commited and pushed. Triggering now another pipeline."
         exit 1
       fi
+    - compss/programming_model/bindings/python/scripts/style/check_code.sh
+    - compss/programming_model/bindings/python/scripts/style/check_documentation.sh
 
-.docker:
+.gitlab_registry:
   before_script:
     - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
 
 build:
   stage: build
   extends:
-    - .mr
-    - .docker
+    - .merge_request
+    - .gitlab_registry
   tags:
     - fast-docker
-  timeout: 1h
   script:
+    - exec &> >(tee job.log)
     - docker bake --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
                   --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
                   --set tests.cache-to=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}",mode=max
                   --set tests.tags="${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
                   --push tests
-    - docker rmi "${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - job.log
 
-.tests:
-  stage: tests
-  timeout: 1h
+.test:
+  stage: test
   parallel:
     matrix:
       # Families split across 4 parallel jobs, balanced with longest-processing-
@@ -119,7 +123,7 @@ build:
     # Mirror the whole runner-level trace (docker pull, shard invocations, cleanup)
     # into job.log, since GitLab's own job console has a size cap and truncates
     # long jobs — job.log is the durable, complete record.
-    - exec > >(tee job.log) 2>&1
+    - exec &> >(tee job.log)
     - docker pull "${COMPSS_IMAGE}"
     - |
       : "${TEST_SHARDS:=1}"
@@ -133,7 +137,7 @@ build:
     # after_script runs in a fresh shell, so job.log needs to be re-attached (append mode).
     # tee, not a plain redirect, so the tail'd test-results summary below still
     # streams to the live GitLab job console instead of only landing in job.log.
-    - exec > >(tee -a job.log) 2>&1
+    - exec &> >(tee -a job.log)
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do
@@ -146,45 +150,67 @@ build:
   artifacts:
     name: "${BRANCH_NAME}_${CI_JOB_ID}"
     when: always
-    expire_in: 7 days
+    expire_in: 1 week
     paths:
       - job.log
       - docker_test*.log
       - logs
 
-tests:
+test:
   extends:
-    - .mr
-    - .docker
-    - .tests
+    - .merge_request
+    - .gitlab_registry
+    - .test
   variables:
     BRANCH_NAME: "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
     COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
 
 night:
   extends:
-    - .docker
-    - .tests
+    - .gitlab_registry
+    - .test
   variables:
     BRANCH_NAME: "${CI_DEFAULT_BRANCH}"
     COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 
-clean:
-  stage: clean
+deploy:
+  stage: deploy
   interruptible: false
-  extends:
-    - .docker
   tags:
     - fast-docker
+  timeout: 8h
+  before_script:
+    - docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
+  script:
+    - exec &> >(tee job.log)
+    - ARCHS=amd,arm,riscv TAGS="${CI_COMMIT_TAG}",latest docker bake --no-cache --push release
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - job.log
+  rules:
+    - if: $CI_COMMIT_TAG
+
+clean:
+  stage: .post
+  interruptible: false
+  extends:
+    - .gitlab_registry
   script:
     - MERGED_BRANCH=$(git log -1 --pretty=%B | grep "^Merge branch" | cut -f2 -d\')
-    - docker bake --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${MERGED_BRANCH}"
-                  --set tests.cache-to=type=registry,ref="${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}",mode=max
-                  --set tests.tags="${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-                  --push tests
-    - docker rmi "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker pull "${CACHE_IMAGE}:${MERGED_BRANCH}"
+    - docker pull "${TESTS_IMAGE}:${MERGED_BRANCH}"
+    - docker tag "${CACHE_IMAGE}:${MERGED_BRANCH}" "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker tag "${TESTS_IMAGE}:${MERGED_BRANCH}" "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker push "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker push "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker rmi "${CACHE_IMAGE}:${MERGED_BRANCH}"
+                 "${TESTS_IMAGE}:${MERGED_BRANCH}"
+                 "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
+                 "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
     - REPOSITORY_IDS=$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")
     - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
     - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")

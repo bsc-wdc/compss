@@ -79,8 +79,7 @@ RUN wget https://download.docker.com/linux/ubuntu/dists/noble/pool/stable/${TARG
 	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
 	ln -s ${MAVEN_HOME}/bin/* /usr/bin
 
-# + DataClay + Dislib + PyCOMPSs-CLI + Qdislib
-ARG BLACK_JUPYTER_VERSION
+# + DataClay + Dislib + Notebook + PyCOMPSs-CLI + Qdislib
 ARG DATACLAY_VERSION
 ARG DECORATOR_VERSION
 ARG DILL_VERSION
@@ -92,10 +91,9 @@ ARG MATPLOTLIB_VERSION
 ARG MEMORY_PROFILER_VERSION
 ARG MPI4PY_VERSION
 ARG MYPY_VERSION
+ARG NOTEBOOK_VERSION
 ARG NUMBA_VERSION
 ARG PANDAS_VERSION
-ARG PYCODESTYLE_VERSION
-ARG PYDOCSTYLE_VERSION
 ARG PYTEST_VERSION
 ARG PYTZ_VERSION
 ARG REDIS_VERSION
@@ -105,7 +103,6 @@ ARG TABULATE_VERSION
 ARG TYPES_TABULATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			black[jupyter]==${BLACK_JUPYTER_VERSION} \
 			dataclay==${DATACLAY_VERSION} \
 			decorator==${DECORATOR_VERSION} \
 			dill==${DILL_VERSION} \
@@ -118,11 +115,10 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			memory_profiler==${MEMORY_PROFILER_VERSION} \
 			mpi4py==${MPI4PY_VERSION} \
 			mypy==${MYPY_VERSION} \
+			notebook==${NOTEBOOK_VERSION} \
 			numba==${NUMBA_VERSION} \
 			pandas==${PANDAS_VERSION} \
-			pycodestyle==${PYCODESTYLE_VERSION} \
 			pycompss-cli \
-			pydocstyle==${PYDOCSTYLE_VERSION} \
 			pytest==${PYTEST_VERSION} \
 			pytz==${PYTZ_VERSION} \
     		qdislib \

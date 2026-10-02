@@ -32,7 +32,7 @@ DEFAULT_TESTS=true
 DEFAULT_MVN_TESTS=""
 MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
 DEFAULT_PYCOMPSS_COMPILATION=true
-DEFAULT_PYTHON_STYLE=true
+DEFAULT_STYLE=false
 DEFAULT_DEPS_CACHE="${HOME}/.compss/deps-cache"
 DEFAULT_QUIET=false
 
@@ -49,7 +49,7 @@ NO_CLI="Warning: No CLI module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
 NO_TESTS="Warning: No Testing specified. Loading default value"
 NO_PYCOMPSS_COMPILATION="Warning: No PyCOMPSs compilation specified. Loading default value"
-NO_PYTHON_STYLE="Warning: No Python style check specified. Loading default value"
+NO_STYLE="Warning: No code style check specified. Loading default value"
 
 
 #---------------------------------------------------
@@ -112,9 +112,9 @@ show_opts() {
     --no-pycompss-compile, -X   Disable PyCOMPSs compilation with MyPy check
                                 Default: ${DEFAULT_PYCOMPSS_COMPILATION}
 
-    --python-style, -s          Enable Python style check
-    --no-python-style, -S       Disable Python style check
-                                Default: ${DEFAULT_PYTHON_STYLE}
+    --style, -s                 Enable code style check
+    --no-style, -S              Disable code style check
+                                Default: ${DEFAULT_STYLE}
 
     --nothing, -N               Disable all previous options
                                 Default: unused
@@ -281,12 +281,12 @@ get_args() {
         pycompss_compile=false
         ;;
       s)
-        # Custom Python style value
-        python_style=true
+        # Custom code style value
+        style=true
         ;;
       S)
-        # Custom Python style value
-        python_style=false
+        # Custom code style value
+        style=false
         ;;
       N)
         # Disables all flags
@@ -299,7 +299,7 @@ get_args() {
         cli=false
         dlb=false
         pycompss_compile=false
-        python_style=false
+        style=false
         ;;
       -)
         # Check more complex arguments
@@ -401,12 +401,12 @@ get_args() {
             pycompss_compile=false
             ;;
           python-style)
-            # Custom Python style value
-            python_style=true
+            # Custom code style value
+            style=true
             ;;
           no-python-style)
-            # Custom Python style value
-            python_style=false
+            # Custom code style value
+            style=false
             ;;
           nothing)
             # Disables all flags
@@ -420,7 +420,7 @@ get_args() {
             cli=false
             dlb=false
             pycompss_compile=false
-            python_style=false
+            style=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
@@ -544,9 +544,9 @@ check_args() {
     pycompss_compile=${DEFAULT_PYCOMPSS_COMPILATION}
   fi
 
-  if [ -z "${python_style}" ]; then
-    display_warning "${NO_PYTHON_STYLE}"
-    python_style=${DEFAULT_PYTHON_STYLE}
+  if [ -z "${style}" ]; then
+    display_warning "${NO_STYLE}"
+    style=${DEFAULT_STYLE}
   fi
 
   if [ -z "$targetDir" ]; then
@@ -580,7 +580,7 @@ warn_and_log_parameters() {
   log_info "- DLB              = ${dlb}"
   log_info "- Unit tests       = ${unittests}"
   log_info "- PyCOMPSs compile = ${pycompss_compile}"
-  log_info "- Python style     = ${python_style}"
+  log_info "- Code style       = ${style}"
   log_info "- SCRIPT_DIR       = ${SCRIPT_DIR}"
   log_info "- SOURCES DIR      = ${SOURCES_DIR}"
   log_info "- TMP_DIR          = ${TMP_DIR}"
@@ -676,12 +676,13 @@ install_compss() {
   cd "${SOURCES_DIR}"
   touch compss/runtime/config/xml/projects/project_schema.xsd
   touch compss/runtime/config/xml/resources/resources_schema.xsd
+  [ "${style}" == "true" ] || mvnStyle="-Dcheckstyle.skip=true -Dformatter.skip=true"
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
     log_info "   (as root)"
-    mvn ${mvnQuiet} ${mvnParallel} -U clean install ${mvnTests}
+    mvn ${mvnQuiet} ${mvnParallel} -U clean install ${mvnStyle} ${mvnTests}
   else
     log_info "   (as user ${user_exec})"
-    sudo -E -u "${user_exec}" mvn ${mvnQuiet} ${mvnParallel} clean install ${mvnTests}
+    sudo -E -u "${user_exec}" mvn ${mvnQuiet} ${mvnParallel} clean install ${mvnStyle} ${mvnTests}
   fi
   cd "${SCRIPT_DIR}"
 
@@ -704,11 +705,11 @@ install_compss() {
 
   # CHECKING pycodestyle IN BINDING - only if 'pycodestyle' is available (MUST be in the test infrastructure)
   if [ "${pycompss}" == "true" ]; then
-    if [ "${python_style}" == "true" ]; then
+    if [ "${style}" == "true" ]; then
       log_info "- Checking pycodestyle in Python Binding"
       if command_exists "pycodestyle" ; then
         cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
-        env $PATH=PATH ./check_code.sh
+        ./check_code.sh
         ev=$?
         if [ $ev -ne 0 ]; then
           echo "ERROR: Python binding pycodestyle errors. Please, fix them and reinstall."
@@ -724,7 +725,7 @@ install_compss() {
       log_info "- Checking pydocstyle in Python Binding"
       if command_exists "pydocstyle" ; then
         cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
-        env $PATH=PATH ./check_documentation.sh
+        ./check_documentation.sh
         ev=$?
         if [ $ev -ne 0 ]; then
           echo "ERROR: Python binding pydocstyle errors. Please, fix them and reinstall."
@@ -740,7 +741,7 @@ install_compss() {
       log_info "- Checking Black in Python Binding"
       if command_exists "black" ; then
         cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
-        env $PATH=PATH ./check_black.sh
+        ./check_black.sh
         ev=$?
         if [ $ev -ne 0 ]; then
           echo "ERROR: Python binding Black errors. Please, fix them and reinstall."
@@ -762,7 +763,7 @@ install_compss() {
       log_info " - Run Python Binding Unittests"
       # These tests do not need to be installed
       cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/test"
-      env $PATH=PATH ./run_unittests.sh --no-integration-unittests --no-jupyter-unittests
+      ./run_unittests.sh --no-integration-unittests --no-jupyter-unittests
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding unittests failed. Please, fix them and reinstall."
@@ -783,7 +784,7 @@ install_compss() {
       if [ "${specific_python_collapsed_version}" -ge "38" ]; then
         if command_exists "mypy" ; then
           cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
-          env $PATH=PATH ./check.sh
+          ./check.sh
           ev=$?
           if [ $ev -ne 0 ]; then
             echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."

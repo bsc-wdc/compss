@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-jdk-noble AS compss-full
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
-# Bindings + HPC + Orchestra
+# Bindings + HPC + Orchestrator
 
 # + OpenMPI
 ARG CMAKE_VERSION

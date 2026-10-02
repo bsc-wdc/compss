@@ -25,11 +25,6 @@ variable "ARCHS" {
   type = set(string)
 }
 
-variable "PUSH" {
-  default = false
-  type = bool
-}
-
 ####################
 # PRIVATE TARGETS
 ####################
@@ -71,22 +66,20 @@ target "_common" {
     MAVEN_VERSION = "3.9.15"
 
     # pip
-    BLACK_JUPYTER_VERSION = "26.3.1"
     DATACLAY_VERSION = "4.3.1"
     DECORATOR_VERSION = "5.2.1"
     DILL_VERSION = "0.4.1"
     GUPPY3_VERSION = "3.1.6"
     IPYWIDGETS_VERSION = "8.1.8"
-    JUPYTERLAB_VERSION = "4.5.7"
+    JUPYTERLAB_VERSION = "4.6.4"
     KAFKA_PYTHON_VERSION = "2.3.1"
     MATPLOTLIB_VERSION = "3.10.9"
     MEMORY_PROFILER_VERSION = "0.61.0"
     MPI4PY_VERSION = "4.1.1"
     MYPY_VERSION = "1.20.2"
+    NOTEBOOK_VERSION="7.6.3"
     NUMBA_VERSION = "0.65.1"
     PANDAS_VERSION = "3.0.2"
-    PYCODESTYLE_VERSION = "2.14.0"
-    PYDOCSTYLE_VERSION = "6.3.0"
     PYTEST_VERSION = "9.0.3"
     PYTZ_VERSION = "2026.2"
     REDIS_VERSION = "7.4.1"
@@ -99,12 +92,12 @@ target "_common" {
     DLB_VERSION="3.6.0"
     EXTRAE_VERSION="5.1.0"
   }
-  platforms = [for arch in ARCHS: "linux/${arch}64"]
 }
 
 target "build" {
   inherits = ["_common"]
   # output = [{ type = "cacheonly" }]
+  platforms = [for arch in ARCHS: "linux/${arch}64"]
   tags = ["build"]
 }
 
@@ -128,7 +121,6 @@ target "_public" {
     build = "target:build"
   }
   labels = LABELS
-  output = PUSH ? [{ type = "registry" }] : [{ type = "image" }]
 }
 
 target "bindings" {
@@ -140,7 +132,8 @@ target "bindings" {
   }
   target = "${lan}compss${hpc}"
   dockerfile = "utils/docker/release/${lan}compss.Dockerfile"
-  tags = [for tag in TAGS: "${lan}compss${hpc}:${tag}"]
+  platforms = [for arch in setsubtract(ARCHS, hpc == "" ? [] : ["riscv"]): "linux/${arch}64"]
+  tags = [for tag in TAGS: "compss/${lan}compss${hpc}:${tag}"]
 }
 
 target "cases" {
@@ -151,7 +144,8 @@ target "cases" {
   }
   target = "compss-${var}"
   dockerfile = "utils/docker/release/${var}.Dockerfile"
-  tags = [for tag in TAGS: "compss-${var}:${tag}"]
+  platforms = [for arch in setsubtract(ARCHS, ["riscv"]): "linux/${arch}64"]
+  tags = [for tag in TAGS: "compss/compss-${var}:${tag}"]
 }
 
 ####################
@@ -159,7 +153,7 @@ target "cases" {
 ####################
 
 group "default" {
-  targets = ["pycompss", "compss-orchestra"]
+  targets = ["pycompss", "compss-orchestrator"]
 }
 
 group "release" {

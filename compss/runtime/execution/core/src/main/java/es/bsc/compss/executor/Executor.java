@@ -59,7 +59,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.compss.types.tracing.TaskExecutionType;
-import es.bsc.wdc.affinity.ThreadAffinity;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.File;
 import java.io.IOException;
@@ -523,7 +522,7 @@ public class Executor implements Runnable, InvocationRunner {
         if (this.resources != null && this.resources.getAssignedCPUs() != null
             && this.resources.getAssignedCPUs().length > 0) {
             try {
-                ThreadAffinity.setCurrentThreadAffinity(this.resources.getAssignedCPUs());
+                CpuAffinity.setCurrentThreadAffinity(this.resources.getAssignedCPUs());
             } catch (Exception e) {
                 workerLogger.warn("Error setting affinity for Job {}", this.invocation.getJobId(), e);
             }

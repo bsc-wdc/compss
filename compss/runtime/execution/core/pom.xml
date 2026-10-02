@@ -54,10 +54,11 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- JNA used by CpuAffinity to call sched_setaffinity -->
 		<dependency>
-			<groupId>es.bsc.wdc</groupId>
-			<artifactId>ThreadAffinity</artifactId>
-			<version>${java-affinity.version}</version>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>${jna.version}</version>
 		</dependency>
 
 		<!-- JSON used for parsing a task result JSON -->

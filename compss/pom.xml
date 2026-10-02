@@ -34,7 +34,9 @@
         <!-- BSC Components versions -->
         <comm.version>3.0.0</comm.version>
         <conn.version>1.8-13</conn.version>
-        <java-affinity.version>0.0.2-3</java-affinity.version>
+
+        <!-- JNA version, used by CpuAffinity -->
+        <jna.version>4.5.0</jna.version>
 
         <!-- ZK version -->
         <zk.version>8.5.0</zk.version>

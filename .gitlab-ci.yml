@@ -9,6 +9,10 @@ variables:
 #  BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
   BUILDX_BUILDER: "container-builder"
 
+.gitlab_registry:
+  before_script:
+    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+
 .merge_request:
   interruptible: true
   rules:
@@ -16,64 +20,11 @@ variables:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
 
-check:
-  stage: .pre
-  extends:
-    - .merge_request
-  script:
-    - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
-    - | # REBASE
-      git fetch origin "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
-      if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_PROJECT_ID" ]; then
-        # Fork MR: runner has no write access to source branch — verify only
-        if ! git merge-base --is-ancestor "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}" HEAD; then
-          echo "ERROR: Branch is not rebased on ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}. Please rebase and push again."
-          exit 1
-        fi
-      else
-        # Same-repo MR: auto-rebase and push if needed
-        if ! git rebase "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"; then
-          git rebase --abort
-          echo "ERROR: Rebase conflict on ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}. Please rebase manually and resolve conflicts."
-          exit 1
-        fi
-      fi
-    # HEADERS SETUP, CODE FORMAT & STYLE CHECK
-    - utils/scripts/header_setup/replace_all.sh
-    - git add -u
-    - git commit -m "Headers added" || true
-    - mvn -U clean validate
-    - compss/programming_model/bindings/python/scripts/style/apply_black.sh
-    - git add -u
-    - git commit -m "Code formatted" || true
-    - | # PUSH
-      git fetch origin "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
-      if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/${CI_COMMIT_REF_NAME}")" ]; then
-        if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_ID" != "$CI_PROJECT_ID" ]; then
-          echo "ERROR: Header setup, code format and/or style check failed."
-          echo "Please run locally these commands:"
-          echo "$ utils/scripts/header_setup/replace_all.sh"
-          echo "$ mvn -U clean validate"
-          echo "$ compss/programming_model/bindings/python/scripts/style/apply_black.sh"
-          echo "Commit fixes and push again."
-          exit 1
-        fi
-        git push -f origin "HEAD:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
-        echo "Fixes commited and pushed. Triggering now another pipeline."
-        exit 1
-      fi
-    - compss/programming_model/bindings/python/scripts/style/check_code.sh
-    - compss/programming_model/bindings/python/scripts/style/check_documentation.sh
-
-.gitlab_registry:
-  before_script:
-    - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-
 build:
   stage: build
   extends:
-    - .merge_request
     - .gitlab_registry
+    - .merge_request
   tags:
     - fast-docker
   script:
@@ -88,6 +39,58 @@ build:
     expire_in: 1 week
     paths:
       - job.log
+
+check:
+  stage: test
+  needs: []
+  extends:
+    - .merge_request
+  script:
+    - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
+    - | # REBASE
+      git fetch origin "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+      if [ "${CI_MERGE_REQUEST_SOURCE_PROJECT_ID}" != "${CI_PROJECT_ID}" ]; then
+        # Fork MR: runner has no write access to source branch — verify only
+        if ! git merge-base --is-ancestor "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}" HEAD; then
+          echo "ERROR: Branch is not rebased on ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}."
+          echo "Please rebase and push again."
+          exit 1
+        fi
+      else
+        # Same-repo MR: auto-rebase and push if needed
+        if ! git rebase "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"; then
+          git rebase --abort
+          echo "ERROR: Rebase conflict on ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}."
+          echo "Please rebase manually and resolve conflicts."
+          exit 1
+        fi
+      fi
+    # HEADERS SETUP, CODE FORMAT & STYLE CHECK
+    - utils/scripts/header_setup/replace_all.sh
+    - git add -u
+    - git commit -m "Headers added" || true
+    - mvn -U clean validate
+    - compss/programming_model/bindings/python/scripts/style/apply_black.sh
+    - git add -u
+    - git commit -m "Code formatted" || true
+    - | # PUSH
+      git fetch origin "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+      if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/${CI_COMMIT_REF_NAME}")" ]; then
+        if [ "${CI_MERGE_REQUEST_SOURCE_PROJECT_ID}" != "${CI_PROJECT_ID}" ]; then
+          echo "ERROR: Header setup, code format and/or style check failed."
+          echo "Please run locally these commands:"
+          echo "$ utils/scripts/header_setup/replace_all.sh"
+          echo "$ mvn -U clean validate"
+          echo "$ compss/programming_model/bindings/python/scripts/style/apply_black.sh"
+          echo "Commit fixes and push again."
+          exit 1
+        fi
+        git push -f origin "HEAD:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+        echo "Fixes commited and pushed. Triggering now another pipeline."
+        exit 1
+      fi
+    - compss/programming_model/bindings/python/scripts/style/check_code.sh
+    - compss/programming_model/bindings/python/scripts/style/check_documentation.sh
 
 .test:
   stage: test
@@ -129,7 +132,7 @@ build:
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do
         export COMPSS_CONTAINER="${BRANCH_NAME}_${CI_JOB_ID}_${s}"
-        "${CI_PROJECT_DIR}/tests/scripts/docker_test" -FF ${TEST_FAMILIES} --shard ${s}/${TEST_SHARDS} &> "docker_test_s${s}.log" &
+        ${CI_PROJECT_DIR}/tests/scripts/docker_test -FF ${TEST_FAMILIES} --shard ${s}/${TEST_SHARDS} &> "docker_test_s${s}.log" &
         pids="${pids} $!"
       done
       for p in ${pids}; do wait "${p}" || exit 1; done
@@ -142,11 +145,11 @@ build:
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do
         export COMPSS_CONTAINER="${BRANCH_NAME}_${CI_JOB_ID}_${s}"
-        tail -n $(tac "docker_test_s${s}.log" | grep -nm 1 '*** RUNNING' | cut -f1 -d:) "docker_test_s${s}.log" || true
-        docker cp ${COMPSS_CONTAINER}:/root/tests_execution_sandbox/logs . &> /dev/null || true
-        docker rm -fv ${COMPSS_CONTAINER} &> /dev/null || true
+        tail -n "$(tac "docker_test_s${s}.log" | grep -nm 1 '*** RUNNING' | cut -f1 -d:)" "docker_test_s${s}.log" || true
+        docker cp "${COMPSS_CONTAINER}":/root/tests_execution_sandbox/logs . &> /dev/null || true
+        docker rm -fv "${COMPSS_CONTAINER}" &> /dev/null || true
       done
-    - docker rmi ${COMPSS_IMAGE} &> /dev/null || true
+    - docker rmi "${COMPSS_IMAGE}" &> /dev/null || true
   artifacts:
     name: "${BRANCH_NAME}_${CI_JOB_ID}"
     when: always
@@ -158,12 +161,37 @@ build:
 
 test:
   extends:
-    - .merge_request
     - .gitlab_registry
+    - .merge_request
     - .test
   variables:
     BRANCH_NAME: "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
     COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
+
+clean:
+  stage: deploy
+  interruptible: false
+  extends:
+    - .gitlab_registry
+  script:
+    - MERGED_BRANCH="$(git log -1 --pretty=%B | grep "^Merge branch" | cut -f2 -d\')"
+    - docker pull "${CACHE_IMAGE}:${MERGED_BRANCH}"
+    - docker pull "${TESTS_IMAGE}:${MERGED_BRANCH}"
+    - docker tag "${CACHE_IMAGE}:${MERGED_BRANCH}" "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker tag "${TESTS_IMAGE}:${MERGED_BRANCH}" "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker push "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker push "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker rmi "${CACHE_IMAGE}:${MERGED_BRANCH}"
+                 "${TESTS_IMAGE}:${MERGED_BRANCH}"
+                 "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
+                 "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - REPOSITORY_IDS="$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")"
+    - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
+    - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
+    - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${CACHE_ID}/tags/${MERGED_BRANCH}"
+    - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${TESTS_ID}/tags/${MERGED_BRANCH}"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 night:
   extends:
@@ -193,28 +221,3 @@ deploy:
       - job.log
   rules:
     - if: $CI_COMMIT_TAG
-
-clean:
-  stage: .post
-  interruptible: false
-  extends:
-    - .gitlab_registry
-  script:
-    - MERGED_BRANCH=$(git log -1 --pretty=%B | grep "^Merge branch" | cut -f2 -d\')
-    - docker pull "${CACHE_IMAGE}:${MERGED_BRANCH}"
-    - docker pull "${TESTS_IMAGE}:${MERGED_BRANCH}"
-    - docker tag "${CACHE_IMAGE}:${MERGED_BRANCH}" "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker tag "${TESTS_IMAGE}:${MERGED_BRANCH}" "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker push "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker push "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker rmi "${CACHE_IMAGE}:${MERGED_BRANCH}"
-                 "${TESTS_IMAGE}:${MERGED_BRANCH}"
-                 "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
-                 "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - REPOSITORY_IDS=$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")
-    - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
-    - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
-    - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${CACHE_ID}/tags/${MERGED_BRANCH}"
-    - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${TESTS_ID}/tags/${MERGED_BRANCH}"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

@@ -312,7 +312,6 @@ check_args() {
   fi
   
   if [[ "${fullAppPath}" == *.py ]]; then
-    echo "comprovacion funciona"
     fullAppPath=${fullAppPath: :-3}
   fi
 

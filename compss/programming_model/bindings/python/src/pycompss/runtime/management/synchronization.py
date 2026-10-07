@@ -39,6 +39,89 @@ from pycompss.util.typing_helper import typing
 LOGGER = logging.getLogger(__name__)
 
 
+def wait_on_any_generator_object(
+    collection: list, mode: str
+) -> typing.Iterator:
+    """Yield objects from a collection as they become available.
+
+    :param collection: List of objects to wait on.
+    :param mode: Read or write mode.
+    :return: Generator yielding synchronized objects in completion order.
+    """
+    LOGGER.debug(
+        "compss_wait_on_generator: starting on %d objects with mode %s",
+        len(collection),
+        mode,
+    )
+    app_id = 0
+    compss_mode = get_compss_direction(mode)
+    remaining = list(collection)
+
+    while remaining:
+        tracked = []
+        file_names = []
+
+        for obj in remaining:
+            obj_id = OT.is_tracked(obj)
+            if obj_id is None:
+                LOGGER.debug(
+                    "compss_wait_on_generator: object already available,"
+                    " yielding immediately"
+                )
+                yield obj
+            else:
+                tracked.append(obj)
+                file_names.append(OT.get_file_name(obj_id))
+
+        if not tracked:
+            break
+
+        available_indexes = COMPSs.get_available_files(app_id, file_names)
+        if available_indexes is not None:
+            remaining = []
+            for i, obj in enumerate(tracked):
+                if i in available_indexes:
+                    LOGGER.debug(
+                        "compss_wait_on_generator: yielding index %d", i
+                    )
+                    yield _synchronize(obj, compss_mode)
+                else:
+                    remaining.append(obj)
+    LOGGER.debug("compss_wait_on_generator: all objects yielded")
+
+
+def wait_on_any_object(collection: list, mode: str) -> typing.Any:
+    """Wait on the first available object in a collection (synchronize).
+
+    :param collection: List of objects to wait on.
+    :param mode: Read or write mode.
+    :return: The first available object.
+    """
+    LOGGER.debug(
+        "compss_wait_on_any: waiting on %d objects with mode %s",
+        len(collection),
+        mode,
+    )
+    app_id = 0
+    compss_mode = get_compss_direction(mode)
+    file_names = []
+    for obj in collection:
+        obj_id = OT.is_tracked(obj)
+        if obj_id is None:
+            return obj
+        file_name = OT.get_file_name(obj_id)
+        file_names.append(file_name)
+
+    available_indexes = COMPSs.get_available_files(app_id, file_names)
+    if available_indexes is None:
+        return None
+    idx = available_indexes[0]
+    LOGGER.debug("compss_wait_on_any: object at index %d is available", idx)
+    value = _synchronize(collection[idx], compss_mode)
+    collection[idx] = value
+    return value
+
+
 def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
     """Wait on an object (synchronize).
 

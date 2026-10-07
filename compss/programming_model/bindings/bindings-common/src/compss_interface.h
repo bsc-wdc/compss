@@ -126,6 +126,11 @@ struct CompssWorkflow {
         char* fileName
     );
 
+    int* (*get_available_files)(
+        struct CompssWorkflow* self,
+        int count,
+        char** fileName
+    );
 
     void (*open_file)(
         struct CompssWorkflow* self,

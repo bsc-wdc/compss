@@ -35,6 +35,10 @@ from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
+from pycompss.runtime.management.synchronization import wait_on_any_object
+from pycompss.runtime.management.synchronization import (
+    wait_on_any_generator_object,
+)
 from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.util.exceptions import PyCOMPSsException, WallClockException
@@ -775,6 +779,42 @@ def __wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if isinstance(elem, EmptyReturn):
                 ret_lst.remove(elem)
     return ret_lst
+
+
+def wait_on_any_generator(
+    collection: list, **kwargs: typing.Any
+) -> typing.Iterator:
+    """Yield objects from a collection as they become available.
+
+    :param collection: List of objects to wait on.
+    :param kwargs: Options dictionary.
+    :return: Generator yielding synchronized objects in completion order.
+    """
+    with EventMaster(TRACING_MASTER.wait_on_event):
+        return wait_on_any_generator_object(
+            collection, kwargs.get("mode", "rw")
+        )
+
+
+def wait_on_any(collection: list, **kwargs: typing.Any) -> typing.Any:
+    """Wait on the first available object in a collection.
+
+    :param collection: List of objects to wait on.
+    :param kwargs: Options dictionary.
+    :return: The first available object.
+    """
+    with EventMaster(TRACING_MASTER.wait_on_event):
+        return __wait_on_any(collection, **kwargs)
+
+
+def __wait_on_any(collection: list, **kwargs: typing.Any) -> typing.Any:
+    """Wait on the first available object in a collection.
+
+    :param collection: List of objects to wait on.
+    :param kwargs: Options: Write enable? [ 'r' | 'rw' ] Default = 'rw'
+    :return: The first available object.
+    """
+    return wait_on_any_object(collection, kwargs.get("mode", "rw"))
 
 
 def process_task(

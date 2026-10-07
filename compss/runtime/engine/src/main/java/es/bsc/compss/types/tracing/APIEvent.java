@@ -62,7 +62,7 @@ public enum APIEvent implements Event {
     REGISTER_DATA(85, "Register data"), //
     BIND_DATA_TO_VERSION(86, "Bind data to version"), //
     CHECK_FILE(87, "Check file is accessed"), //
-    CLOSE_FILE(88, "Close files"),
+    CLOSE_FILE(88, "Close files"), WAIT_FOR_DATA(89, "Wait for available data"),
 
     // CHECKPOINTING
     SNAPSHOT_API(80, "Snapshot request"); //

@@ -295,6 +295,17 @@ std::string build_get_file_command(const char* fileName) {
     return ss.str();
 }
 
+std::string build_get_available_files_command(int count, char** fileNames) {
+    std::ostringstream ss;
+    ss << "GET_AVAILABLE_FILES " << count;
+    for (int i = 0; i < count; i++){
+        ss << " " << fileNames[i];
+    }
+    ss << std::endl;
+    return ss.str();
+}
+
+
 std::string build_get_directory_command(const char* dirName) {
     std::ostringstream ss;
     ss << "GET_DIRECTORY " << dirName << std::endl;

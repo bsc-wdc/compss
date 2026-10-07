@@ -92,6 +92,8 @@ if CONTEXT.in_pycompss():
         snapshot as __snapshot__,
         set_wall_clock as __set_wall_clock__,
         wait_on as __wait_on__,
+        wait_on_any as __wait_on_any__,
+        wait_on_any_generator as __wait_on_any_generator__,
         add_logger as __add_logger__,
     )
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
@@ -319,6 +321,38 @@ def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     if CONTEXT.in_pycompss():
         return __wait_on__(*args, **kwargs)
     return __dummy_compss_wait_on__(*args, **kwargs)
+
+
+def compss_wait_on_any(collection: list, **kwargs: typing.Any) -> typing.Any:
+    """Wait for the first available object in a collection.
+
+    Kwargs options:
+        - "mode" Write enable? [ 'r' | 'rw' ] Default = 'rw'
+
+    :param collection: List of objects to wait on.
+    :param kwargs: Options dictionary.
+    :return: The first available object.
+    """
+    if CONTEXT.in_pycompss():
+        return __wait_on_any__(collection, **kwargs)
+    return __dummy_compss_wait_on__(collection, **kwargs)
+
+
+def compss_wait_on_generator(
+    collection: list, **kwargs: typing.Any
+) -> typing.Iterator:
+    """Yield objects from a collection as they become available.
+
+    Kwargs options:
+        - "mode" Write enable? [ 'r' | 'rw' ] Default = 'rw'
+
+    :param collection: List of objects to wait on.
+    :param kwargs: Options dictionary.
+    :return: Generator yielding synchronized objects in completion order.
+    """
+    if CONTEXT.in_pycompss():
+        return __wait_on_any_generator__(collection, **kwargs)
+    return iter(collection)
 
 
 def compss_set_wall_clock(wall_clock_limit: int) -> None:

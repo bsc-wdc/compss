@@ -53,6 +53,7 @@ std::string build_open_file_command(const char* fileName, int mode);
 std::string build_close_file_command(const char* fileName, int mode);
 std::string build_delete_file_command(const char* fileName, int wait, int applicationDelete);
 std::string build_get_file_command(const char* fileName);
+std::string build_get_available_files_command(int count, char** fileNames);
 std::string build_get_directory_command(const char* dirName);
 std::string build_get_object_command(const char* objectId);
 std::string build_delete_object_command(const char* objectId);

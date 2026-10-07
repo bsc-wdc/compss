@@ -48,6 +48,7 @@ import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
 import es.bsc.compss.types.request.ap.DeleteDataRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
+import es.bsc.compss.types.request.ap.GetAvailableRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
@@ -310,6 +311,21 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
     }
 
     /**
+     * Returns the indexes of the collection that are already available. If none, it waits until one is ready.
+     * 
+     * @param app application querying the values' status
+     * @param locs values to check
+     * @return
+     */
+    public int[] getAvailable(Application app, List<DataParams> locs) {
+        GetAvailableRequest request = new GetAvailableRequest(app, locs);
+        this.offerRequest(request, "already accessed location");
+
+        // Wait for response
+        return request.getResponse();
+    }
+
+    /**
      * Cancellation of all tasks of an application.
      *
      * @param app Application .
@@ -542,4 +558,5 @@ public class AccessProcessor extends RequestDispatcher<APRequest> implements Che
         // allAvailableDataCheckpointed method
         this.checkpointManager.shutdown();
     }
+
 }

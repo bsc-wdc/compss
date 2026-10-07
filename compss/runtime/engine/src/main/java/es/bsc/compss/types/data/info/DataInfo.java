@@ -408,6 +408,11 @@ public abstract class DataInfo<T extends DataParams> {
      */
     public abstract void waitForDataReadyToDelete(Semaphore sem) throws NonExistingValueException;
 
+    public boolean addWriterListener(DataVersion.WritersListener listener) {
+        DataVersion writerVersion = this.versions.get(this.currentVersionId);
+        return writerVersion.addWriterListener(listener);
+    }
+
     /**
      * Returns whether the current version is marked to deleted or not.
      *
@@ -464,4 +469,5 @@ public abstract class DataInfo<T extends DataParams> {
      * @return last tasks generating the value.
      */
     public abstract List<AbstractTask> getDataWriters();
+
 }

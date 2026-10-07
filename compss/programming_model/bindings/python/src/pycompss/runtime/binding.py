@@ -37,7 +37,7 @@ from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.management.synchronization import wait_on_any_object
 from pycompss.runtime.management.synchronization import (
-    wait_on_any_generator_object,
+    wait_on_generator_object,
 )
 from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.runtime.task.definitions.arguments import TaskArguments
@@ -781,7 +781,7 @@ def __wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     return ret_lst
 
 
-def wait_on_any_generator(
+def wait_on_generator(
     collection: list, **kwargs: typing.Any
 ) -> typing.Iterator:
     """Yield objects from a collection as they become available.
@@ -791,9 +791,7 @@ def wait_on_any_generator(
     :return: Generator yielding synchronized objects in completion order.
     """
     with EventMaster(TRACING_MASTER.wait_on_event):
-        return wait_on_any_generator_object(
-            collection, kwargs.get("mode", "rw")
-        )
+        return wait_on_generator_object(collection, kwargs.get("mode", "rw"))
 
 
 def wait_on_any(collection: list, **kwargs: typing.Any) -> typing.Any:

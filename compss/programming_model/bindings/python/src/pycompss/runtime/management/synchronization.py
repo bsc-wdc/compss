@@ -39,9 +39,7 @@ from pycompss.util.typing_helper import typing
 LOGGER = logging.getLogger(__name__)
 
 
-def wait_on_any_generator_object(
-    collection: list, mode: str
-) -> typing.Iterator:
+def wait_on_generator_object(collection: list, mode: str) -> typing.Iterator:
     """Yield objects from a collection as they become available.
 
     :param collection: List of objects to wait on.
@@ -63,7 +61,7 @@ def wait_on_any_generator_object(
 
         for obj in remaining:
             obj_id = OT.is_tracked(obj)
-            if obj_id is None:
+            if not obj_id:
                 LOGGER.debug(
                     "compss_wait_on_generator: object already available,"
                     " yielding immediately"
@@ -107,7 +105,7 @@ def wait_on_any_object(collection: list, mode: str) -> typing.Any:
     file_names = []
     for obj in collection:
         obj_id = OT.is_tracked(obj)
-        if obj_id is None:
+        if not obj_id:
             return obj
         file_name = OT.get_file_name(obj_id)
         file_names.append(file_name)

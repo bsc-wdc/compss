@@ -93,7 +93,7 @@ if CONTEXT.in_pycompss():
         set_wall_clock as __set_wall_clock__,
         wait_on as __wait_on__,
         wait_on_any as __wait_on_any__,
-        wait_on_any_generator as __wait_on_any_generator__,
+        wait_on_generator as __wait_on_generator__,
         add_logger as __add_logger__,
     )
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
@@ -351,7 +351,7 @@ def compss_wait_on_generator(
     :return: Generator yielding synchronized objects in completion order.
     """
     if CONTEXT.in_pycompss():
-        return __wait_on_any_generator__(collection, **kwargs)
+        return __wait_on_generator__(collection, **kwargs)
     return iter(collection)
 
 

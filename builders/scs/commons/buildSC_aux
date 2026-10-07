@@ -238,7 +238,9 @@
 
 
   # Streaming dependencies
-  cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/
+  if [ -d "${TMP_DIR}"/dependencies/kafka ]; then
+    cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/
+  fi
 
   # Restore original path
   export PATH=${originalPath}

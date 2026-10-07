@@ -943,51 +943,17 @@ install_compss() {
       log_info "--- Using pre-installed Kafka from ${KAFKA_HOME}"
       [ -d "${kafkaDir}" ] || cp -r "${KAFKA_HOME}/." "${kafkaDir}/"
     else
-      kafka_ver=$(get_dep_version "dependencies/kafka" "3.8.0")
-      kafka_cache="${deps_cache}/kafka"
-      if [ -n "${deps_cache}" ] && dep_cache_valid "${kafka_cache}" "${kafka_ver}"; then
-        log_info "--- Reusing cached Kafka (${kafka_ver})"
-        cp -r "${kafka_cache}/." "${kafkaDir}/"
-      else
-        cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
-        #cp "${TMP_DIR}"/dependencies/gradle.properties ${kafkaDir}/.
-
-        cd "${targetDir}"/Dependencies/kafka
-        if which gradle; then
-          ./retry_zinc gradle > "${bindingOut}" 2>&1
-          ev=$?
-        elif [ -n "${GRADLE_HOME}" ]; then
-          ./retry_zinc "${GRADLE_HOME}/bin/gradle" > "${bindingOut}" 2>&1
-          ev=$?
-        else
-          echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
-          exit 1
-        fi
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to compile Kafka dependency"
-          exit 1
-        fi
-        ./retry_zinc ./gradlew jar > "${bindingOut}" 2>&1
-        ev=$?
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to build Kafka dependency"
-          exit 1
-        fi
-        if [ -n "${deps_cache}" ]; then
-          log_info "--- Caching Kafka to ${kafka_cache}"
-          rm -rf "${kafka_cache}"
-          mkdir -p "${kafka_cache}"
-          # Cache the JARs and bin/ scripts needed at runtime by streams.sh
-          find "${kafkaDir}" -path "*/build/libs/*.jar" \
-               ! -name "*-test*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
-               -exec cp {} "${kafka_cache}/" \;
-          if [ -d "${kafkaDir}/bin" ]; then
-            cp -r "${kafkaDir}/bin" "${kafka_cache}/"
-          fi
-          write_dep_version "${kafka_cache}" "${kafka_ver}"
-        fi
-        cd "${SCRIPT_DIR}"
-      fi
+      # Download the Kafka binary release (same source as the Docker build)
+      # Own subdirectory so stale caches of the old gradle-built Kafka are never reused
+      kafka_install_dir="${deps_cache:-${TMP_DIR}/dependencies}/kafka-release"
+      log_info "--- Installing Kafka binary release into ${kafka_install_dir}"
+      "${SOURCES_DIR}"/dependencies/pre-install-deps --install-dir="${kafka_install_dir}" \
+        --no-extrae --no-dlb --no-tomcat --no-jacoco > "${bindingOut}" 2>&1 || {
+        cat "${bindingOut}"
+        echo "ERROR: Failed to install Kafka dependency"
+        exit 1
+      }
+      cp -r "${kafka_install_dir}/kafka/." "${kafkaDir}/"
     fi
   fi
 

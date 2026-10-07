@@ -18,6 +18,12 @@
 # VERSIONS (must match buildlocal expectations)
 #---------------------------------------------------
 KAFKA_VERSION="3.8.0"
+# Official SHA512 of kafka_2.13-${KAFKA_VERSION}.tgz, from archive.apache.org.
+# Update it together with KAFKA_VERSION.
+KAFKA_SHA512="0a33b7be7b6fa53249ba80f9d02cda71ed81927c160aa6ee9be1e3d3c1c4b50466ffc905293143fd88ceac7f5e7d8f5bec28ef972addd3c459cc8b1291e738aa"
+# Tried in order. archive.apache.org keeps every release but is slow (~70 KB/s),
+# so a fast mirror goes first. Every download is checked against KAFKA_SHA512.
+KAFKA_MIRRORS="https://mirrors.huaweicloud.com/apache/kafka https://archive.apache.org/dist/kafka"
 TOMCAT_VERSION="8.5.23"
 JACOCO_VERSION="0.8.5"
 
@@ -252,20 +258,35 @@ install_kafka() {
 
   echo "[kafka] Downloading Apache Kafka ${KAFKA_VERSION} binary release..."
   local pkg="kafka_2.13-${KAFKA_VERSION}.tgz"
-  local url="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${pkg}"
   local tmpdir
   tmpdir=$(mktemp -d)
   trap "rm -rf '${tmpdir}'" EXIT
 
   cd "${tmpdir}"
-  # --timeout=60: abort if the connection goes idle for >60 s (catches hung
-  #   servers that open TCP but stop sending data mid-transfer).
-  # timeout 1800: hard wall-clock cap so a server that trickles data at
-  #   byte-per-minute rates cannot stall the build indefinitely.
-  timeout 1800 wget -q --timeout=60 --tries=3 "${url}" || {
-    echo "ERROR: Failed to download Kafka ${KAFKA_VERSION} from Apache archive."
+  local mirror
+  local downloaded=false
+  for mirror in ${KAFKA_MIRRORS}; do
+    echo "[kafka] Trying ${mirror}"
+    rm -f "${pkg}"
+    # --timeout=60: abort if the connection goes idle for >60 s (catches hung
+    #   servers that open TCP but stop sending data mid-transfer).
+    # timeout 1800: hard wall-clock cap so a server that trickles data at
+    #   byte-per-minute rates cannot stall the build indefinitely.
+    if ! timeout 1800 wget -q --timeout=60 --tries=3 "${mirror}/${KAFKA_VERSION}/${pkg}"; then
+      echo "[kafka] Download failed from ${mirror}"
+      continue
+    fi
+    if ! echo "${KAFKA_SHA512}  ${pkg}" | sha512sum -c --quiet -; then
+      echo "[kafka] Checksum mismatch for the file from ${mirror}"
+      continue
+    fi
+    downloaded=true
+    break
+  done
+  if [ "${downloaded}" != "true" ]; then
+    echo "ERROR: Failed to download Kafka ${KAFKA_VERSION} from any mirror."
     exit 1
-  }
+  fi
 
   tar xzf "${pkg}"
   mkdir -p "${install_dir}"

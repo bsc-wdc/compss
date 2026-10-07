@@ -46,7 +46,7 @@
   if [ $(uname) == "Darwin" ]; then
     kafka=0 # Installation from macOS with kafka not available
   else
-    kafka=1 # Set to 0 to skip kafka compilation
+    kafka=1 # Set to 0 to skip kafka download
   fi
 
   # CREATE SC TMP DIR
@@ -106,31 +106,13 @@
   mvn -U clean
   cd "${SCRIPT_DIR}"
 
-  # Compile streaming backend (kafka)
-  echo "- Compiling Streaming Backend (Kafka)"
+  # Download streaming backend (kafka) binary release
+  echo "- Downloading Streaming Backend (Kafka)"
   if [ "$kafka" -ne 0 ]; then
-    cd "${TMP_DIR}"/dependencies/kafka
-    gradle wrapper
-    if which gradle; then
-      ./retry_zinc gradle
-      ev=$?
-    elif [ -n "${GRADLE_HOME}" ]; then
-      ./retry_zinc "${GRADLE_HOME}"/bin/gradle
-      ev=$?
-    else
-       echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
-       exit 1
-    fi
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to compile Kafka dependency"
-      exit 1
-    fi
-    ./retry_zinc ./gradlew jar
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to build Kafka dependency"
-      exit 1
-    fi
+    # Drop any stale copy (e.g. leftover sources of the old kafka submodule)
+    rm -rf "${TMP_DIR}"/dependencies/kafka
+    "${TMP_DIR}"/dependencies/pre-install-deps --install-dir="${TMP_DIR}"/dependencies \
+      --no-extrae --no-dlb --no-tomcat --no-jacoco
   fi
   cd "${SCRIPT_DIR}"
 

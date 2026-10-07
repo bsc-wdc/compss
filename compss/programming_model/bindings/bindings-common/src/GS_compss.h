@@ -94,6 +94,7 @@ extern "C" void GS_Delete_File(long appId, char* fileName, int waitForData, int 
 extern "C" void GS_Get_File(long appId, char* fileName);
 
 extern "C" void GS_Get_Directory(long appId, char* dirName);
+extern "C" int* GS_Get_Available_Files(long appId, int count, char** fileNames);
 
 // COMPSs API Calls
 extern "C" void GS_Barrier(long appId);

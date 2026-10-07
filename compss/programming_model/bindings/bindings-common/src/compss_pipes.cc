@@ -295,6 +295,47 @@ void PIPE_WF_openFile(CompssWorkflow* self, char* fileName, int mode, char** buf
     debug_printf("[BINDING-COMMONS] - @PIPE_Open_File - COMPSs filename: %s\n", *buf);
 }
 
+int* PIPE_WF_getAvailableFiles(CompssWorkflow* self, int count, char** fileNames) {
+    debug_printf("[BINDING-COMMONS] - @PIPE_Get_Available_Files - Calling runtime getAvailableFiles method...\n");
+
+    // MESSAGE: GET_AVAILABLE_FILES count file1 file2 ...
+    // RETURN: (String) Space-separated list of available indexes, or empty if none ready.
+    write_command_in_pipe(build_get_available_files_command(count, fileNames));
+    string result = read_result_from_pipe();
+    const char* payload = response_payload(result);
+
+    // Count tokens to know how many indexes were returned
+    int num_indexes = 0;
+    const char* p = payload;
+    while (*p) {
+        while (*p == ' ') p++;
+        if (*p) { num_indexes++; while (*p && *p != ' ') p++; }
+    }
+
+    if (num_indexes == 0) {
+        debug_printf("[BINDING-COMMONS] - @PIPE_Get_Available_Files - No files available yet\n");
+        return NULL;
+    }
+
+    // Allocate num_indexes slots plus one extra for the -1
+    int* ret = (int*) malloc(sizeof(int) * (num_indexes + 1));
+    p = payload;
+    char* end;  // strtol writes here the address of the first char it did not consume
+    int i = 0;
+    while (*p) {
+        while (*p == ' ') p++; // skip spaces
+        if (*p) {
+            ret[i++] = (int) strtol(p, &end, 10);
+            p = end;
+        }
+    }
+    ret[num_indexes] = -1;  // callers iterate until they find -1
+
+    debug_printf("[BINDING-COMMONS] - @PIPE_Get_Available_Files - getAvailableFiles completed with %d available\n", num_indexes);
+    return ret;
+}
+
+
 
 void PIPE_WF_getFile(CompssWorkflow* self, char* fileName) {
     debug_printf("[BINDING-COMMONS] - @PIPE_Get_File - Calling runtime getFile method...\n");
@@ -429,6 +470,7 @@ CompssWorkflow* PIPE_RegisterWorkflow() {
     wf->close_file = PIPE_WF_closeFile;
     wf->delete_file = PIPE_WF_deleteFile;
     wf->get_directory = PIPE_WF_getDirectory;
+    wf->get_available_files = PIPE_WF_getAvailableFiles;
 
     debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterWorkflow - Workflow registered\n");
     return wf;

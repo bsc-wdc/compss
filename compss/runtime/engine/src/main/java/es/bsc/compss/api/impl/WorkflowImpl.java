@@ -741,6 +741,25 @@ public class WorkflowImpl extends Application implements Workflow {
     }
 
     @Override
+    public int[] waitForAvailableFiles(String[] fileNames) {
+        return APITracer.traced(APIEvent.WAIT_FOR_DATA, () -> {
+            List<DataParams> data = new ArrayList<>(fileNames.length);
+            for (String fileName : fileNames) {
+                try {
+                    DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
+                    if (loc != null) {
+                        DataParams dp = new FileData(loc);
+                        data.add(dp);
+                    }
+                } catch (IOException ioe) {
+                    ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+                }
+            }
+            return AP.getAvailable(this, data);
+        });
+    }
+
+    @Override
     public String openFile(String fileName, byte m) {
         return APITracer.traced(APIEvent.OPEN_FILE, () -> {
             AccessMode mode = AccessMode.fromByte(m);

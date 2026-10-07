@@ -681,6 +681,29 @@ static PyObject* close_file(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* get_available_files(PyObject* self, PyObject* args) {
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    PyObject* py_list = PyTuple_GetItem(args, 1);
+    Py_ssize_t count = PyList_Size(py_list);
+
+    std::vector<char*> file_names(count);
+    for (Py_ssize_t i = 0; i < count; i++) {
+        file_names[i] = _pystring_to_char(PyList_GetItem(py_list, i));
+    }
+
+    int* available = GS_Get_Available_Files(app_id, count, file_names.data());
+
+    if (available == NULL) {
+        Py_RETURN_NONE;
+    }
+    PyObject* result = PyList_New(0);
+    for (int i = 0; available[i] != -1; i++) {
+        PyList_Append(result, PyLong_FromLong(available[i]));
+    }
+    free(available);
+    return result;
+}
+
 /*
   Given a PyCOMPSs-id file, get its corresponding last version COMPSs-id file
 */
@@ -1016,6 +1039,7 @@ static PyMethodDef CompssMethods[] = {
     { "open_file", open_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
     { "close_file", close_file, METH_VARARGS, "Close a file." },
+    { "get_available_files", get_available_files, METH_VARARGS, "Get indexes of available files." },
     { "get_file", get_file, METH_VARARGS, "Get last version of file with its original name." },
     { "get_directory", get_directory, METH_VARARGS, "Get last version of a directory with its original name." },
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },

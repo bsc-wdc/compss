@@ -195,6 +195,8 @@ original_worker_in_master_cpus=${worker_in_master_cpus}
 worker_num=1
 hostid=1
 workers=$(echo "${worker_types}" | tr ',' ' ')
+all_worker_groups=""
+
 for worker in ${workers}; do
   # Create tmp file or add packjob
   if [ ${worker_num} -gt 1 ]; then
@@ -227,6 +229,13 @@ for worker in ${workers}; do
   else
     add_submission_headers
   fi
+
+  if [ -z "${all_worker_groups}" ]; then
+        all_worker_groups="SLURM_JOB_NODELIST_HET_GROUP_${worker_num}"
+    else
+        all_worker_groups="${all_worker_groups},SLURM_JOB_NODELIST_HET_GROUP_${worker_num}"
+    fi
+
   worker_num=$((worker_num + 1))
   hostid=$((hostid + num_nodes))
   unset_type_vars
@@ -268,6 +277,7 @@ num_nodes=1
 check_args
 set_time
 update_args_to_pass "fini" "${suffix}" "${hostid}" "${uuid}"
+args_pass="--het_groups=${all_worker_groups} ${args_pass}"
 log_args
 if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
   create_tmp_submit
@@ -278,9 +288,6 @@ else
   add_only_master_node
   add_launch
 fi
-
-# Trap cleanup
-#trap cleanup EXIT
 
 # Submit
 submit

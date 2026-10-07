@@ -32,6 +32,8 @@ public class DataVersion {
     private boolean canceled;
     private boolean valid;
     private List<Semaphore> semReaders;
+    private List<WritersListener> semWriters;
+    private boolean semWritersUsed;
 
     private DataVersion prevValidVersion;
     private DataVersion nextValidVersion;
@@ -54,6 +56,8 @@ public class DataVersion {
         this.canceled = false;
         this.semReaders = new LinkedList<>();
         this.semUsed = false;
+        this.semWriters = new LinkedList<>();
+        this.semWritersUsed = false;
         this.valid = true;
         this.prevValidVersion = null;
         if (predecessor != null) {
@@ -133,7 +137,36 @@ public class DataVersion {
      */
     public boolean hasBeenWritten() {
         this.writers--;
+        if (writers == 0 && semWritersUsed) {
+            for (WritersListener s : semWriters) {
+                s.written();
+            }
+        }
         return this.toDelete && checkDeletion();
+    }
+
+
+    public interface WritersListener {
+
+        void written();
+
+    }
+
+
+    /**
+     * Registers a listener to be notified when all writers of this version finish.
+     *
+     * @param listener Listener to notify when the version has been written.
+     * @return {@code true} if the listener was registered (writers still pending), {@code false} if all writers have
+     *         already finished.
+     */
+    public boolean addWriterListener(WritersListener listener) {
+        if (writers > 0) {
+            this.semWritersUsed = true;
+            this.semWriters.add(listener);
+            return true;
+        }
+        return false;
     }
 
     /**

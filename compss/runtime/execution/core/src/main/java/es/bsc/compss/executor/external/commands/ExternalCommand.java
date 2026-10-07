@@ -56,6 +56,7 @@ public interface ExternalCommand {
         CLOSE_FILE, // Executor ended access to the file
         DELETE_FILE, // Executor deletes a file
         DELETE_OBJECT, // Executor deletes a binding object
+        GET_AVAILABLE_FILES, // Executor waits for any of a set of files to become available
 
         // Executor reaches flow control instructions
         BARRIER, // Barrier

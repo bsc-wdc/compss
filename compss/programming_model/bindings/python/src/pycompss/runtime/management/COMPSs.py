@@ -188,6 +188,17 @@ class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
             return False
         return result
 
+    def get_available_files(
+        self, app_id: int, file_names: list
+    ) -> typing.Optional[list]:
+        """Call to get_available_files.
+
+        :param app_id: Application identifier.
+        :param file_names: List of COMPSs file name references to check.
+        :return: List of indexes of available files, or None if not ready yet.
+        """
+        return self.compss.get_available_files(app_id, file_names)
+
     def get_file(self, app_id: int, file_name: str) -> None:
         """Call to (synchronize) get_file.
 

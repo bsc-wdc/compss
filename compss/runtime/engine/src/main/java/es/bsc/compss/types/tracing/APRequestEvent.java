@@ -50,7 +50,8 @@ public enum APRequestEvent implements Event {
     CP_SHUTDOWN_NOTIFICATION(81, "Access Processor: Checkpointed shutdown notification"), //
     AP_SNAPSHOT(82, "Access Processor: Snapshot"), //
     AP_CHECKPOINT_REQUEST(83, "Access Processor: CheckpointManager Request"), //
-    AP_GET_LAST_DATA(91, "Obtaining last data"); //
+    AP_GET_LAST_DATA(91, "Obtaining last data"), //
+    CHECK_AVAILABILITY(92, "Checking data availability"); //
 
 
     public static final EventType type;

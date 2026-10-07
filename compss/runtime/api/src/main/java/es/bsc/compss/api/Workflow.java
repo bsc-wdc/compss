@@ -155,6 +155,14 @@ public interface Workflow {
     boolean isFileAccessed(String fileName);
 
     /**
+     * Synchronous function that blocks until one or more data values corresponding to files are available.
+     *
+     * @param fileNames Files to wait for
+     * @return array with the indexes of available files
+     */
+    int[] waitForAvailableFiles(String[] fileNames);
+
+    /**
      * Returns the renaming of the file version opened.
      *
      * @param fileName File.

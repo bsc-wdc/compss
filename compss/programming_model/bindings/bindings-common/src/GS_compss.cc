@@ -281,6 +281,13 @@ void GS_Get_File(long appId, char* fileName) {
 	}
 }
 
+int* GS_Get_Available_Files(long appId, int count, char** fileNames) {
+	if (workflow != NULL) {
+		return workflow->get_available_files(workflow, count, fileNames);
+	}
+	return NULL;
+}
+
 void GS_Close_File(long appId, char* fileName, int mode) {
 	if (workflow != NULL){
 		workflow->close_file(workflow, fileName, mode);

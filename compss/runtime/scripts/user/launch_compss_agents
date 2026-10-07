@@ -606,6 +606,14 @@ get_args() {
           # Added for heterogeneity
           xmls_suffix=${OPTARG//xmls_suffix=/}
           ;;
+        het_group=*)
+          # Addded for heterogeneity
+          het_group=${OPTARG//het_group=/}
+          ;;
+        het_groups=*)
+          # Heterogeneous groups
+          het_groups_list=${OPTARG//het_groups=/}
+          ;;
         initial_hostid=*)
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
@@ -1149,7 +1157,7 @@ write_log_usage() {
 ###############################################
 launch_agent () {
   local node_name=$1
-
+  echo "Method: launch_agent ------> node_name: ${node_name}"
   local jvm_opts_str
   local jvm_opts_size
   jvm_opts_str=$(echo "${jvm_workers_opts_str}" | tr "," " ")
@@ -1194,9 +1202,79 @@ launch_agent () {
       fi
   fi
 
+  if [ -n "${het_group}" ] && [[ ! "${AUXILIAR_LAUNCH_PARAMS}" == *"het-group"* ]]; then
+    AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
+  fi
+
   ACMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_name} ${ACMD}"
-  echo ${ACMD}
+  echo "Method: launch_agent -----------> running: ${ACMD}"
   $ACMD&
+}
+
+# Only for heterogeneous submit
+register_worker_resources() {
+    local master=$1
+    local worker=$2
+    local network=$3
+
+    echo "   -> Fetching resources from ${worker}..."
+    local raw_json
+    raw_json=$(curl -s -XGET "http://${worker}${network}:46101/COMPSs/resources")
+
+    if [ $? -eq 0 ]; then
+        # Parse values
+        local cpus=$(echo "${raw_json}" | grep -oP '"name":"MainProcessor","units":\K[0-9]+' | head -1)
+        local gpus=$(echo "${raw_json}" | grep -oP '"name":"GPU","units":\K[0-9]+' | head -1)
+        local arch=$(echo "${raw_json}" | grep -oP '"architecture":"\K[^"]+' | head -1)
+
+        # Defaults
+        cpus=${cpus:-0}
+        gpus=${gpus:-0}
+        arch=${arch:-"amd64"}
+
+        echo "      Adding to Master: CPU=${cpus}, GPU=${gpus}, Arch=${arch}"
+
+        "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+            --agent_node="${master}${network}" \
+            --agent_port="46101" \
+            --cpu="${cpus}" \
+            --gpu="${gpus}" \
+            --arch="${arch}" \
+            "${worker}${network}" "Port=46102"
+    else
+        echo "   [ERROR] Could not reach worker ${worker}"
+    fi
+}
+
+# Only for heterogeneous submit
+get_all_heterogeneous_workers() {
+    local master=$1
+    local current_workers=$2
+
+    local combined_list="${current_workers}"
+
+    echo "_&&DEBUG: Combined list: ${combined_list}" >&2
+    echo "__&&DEBUG: het groups ${het_groups_list}" >&2
+
+    if [ ! -z "${het_groups_list}" ]; then
+        for group_var in $(echo "${het_groups_list}" | tr ',' ' '); do
+            # Indirect expansion
+            local group_nodelist=${!group_var}
+
+            if [ ! -z "${group_nodelist}" ]; then
+                echo "__&&DEBUG: Expanding ${group_var}..." >&2
+		local expanded_nodes=$(scontrol show hostnames "${group_nodelist}")
+
+                echo "__&&DEBUG: Expansion result: ${expanded_nodes}" >&2
+                combined_list="${combined_list} ${expanded_nodes}"
+		#echo "__&&DEBUG: EXECUTING: ${HOSTLIST_CMD} ${group_nodelist} ${HOSTLIST_TREATMENT}" >&2
+                #local expanded_nodes=$(${HOSTLIST_CMD} ${group_nodelist} ${HOSTLIST_TREATMENT})
+                #combined_list="${combined_list} ${expanded_nodes}"
+            fi
+        done
+    fi
+
+    echo "${combined_list}" | tr ' ' '\n' | grep -v "^${master}$" | sort -u | xargs
 }
 
 launch() {
@@ -1216,9 +1294,17 @@ launch() {
   jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
   fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
   fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-
-  launch_agent ${master_node}
-  hostid=$((hostid+1))
+  
+  echo "__&&--------------------------------NODES----------------------"
+  echo "__&&${master_node}"
+  for node in ${worker_nodes}; do
+    echo "__&&$node"
+  done
+  echo "__&&-----------------------------------------------------------"
+  if [ -z "$het_group" ]; then
+    launch_agent ${master_node}
+    hostid=$((hostid+1))
+  fi
 
   if [ ! -z "${worker_nodes}" ]; then
     for node in ${worker_nodes}; do
@@ -1227,15 +1313,18 @@ launch() {
     done
   fi
 
-  echo "Wait until master is awake..."
-  while [ true ]; do
-    sleep 1
-    curl -s -XGET http://${master_node}${network}:46101/COMPSs/test # 2>/dev/null
-    if [ $? -eq 0 ]; then
-      break;
-    fi
-  done
-  echo "Master is up and running"
+  if [ -z "$het_group" ]; then
+    echo "Wait until master is awake..."
+    while [ true ]; do
+      sleep 1
+      echo "__&&RUNNING curl -s -XGET http://${master_node}${network}:46101/COMPSs/test"
+      curl -s -XGET http://${master_node}${network}:46101/COMPSs/test # 2>/dev/null
+      if [ $? -eq 0 ]; then
+        break;
+      fi
+    done
+    echo "Master is up and running"
+  fi
 
   num_agents=$(wc -w <<< "${worker_nodes}")
   echo "Wait until all workers are awake..."
@@ -1246,10 +1335,16 @@ launch() {
     forward_stop_to=""
     CONFIRMED_AGENTS=0
     for worker in ${worker_nodes}; do
-      curl -s -XGET http://${worker}${network}:46101/COMPSs/test # 2>/dev/null
+      echo "__&&WAITING FOR WORKERS: curl -s -XGET http://${worker}${network}:46101/COMPSs/test"
+      RESPONSE=$(curl -s -XGET http://${worker}${network}:46101/COMPSs/test) # 2>/dev/null
       if [ $? -eq 0 ]; then
+	      echo "__&&REPLY FROM ${worker}: ${RESPONSE}"
+        echo "__&&CONFIRMED AGENT"
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
+      else
+        echo "__&&REPLY FROM ${worker}: [No response yet]"
       fi
+
       if [ -n "${forward_stop_to}" ]; then
         forward_stop_to="${forward_stop_to};"
       fi
@@ -1258,9 +1353,29 @@ launch() {
   done
   echo "All nodes are ready"
 
-  curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
+  echo "__&&sleeping 5"
+  sleep 5
+  if [ -z "$het_group" ]; then
+    curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
+
+    # Only for heterogeneous submit
+    echo "__&&Discovery: Identifying all heterogeneous workers..."
+    final_worker_list=$(get_all_heterogeneous_workers "${master_node}" "${worker_nodes}")
+    echo "__&&final worker list: ${final_worker_list}"
+    echo "__&&------ Registering Workers to Master Agent ------"
+    echo "__&&Workers: ${final_worker_list}"
+    for worker in ${final_worker_list}; do
+      register_worker_resources "${master_node}" "${worker}" "${network}"
+    done
+
+    MASTER_RES=$(curl -s -XGET "http://${master_node}${network}:46101/COMPSs/resources")
+    echo "Current Master Resources: ${MASTER_RES}"
+  fi
+
   for worker in ${worker_nodes}; do
-    curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
+    echo "__&&CHECKING WORKERS: running curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources"
+    RESPONSE=$(curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources) # 2>/dev/null
+    echo "__&&REPLY FROM ${worker}: ${RESPONSE}"
   done
 
 
@@ -1269,9 +1384,14 @@ launch() {
   fi
 
   echo "------ Launching Execution ------"
-  # Calling main method of the application passing in a single parameter containing an array with the method arguments
-  echo "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" --master_node=${master_node}${network} --master_port=46101 --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
-  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" "--master_node=${master_node}${network}" "--master_port=46101"  "--stop" "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
+
+  if [ -z "$het_group" ]; then
+      # Calling main method of the application passing in a single parameter containing an array with the method arguments
+      echo "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" --master_node=${master_node}${network} --master_port=46101 --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
+      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" "--master_node=${master_node}${network}" "--master_port=46101"  "--stop" "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
+    else
+      echo "Skipping compss_agent_call_operation (het_group is set to ${het_group})"
+    fi
 }
 
 ###############################################
@@ -1373,7 +1493,6 @@ cleanup() {
 #---------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------
-
   numPrologActions=0
   declare -a prologActions
   numEpilogActions=0
@@ -1399,17 +1518,19 @@ cleanup() {
 
   # Prolog
   prolog
-
+  
   # Launch execution
   launch
-
+  
   # Wait
-  wait_for_completion
+  if [ -z "$het_group" ]; then
+    wait_for_completion
 
-  # Merge agents trace
-  if [ "${tracing}" == "true" ]; then
-    merge_agents_traces
+    # Merge agents trace
+    if [ "${tracing}" == "true" ]; then
+      merge_agents_traces
+    fi
+
+    # Epilog
+    epilog
   fi
-
-  # Epilog
-  epilog

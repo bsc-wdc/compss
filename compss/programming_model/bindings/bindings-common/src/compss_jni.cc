@@ -62,6 +62,7 @@ jmethodID mid_wf_barrier_withFlag;
 jmethodID mid_wf_barrierGroup;
 jmethodID mid_wf_snapshot;
 jmethodID mid_wf_isFileAccessed;
+jmethodID mid_wf_getAvailableFiles;
 jmethodID mid_wf_openFile;
 jmethodID mid_wf_getFile;
 jmethodID mid_wf_closeFile;
@@ -850,6 +851,48 @@ int JNI_WF_isFileAccessed(CompssWorkflow* self, char* fileName){
 }
 
 
+int* JNI_WF_getAvailableFiles(CompssWorkflow* self, int count, char** fileName){
+    JNIWorkflow* wf = (JNIWorkflow*) self;
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getAvailableFiles - Calling runtime getAvailableFiles method...\n");
+
+    ThreadStatus* status = access_request();
+    JNIEnv* env = status->localJniEnv;
+
+    jobjectArray jFileNames = env->NewObjectArray(count, clsString, NULL);
+    check_exception(status, "Error creating fileNames array");
+
+    for (int i = 0; i < count; ++i) {
+        jstring jFileName = env->NewStringUTF(fileName[i]);
+        check_exception(status, "Error creating fileName String");
+        env->SetObjectArrayElement(jFileNames, i, jFileName);
+        env->DeleteLocalRef(jFileName);
+    }
+
+    jintArray jAvailableIndexes = (jintArray) env->CallObjectMethod(
+        wf->jWorkflow,
+        mid_wf_getAvailableFiles,
+        jFileNames
+    );
+    check_exception(status, "Error calling runtime waitForAvailableFiles");
+
+    int* ret = NULL;
+    if (jAvailableIndexes != NULL) {
+        jsize length = env->GetArrayLength(jAvailableIndexes);
+        ret = (int*) malloc(sizeof(int) * (length + 1));
+        env->GetIntArrayRegion(jAvailableIndexes, 0, length, ret);
+        ret[length] = -1;
+    }
+
+    env->DeleteLocalRef(jFileNames);
+    if (jAvailableIndexes != NULL) {
+        env->DeleteLocalRef(jAvailableIndexes);
+    }
+
+    access_revoke(status);
+    debug_printf("[BINDING-COMMONS] - @JNI_WF_getAvailableFiles - getAvailableFiles completed\n");
+    return ret;
+}
+
 void JNI_WF_openFile(CompssWorkflow* self, char* fileName, int mode, char** buf) {
     JNIWorkflow* wf = (JNIWorkflow*) self;
     debug_printf("[BINDING-COMMONS] - @JNI_WF_openFile - Calling runtime OpenFile method  for %s and mode %d ...\n", fileName, mode);
@@ -1052,6 +1095,8 @@ CompssWorkflow* JNI_RegisterWorkflow() {
         check_exception(status, "Cannot find Workflow.deleteBindingObject");
         mid_wf_isFileAccessed = env->GetMethodID(clsWorkflow,  "isFileAccessed", "(Ljava/lang/String;)Z");
         check_exception(status, "Cannot find Workflow.isFileAccessed");
+        mid_wf_getAvailableFiles = env->GetMethodID(clsWorkflow, "waitForAvailableFiles", "([Ljava/lang/String;)[I");
+        check_exception(status, "Cannot find Workflow.waitForAvailableFiles");
         mid_wf_openFile = env->GetMethodID(clsWorkflow, "openFile", "(Ljava/lang/String;B)Ljava/lang/String;");
         check_exception(status, "Cannot find Workflow.openFile");
         mid_wf_getFile = env->GetMethodID(clsWorkflow, "getFile", "(Ljava/lang/String;)V");
@@ -1087,6 +1132,7 @@ CompssWorkflow* JNI_RegisterWorkflow() {
     jwf->base.get_object = JNI_WF_getObject;
     jwf->base.delete_object = JNI_WF_deleteObject;
     jwf->base.is_file_accessed = JNI_WF_isFileAccessed;
+    jwf->base.get_available_files = JNI_WF_getAvailableFiles;
     jwf->base.open_file = JNI_WF_openFile;
     jwf->base.get_file = JNI_WF_getFile;
     jwf->base.close_file = JNI_WF_closeFile;

@@ -31,6 +31,7 @@ import es.bsc.compss.executor.external.piped.commands.DeleteFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.DeleteObjectPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteNestedTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.GetAvailableFilesPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.GetDirectoryPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.GetFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.GetObjectPipeCommand;
@@ -183,6 +184,25 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                     this.wf.getFile(file);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
+                            }
+                                break;
+                            case GET_AVAILABLE_FILES: {
+                                GetAvailableFilesPipeCommand gafpc = (GetAvailableFilesPipeCommand) rcvdCommand;
+                                String[] files = gafpc.getFileNames();
+                                int[] available;
+                                if (this.wf != null) {
+                                    available = this.wf.waitForAvailableFiles(files);
+                                } else {
+                                    available = new int[0];
+                                }
+                                StringBuilder sb = new StringBuilder();
+                                for (int idx : available) {
+                                    if (sb.length() > 0) {
+                                        sb.append(" ");
+                                    }
+                                    sb.append(idx);
+                                }
+                                this.pipes.sendCommand(new SynchPipeCommand(sb.toString()));
                             }
                                 break;
                             case GET_DIRECTORY: {

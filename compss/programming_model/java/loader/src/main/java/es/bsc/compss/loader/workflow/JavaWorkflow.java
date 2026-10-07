@@ -73,6 +73,11 @@ public class JavaWorkflow implements Workflow {
     }
 
     @Override
+    public int[] waitForAvailableFiles(String[] fileNames) {
+        return this.workflow.waitForAvailableFiles(fileNames);
+    }
+
+    @Override
     public String openFile(String fileName, byte mode) {
         return this.workflow.openFile(fileName, mode);
     }

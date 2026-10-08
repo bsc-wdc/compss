@@ -80,8 +80,8 @@ def add_create_action_for_task(
     if task.status in ["FINISHED", "RECOVERED"]:
         l_result = [param.actual_instance for param in task.out_params.values() if param.actual_instance]
     else:
-        # If the task failed, we include its logs instead of the OUT parameters as results
-        l_result = [{"@id": "logs/" + filename} for filename in task.logs if filename]
+        # In WRROC, logs are engine-specific traces, cannot be added here as 'result'
+        l_result = None
 
     properties = {
         "@type": "CreateAction",

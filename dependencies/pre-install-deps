@@ -278,7 +278,8 @@ install_kafka() {
     fi
     if ! echo "${KAFKA_SHA512}  ${pkg}" | sha512sum -c --quiet -; then
       echo "[kafka] Checksum mismatch for the file from ${mirror}"
-      continue
+      rm -f "${pkg}"
+      exit 1
     fi
     downloaded=true
     break

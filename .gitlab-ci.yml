@@ -175,16 +175,8 @@ clean:
     - .gitlab_registry
   script:
     - MERGED_BRANCH="$(git log -1 --pretty=%B | grep "^Merge branch" | cut -f2 -d\')"
-    - docker pull "${CACHE_IMAGE}:${MERGED_BRANCH}"
-    - docker pull "${TESTS_IMAGE}:${MERGED_BRANCH}"
-    - docker tag "${CACHE_IMAGE}:${MERGED_BRANCH}" "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker tag "${TESTS_IMAGE}:${MERGED_BRANCH}" "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker push "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker push "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
-    - docker rmi "${CACHE_IMAGE}:${MERGED_BRANCH}"
-                 "${TESTS_IMAGE}:${MERGED_BRANCH}"
-                 "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}"
-                 "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}"
+    - docker buildx imagetools create --prefer-index=false -t "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}" "${CACHE_IMAGE}:${MERGED_BRANCH}"
+    - docker buildx imagetools create --prefer-index=false -t "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}" "${TESTS_IMAGE}:${MERGED_BRANCH}"
     - REPOSITORY_IDS="$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")"
     - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
     - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
@@ -211,6 +203,7 @@ deploy:
   timeout: 8h
   before_script:
     - docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
+    - docker run --privileged --rm tonistiigi/binfmt --install all
   script:
     - exec &> >(tee job.log)
     - ARCHS=amd,arm,riscv TAGS="${CI_COMMIT_TAG}",latest docker bake --no-cache --push release

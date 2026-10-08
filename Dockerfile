@@ -29,11 +29,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			gfortran=${GFORTRAN_VERSION} \
 			git=${GIT_VERSION} \
 			libboost-serialization-dev=${LIBBOOST_SERIALIZATION_DEV_VERSION} \
-                        libbz2-dev=${LIBBZ2_DEV_VERSION} \
+			libbz2-dev=${LIBBZ2_DEV_VERSION} \
 			libjpeg-dev=${LIBJPEG_DEV_VERSION} \
-                        liblzma-dev=${LIBLZMA_DEV_VERSION} \
+			liblzma-dev=${LIBLZMA_DEV_VERSION} \
 			libopenmpi-dev=${LIBOPENMPI_DEV_VERSION} \
-                        libpcre2-dev=${LIBPCRE2_DEV_VERSION} \
+			libpcre2-dev=${LIBPCRE2_DEV_VERSION} \
 			libtool=${LIBTOOL_VERSION} \
 			libxml2-dev=${LIBXML2_DEV_VERSION} \
 			python3-dev=${PYTHON3_DEV_VERSION} \

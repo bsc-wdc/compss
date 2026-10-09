@@ -998,7 +998,7 @@ def add_logger(logger_name: str) -> None:
     :param logger_name: New logger name.
     :returns: None
     """
-    add_new_logger(logger_name)
+    add_new_logger(logger_name, "master")
 
 
 # ########################################################################### #

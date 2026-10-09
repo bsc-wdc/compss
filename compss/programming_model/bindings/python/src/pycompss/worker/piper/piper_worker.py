@@ -104,7 +104,7 @@ def shutdown_handler(
                 f"[shutdown_handler] Process id: {proc.pid} "
                 f"is not alive.\n"
             )
-    if CACHE and CACHE_PROCESS.is_alive():  # noqa
+    if CACHE and CACHE_PROCESS and CACHE_PROCESS.is_alive():
         sys.stderr.write(
             f"[shutdown_handler] Cache Process id: "
             f"{CACHE_PROCESS.pid} is alive, terminating.\n"

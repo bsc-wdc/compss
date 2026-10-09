@@ -23,9 +23,11 @@ PyCOMPSs runtime - Task - Worker.
 This file contains the task core functions when acting as worker.
 """
 
+import ctypes
 import gc
 import logging
 import os
+import psutil
 import re
 import socket
 import sys
@@ -89,6 +91,14 @@ if __debug__:
 DP_LOGGER = logging.getLogger("dp_logger")
 
 DP_ENABLED = False
+
+# Memory parameters before doing memory release
+_LIBC = ctypes.CDLL("libc.so.6")
+_PROCESS = psutil.Process()
+_TOTAL_MEMORY = psutil.virtual_memory().total
+_MEMORY_LIMIT_BYTES = 8 * 1024**3  # Release when process > 8 Gb
+_MEMORY_PRESSURE_RATIO = 0.20  # Release when <20% RAM is available
+_MEMORY_PRESSURE_THRESHOLD = _TOTAL_MEMORY * _MEMORY_PRESSURE_RATIO
 
 
 class TaskWorker:
@@ -371,7 +381,7 @@ class TaskWorker:
                         self.cache.references = []  # loose all references
 
                     # Release memory after task execution
-                    self.__release_memory__(user_returns)
+                    self.__release_memory__()
 
                 if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
                     self.__report_heap__()
@@ -408,34 +418,43 @@ class TaskWorker:
         )
 
     @staticmethod
-    def __release_memory__(user_returns) -> None:
+    def __release_memory__() -> None:
         """Release memory after task execution explicitly.
 
         :return: None.
         """
+        # NOTE: Clean shared objects
         SHARED_ARGUMENTS.delete_worker_args()
-        # Call garbage collector: The memory may not be freed to the SO,
-        # although the objects are removed.
-        gc.collect()
-        # Then try to deallocate the empty memory.
-        try:
-            import ctypes
+        # NOTE: we are going to do memory release when the current process is
+        # larger than 8 gb or memory pressure occurs (reach 80%).
+        rss = _PROCESS.memory_info().rss
+        mem_available = psutil.virtual_memory().available
+        if (
+            rss > _MEMORY_LIMIT_BYTES
+            or mem_available < _MEMORY_PRESSURE_THRESHOLD
+        ):
+            # Call garbage collector: The memory may not be freed to the SO,
+            # although the objects are removed.
+            gc.collect()
+            # Then try to deallocate the empty memory.
+            try:
+                _LIBC.malloc_trim(0)
+            except OSError:  # pylint: disable=broad-except
+                if __debug__:
+                    LOGGER.warning("Could NOT deallocate memory.")
 
-            libc = ctypes.CDLL("libc.so.6")
-            libc.malloc_trim(0)
-        except Exception:  # pylint: disable=broad-except
-            if __debug__:
-                LOGGER.warning("Could NOT deallocate memory.")
-
-        try:
-            import cupy
-
-            if user_returns is not None:
-                for obj in user_returns:
-                    if isinstance(obj, cupy.ndarray):
-                        obj.data.mem.free()
-        except ImportError:
-            pass
+        # # NOTE: Cupy uses a memory pool in order to reuse it quickly.
+        # # This code forces each task to do the memory allocation which
+        # # is costly at the beginning.
+        # try:
+        #     import cupy
+        #
+        #     if user_returns is not None:
+        #         for obj in user_returns:
+        #             if isinstance(obj, cupy.ndarray):
+        #                 obj.data.mem.free()
+        # except ImportError:
+        #     pass
 
     @staticmethod
     def __report_heap__() -> None:

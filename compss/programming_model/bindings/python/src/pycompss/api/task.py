@@ -42,13 +42,10 @@ from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.definitions.constraints import ConstraintDescription
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.worker import TaskWorker
-from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.logger.remittent import LOG_REMITTENT
-from pycompss.util.logger.level import LOG_LEVEL
+from pycompss.util.logger.helpers import swap_job_logs, restore_job_logs
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.helpers import EventMaster
-from pycompss.util.tracing.helpers import TRACING
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -209,10 +206,7 @@ class Task:  # pylint: disable=R0902, R0903
                     if __debug__:
                         # Update the whole logger since it will be in the
                         # job out/err files
-                        init_logging_worker(
-                            LOG_REMITTENT.WORKER,
-                            LOG_LEVEL.DEBUG,
-                            TRACING.is_tracing(),
+                        swap_job_logs(
                             kwargs["compss_log_files"][0],
                             kwargs["compss_log_files"][1],
                         )
@@ -233,11 +227,7 @@ class Task:  # pylint: disable=R0902, R0903
                 if is_nesting_enabled:
                     if __debug__:
                         # Reestablish logger handlers
-                        init_logging_worker(
-                            LOG_REMITTENT.WORKER,
-                            LOG_LEVEL.DEBUG,
-                            TRACING.is_tracing(),
-                        )
+                        restore_job_logs()
                 return worker_result
 
             # There is no compss_key in kwargs.keys() => task invocation

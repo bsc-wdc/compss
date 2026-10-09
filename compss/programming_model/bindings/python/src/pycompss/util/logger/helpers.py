@@ -26,116 +26,179 @@ This file contains all logging methods.
 import copy
 import json
 import logging
+import logging.config
 import os
 from pathlib import Path
 from contextlib import contextmanager
-from logging import config
+from typing import Dict, Iterator, Optional
 
 from pycompss import PYCOMPSS_HOME
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.level import check_log_level
 from pycompss.util.logger.remittent import LOG_REMITTENT
-from pycompss.util.typing_helper import typing
 
 LOG_CFG_PATH = os.path.join(PYCOMPSS_HOME, "util", "logger", "cfg")
-CONFIG_FUNC = config.dictConfig
-# Keep configs to avoid read the cfg many times
-CONFIGS = {}  # type: typing.Dict[str, dict]
+
+# Configurations cache
+CONFIGS: Dict[str, dict] = {}
+
+# =========================================================
+# CONFIG LOADING
+# =========================================================
 
 
 def clean_log_configs() -> None:
-    """Remove all stored log configurations.
-
-    :return: None
-    """
+    """Clear cached logging configurations."""
     CONFIGS.clear()
 
 
 def __get_logging_cfg_file(remittent: str) -> str:
-    """Retrieve the logging configuration file.
-
-    :param remittent: Logging remittent.
-    :return: Logging configuration file.
-    :raise PyCOMPSsException: Unsupported log remittent.
     """
-    log_cfg = os.path.join(LOG_CFG_PATH, f"logging_{remittent}.json")
-    if os.path.isfile(log_cfg):
-        return log_cfg
-    raise PyCOMPSsException(
-        f"Logging configuration file {log_cfg} does not exist!"
-    )
+    Get path of logging configuration file.
 
-
-def __read_log_config_file(
-    remittent: str, log_level: str
-) -> typing.Dict[str, dict]:
-    """Read the required config file and update.
-
-    If already read, retrieves from global dictionary.
-
-    :param remittent: Logging remittent.
-    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
-    :return: Configuration file content.
+    :param remittent: logging context (worker/master/etc.)
+    :return: file path
     """
-    log_config_file = __get_logging_cfg_file(remittent)
+    path = os.path.join(LOG_CFG_PATH, f"logging_{remittent}.json")
+    if not os.path.isfile(path):
+        raise PyCOMPSsException(f"Missing logging config: {path}")
+    return path
 
-    # Get base configuration
-    if log_config_file in CONFIGS:
-        conf = CONFIGS[log_config_file]
-    else:
-        with open(log_config_file, "rt") as lcf_fd:
-            conf = json.loads(lcf_fd.read())
-        CONFIGS[log_config_file] = conf
 
-    # Check if the log level is supported
+def __read_log_config_file(remittent: str, log_level: str) -> dict:
+    """
+    Load and prepare logging configuration.
+
+    :param remittent: logging type
+    :param log_level: log level string
+    :return: dict config
+    """
+    cfg_file = __get_logging_cfg_file(remittent)
+
+    if cfg_file not in CONFIGS:
+        with open(cfg_file, "rt") as f:
+            CONFIGS[cfg_file] = json.load(f)
+
+    conf = CONFIGS[cfg_file]
+
     check_log_level(log_level)
-    # Adapt log level to configuration format and set off log level with error
+
     log_level = log_level.upper()
     if log_level == "OFF":
         log_level = "ERROR"
-    # Add all loggers (from current python files)
+
     conf = __add_loggers(conf, remittent, log_level)
-    # Update configuration with log level
     conf = __update_log_level(conf, log_level)
 
     return conf
 
 
-def __find_source_files(path, extensions):
-    """Find all binding source files.
+# =========================================================
+# INIT LOGGING (GLOBAL ONCE PER PROCESS)
+# =========================================================
 
-    :param path: Folder to look recursively.
-    :param extensions: List of extensions considered as source.
-    :return: Generator with all source files found.
+
+def init_logging(remittent: str, log_level: str, log_path: str) -> None:
     """
-    main_home = os.path.dirname(path)
-    if not main_home.endswith("/"):
-        main_home = f"{main_home}/"
-    for root, _, files in os.walk(path):
-        for file in files:
-            if "." in file and file.split(".")[1] in extensions:
-                relative = root.replace(main_home, "")
-                file_path = os.path.join(relative, file)
-                yield str(Path(file_path).with_suffix(""))
+    Initialize logging for master/worker.
+
+    :param remittent: logging context
+    :param log_level: logging level
+    :param log_path: base log directory
+    """
+    conf = __read_log_config_file(remittent, log_level)
+    _prefix_handlers(conf, log_path)
+    logging.config.dictConfig(conf)
 
 
-def __add_loggers(
-    conf: typing.Dict[str, dict], remittent: str, log_level: str
-) -> typing.Dict[str, dict]:
-    """Add all needed loggers to the configuration.
+def init_logging_worker(remittent: str, log_level: str, tracing: bool) -> None:
+    """
+    Initialize worker logging.
 
-    Traverses the whole binding folder looking for python files and includes
-    them in the base configuration.
+    :param remittent: worker type
+    :param log_level: log level
+    :param tracing: enable tracing mode
+    """
+    conf = __read_log_config_file(remittent, log_level)
 
-    :para conf: Configuration file content.
-    :param remittent: Logging remittent.
-    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
-    :return: Updated configuration file content.
+    if tracing:
+        _prefix_tracing(conf)
+
+    logging.config.dictConfig(conf)
+
+
+def init_logging_worker_piper(
+    remittent: str, log_level: str, log_dir: str
+) -> None:
+    """
+    Initialize piper worker logging.
+
+    :param remittent: worker type
+    :param log_level: log level
+    :param log_dir: log directory
+    """
+    conf = __read_log_config_file(remittent, log_level)
+    _prefix_handlers(conf, log_dir)
+    logging.config.dictConfig(conf)
+
+
+# def init_logging_agent(log_level: str, log_dir: str) -> None:
+#     """
+#     Initialize agent logging.
+#
+#     :param log_level: log level
+#     :param log_dir: log directory
+#     """
+#     conf = __read_log_config_file("agent", log_level)
+#     _prefix_handlers(conf, log_dir)
+#     logging.config.dictConfig(conf)
+
+
+# =========================================================
+# CONFIG HELPERS
+# =========================================================
+
+
+def _prefix_handlers(conf: dict, log_dir: str) -> None:
+    """
+    Prefix all file handler filenames with log directory.
+
+    :param conf: Configuration directory.
+    :param log_dir: Log file directory.
+    """
+    for h in conf.get("handlers", {}).values():
+        if "filename" in h:
+            h["filename"] = os.path.join(log_dir, h["filename"])
+
+
+def _prefix_tracing(conf: dict) -> None:
+    """
+    Adjust paths for tracing mode.
+
+    :param conf: Configuration directory.
+    """
+    for h in conf.get("handlers", {}).values():
+        if "filename" in h:
+            h["filename"] = "../" + h["filename"]
+
+
+# =========================================================
+# LOG CONFIG BUILDING
+# =========================================================
+
+
+def __add_loggers(conf: dict, remittent: str, log_level: str) -> dict:
+    """
+    Inject loggers dynamically discovered from source tree.
+
+    :param conf: Configuration directory.
+    :param remittent: Logging message remittent.
+    :param log_level: Logging level.
     """
     loggers = []
+
     for source_file in __find_source_files(PYCOMPSS_HOME, ["py"]):
-        logger = source_file.replace("/", ".")
-        loggers.append(logger)
+        loggers.append(source_file.replace("/", "."))
 
     if remittent == LOG_REMITTENT.MASTER:
         if log_level == "DEBUG":
@@ -150,9 +213,8 @@ def __add_loggers(
                 "dp_file_handler",
             ]
         else:
-            # ERROR level
-            # "debug_master_file_handler" as well?
             handlers = ["error_master_file_handler"]
+
     elif remittent == LOG_REMITTENT.WORKER:
         if log_level == "DEBUG":
             handlers = [
@@ -166,205 +228,160 @@ def __add_loggers(
                 "dp_file_handler",
             ]
         else:
-            # ERROR level
-            # "debug_worker_file_handler" as well?
             handlers = ["error_worker_file_handler"]
-    elif remittent == LOG_REMITTENT.GAT_WORKER:
+
+    elif remittent in (
+        LOG_REMITTENT.GAT_WORKER,
+        LOG_REMITTENT.MPI_WORKER,
+        LOG_REMITTENT.CONTAINER_WORKER,
+    ):
         handlers = ["console", "error_console"]
-    elif remittent == LOG_REMITTENT.MPI_WORKER:
-        handlers = ["console", "error_console"]
-    elif remittent == LOG_REMITTENT.CONTAINER_WORKER:
-        handlers = ["console", "error_console"]
+
     else:
-        raise PyCOMPSsException(
-            f"Unexpected remittent received updating loggers in config: "
-            f"{remittent}"
-        )
+        raise PyCOMPSsException(f"Unexpected remittent: {remittent}")
+
     for logger in loggers:
         conf["loggers"][logger] = {
             "level": log_level,
             "handlers": handlers,
-            "propagate": "no",
+            "propagate": False,
         }
+
     return conf
 
 
-def __update_log_level(
-    conf: typing.Dict[str, dict], log_level: str
-) -> typing.Dict[str, dict]:
-    """Update the log level in the configuration.
+def __update_log_level(conf: dict, log_level: str) -> dict:
+    """
+    Update root logging level.
 
-    :para conf: Configuration file content.
-    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
-    :return: Updated configuration file content.
+    :param conf: Configuration directory.
+    :param log_level: Logging level.
     """
     conf["root"]["level"] = log_level
     conf["handlers"]["console"]["level"] = log_level
     return conf
 
 
-def init_logging(remittent: str, log_level: str, log_path: str) -> None:
-    """Initialize logging in master.
+# =========================================================
+# JOB LOGGING (No leaks, task safe)
+# =========================================================
 
-    :param remittent: Logging remittent.
-    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
-    :param log_path: Json log files path.
-    :return: None.
-    """
-    conf = __read_log_config_file(remittent, log_level)
-    handler = "error_master_file_handler"
-    if handler in conf["handlers"]:
-        errors_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = log_path + errors_file
-    handler = "info_master_file_handler"
-    if handler in conf["handlers"]:
-        info_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = log_path + info_file
-    handler = "debug_master_file_handler"
-    if handler in conf["handlers"]:
-        debug_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = log_path + debug_file
-    handler = "dp_file_handler"
-    if handler in conf["handlers"]:
-        dp_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = log_path + dp_file
-    CONFIG_FUNC(conf)
+_JOB_HANDLERS: list[logging.Handler] = []
 
 
-def init_logging_worker(
-    remittent: str,
-    log_level: str,
-    tracing: bool,
-    job_out: typing.Optional[str] = None,
-    job_err: typing.Optional[str] = None,
+def swap_job_logs(
+    job_out: Optional[str] = None, job_err: Optional[str] = None
 ) -> None:
-    """Initialize logger in worker.
-
-    :param remittent: Logging remittent.
-    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
-    :param tracing: If tracing is enabled (the log dir changes).
-    :param job_out: out file path.
-    :param job_err: err file path.
-    :return: None.
     """
-    conf = __read_log_config_file(remittent, log_level)
-    if tracing:
-        # The workspace is within the folder "workspace/python"
-        # Remove the last folder
-        handler = "error_worker_file_handler"
-        if handler in conf["handlers"]:
-            errors_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = "../" + errors_file
-        handler = "info_worker_file_handler"
-        if handler in conf["handlers"]:
-            info_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = "../" + info_file
-        handler = "debug_worker_file_handler"
-        if handler in conf["handlers"]:
-            debug_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = "../" + debug_file
-        handler = "dp_file_handler"
-        if handler in conf["handlers"]:
-            dp_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = "../" + dp_file
-    # If within task
-    if job_err:
-        handler = "error_worker_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_err
+    Attach per-job file handlers safely.
+
+    This DOES NOT modify existing handlers.
+    It guarantees isolation between tasks.
+
+    :param job_out: stdout log file
+    :param job_err: stderr log file
+    """
+    logger = logging.getLogger()
+
+    restore_job_logs()  # prevent leaks
+
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)s %(name)s - %(message)s"
+    )
+
+    def _add(path: str, level: int) -> logging.Handler:
+        handler = logging.FileHandler(path)
+        handler.setLevel(level)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        _JOB_HANDLERS.append(handler)
+        return handler
+
     if job_out:
-        handler = "info_worker_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_out
-        handler = "debug_worker_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_out
-        handler = "dp_file_handler"
-        if handler in conf["handlers"]:
-            conf["handlers"][handler]["filename"] = job_out
+        _add(job_out, logging.INFO)
 
-    CONFIG_FUNC(conf)
+    if job_err:
+        _add(job_err, logging.ERROR)
 
 
-def init_logging_worker_piper(
-    remittent: str, log_level: str, log_dir: str
-) -> None:
-    """Initialize logger in piper worker.
-
-    :param remittent: Logging remittent.
-    :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
-    :param log_dir: Log directory.
-    :return: None.
+def restore_job_logs() -> None:
     """
-    conf = __read_log_config_file(remittent, log_level)
-    handler = "error_worker_file_handler"
-    if handler in conf["handlers"]:
-        errors_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = os.path.join(
-            log_dir, errors_file
-        )
-    handler = "info_worker_file_handler"
-    if handler in conf["handlers"]:
-        info_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = os.path.join(
-            log_dir, info_file
-        )
-    handler = "debug_worker_file_handler"
-    if handler in conf["handlers"]:
-        debug_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = os.path.join(
-            log_dir, debug_file
-        )
-    handler = "dp_file_handler"
-    if handler in conf["handlers"]:
-        dp_file = conf["handlers"][handler].get("filename")
-        conf["handlers"][handler]["filename"] = os.path.join(log_dir, dp_file)
-    CONFIG_FUNC(conf)
+    Remove all job-specific handlers safely.
 
-
-def add_new_logger(logger_name: str) -> None:
-    """Add a new logger for the user in the master.
-
-    Creates a copy of the "user" or "piper_worker" logger and renames it with
-    the given logger_name.
-
-    :param logger_name: New logger name.
-    :returns: None
+    Ensures no cross-task leakage.
     """
-    # Get "user" logger information (used as source)
-    log_config_file = list(CONFIGS.keys())[0]
-    users_logger = CONFIGS[log_config_file]["loggers"]["user"]
-    # Copy "user" logger and set its new name
-    new_logger = copy.deepcopy(users_logger)
-    CONFIGS[log_config_file]["loggers"][logger_name] = new_logger
-    # Update the logger with the new handler
-    CONFIG_FUNC(CONFIGS[log_config_file])
+    global _JOB_HANDLERS
+
+    logger = logging.getLogger()
+
+    for h in _JOB_HANDLERS:
+        logger.removeHandler(h)
+        h.close()
+
+    _JOB_HANDLERS.clear()
+
+
+# =========================================================
+# UTILS
+# =========================================================
+
+
+def __find_source_files(path: str, extensions: list[str]):
+    """
+    Recursively find source files.
+
+    :param path: root path
+    :param extensions: file extensions
+    """
+    main_home = os.path.dirname(path)
+
+    if not main_home.endswith("/"):
+        main_home += "/"
+
+    for root, _, files in os.walk(path):
+        for file in files:
+            if "." in file and file.split(".")[1] in extensions:
+                relative = root.replace(main_home, "")
+                file_path = os.path.join(relative, file)
+                yield str(Path(file_path).with_suffix(""))
+
+
+# =========================================================
+# LOG EXTENSIONS
+# =========================================================
+
+
+def add_new_logger(logger_name: str, remittent: str) -> None:
+    """Add a new logger dynamically based on "user" template."""
+    cfg_file = __get_logging_cfg_file(remittent)
+    conf = CONFIGS.get(cfg_file)
+
+    if not conf:
+        raise RuntimeError("Logging not initialized")
+
+    base = conf["loggers"]["user"]
+    conf["loggers"][logger_name] = copy.deepcopy(base)
+
+    logging.config.dictConfig(conf)
+
+
+# =========================================================
+# CONTEXT HELPERS
+# =========================================================
 
 
 @contextmanager
-def swap_logger_name(
-    logger: logging.Logger, new_name: str
-) -> typing.Iterator[None]:
-    """Swap the current logger with the new one.
-
-    :param logger: Logger facility.
-    :param new_name: Logger name.
-    :return: None.
-    """
-    previous_name = logger.name
+def swap_logger_name(logger: logging.Logger, new_name: str) -> Iterator[None]:
+    """Temporarily rename a logger."""
+    old = logger.name
     logger.name = new_name
-    yield  # here the code runs
-    logger.name = previous_name
+    yield
+    logger.name = old
 
 
 @contextmanager
-def keep_logger() -> typing.Iterator[None]:
-    """Do nothing with the logger.
-
-    It is used when the swap_logger_name does not need to be applied.
-
-    :return: None
-    """
+def keep_logger() -> Iterator[None]:
+    """No-op context manager."""
     yield  # here the code runs
 
 

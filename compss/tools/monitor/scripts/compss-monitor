@@ -1,4 +1,6 @@
-#! /bin/sh
+#!/usr/bin/env bash
+
+set -e  # Stop at first error
 
 configure() {
   ### Configures the COMPSs Monitor environment ###
@@ -16,16 +18,15 @@ configure() {
     else
       echo "Info: JAVA_HOME found."
       echo "  Loading JRE_HOME from JAVA_HOME"
-      if [ -d "$[JAVA_HOME}/jre" ]; then
+      if [ -d "${JAVA_HOME}/jre" ]; then
         echo "    - jre folder found"
-        JRE_HOME=${JAVA_HOME}/jre
+        export JRE_HOME=${JAVA_HOME}/jre
       else
         echo "    - jre folder NOT found"
-        JRE_HOME=${JAVA_HOME}/
+        export JRE_HOME=${JAVA_HOME}/
       fi
     fi 
   fi
-  export JRE_HOME
   echo "   Success"
 
   #Checking COMPSS_HOME

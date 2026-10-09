@@ -12,26 +12,69 @@
 
   # Global variables
   AGENT_PIDS=""
+  AGENT_REST_PORT=""
+  AGENTS_STOPPED="false"
   exit_value=0
   NUM_RETRIES="50"
   app_name="1agent"
 
   # Traps and Handlers
-  function kill_agents() {
-    for pid in ${AGENT_PIDS}; do
-      kill -SIGINT ${pid}
-    done
-  }
+  function stop_agents() {
+    if [ "${AGENTS_STOPPED}" == "true" ]; then
+      return
+    fi
+    AGENTS_STOPPED="true"
 
-  function copy_logs() {
+    if [ -n "${AGENT_REST_PORT}" ]; then
+      curl -XDELETE "http://127.0.0.1:${AGENT_REST_PORT}/COMPSs" 1>/dev/null 2>/dev/null
+    fi
+
+    for pid in ${AGENT_PIDS}; do
+      if kill -0 "${pid}" 2>/dev/null; then
+        kill -SIGINT "${pid}" 2>/dev/null
+      fi
+    done
+
     cp -rf "${log_dir}" "${target_log_folder}"
   }
-  
-  function exit_handler() {
-    kill_agents
-    copy_logs
+
+  trap stop_agents EXIT
+
+  function wait_for_agents_shutdown() {
+    local retries="${NUM_RETRIES}"
+    local all_stopped
+
+    while [ "${retries}" -gt "0" ]; do
+      all_stopped="true"
+      for pid in ${AGENT_PIDS}; do
+        if kill -0 "${pid}" 2>/dev/null; then
+          all_stopped="false"
+          break
+        fi
+      done
+      if [ "${all_stopped}" == "true" ]; then
+        return 0
+      fi
+      sleep 1
+      retries=$((retries - 1))
+    done
+    return 1
   }
-  trap exit_handler EXIT
+
+  function wait_for_trace_package() {
+    local trace_dir="${1}/trace"
+    local retries="${NUM_RETRIES}"
+
+    while [ "${retries}" -gt "0" ]; do
+      if [ -f "${trace_dir}/master_compss_trace.tar.gz" ] || \
+         { [ -f "${trace_dir}/_compss.prv" ] && [ -f "${trace_dir}/_compss.pcf" ] && [ -f "${trace_dir}/_compss.row" ]; }; then
+        return 0
+      fi
+      sleep 1
+      retries=$((retries - 1))
+    done
+    return 1
+  }
 
   function validate_parallel_running_tasks() {
     starts="${1}"
@@ -81,6 +124,9 @@
   port_offset=100
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
+    AGENTS_STOPPED="false"
+    AGENT_REST_PORT=""
+    AGENT_PIDS=""
 
     log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}/"
     mkdir -p "${log_dir}"
@@ -111,6 +157,7 @@
       --log_dir="${agent1_log_dir}" \
       --rest_port="${rest_port}" \
       --comm_port="${comm_port}" \
+      -t \
       -d \
       ${runcompss_opts} \
       --project="${base_app_dir}/project.xml" \
@@ -121,6 +168,7 @@
 
     agent_pid="$!"
     AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
+    AGENT_REST_PORT="${rest_port}"
 
     retries="${NUM_RETRIES}"
     curl -XGET http://127.0.0.1:${rest_port}/COMPSs/test 1>/dev/null 2>/dev/null
@@ -241,8 +289,17 @@
 
     echo "All task executed as expected and with the expected values."  > >(tee -a "${output_log}")
 
-    kill_agents
+    stop_agents
+    if ! wait_for_agents_shutdown; then
+      echo "Agent did not stop within timeout." > >(tee -a "${error_log}")
+      exit 1
+    fi
+    if ! wait_for_trace_package "${agent1_log_dir}"; then
+      echo "Trace package was not generated within timeout." > >(tee -a "${error_log}")
+      exit 1
+    fi
     rm -rf /tmp/COMPSsWorker01/*
+    AGENT_REST_PORT=""
     AGENT_PIDS=""
 
     port_offset=$((port_offset + 100 ))

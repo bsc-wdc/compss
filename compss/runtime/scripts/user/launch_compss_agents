@@ -210,6 +210,14 @@ display_version() {
   exit "$exitValue"
 }
 
+display_debug() {
+  local msg=$1
+
+  if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
+    echo "[ DEBUG ] ${msg}" >&2
+  fi
+}
+
 ###############################################
 # Displays errors when treating arguments
 ###############################################
@@ -1253,8 +1261,8 @@ get_all_heterogeneous_workers() {
 
     local combined_list="${current_workers}"
 
-    echo "_&&DEBUG: Combined list: ${combined_list}" >&2
-    echo "__&&DEBUG: het groups ${het_groups_list}" >&2
+    display_debug "Initial worker list: ${combined_list}"
+    display_debug "Heterogeneous groups: ${het_groups_list}"
 
     if [ ! -z "${het_groups_list}" ]; then
         for group_var in $(echo "${het_groups_list}" | tr ',' ' '); do
@@ -1262,14 +1270,10 @@ get_all_heterogeneous_workers() {
             local group_nodelist=${!group_var}
 
             if [ ! -z "${group_nodelist}" ]; then
-                echo "__&&DEBUG: Expanding ${group_var}..." >&2
-		local expanded_nodes=$(scontrol show hostnames "${group_nodelist}")
-
-                echo "__&&DEBUG: Expansion result: ${expanded_nodes}" >&2
+                local expanded_nodes
+                expanded_nodes=$(scontrol show hostnames "${group_nodelist}")
+                display_debug "Expanded ${group_var}: ${expanded_nodes}"
                 combined_list="${combined_list} ${expanded_nodes}"
-		#echo "__&&DEBUG: EXECUTING: ${HOSTLIST_CMD} ${group_nodelist} ${HOSTLIST_TREATMENT}" >&2
-                #local expanded_nodes=$(${HOSTLIST_CMD} ${group_nodelist} ${HOSTLIST_TREATMENT})
-                #combined_list="${combined_list} ${expanded_nodes}"
             fi
         done
     fi
@@ -1295,12 +1299,8 @@ launch() {
   fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
   fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
   
-  echo "__&&--------------------------------NODES----------------------"
-  echo "__&&${master_node}"
-  for node in ${worker_nodes}; do
-    echo "__&&$node"
-  done
-  echo "__&&-----------------------------------------------------------"
+  display_debug "Master node: ${master_node}"
+  display_debug "Worker nodes: ${worker_nodes}"
   if [ -z "$het_group" ]; then
     launch_agent ${master_node}
     hostid=$((hostid+1))
@@ -1317,7 +1317,6 @@ launch() {
     echo "Wait until master is awake..."
     while [ true ]; do
       sleep 1
-      echo "__&&RUNNING curl -s -XGET http://${master_node}${network}:46101/COMPSs/test"
       curl -s -XGET http://${master_node}${network}:46101/COMPSs/test # 2>/dev/null
       if [ $? -eq 0 ]; then
         break;
@@ -1335,14 +1334,9 @@ launch() {
     forward_stop_to=""
     CONFIRMED_AGENTS=0
     for worker in ${worker_nodes}; do
-      echo "__&&WAITING FOR WORKERS: curl -s -XGET http://${worker}${network}:46101/COMPSs/test"
       RESPONSE=$(curl -s -XGET http://${worker}${network}:46101/COMPSs/test) # 2>/dev/null
       if [ $? -eq 0 ]; then
-	      echo "__&&REPLY FROM ${worker}: ${RESPONSE}"
-        echo "__&&CONFIRMED AGENT"
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
-      else
-        echo "__&&REPLY FROM ${worker}: [No response yet]"
       fi
 
       if [ -n "${forward_stop_to}" ]; then
@@ -1353,17 +1347,14 @@ launch() {
   done
   echo "All nodes are ready"
 
-  echo "__&&sleeping 5"
   sleep 5
   if [ -z "$het_group" ]; then
     curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
 
     # Only for heterogeneous submit
-    echo "__&&Discovery: Identifying all heterogeneous workers..."
     final_worker_list=$(get_all_heterogeneous_workers "${master_node}" "${worker_nodes}")
-    echo "__&&final worker list: ${final_worker_list}"
-    echo "__&&------ Registering Workers to Master Agent ------"
-    echo "__&&Workers: ${final_worker_list}"
+    echo "------ Registering Workers to Master Agent ------"
+    display_debug "Workers to register: ${final_worker_list}"
     for worker in ${final_worker_list}; do
       register_worker_resources "${master_node}" "${worker}" "${network}"
     done
@@ -1373,9 +1364,8 @@ launch() {
   fi
 
   for worker in ${worker_nodes}; do
-    echo "__&&CHECKING WORKERS: running curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources"
     RESPONSE=$(curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources) # 2>/dev/null
-    echo "__&&REPLY FROM ${worker}: ${RESPONSE}"
+    display_debug "Resources on ${worker}: ${RESPONSE}"
   done
 
 

@@ -25,7 +25,7 @@ run_provenance() {
       # Create a timestamp in the format YYYYMMDD_HHMMSS
       timestamp=$(date +%Y%m%d_%H%M%S)
       # Set the variable with the desired naming scheme
-      provenance_dest_path="COMPSs_RO-Crate_${timestamp}/"
+      provenance_dest_path="COMPSs_RO_Crate_${timestamp}/"
   fi
 
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"

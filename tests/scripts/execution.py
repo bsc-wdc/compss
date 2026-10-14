@@ -2,6 +2,8 @@
 
 # Imports
 import os
+import re
+import socket
 import subprocess
 import sys
 import time
@@ -721,6 +723,45 @@ def _wait_for_compss_ports_release(timeout=30):
         )
 
 
+REMOTE_WORKER_PREFIX = "COMPSsRemote"
+
+
+def _required_remote_workers(test_path):
+    """
+    Returns the ComputeNodes of the test that start with the COMPSsRemote
+    prefix (multi-node test)
+
+    :param test_path: Path of the test deployment folder
+        + type: String
+    :return: Sorted names of the COMPSsRemote nodes declared in the test
+             resources.xml (empty if none)
+        + type: List<String>
+    """
+    resources_file = os.path.join(test_path, "resources.xml")
+    try:
+        with open(resources_file, "r") as f:
+            content = f.read()
+    except OSError:
+        return []
+    return sorted(set(re.findall(REMOTE_WORKER_PREFIX + r"\w+", content)))
+
+
+def _remote_worker_available(name):
+    """
+    Checks whether the given remote worker is reachable from this machine
+
+    :param name: Host name of the worker (e.g. COMPSsRemote02)
+        + type: String
+    :return: True if the name resolves to an address
+        + type: bool
+    """
+    try:
+        socket.gethostbyname(name)
+    except socket.gaierror:
+        return False
+    return True
+
+
 def _execute_test(
     test_name, test_path, compss_logs_root, cmd_args, compss_cfg, compss_cfg_sc=None
 ):
@@ -747,6 +788,24 @@ def _execute_test(
     skip_file = os.path.join(test_path, "skip")
     if os.path.isfile(skip_file):
         print("[INFO] Skipping test " + str(test_name))
+        return ExitValue.SKIP, 0
+
+    # Skip multi-node tests when the remote workers are not reachable (e.g.
+    # tests.py executed outside docker_test, which sets up COMPSsRemote01/02)
+    missing = [
+        name
+        for name in _required_remote_workers(test_path)
+        if not _remote_worker_available(name)
+    ]
+    if missing:
+        print(
+            "[INFO] Skipping test "
+            + str(test_name)
+            + ": "
+            + ", ".join(missing)
+            + " does not resolve. Multi-node tests require "
+            "tests/scripts/docker_test, which starts the COMPSsRemote workers"
+        )
         return ExitValue.SKIP, 0
 
     # Else, execute test normally

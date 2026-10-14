@@ -120,7 +120,7 @@ check:
       # c ~10 + tools ~6 + agents ~5 + performance ~3 + socket ~1 + gos ~1 = ~26 min
       # estimated, but runs sequentially in practice (~33 min observed) since it
       # was never sharded like python/java above. Shard it the same way.
-      - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos"
+      - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos -f concurrency"
         TEST_SHARDS: "2"
   script:
     # Mirror the whole runner-level trace (docker pull, shard invocations, cleanup)

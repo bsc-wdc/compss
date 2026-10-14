@@ -1,5 +1,18 @@
 #!/bin/bash
 
+  # Runs the COMPSs test suite inside a container (tests.py) and provides two
+  # extra worker containers for multi-node tests.
+  #
+  # Multi-node mode: docker_test starts two worker containers from the same
+  # image on a Docker network private to this run, reachable from the test
+  # container under the host names COMPSsRemote01 and COMPSsRemote02, with
+  # passwordless ssh from the test container to both workers. A test opts into
+  # multi-node by declaring COMPSsRemote01/COMPSsRemote02 as ComputeNodes in
+  # its project.xml and resources.xml; nothing else changes for it. When
+  # tests.py runs outside docker_test and COMPSsRemote01 does not resolve,
+  # such tests are skipped. The network and the worker container names derive
+  # from COMPSS_CONTAINER, so parallel shards do not collide.
+
   # Check if the image is available locally
   if ! docker image inspect "${COMPSS_IMAGE:=tests}" &> /dev/null ; then
     echo "Docker image '${COMPSS_IMAGE}' does not exist. Build it before trying to run the tests with:"
@@ -14,19 +27,82 @@
   master_dir=/root
   worker_dir=/tmp/COMPSsWorker01
 
+  # Multi-node resources: names derive from COMPSS_CONTAINER
+  container="${COMPSS_CONTAINER:=tests}"
+  mn_net="${container}-mn"
+  mn_w1="${container}-remote01"
+  mn_w2="${container}-remote02"
+
+  cleanup() {
+    docker rm -fv "${mn_w1}" "${mn_w2}" &> /dev/null
+    docker network disconnect "${mn_net}" "${container}" &> /dev/null
+    docker network rm "${mn_net}" &> /dev/null
+  }
+  trap cleanup EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
   # Run the container
   if ! docker run -d \
-                  --env COMPSS_CONTAINER="${COMPSS_CONTAINER:=tests}" \
+                  --env COMPSS_CONTAINER="${container}" \
                   --env COMPSS_IMAGE="${COMPSS_IMAGE}" \
                   --mount type=bind,src="${docker_host:-${docker_sock}}",dst=${docker_sock} \
                   --mount type=volume,dst=${master_dir} \
                   --mount type=volume,dst=${worker_dir} \
-                  --name="${COMPSS_CONTAINER}" \
+                  --name="${container}" \
                   "${COMPSS_IMAGE}" sleep infinity ; then
-    echo "Docker container '${COMPSS_CONTAINER}' is already running. Remove it before trying to run the tests with:"
-    echo "docker rm -fv ${COMPSS_CONTAINER}"
+    echo "Docker container '${container}' is already running. Remove it before trying to run the tests with:"
+    echo "docker rm -fv ${container}"
     exit 1
   fi
 
+  # Remove stale multi-node resources from a previous run with the same names
+  cleanup
+
+  # Start the multi-node workers on a network private to this run. They share
+  # nothing with the test container: no /tmp, no volumes, no pid namespace.
+  if ! docker network create "${mn_net}" &> /dev/null ; then
+    echo "ERROR: cannot create docker network ${mn_net}"
+    exit 1
+  fi
+  docker network connect "${mn_net}" "${container}"
+
+  start_worker() {
+    if ! docker run -d \
+                    --name "$1" \
+                    --hostname "$2" \
+                    --network "${mn_net}" \
+                    --network-alias "$2" \
+                    "${COMPSS_IMAGE}" sleep infinity &> /dev/null ; then
+      echo "ERROR: cannot start worker container $1"
+      exit 1
+    fi
+  }
+  start_worker "${mn_w1}" COMPSsRemote01
+  start_worker "${mn_w2}" COMPSsRemote02
+
+  # Disable ssh host key checking for root in the test container (the workers
+  # are fresh containers on every run, so their host keys always change). The
+  # image bakes the same ssh key pair in every container, so passwordless ssh
+  # from the test container to the workers works out of the box.
+  docker exec "${container}" bash -c \
+    "printf 'Host *\n    StrictHostKeyChecking no\n    UserKnownHostsFile /dev/null\n' > /root/.ssh/config && chmod 600 /root/.ssh/config"
+
+  # Wait until the test container can ssh into both workers
+  for h in COMPSsRemote01 COMPSsRemote02; do
+    ok=0
+    for _ in $(seq 1 30); do
+      if docker exec "${container}" ssh -o BatchMode=yes "${h}" true &> /dev/null ; then
+        ok=1
+        break
+      fi
+      sleep 1
+    done
+    if [ "${ok}" != 1 ]; then
+      echo "ERROR: the test container cannot ssh to ${h}"
+      exit 1
+    fi
+  done
+
   # Execute the tests
-  docker exec "${COMPSS_CONTAINER}" /bin/bash -lc 'python3 /framework/tests/scripts/tests.py "$@"' _ "$@"
+  docker exec "${container}" /bin/bash -lc 'python3 /framework/tests/scripts/tests.py "$@"' _ "$@"

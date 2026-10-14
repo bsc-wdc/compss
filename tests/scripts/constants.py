@@ -25,6 +25,7 @@ DEFAULT_FAMILIES = [
     "agents_transfers",
     "c",
     "cloud",
+    "concurrency",
     "java",
     "performance",
     "pscos",

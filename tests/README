@@ -70,6 +70,20 @@ You can check your access by executing the following command:
     $ ssh ${bscgrid20_user}@bscgrid20.bsc.es
        (access is granted without asking for any password)
 
+=== Multi-node tests (docker_test) ===
+
+When the suite runs through scripts/docker_test, two extra worker containers
+(COMPSsRemote01 and COMPSsRemote02) are started from the same image on a Docker
+network private to that run, with passwordless ssh from the test container to
+both workers. A test opts into multi-node by declaring COMPSsRemote01 and
+COMPSsRemote02 as ComputeNodes in its project.xml and resources.xml; all other
+tests behave exactly as with a single node (COMPSsWorkerXX names still map to
+the test container itself). When tests.py runs outside docker_test and a
+COMPSsRemote host that the test declares does not resolve, the test is skipped
+and reported as SKIP instead of failing.
+
+Multi-node and other runtime-level tests live in the family "concurrency".
+
 == Usage instructions ==
 
 The COMPSs Tests infrastructure contains many scripts but the only one that must be executed is the tests.py file. You can retrieve all its options by running:

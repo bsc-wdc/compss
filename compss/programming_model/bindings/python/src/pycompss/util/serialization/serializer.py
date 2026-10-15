@@ -227,6 +227,7 @@ def serialize_to_handler(
     success = False
     original_position = handler.tell()
     is_json = False
+    json_serialization_size = 0
     # Lets try the serializers in the given priority
     serialization_issues = []
     while i < len(serializer_priority) and not success:
@@ -299,18 +300,34 @@ def serialize_to_handler(
                 elif serializer is json:
                     if __debug__:
                         logger.debug("Serializing using json...")
-                    # JSON doesn't like the binary mode: close handler
+                    # JSON doesn't like the binary mode: write through a
+                    # text-mode handle opened on the same file. Keep the
+                    # binary handler open (the caller closes what it opened)
+                    # so that the next serializer can use it if json fails.
                     h_name = handler.name
-                    handler.close()
+                    handler.flush()
                     # Open the handler in normal mode
                     reopened_handler = open(
                         h_name, "w"
                     )  # pylint: disable=consider-using-with
-                    reopened_handler.write(f"{LIB2IDX[serializer]:04d}")
-                    serializer.dump(obj, reopened_handler)
-                    is_json = True
-                    if __debug__:
-                        logger.debug("Serializing using json success")
+                    try:
+                        reopened_handler.write(f"{LIB2IDX[serializer]:04d}")
+                        serializer.dump(obj, reopened_handler)
+                        reopened_handler.flush()
+                        json_serialization_size = reopened_handler.tell()
+                        is_json = True
+                        if __debug__:
+                            logger.debug("Serializing using json success")
+                    finally:
+                        reopened_handler.close()
+                        if not is_json:
+                            # The json attempt failed and may have written
+                            # partial data: restore the binary handler at
+                            # the original position with the file truncated
+                            # there, so that the next serializer starts
+                            # from a clean state.
+                            handler.seek(original_position)
+                            handler.truncate()
                 else:
                     if __debug__:
                         logger.debug(
@@ -339,7 +356,7 @@ def serialize_to_handler(
                     )
         i += 1
     if is_json:
-        serialization_size = reopened_handler.tell()
+        serialization_size = json_serialization_size
     else:
         serialization_size = handler.tell()
     emit_manual_event_explicit(

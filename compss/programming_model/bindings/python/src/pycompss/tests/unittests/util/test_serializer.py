@@ -134,6 +134,33 @@ def test_serialize_deserialize_np_to_file_no_gc():
 #     ), "ERROR: Serialization and deserialization to/from string retrieved wrong object."  # noqa: E501
 
 
+def test_serialize_int_to_file_json_failure_pickle_fallback():
+    # json.dump fails -> the pickle fallback must write a file that
+    # deserializes back to the int.
+    from unittest.mock import patch
+
+    import pycompss.util.serialization.serializer as serializer_module
+    from pycompss.util.serialization.serializer import deserialize_from_file
+    from pycompss.util.serialization.serializer import serialize_to_file
+
+    target_file = "target_json_fail.pkl"
+    obj = 42
+    try:
+        with patch.object(
+            serializer_module.json,
+            "dump",
+            side_effect=ValueError("json dump failed"),
+        ):
+            serialize_to_file(obj, target_file, logger=LOGGER)
+        result = deserialize_from_file(target_file, logger=LOGGER)
+    finally:
+        if os.path.exists(target_file):
+            os.remove(target_file)
+    assert (
+        result == obj
+    ), "ERROR: Pickle fallback after a json failure retrieved wrong object."  # noqa: E501
+
+
 def test_serialize_objects():
     from pycompss.util.serialization.serializer import serialize_objects
     from pycompss.util.serialization.serializer import deserialize_from_file

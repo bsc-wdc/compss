@@ -10,8 +10,8 @@ run_provenance() {
   echo "PROVENANCE | PROFILING | Profiling stopped."
 
   mkdir -p "${specific_log_dir}/stats/"
-  find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
-  find "${specific_log_dir}/workers/" -type f -name "*.log" -exec cp {} "${specific_log_dir}/stats/" \;
+  find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec mv {} "${specific_log_dir}/stats/" \;
+  find "${specific_log_dir}/workers/" -type f -name "*.log" -exec mv {} "${specific_log_dir}/stats/" \;
   for file in "${specific_log_dir}"stats/*.csv; do
     if [[ "$(basename "$file")" == *"${COMPSS_MASTER_NODE}"* ]]; then
       new_name="${file%.csv}-MASTER.csv"

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <ComputeNode Name="COMPSsRemote01">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker/</WorkingDir>
+        <User>root</User>
+        <Application>
+            <AppDir></AppDir>
+        </Application>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsRemote02">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker/</WorkingDir>
+        <User>root</User>
+        <Application>
+            <AppDir></AppDir>
+        </Application>
+    </ComputeNode>
+</Project>

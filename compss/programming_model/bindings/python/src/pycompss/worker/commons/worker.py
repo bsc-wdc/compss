@@ -39,11 +39,13 @@ from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import Parameter
+from pycompss.util.exceptions import CancelError
 from pycompss.util.exceptions import SerializerException, PyCOMPSsException
 from pycompss.util.exceptions import TimeOutError
 from pycompss.util.exceptions import task_cancel
 from pycompss.util.exceptions import task_timed_out
 from pycompss.util.process.manager import DictProxy  # typing only
+from pycompss.util.process_tree import kill_process_tree
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import load_storage_library
@@ -391,6 +393,15 @@ def task_execution(
         return task_returns(
             2, types, new_values, None, False, return_message, logger
         )
+    except CancelError:
+        # The task has been cancelled through a task group cancellation
+        # request. Kill the processes that the task has started; the
+        # executor process is not signaled and survives for further tasks.
+        logger.exception("CANCEL IN %s - Task cancelled", process_name)
+        kill_process_tree(logger=logger)
+        # If the task is cancelled, the return values are empty and
+        # target_direction is None, as in any other task exception
+        return task_returns(1, [], [], None, False, "", logger)
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()

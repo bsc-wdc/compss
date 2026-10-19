@@ -1721,7 +1721,7 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
 
     }
 
-    //No data information case (required for GAT Adaptor)
+    //No data information case (required for GOS Adaptor)
     fprintf(outFile, "\t\t\t } else { //Obtain object as file \n");
     fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Data ID for parameter %s not found in argument value. Reseting filename to \" << %s_filename_og << endl << flush;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t\t %s_filename = %s_filename_og ;\n", arg->name, arg->name);

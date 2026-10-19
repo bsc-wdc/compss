@@ -2540,12 +2540,11 @@ public class ProjectFile {
      *
      * @param name Adaptor name
      * @param subsys Submission System description
-     * @param gatproperties GAT properties description
+     * @param properties Adaptor properties description
      * @param user username
      * @return Created Adaptor description object.
      */
-    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties,
-        String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String properties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -2554,7 +2553,7 @@ public class ProjectFile {
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
         JAXBElement<String> propertiesElement =
-            new JAXBElement<String>(new QName("BrokerAdaptor"), String.class, gatproperties);
+            new JAXBElement<String>(new QName("BrokerAdaptor"), String.class, properties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -2675,13 +2674,13 @@ public class ProjectFile {
      * @param batch Flag to indicate if submission system is batch
      * @param queues List of queue names
      * @param interactive Flag to indicate if submission system is interactive
-     * @param gatproperties GAT properties description
+     * @param properties Adaptor properties description
      * @param user Username
      * @return Created Adaptor description object.
      * @return
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-        String gatproperties, String user) {
+        String properties, String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -2698,7 +2697,7 @@ public class ProjectFile {
             subsys.getBatchOrInteractive().add(i);
         }
 
-        return createAdaptor(name, subsys, gatproperties, user);
+        return createAdaptor(name, subsys, properties, user);
     }
 
     /**

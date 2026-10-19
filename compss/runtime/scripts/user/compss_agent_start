@@ -118,7 +118,7 @@ show_opts() {
     --comm=<className>                      Class that implements the adaptor for communications with other nodes
                                             Supported adaptors:
                                                 ├── ${NIO_ADAPTOR}
-                                                ├── ${GAT_ADAPTOR}
+                                                ├── ${GOS_ADAPTOR}
                                                 ├── ${REST_AGENT_ADAPTOR}
                                                 └── ${COMM_AGENT_ADAPTOR}
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}

@@ -196,7 +196,7 @@ public abstract class Tracer {
      * single one.
      *
      * @param name of the host
-     * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0, because they will be
+     * @param slots number of threads the host is expected to have (used in GOS, in NIO is 0, because they will be
      *            computed automatically
      * @return the next ID to be used during the initialization of the tracing in the given host.
      */
@@ -219,7 +219,7 @@ public abstract class Tracer {
     }
 
     /**
-     * Returns the next slot ID (thread) that will run a task (GAT only).
+     * Returns the next slot ID (thread) that will run a task (GOS only).
      *
      * @param host that is going to execute a task
      * @return the next thread ID available to execute task (don't care about real order)

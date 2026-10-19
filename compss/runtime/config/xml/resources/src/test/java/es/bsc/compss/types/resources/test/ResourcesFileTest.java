@@ -551,7 +551,7 @@ public class ResourcesFileTest {
             .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</Ports>").append("\n");
         sb.append("    ").append("    ").append("    ").append("</Adaptor>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.gat.master.GATAdaptor\">")
+        sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.gos.master.GOSAdaptor\">")
             .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Batch>").append("\n");
@@ -585,12 +585,12 @@ public class ResourcesFileTest {
         String adaptorName = "nio";
         boolean batch = false;
         boolean interactive = true;
-        String gatprop = "gat_prop";
+        String prop = "gos_prop";
         String user = "user";
 
         ProcessorPropertyType pp = ResourcesFile.createProcessorProperty(key, value);
         ProcessorType proc = ResourcesFile.createProcessor(procName, cu, arch, speed, "CPU", 0.0f, pp);
-        AdaptorType ad = ResourcesFile.createAdaptor(adaptorName, batch, null, interactive, gatprop, user);
+        AdaptorType ad = ResourcesFile.createAdaptor(adaptorName, batch, null, interactive, prop, user);
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
@@ -634,7 +634,7 @@ public class ResourcesFileTest {
         // boolean batch = true;
         // String queue = "default";
         // boolean interactive = true;
-        // String gatprop = "sshtrillead";
+        // String prop = "sshtrillead";
         String user = "user";
 
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
@@ -670,55 +670,6 @@ public class ResourcesFileTest {
         assertEquals(executor,
             ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
                 .getRemoteExecutionCommand());
-    }
-
-    @Test
-    public void computeNodeCreationWithGATAndRead()
-        throws SAXException, JAXBException, ResourcesFileValidationException {
-        int cu = 5;
-        float speed = 2.6f;
-        String nodeName = "blablahost";
-        String procName = "Proc1";
-        String arch = "amd64";
-        String key = "procKey";
-        String value = "procValue";
-        float memSize = 32.5f;
-        float storageSize = 256.0f;
-        String osType = OSTypeType.LINUX.value();
-        String adaptorName = "gat";
-        // int minPort = 20;
-        // int maxPort = 40;
-        // String executor ="ssh";
-        boolean batch = true;
-        String queue = "default";
-        List<String> queues = new ArrayList<String>();
-        queues.add(queue);
-        boolean interactive = true;
-        String gatprop = "sshtrillead";
-        String user = "user";
-
-        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
-
-        // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
-        resources.addComputeNode(nodeName, procName, cu, arch, speed, null, -1f,
-            ResourcesFile.createProcessorProperty(key, value), adaptorName, batch, queues, interactive, gatprop, user,
-            memSize, null, storageSize, null, -1, osType, null, null);
-        ComputeNodeType cn = resources.getComputeNode(nodeName);
-        ProcessorType procExtracted = resources.getProcessors(cn).get(0);
-        assertEquals(procName, procExtracted.getName());
-        assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
-        assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
-        assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
-        assertEquals("CPU", resources.getProcessorType(procExtracted));
-        assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
-        assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
-        assertEquals(memSize, resources.getMemorySize(cn), 0);
-        assertEquals(storageSize, resources.getStorageSize(cn), 0);
-        assertEquals(osType, resources.getOperatingSystemType(cn));
-        assertEquals(HashMap.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
-        assertEquals(gatprop, resources.getAdaptorProperties(cn, adaptorName).get("BrokerAdaptor"));
-        assertEquals(queue, resources.getAdaptorQueues(cn, adaptorName).get(0));
     }
 
 }

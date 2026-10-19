@@ -434,7 +434,7 @@ def create_init_config_file(
                        specific extrae configuration.
     :param extrae_final_directory: None|<String>
                                    Default extrae final directory.
-    :param comm: <String> GAT/NIO.
+    :param comm: <String> GOS/NIO.
     :param conn: <String> Connector
                  (normally: es.bsc.compss.connectors.DefaultSSHConnector).
     :param master_name: <String> Master node name.
@@ -598,10 +598,7 @@ def create_init_config_file(
             "-Dcompss.worker.env_script=" + env_script + "\n"
         )
 
-        if comm == "GAT":
-            gat = "-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor"
-            jvm_options_file.write(gat + "\n")
-        elif comm == "NIO":
+        if comm == "NIO":
             nio = "-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor"
             jvm_options_file.write(nio + "\n")
         elif comm == "GOS":
@@ -612,18 +609,6 @@ def create_init_config_file(
 
         jvm_options_file.write("-Dcompss.masterName=" + master_name + "\n")
         jvm_options_file.write("-Dcompss.masterPort=" + master_port + "\n")
-
-        jvm_options_file.write(
-            "-Dgat.adaptor.path="
-            + compss_home
-            + "/Dependencies/JAVA_GAT/lib/adaptors\n"
-        )
-        if debug:
-            jvm_options_file.write("-Dgat.debug=true\n")
-        else:
-            jvm_options_file.write("-Dgat.debug=false\n")
-        jvm_options_file.write("-Dgat.broker.adaptor=sshtrilead\n")
-        jvm_options_file.write("-Dgat.file.adaptor=sshtrilead\n")
 
         if reuse_on_block:
             jvm_options_file.write("-Dcompss.execution.reuseOnBlock=true\n")

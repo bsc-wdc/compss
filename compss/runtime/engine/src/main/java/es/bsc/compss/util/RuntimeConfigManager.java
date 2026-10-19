@@ -133,9 +133,6 @@ public class RuntimeConfigManager {
                 setPropertyFromRuntime(COMPSsConstants.PROJ_SCHEMA, manager.getProjectSchema());
                 setPropertyFromRuntime(COMPSsConstants.SCHEDULER, manager.getScheduler());
                 setPropertyFromRuntime(COMPSsConstants.MONITOR, Long.toString(manager.getMonitorInterval()));
-                setPropertyFromRuntime(COMPSsConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
-                setPropertyFromRuntime(COMPSsConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
-                setPropertyFromRuntime(COMPSsConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
                 if (System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK) == null
                     || System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK).isEmpty()) {
                     System.setProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK,
@@ -174,9 +171,6 @@ public class RuntimeConfigManager {
                     } else {
                         System.setProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
                     }
-                }
-                if (System.getProperty(COMPSsConstants.GAT_DEBUG) == null) {
-                    System.setProperty(COMPSsConstants.GAT_DEBUG, Boolean.toString(manager.isGATDebug()));
                 }
                 if (System.getProperty(COMPSsConstants.LANG) == null) {
                     System.setProperty(COMPSsConstants.LANG, manager.getLang());
@@ -224,7 +218,6 @@ public class RuntimeConfigManager {
         setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsDefaults.DEPLOYMENT_ID);
         setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsPaths.LOCAL_RES_SCHEMA);
         setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsPaths.LOCAL_PROJECT_SCHEMA);
-        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsPaths.GAT_ADAPTOR_LOCATION);
         setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
         setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsDefaults.REUSE_RESOURCES_ON_BLOCK);
         setDefaultProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
@@ -562,93 +555,21 @@ public class RuntimeConfigManager {
     }
 
     /**
-     * Returns the GAT context.
+     * Returns the COMPSs context.
      *
-     * @return The GAT context.
+     * @return The COMPSs context.
      */
     public String getContext() {
         return config.getString(COMPSsConstants.COMPSS_CONTEXT);
     }
 
     /**
-     * Sets a new GAT context.
+     * Sets a new COMPSs context.
      *
-     * @param context New GAT context.
+     * @param context New COMPSs context.
      */
     public void setContext(String context) {
         config.setProperty(COMPSsConstants.COMPSS_CONTEXT, context);
-    }
-
-    /**
-     * Returns the specific GAT adaptor path.
-     *
-     * @return The specific GAT adaptor path.
-     */
-    public String getGATAdaptor() {
-        return config.getString(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsPaths.GAT_ADAPTOR_LOCATION);
-    }
-
-    /**
-     * Sets a new location for the GAT Adaptor.
-     *
-     * @param adaptorPath New location for the GAT Adaptor.
-     */
-    public void setGATAdaptor(String adaptorPath) {
-        config.setProperty(COMPSsConstants.GAT_ADAPTOR_PATH, adaptorPath);
-    }
-
-    /**
-     * Returns if the GAT Adaptor is in debug mode or not.
-     *
-     * @return {@code true} if the GAT Adaptor is in debug mode, {@code false} otherwise.
-     */
-    public boolean isGATDebug() {
-        return config.getBoolean(COMPSsConstants.GAT_DEBUG, false);
-    }
-
-    /**
-     * Sets a new debug mode for the GAT Adaptor.
-     *
-     * @param debug New debug mode for the GAT Adaptor.
-     */
-    public void setGATDebug(boolean debug) {
-        config.setProperty(COMPSsConstants.GAT_DEBUG, debug);
-    }
-
-    /**
-     * Returns the GAT Broker Adaptor class.
-     *
-     * @return The GAT Broker Adaptor class.
-     */
-    public String getGATBrokerAdaptor() {
-        return config.getString(COMPSsConstants.GAT_BROKER_ADAPTOR);
-    }
-
-    /**
-     * Sets a new GAT Broker Adaptor class.
-     *
-     * @param adaptor New GAT Broker Adaptor class.
-     */
-    public void setGATBrokerAdaptor(String adaptor) {
-        config.setProperty(COMPSsConstants.GAT_BROKER_ADAPTOR, adaptor);
-    }
-
-    /**
-     * Returns the GAT File Adaptor.
-     *
-     * @return The GAT File Adaptor.
-     */
-    public String getGATFileAdaptor() {
-        return config.getString(COMPSsConstants.GAT_FILE_ADAPTOR);
-    }
-
-    /**
-     * Sets a new GAT File Adaptor class.
-     *
-     * @param adaptor New GAT File Adaptor class.
-     */
-    public void setGATFileAdaptor(String adaptor) {
-        config.setProperty(COMPSsConstants.GAT_FILE_ADAPTOR, adaptor);
     }
 
     /**

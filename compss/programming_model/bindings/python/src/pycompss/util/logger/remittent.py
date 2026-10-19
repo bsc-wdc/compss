@@ -25,7 +25,6 @@ class _LogRemittent:  # pylint: disable=too-few-public-methods
 
     MASTER = "master"
     WORKER = "worker"
-    GAT_WORKER = "gat_worker"
     MPI_WORKER = "mpi_worker"
     CONTAINER_WORKER = "container_worker"
 

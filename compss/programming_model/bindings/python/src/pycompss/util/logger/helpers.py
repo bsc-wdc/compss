@@ -231,7 +231,6 @@ def __add_loggers(conf: dict, remittent: str, log_level: str) -> dict:
             handlers = ["error_worker_file_handler"]
 
     elif remittent in (
-        LOG_REMITTENT.GAT_WORKER,
         LOG_REMITTENT.MPI_WORKER,
         LOG_REMITTENT.CONTAINER_WORKER,
     ):

@@ -72,38 +72,35 @@
   expected_user_event_generate="2"
   expected_user_event_zeros="38"
 
-  # GAT does not support task tracing
   exit_value=0
-  if [ "${comm}" != "es.bsc.compss.gat.master.GATAdaptor" ]; then
-    user_event_cluster=$(grep -c ":${USER_EVENTS}:${CLUSTER_MAIN_LOOP}" "${target_log_folder}"/trace/*.prv)
-    user_event_partial_sum=$(grep -c ":${USER_EVENTS}:${PARTIAL_SUM}" "${target_log_folder}"/trace/*.prv)
-    user_event_reduce_key=$(grep -c ":${USER_EVENTS}:${REDUCE_KEY}" "${target_log_folder}"/trace/*.prv)
-    user_event_reduce_no_key=$(grep -c ":${USER_EVENTS}:${REDUCE_NO_KEY}" "${target_log_folder}"/trace/*.prv | cat)
-    user_event_generate=$(grep -c ":${USER_EVENTS}:${GENERATE}" "${target_log_folder}"/trace/*.prv)
-    user_event_zeros=$(grep -c ":${USER_EVENTS}:0" "${target_log_folder}"/trace/*.prv)
+  user_event_cluster=$(grep -c ":${USER_EVENTS}:${CLUSTER_MAIN_LOOP}" "${target_log_folder}"/trace/*.prv)
+  user_event_partial_sum=$(grep -c ":${USER_EVENTS}:${PARTIAL_SUM}" "${target_log_folder}"/trace/*.prv)
+  user_event_reduce_key=$(grep -c ":${USER_EVENTS}:${REDUCE_KEY}" "${target_log_folder}"/trace/*.prv)
+  user_event_reduce_no_key=$(grep -c ":${USER_EVENTS}:${REDUCE_NO_KEY}" "${target_log_folder}"/trace/*.prv | cat)
+  user_event_generate=$(grep -c ":${USER_EVENTS}:${GENERATE}" "${target_log_folder}"/trace/*.prv)
+  user_event_zeros=$(grep -c ":${USER_EVENTS}:0" "${target_log_folder}"/trace/*.prv)
 
-    if [ "${user_event_cluster}" != "${expected_user_event_cluster}" ] ||
-           [ "${user_event_partial_sum}" != "${expected_user_event_partial_sum}" ] ||
-           [ "${user_event_reduce_key}" != "${expected_user_event_reduce_key}" ] ||
-           [ "${user_event_reduce_no_key}" != "${expected_user_event_reduce_no_key}" ] ||
-           [ "${user_event_generate}" != "${expected_user_event_generate}" ]; then
-      echo "[ERROR] Missing user events." | tee -a "${output_file}"
-      echo "Cluster task events: Expected: ${expected_user_event_cluster} Got: ${user_event_cluster}" | tee -a "${output_file}"
-      echo "Partial sum task events: Expected: ${expected_user_event_partial_sum} Got: ${user_event_partial_sum}" | tee -a "${output_file}"
-      echo "Reduce key task events: Expected: ${expected_user_event_reduce_key} Got: ${user_event_reduce_key}" | tee -a "${output_file}"
-      echo "Reduce no key task events: Expected: ${expected_user_event_reduce_no_key} Got: ${user_event_reduce_no_key}" | tee -a "${output_file}"
-      echo "Generate task events: Expected: ${expected_user_event_generate} Got: ${user_event_generate}" | tee -a "${output_file}"
-      echo "Zero events: Expected: ${expected_user_event_zeros} Got: ${user_event_zeros}" | tee -a "${output_file}"
-      exit_value=1
-    fi
+  if [ "${user_event_cluster}" != "${expected_user_event_cluster}" ] ||
+          [ "${user_event_partial_sum}" != "${expected_user_event_partial_sum}" ] ||
+          [ "${user_event_reduce_key}" != "${expected_user_event_reduce_key}" ] ||
+          [ "${user_event_reduce_no_key}" != "${expected_user_event_reduce_no_key}" ] ||
+          [ "${user_event_generate}" != "${expected_user_event_generate}" ]; then
+    echo "[ERROR] Missing user events." | tee -a "${output_file}"
+    echo "Cluster task events: Expected: ${expected_user_event_cluster} Got: ${user_event_cluster}" | tee -a "${output_file}"
+    echo "Partial sum task events: Expected: ${expected_user_event_partial_sum} Got: ${user_event_partial_sum}" | tee -a "${output_file}"
+    echo "Reduce key task events: Expected: ${expected_user_event_reduce_key} Got: ${user_event_reduce_key}" | tee -a "${output_file}"
+    echo "Reduce no key task events: Expected: ${expected_user_event_reduce_no_key} Got: ${user_event_reduce_no_key}" | tee -a "${output_file}"
+    echo "Generate task events: Expected: ${expected_user_event_generate} Got: ${user_event_generate}" | tee -a "${output_file}"
+    echo "Zero events: Expected: ${expected_user_event_zeros} Got: ${user_event_zeros}" | tee -a "${output_file}"
+    exit_value=1
+  fi
 
-    emitted_tasks=$((user_event_cluster + user_event_partial_sum + user_event_reduce_key + user_event_reduce_no_key + user_event_generate))
-    if [ "${emitted_tasks}" != "${user_event_zeros}" ]; then
-      echo "[ERROR] The emitted tasks does not match the number of zero events." | tee -a "${output_file}"
-      echo "Emited task events: Expected: ${emitted_tasks}" | tee -a "${output_file}"
-      echo "Zero events: ${user_event_zeros}" | tee -a "${output_file}"
-      exit_value=1
-    fi
+  emitted_tasks=$((user_event_cluster + user_event_partial_sum + user_event_reduce_key + user_event_reduce_no_key + user_event_generate))
+  if [ "${emitted_tasks}" != "${user_event_zeros}" ]; then
+    echo "[ERROR] The emitted tasks does not match the number of zero events." | tee -a "${output_file}"
+    echo "Emited task events: Expected: ${emitted_tasks}" | tee -a "${output_file}"
+    echo "Zero events: ${user_event_zeros}" | tee -a "${output_file}"
+    exit_value=1
   fi
 
   # Exit value

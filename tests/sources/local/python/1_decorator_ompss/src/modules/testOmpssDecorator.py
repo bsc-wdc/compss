@@ -124,7 +124,6 @@ class testOmpssDecorator(unittest.TestCase):
         ev = compss_wait_on(ev)
         self.assertEqual(ev, 123)  # own exit code for failed execution
 
-    @unittest.skip("UNSUPPORTED WITH GAT")
     def testFileManagementINOUT(self):
         inoutfile = "src/inoutfile"
         mySedINOUT('-i', 's/Hi/HELLO/g', inoutfile)

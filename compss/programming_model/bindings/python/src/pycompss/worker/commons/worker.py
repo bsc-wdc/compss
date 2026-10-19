@@ -19,7 +19,7 @@
 PyCOMPSs Worker - Commons - Worker.
 
 This file contains the common worker methods.
-Currently, it is used by all worker types (container, external, gat and piper).
+Currently, it is used by all worker types (container, external, gos and piper).
 """
 
 import base64

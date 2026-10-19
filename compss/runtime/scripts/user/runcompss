@@ -111,7 +111,7 @@ show_opts() {
     --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors:
                                                   ├── ${NIO_ADAPTOR}
-                                                  └── ${GAT_ADAPTOR}
+                                                  └── ${GOS_ADAPTOR}
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
     --conn=<className>                      Class that implements the runtime connector for the cloud
                                             Supported connectors:

@@ -47,7 +47,6 @@ public class COMPSsConstants {
     public static final String LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
     public static final String COMPSS_WORKING_DIR = "COMPSS_WORKING_DIR";
     public static final String COMPSS_APP_DIR = "COMPSS_APP_DIR";
-    public static final String GAT_LOC = "GAT_LOCATION";
     public static final String COMPSS_MPIRUN_TYPE = "COMPSS_MPIRUN_TYPE";
     public static final String COMPSS_SSH_TIMEOUT = "COMPSS_SSH_TIMEOUT";
     public static final String COMPSS_WORKER_INIT_TIMEOUT = "COMPSS_WORKER_INIT_TIMEOUT";
@@ -115,12 +114,6 @@ public class COMPSsConstants {
     public static final String CONN = "compss.conn";
 
     public static final String HTTP_ADAPTOR = "es.bsc.compss.http.master.HTTPAdaptor";
-
-    // GAT
-    public static final String GAT_ADAPTOR_PATH = "gat.adaptor.path";
-    public static final String GAT_DEBUG = "gat.debug";
-    public static final String GAT_BROKER_ADAPTOR = "gat.broker.adaptor";
-    public static final String GAT_FILE_ADAPTOR = "gat.file.adaptor";
 
     // LOCAL
     public static final String REUSE_RESOURCES_ON_BLOCK = "compss.execution.reuseOnBlock";

@@ -14,7 +14,7 @@
                     <MaxPort>43002</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>

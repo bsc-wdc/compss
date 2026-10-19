@@ -32,7 +32,7 @@
   fi
 
   #----------------------------------------------------------------------------------
-  # Check output standard out status of simple.ipynb or simpleGAT.ipynb
+  # Check output standard out status of simple.ipynb
   if [ -f "${html}" ]; then
     result_expected="RESULT=EXPECTED"
     test_result=$(grep -aoE '\bRESULT=\w*' "${html}" | tail -n 1)

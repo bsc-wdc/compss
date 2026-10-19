@@ -32,12 +32,11 @@ DEFAULT_MASTER_NAME=""
 
 # Available Adaptors
 NIO_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
-GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
+GOS_ADAPTOR=es.bsc.compss.gos.master.GOSAdaptor
 REST_AGENT_ADAPTOR=es.bsc.compss.agent.rest.master.Adaptor
 COMM_AGENT_ADAPTOR=es.bsc.compss.agent.comm.CommAgentAdaptor
 
 DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
-#DEFAULT_COMMUNICATION_ADAPTOR=${GAT_ADAPTOR}
 
 DEFAULT_REUSE_RESOURCES_ON_BLOCK="true"
 DEFAULT_ENABLED_NESTED_TASKS_DETECTION="false"
@@ -56,10 +55,7 @@ DEFAULT_ENABLED_NESTED_TASKS_DETECTION="false"
 # CHECK ADAPTORS-RELATED ENV VARIABLES
 #----------------------------------------------
 check_adaptors_env() {
-  # GAT Environment
-  if [ -z "${GAT_LOCATION}" ]; then
-    GAT_LOCATION=${COMPSS_HOME}/Dependencies/JAVA_GAT
-  fi
+  :
 }
 
 
@@ -101,10 +97,6 @@ append_adaptors_jvm_options_to_file() {
 -Dcompss.comm=${comm}
 -Dcompss.masterName=${master_name}
 -Dcompss.masterPort=${master_port}
--Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
--Dgat.debug=false
--Dgat.broker.adaptor=sshtrilead
--Dgat.file.adaptor=sshtrilead
 -Dcompss.execution.reuseOnBlock=${reuse_resources_on_block}
 -Dcompss.execution.nested.enabled=${enabled_nested_local}
 EOT

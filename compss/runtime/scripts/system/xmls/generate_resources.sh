@@ -456,7 +456,7 @@ EOT
    cat >> "${RESOURCES_FILE}" << EOT
         </Ports>
       </Adaptor>
-      <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+      <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
         <SubmissionSystem>
           <Interactive/>
         </SubmissionSystem>

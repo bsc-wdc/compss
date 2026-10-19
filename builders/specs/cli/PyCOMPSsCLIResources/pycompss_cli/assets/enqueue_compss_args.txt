@@ -206,7 +206,7 @@ Usage: /apps/COMPSs/3.4/Runtime/scripts/user/enqueue_compss [queue_system_option
     --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors:
                                                   ├── es.bsc.compss.nio.master.NIOAdaptor
-                                                  └── es.bsc.compss.gat.master.GATAdaptor
+                                                  └── es.bsc.compss.gos.master.GOSAdaptor
                                             Default: es.bsc.compss.nio.master.NIOAdaptor
     --conn=<className>                      Class that implements the runtime connector for the cloud
                                             Supported connectors:

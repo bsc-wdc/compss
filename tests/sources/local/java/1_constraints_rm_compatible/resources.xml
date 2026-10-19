@@ -41,7 +41,7 @@
                     <MaxPort>43002</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>another</Queue>
@@ -100,7 +100,7 @@
                     <MaxPort>43003</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -165,7 +165,7 @@
                     <MaxPort>43004</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>debug</Queue>
@@ -221,7 +221,7 @@
                     <MaxPort>43005</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
@@ -275,7 +275,7 @@
                     <MaxPort>43006</MaxPort>
                 </Ports>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                 	<Batch>
                         <Queue>debug</Queue>

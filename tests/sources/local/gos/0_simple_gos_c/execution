@@ -37,8 +37,8 @@
   # Run application
   echo
   echo "*** RUNNING NORD C APPLICATION SIMPLE"
-  output_log="${target_log_folder}/simple_gat_c_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/simple_gat_c_0${retry_num}.errorlog"
+  output_log="${target_log_folder}/simple_gos_c_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/simple_gos_c_0${retry_num}.errorlog"
   counterVal=1
   expectedTime=120s
 

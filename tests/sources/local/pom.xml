@@ -228,7 +228,6 @@
         <module>c</module>
         <module>cloud</module>
         <module>fault_tolerance</module>
-        <module>gat</module>
         <module>gos</module>
         <module>gos_batch</module>
         <module>java</module>

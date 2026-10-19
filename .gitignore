@@ -169,11 +169,6 @@ dkms.conf
 
 # ========== Runtime ignores =================
 
-# Do ignore JAVA_GAT compiled files
-!dependencies/JAVA_GAT/api-src.zip
-!dependencies/JAVA_GAT/lib/
-!dependencies/JAVA_GAT/**/*.jar
-
 # Ignore JAXB files
 compss/runtime/config/xml/monitor/src/main/
 compss/runtime/config/xml/projects/src/main/java/META-INF/
@@ -185,7 +180,7 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 tests/configurations/*.cfg
 !tests/configurations/NIO.cfg
 !tests/configurations/NIO_Docker.cfg
-!tests/configurations/GAT.cfg
+!tests/configurations/GOS.cfg
 !tests/configurations/MT.cfg
 !tests/configurations/MN.cfg
 tests/scripts/hosts.backup

@@ -541,7 +541,7 @@ public class GOSWorker implements InvocationContext {
                 }
                 break;
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
-                throw new UnsupportedOperationException("Output PSCOs are not suported with the GAT adaptor");
+                throw new UnsupportedOperationException("Output PSCOs are not suported with the GOS adaptor");
             case EXTERNAL_STREAM_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the

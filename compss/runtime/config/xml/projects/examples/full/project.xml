@@ -43,7 +43,7 @@
                     </Property>
                 </Properties>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -112,7 +112,7 @@
     </ComputeNode>
     <DataNode Name="DN_full">
         <Adaptors>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -165,7 +165,7 @@
                         <Target>/tmp/Worker/</Target>
                     </Package>
                     <Adaptors>
-                        <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                        <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                             <SubmissionSystem>
 <Interactive/>
                             </SubmissionSystem>

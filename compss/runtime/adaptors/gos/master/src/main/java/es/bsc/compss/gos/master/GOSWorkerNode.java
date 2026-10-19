@@ -24,6 +24,7 @@ import es.bsc.compss.gos.master.configuration.GOSConfiguration;
 import es.bsc.compss.gos.master.exceptions.GOSWarningException;
 import es.bsc.compss.gos.master.monitoring.GOSMonitoring;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
@@ -48,11 +49,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
- * Representation of a GAT Worker node for the Runtime.
+ * Representation of a GOS Worker node for the Runtime.
  */
 public class GOSWorkerNode extends COMPSsWorker {
+
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
     private static final String WORKER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
         + File.separator + "adaptors" + File.separator + "gos" + File.separator;
@@ -131,7 +138,7 @@ public class GOSWorkerNode extends COMPSsWorker {
     @Override
     public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
         Transferable reason, EventListener listener) {
-        if (LOGGER.isDebugEnabled()) {
+        if (DEBUG) {
             LOGGER.info(dbgPrefix + "send data");
         }
         GOSCopy copy = new GOSCopy(srcData, source, target, tgtData, reason, listener, this, "send");
@@ -141,7 +148,7 @@ public class GOSWorkerNode extends COMPSsWorker {
     @Override
     public void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
         Transferable reason, EventListener listener) {
-        if (LOGGER.isDebugEnabled()) {
+        if (DEBUG) {
             LOGGER.info(dbgPrefix + "obtain data");
         }
         GOSCopy copy = new GOSCopy(srcData, source, target, tgtData, reason, listener, this, "obtain");
@@ -204,8 +211,8 @@ public class GOSWorkerNode extends COMPSsWorker {
         String ignoreBringFolder = BATCH_OUTPUT_DIR + " " + CANCEL_JOB_DIR + " " + SSH_RESPONSE_DIR;
         String compressFolderPath;
         boolean runEndCommand = true;
-        if (LOGGER.isDebugEnabled()) {
-            String uuid = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
+        if (DEBUG) {
+            String uuid = System.getProperty(DEPLOYMENT_ID);
             compressFolderPath = wk + config.getHost() + "-CF-" + uuid + ".tar";
             String compressCommand = config.getInstallDir() + WORKER_SCRIPT_PATH + COMPRESS_SCRIPT + " " + wk + " "
                 + compressFolderPath + " " + ignoreBringFolder;

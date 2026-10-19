@@ -36,7 +36,7 @@
                     </Property>
                 </Properties>
             </Adaptor>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
@@ -97,11 +97,11 @@
             </Adaptor>
         </Adaptors>
     </DataNode>
-    <DataNode Name="DN_GAT">
+    <DataNode Name="DN_GOS">
         <Host>localhost</Host>
         <Path>/tmp/</Path>
         <Adaptors>
-            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>

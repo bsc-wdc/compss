@@ -39,9 +39,6 @@ public class COMPSsPaths {
     public static final String LOCAL_RES_SCHEMA = COMPSs_HOME + REL_RES_SCHEMA;
     public static final String LOCAL_PROJECT_SCHEMA = COMPSs_HOME + REL_PROJECT_SCHEMA;
 
-    private static final String GAT_LOC = System.getenv(COMPSsConstants.GAT_LOC);
-    public static final String GAT_ADAPTOR_LOCATION = GAT_LOC + File.separator + "lib" + File.separator + "adaptors";
-
 
     /**
      * Private constructor to avoid instantiation.

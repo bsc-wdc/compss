@@ -55,95 +55,91 @@
 
   #----------------------------------------------------------------------------------
   # Check Task description
-  # WARNING: Checks are performed only in NIO because in GAT we don't know the job description
-  #          However, if the application has ended, the constraints are correctly loaded because the resource can strictly
-  #          execute the task
   exit_value=0
-  if [ "${comm}" == "es.bsc.compss.nio.master.NIOAdaptor" ]; then
-    processorExpected='[{"type":"CPU","computing_units":2,"speed":2.4,"internal_memory":-1.0,"architecture":"amd64","prop_name":"ThreadAffinity","prop_value":"Big"}]'
-    generalExpected='{"total_cpus":1,"total_cpu_cu":2,"total_gpus":0,"total_gpu_cu":0,"total_fpgas":0,"total_fpga_cu":0,"total_others":0,"total_other_cu":0}'
-    memoryExpected='{"size":8.0,"type":"Volatile"}'
-    storageExpected='{"size":240.0,"type":"SSD","bandwidth":50}'
-    osExpected='{"type":"Linux","distribution":"OpenSUSE","version":"13.2"}'
-    softwareExpected='["JAVA","PYTHON","COMPSS"]'
-    queuesExpected='["SEQUENTIAL","DEBUG","BSC"]'
-    pricesExpected='{"time_unit":-1,"price_per_unit":-1.0}'
-    wallclockExpected="10"
-    
-    description_got=$(grep "Finished sending New Task" "${runtime_log}" | cut -c 105- | awk '{for(i=1; i<=NF-3; i++) printf $i" ";}')
 
-    processorGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.processors')
-    generalGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.general_counts')
-    memoryGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.memory')
-    storageGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.storage')
-    osGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.operating_system')
-    softwareGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.software')
-    queuesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.host_queues')
-    pricesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.price')
-    wallclockGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.wallclock')
+  processorExpected='[{"type":"CPU","computing_units":2,"speed":2.4,"internal_memory":-1.0,"architecture":"amd64","prop_name":"ThreadAffinity","prop_value":"Big"}]'
+  generalExpected='{"total_cpus":1,"total_cpu_cu":2,"total_gpus":0,"total_gpu_cu":0,"total_fpgas":0,"total_fpga_cu":0,"total_others":0,"total_other_cu":0}'
+  memoryExpected='{"size":8.0,"type":"Volatile"}'
+  storageExpected='{"size":240.0,"type":"SSD","bandwidth":50}'
+  osExpected='{"type":"Linux","distribution":"OpenSUSE","version":"13.2"}'
+  softwareExpected='["JAVA","PYTHON","COMPSS"]'
+  queuesExpected='["SEQUENTIAL","DEBUG","BSC"]'
+  pricesExpected='{"time_unit":-1,"price_per_unit":-1.0}'
+  wallclockExpected="10"
+  
+  description_got=$(grep "Finished sending New Task" "${runtime_log}" | cut -c 105- | awk '{for(i=1; i<=NF-3; i++) printf $i" ";}')
 
-    if [ "${processorGot}" != "${processorExpected}" ]; then
-      echo "ERROR: Processor constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${processorGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${processorExpected}" | tee -a "${output_file}"
-      exit_value=1
-    fi
+  processorGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.processors')
+  generalGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.general_counts')
+  memoryGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.memory')
+  storageGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.storage')
+  osGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.operating_system')
+  softwareGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.software')
+  queuesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.host_queues')
+  pricesGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.price')
+  wallclockGot=$(echo ${description_got} | jq -rc '.implementation.description.constraints.wallclock')
 
-    if [ "${generalGot}" != "${generalExpected}" ]; then
-      echo "ERROR: General constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${generalGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${generalExpected}" | tee -a "${output_file}"
-      exit_value=2
-    fi
+  if [ "${processorGot}" != "${processorExpected}" ]; then
+    echo "ERROR: Processor constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${processorGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${processorExpected}" | tee -a "${output_file}"
+    exit_value=1
+  fi
 
-    if [ "${memoryGot}" != "${memoryExpected}" ]; then
-      echo "ERROR: Memory constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${memoryGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${memoryExpected}" | tee -a "${output_file}"
-      exit_value=3
-    fi
+  if [ "${generalGot}" != "${generalExpected}" ]; then
+    echo "ERROR: General constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${generalGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${generalExpected}" | tee -a "${output_file}"
+    exit_value=2
+  fi
 
-    if [ "${storageGot}" != "${storageExpected}" ]; then
-      echo "ERROR: Storage constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${storageGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${storageExpected}" | tee -a "${output_file}"
-      exit_value=4
-    fi
+  if [ "${memoryGot}" != "${memoryExpected}" ]; then
+    echo "ERROR: Memory constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${memoryGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${memoryExpected}" | tee -a "${output_file}"
+    exit_value=3
+  fi
 
-    if [ "${osGot}" != "${osExpected}" ]; then
-      echo "ERROR: OS constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${osGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${osExpected}" | tee -a "${output_file}"
-      exit_value=5
-    fi
+  if [ "${storageGot}" != "${storageExpected}" ]; then
+    echo "ERROR: Storage constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${storageGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${storageExpected}" | tee -a "${output_file}"
+    exit_value=4
+  fi
 
-    if [ "${softwareGot}" != "${softwareExpected}" ]; then
-      echo "ERROR: Software constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${softwareGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${softwareExpected}" | tee -a "${output_file}"
-      exit_value=6
-    fi
+  if [ "${osGot}" != "${osExpected}" ]; then
+    echo "ERROR: OS constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${osGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${osExpected}" | tee -a "${output_file}"
+    exit_value=5
+  fi
 
-    if [ "${queuesGot}" != "${queuesExpected}" ]; then
-      echo "ERROR: Queue constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${queuesGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${queuesExpected}" | tee -a "${output_file}"
-      exit_value=7
-    fi
+  if [ "${softwareGot}" != "${softwareExpected}" ]; then
+    echo "ERROR: Software constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${softwareGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${softwareExpected}" | tee -a "${output_file}"
+    exit_value=6
+  fi
 
-    if [ "${pricesGot}" != "${pricesExpected}" ]; then
-      echo "ERROR: Price constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${pricesGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${pricesExpected}" | tee -a "${output_file}"
-      exit_value=8
-    fi
+  if [ "${queuesGot}" != "${queuesExpected}" ]; then
+    echo "ERROR: Queue constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${queuesGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${queuesExpected}" | tee -a "${output_file}"
+    exit_value=7
+  fi
 
-    if [ "${wallclockGot}" != "${wallclockExpected}" ]; then
-      echo "ERROR: Wallclock constraints do not match" | tee -a "${output_file}"
-      echo "GOT: ${wallclockGot}" | tee -a "${output_file}"
-      echo "EXPECTED: ${wallclockExpected}" | tee -a "${output_file}"
-      exit_value=9
-    fi
+  if [ "${pricesGot}" != "${pricesExpected}" ]; then
+    echo "ERROR: Price constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${pricesGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${pricesExpected}" | tee -a "${output_file}"
+    exit_value=8
+  fi
+
+  if [ "${wallclockGot}" != "${wallclockExpected}" ]; then
+    echo "ERROR: Wallclock constraints do not match" | tee -a "${output_file}"
+    echo "GOT: ${wallclockGot}" | tee -a "${output_file}"
+    echo "EXPECTED: ${wallclockExpected}" | tee -a "${output_file}"
+    exit_value=9
   fi
 
   #----------------------------------------------------------------------------------

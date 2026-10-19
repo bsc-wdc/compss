@@ -173,7 +173,6 @@ class testMpiDecorator(unittest.TestCase):
         ev = compss_wait_on(ev)
         self.assertEqual(ev, 123)
 
-    @unittest.skip("UNSUPPORTED WITH GAT")
     def testFileManagementINOUT(self):
         inoutfile = "src/inoutfile"
         mySedINOUT('-i', 's/Hi/HELLO/g', inoutfile)

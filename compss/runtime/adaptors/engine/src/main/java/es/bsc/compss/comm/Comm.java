@@ -287,7 +287,7 @@ public class Comm {
     }
 
     /**
-     * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob.
+     * Stops the communication layer. Clean FTM, Job, {GOSJob, NIOJob} and WSJob.
      */
     public static void stop() {
         // Shutdown Job Dispatcher

@@ -1008,7 +1008,7 @@ public class Validator {
                     } else if (brokerAdaptorTagFound || propertiesTagFound) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
-                            "An adaptor property (GAT or External) was already defined");
+                            "An adaptor property (GOS or External) was already defined");
                     } else {
                         portsTagFound = true;
                         validateNIOAdaptorProperties(((NIOAdaptorProperties) obj.getValue()));
@@ -1024,7 +1024,7 @@ public class Validator {
                             "An adaptor property (NIO) was already defined");
                     } else {
                         brokerAdaptorTagFound = true;
-                        validateGATAdaptorProperties(((String) obj.getValue()));
+                        validateGOSAdaptorProperties(((String) obj.getValue()));
                     }
                 } else if (obj.getName().equals(new QName("Properties"))) {
                     if (propertiesTagFound) {
@@ -1055,7 +1055,7 @@ public class Validator {
             }
             // if (!portsTagFound && !brokerAdaptorTagFound && !propertiesTagFound) {
             // throw new InvalidElementException("Adaptor " + adaptor.getName(),
-            // "Attribute Adaptor properties (NIO, GAT or External)", "Doesn't appear");
+            // "Attribute Adaptor properties (NIO, GOS or External)", "Doesn't appear");
             // }
         } else {
             // Empty inner elements
@@ -1125,9 +1125,9 @@ public class Validator {
         }
     }
 
-    private void validateGATAdaptorProperties(String broker) throws InvalidElementException {
+    private void validateGOSAdaptorProperties(String broker) throws InvalidElementException {
         if ((broker == null) || (broker.isEmpty())) {
-            throw new InvalidElementException("GATAdaptor", "Attribute BrokerAdaptor", "Doesn't appear");
+            throw new InvalidElementException("GOSAdaptor", "Attribute BrokerAdaptor", "Doesn't appear");
         }
     }
 

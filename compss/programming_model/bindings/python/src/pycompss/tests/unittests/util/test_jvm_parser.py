@@ -64,10 +64,6 @@ def test_jvm_parser():
         "-Dcompss.masterName": "",
         "-Dcompss.masterPort": "",
         "-Dcompss.scheduler": "es.bsc.compss.scheduler.lookahead.locality.LocalityTS",  # noqa: E501
-        "-Dgat.adaptor.path": "/opt/COMPSs/Dependencies/JAVA_GAT/lib/adaptors",
-        "-Dgat.debug": "true",
-        "-Dgat.broker.adaptor": "sshtrilead",
-        "-Dgat.file.adaptor": "sshtrilead",
         "-Dcompss.worker.cp": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar",  # noqa: E501
         "-Dcompss.worker.jvm_opts": "-Xms1024m,-Xmx1024m,-Xmn400m",
         "-Dcompss.worker.cpu_affinity": "automatic",
@@ -123,10 +119,6 @@ def test_jvm_parser():
 -Dcompss.masterName=
 -Dcompss.masterPort=
 -Dcompss.scheduler=es.bsc.compss.scheduler.lookahead.locality.LocalityTS
--Dgat.adaptor.path=/opt/COMPSs/Dependencies/JAVA_GAT/lib/adaptors
--Dgat.debug=true
--Dgat.broker.adaptor=sshtrilead
--Dgat.file.adaptor=sshtrilead
 -Dcompss.worker.cp=/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar
 -Dcompss.worker.jvm_opts=-Xms1024m,-Xmx1024m,-Xmn400m
 -Dcompss.worker.cpu_affinity=automatic

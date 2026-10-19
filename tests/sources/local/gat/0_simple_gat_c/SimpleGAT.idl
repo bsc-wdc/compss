@@ -1,3 +1,0 @@
-interface SimpleGAT {
-	void increment(inout File filename);
-};

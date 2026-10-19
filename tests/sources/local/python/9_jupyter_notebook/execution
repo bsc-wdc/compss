@@ -37,23 +37,13 @@
     expectedTime=60s
 
     html=""
-    if [[ $comm == *"GAT"* ]]; then
-      echo "Running a jupyter notebook test with GAT"
-      if [[ $python_interpreter == *"mpi"* ]]; then
-        echo "[WARNING] MPI worker not supported with GAT" >> "${output_log}"
-        continue
-      fi
-      app_ipynb="simpleGAT.ipynb"
-      html="simpleGAT.html"
+    echo "Running a jupyter notebook test with NIO"
+    if [[ $python_interpreter == *"mpi"* ]]; then
+      app_ipynb="simple_mpi.ipynb"
+      html="simple_mpi.html"
     else
-      echo "Running a jupyter notebook test with NIO"
-      if [[ $python_interpreter == *"mpi"* ]]; then
-        app_ipynb="simple_mpi.ipynb"
-        html="simple_mpi.html"
-      else
-        app_ipynb="simple.ipynb"
-        html="simple.html"
-      fi
+      app_ipynb="simple.ipynb"
+      html="simple.html"
     fi
     html="${base_app_dir}/src/${html}"
 

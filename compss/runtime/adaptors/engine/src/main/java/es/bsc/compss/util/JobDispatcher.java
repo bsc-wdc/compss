@@ -108,7 +108,7 @@ public class JobDispatcher {
                 } catch (Exception ex) {
                     LOGGER.error(SUBMISSION_ERROR + job.getJobId(), ex);
                     /*
-                     * System err is added because in GAT tests when time-out loggers are stopped earlier than the rest
+                     * System err is added because in GOS tests when time-out loggers are stopped earlier than the rest
                      * of the runtime and the stack trace give information about what is happening
                      */
                     System.err.println(SUBMISSION_ERROR + job.getJobId()); // NOSONAR

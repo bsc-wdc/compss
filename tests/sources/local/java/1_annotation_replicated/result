@@ -47,11 +47,7 @@
 
   #----------------------------------------------------------------------------------
   # Check transfers on worker files
-  if [[ $comm == *"GAT"* ]]; then
-    numTransfers=$(grep "GATCopy" "${runtime_log}" | grep -E "localhost|$(hostname)" | grep -v "out" | grep -v "err" | grep -c -v "tar\\.gz")
-  else
-    numTransfers=$(grep -R "does not exist, requesting data transfer" "${target_log_folder}"/workers/ | wc -l)
-  fi
+  numTransfers=$(grep -R "does not exist, requesting data transfer" "${target_log_folder}"/workers/ | wc -l)
   expectedNumTransfers=2
   if [ "${numTransfers}" -ne ${expectedNumTransfers} ]; then
     echo "[ERROR] The number of transfers is incorrect." | tee -a "${output_file}"

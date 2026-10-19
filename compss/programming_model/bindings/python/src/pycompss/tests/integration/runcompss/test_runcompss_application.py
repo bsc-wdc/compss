@@ -47,7 +47,7 @@ def test_runcompss_increment():
     outs, errs = process.communicate()
 
 
-def test_runcompss_increment_with_gat():
+def test_runcompss_increment_with_gos():
     current_path = os.path.dirname(os.path.abspath(__file__))
 
     # Call to runcompss for increment application
@@ -61,7 +61,7 @@ def test_runcompss_increment_with_gat():
             "runcompss",
             "--log_level=debug",
             "--python_interpreter=python3",
-            "--comm=es.bsc.compss.gat.master.GATAdaptor",
+            "--comm=es.bsc.compss.gos.master.GOSAdaptor",
             app,
         ]
     process = subprocess.Popen(

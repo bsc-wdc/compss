@@ -162,7 +162,6 @@
 
   # Dependencies
   echo "--- Copy dependencies"
-  cp -r "${TMP_DIR}"/dependencies/JAVA_GAT "${targetDir}"/Dependencies/
   cp -r "${TMP_DIR}"/files/paraver "${targetDir}"/Dependencies/
 
   echo "---- Install extrae ----"

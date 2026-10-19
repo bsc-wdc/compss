@@ -42,7 +42,6 @@ DEFAULT_IGNORED = [
     ".idea",
     ".settings",
     ".git",
-    "gat",
     "gos_batch",
 ]
 DEFAULT_TESTS = []

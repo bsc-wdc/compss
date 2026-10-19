@@ -2817,7 +2817,7 @@ public class ResourcesFile {
     }
 
     /**
-     * Add an instance of compute node with a single processor and a GAT adaptor.
+     * Add an instance of compute node with a single processor.
      *
      * @param name Node name
      * @param procName Processor Name
@@ -2829,7 +2829,6 @@ public class ResourcesFile {
      * @param batch Flag to indicate is adaptor submission system supports batch
      * @param queues List of available queues
      * @param interactive Flag to indicate is adaptor submission system supports interactive
-     * @param brokerAdaptor GAT broker adaptor
      * @param user User name
      * @param memorySize Memory size
      * @param memoryType Memory type
@@ -3349,12 +3348,11 @@ public class ResourcesFile {
      *
      * @param name Adaptor name
      * @param subsys Submission System
-     * @param gatproperties GAT properties
+     * @param properties Adaptor properties
      * @param user Username
      * @return Created adaptor
      */
-    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties,
-        String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String properties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -3363,7 +3361,7 @@ public class ResourcesFile {
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
         JAXBElement<String> propertiesElement =
-            new JAXBElement<String>(new QName("BrokerAdaptor"), String.class, gatproperties);
+            new JAXBElement<String>(new QName("BrokerAdaptor"), String.class, properties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -3482,12 +3480,12 @@ public class ResourcesFile {
      * @param batch Flag to indicate if supports batch submission
      * @param queues Batch queues
      * @param interactive Flag to indicate if supports interactive submission
-     * @param gatproperties GAT broker adaptor
+     * @param properties Adaptor properties
      * @param user Username
      * @return
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-        String gatproperties, String user) {
+        String properties, String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -3504,7 +3502,7 @@ public class ResourcesFile {
             subsys.getBatchOrInteractive().add(i);
         }
 
-        return createAdaptor(name, subsys, gatproperties, user);
+        return createAdaptor(name, subsys, properties, user);
     }
 
     /**

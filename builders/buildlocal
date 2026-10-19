@@ -865,8 +865,6 @@ install_compss() {
 
   # DEPENDENCIES
   log_info "--- Copy dependencies"
-  # GAT
-  cp -r "${TMP_DIR}/dependencies/JAVA_GAT" ${targetDir}/Dependencies/
   # Paraver CFGs
   cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
   # Extrae

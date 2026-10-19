@@ -52,10 +52,6 @@
 
         <!-- SSH -->
         <jsch.version>0.1.55</jsch.version>
-        <!-- Java GAT -->
-        <gat.version>2.1.3</gat.version>
-        <ibis.version>2.3-pre</ibis.version>
-        <org.slf4j.version>1.7.25</org.slf4j.version>
 
     </properties>
 
@@ -93,33 +89,6 @@
                 <groupId>jakarta.xml.ws</groupId>
                 <artifactId>jakarta.xml.ws-api</artifactId>
                 <version>${jaxws.version}</version>
-            </dependency>
-
-            <!-- Java GAT -->
-            <dependency>
-                <groupId>org.gridlab.gat</groupId>
-                <artifactId>javagat-api</artifactId>
-                <version>${gat.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.gridlab.gat</groupId>
-                <artifactId>javagat-engine</artifactId>
-                <version>${gat.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ibis.util</groupId>
-                <artifactId>ibis-util</artifactId>
-                <version>${ibis.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${org.slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${org.slf4j.version}</version>
             </dependency>
 
             <!-- SSH -->

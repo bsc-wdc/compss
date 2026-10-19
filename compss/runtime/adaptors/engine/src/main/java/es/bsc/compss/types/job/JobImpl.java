@@ -121,7 +121,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         /*
          * Setup job environment variables ****************************************
          * 
-         * This variables are only used by GAT since NIO loads them from the worker rather than specific variables per
+         * This variables are only used by GOS since NIO loads them from the worker rather than specific variables per
          * job
          */
 

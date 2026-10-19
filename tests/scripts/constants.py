@@ -35,7 +35,6 @@ DEFAULT_FAMILIES = [
     "gos",
     "socket",
 ]
-DEFAULT_CLI_FAMILIES = ["environment", "runapps", "jupyter"]
 DEFAULT_IGNORED = [
     ".target",
     "target",
@@ -61,7 +60,6 @@ DEFAULT_SC_EXECUTION_ENVS = ["shared_disk", "local_disk"]
 DEFAULT_COMPSS_MODULE = "COMPSs/Trunk"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = os.path.join(SCRIPT_DIR, "../sources/local")
-TESTS_CLI_DIR = os.path.join(SCRIPT_DIR, "../sources/cli")
 TESTS_SC_DIR = os.path.join(SCRIPT_DIR, "../sources/sc")
 REMOTE_SCRIPTS_REL_PATH = "remote_sc"
 CONFIGURATIONS_DIR = os.path.join(SCRIPT_DIR, "../configurations")

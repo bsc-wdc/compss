@@ -25,7 +25,6 @@ DEFAULT_TRACING=true
 DEFAULT_DLB=true
 DEFAULT_KAFKA=true
 DEFAULT_JACOCO=true
-DEFAULT_CLI=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_TESTS=true
@@ -45,7 +44,6 @@ NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
 NO_JACOCO="Warning: No jacoco module specified. Loading default value"
 NO_DLB="Warning: No dlb module specified. Loading default value"
-NO_CLI="Warning: No CLI module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
 NO_TESTS="Warning: No Testing specified. Loading default value"
 NO_PYCOMPSS_COMPILATION="Warning: No PyCOMPSs compilation specified. Loading default value"
@@ -103,10 +101,6 @@ show_opts() {
     --dlb, -d                   Enable dlb module installation
     --no-dlb, -D                Disable dlb module installation
                                 Default: ${DEFAULT_DLB}
-
-    --cli, -c                   Enable Command Line Interface module installation
-    --no-cli, -C                Disable Command Line Interface module installation
-                                Default: ${DEFAULT_CLI}
 
     --pycompss-compile, -x      Enable PyCOMPSs compilation with MyPy check
     --no-pycompss-compile, -X   Disable PyCOMPSs compilation with MyPy check
@@ -264,14 +258,6 @@ get_args() {
         # Custom DLB value
         dlb=false
         ;;
-      c)
-        # Custom CLI value
-        cli=true
-        ;;
-      C)
-        # Custom CLI value
-        cli=false
-        ;;
       x)
         # Custom PyCOMPSs compilation value
         pycompss_compile=true
@@ -296,7 +282,6 @@ get_args() {
         pycompss=false
         kafka=false
         jacoco=false
-        cli=false
         dlb=false
         pycompss_compile=false
         style=false
@@ -384,14 +369,6 @@ get_args() {
             # Custom Jacoco value
             jacoco=false
             ;;
-          cli)
-            # Custom CLI value
-            cli=true
-            ;;
-          no-cli)
-            # Custom CLI value
-            cli=false
-            ;;
           pycompss-compile)
             # Custom PyCOMPSs compilation value
             pycompss_compile=true
@@ -417,7 +394,6 @@ get_args() {
             rcompss=false
             kafka=false
             jacoco=false
-            cli=false
             dlb=false
             pycompss_compile=false
             style=false
@@ -510,11 +486,6 @@ check_args() {
     jacoco=${DEFAULT_JACOCO}
   fi
 
-  if [ -z "${cli}" ]; then
-    display_warning "${NO_CLI}"
-    cli=${DEFAULT_CLI}
-  fi
-
   if [ -z "${dlb}" ]; then
     display_warning "${NO_DLB}"
     dlb=${DEFAULT_DLB}
@@ -576,7 +547,6 @@ warn_and_log_parameters() {
   log_info "- RCOMPSs          = ${rcompss}"
   log_info "- Tracing          = ${tracing}"
   log_info "- Stream Backend   = ${kafka}"
-  log_info "- CLI              = ${cli}"
   log_info "- DLB              = ${dlb}"
   log_info "- Unit tests       = ${unittests}"
   log_info "- PyCOMPSs compile = ${pycompss_compile}"
@@ -815,7 +785,6 @@ install_compss() {
   cp -r "${SOURCES_DIR}/dependencies" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/utils" "${TMP_DIR}"
-  cp -r "${SOURCES_DIR}/builders/specs/cli" "${TMP_DIR}"
   cp "${SOURCES_DIR}/LICENSE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/NOTICE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
@@ -1175,18 +1144,6 @@ install_compss() {
       fi
       cd "${SCRIPT_DIR}"
     fi
-  fi
-
-  if [ "$cli" == "true" ]; then
-    log_info "- Deploying CLI at Tools"
-    cd "${TMP_DIR}/cli/PyCOMPSsCLIResources"
-    ./install.sh > "${bindingOut}" 2>&1 && :
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install CLI"
-      exit 1
-    fi
-    cd "${SCRIPT_DIR}"
   fi
 
   # ADD RUNCOMPSS TO PROFILE

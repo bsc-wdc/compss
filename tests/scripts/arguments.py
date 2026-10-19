@@ -12,12 +12,10 @@ from constants import (
     DEFAULT_FAMILIES,
     DEFAULT_SC_FAMILIES,
     DEFAULT_SC_IGNORED,
-    DEFAULT_CLI_FAMILIES,
 )
 from constants import DEFAULT_CFG_FILE, DEFAULT_SC_CFG_FILE, DEFAULT_IGNORED
 from constants import DEFAULT_TESTS
-from constants import TESTS_DIR, TESTS_SC_DIR, TESTS_CLI_DIR
-
+from constants import TESTS_DIR, TESTS_SC_DIR
 
 ############################################
 # ERROR AND EXIT CLASSES
@@ -152,60 +150,6 @@ def get_local_args():
 
     # Check arguments
     args = _check_local_args(args)
-
-    # If numbering cmd arg is provided, display numbering and exit
-    if args.numbering:
-        _display_numbering(args.test_numbers)
-
-    # Print arguments
-    print("[INFO] Arguments parsed:")
-    _print_local_args(args)
-    _print_common_args(args)
-
-    return args
-
-
-def get_cli_args():
-    """
-    Constructs an object representing the command line arguments
-    for cli test execution
-
-    :return: Object representing the command line arguments
-        + type: argparse.Namespace
-    :raise ArgumentError: Error parsing command line arguments
-    :raise ArgumentExit: Exit parsing command line arguments
-    :exit 0: This method exits when test numbering is provided
-    """
-    print()
-    print("[INFO] Parsing arguments...")
-
-    # Create the argument parser
-    if __debug__:
-        print("[DEBUG] Creating argument parser...")
-
-    parser = argparse.ArgumentParser(
-        description="Launch COMPSs CLI tests", add_help=True
-    )
-    _add_common_args(parser, DEFAULT_CLI_FAMILIES, DEFAULT_CFG_FILE)
-    _add_local_args(parser)
-    _add_cli_args(parser, DEFAULT_SC_CFG_FILE)
-
-    if __debug__:
-        print("[DEBUG] Argument parser created")
-
-    # Parse arguments
-    # WARN: Stops the execution if an invalid argument is provided
-    if __debug__:
-        print("[DEBUG] Executing parser on command arguments...")
-    try:
-        args = parser.parse_args()
-    except SystemExit as se:
-        if se.code is None or se.code == 0:
-            raise ArgumentExit() from se
-        raise ArgumentError(se) from se
-
-    # Check arguments
-    args = _check_cli_args(args)
 
     # If numbering cmd arg is provided, display numbering and exit
     if args.numbering:
@@ -392,18 +336,6 @@ def _add_local_args(parser):
     )
 
 
-def _add_cli_args(parser, default_cfg):
-    # Add cfg file option
-    parser.add_argument(
-        "-cfgsc",
-        "--cfg-file-sc",
-        action="store",
-        dest="cfg_file_sc",
-        default=default_cfg,
-        help="Path to a valid SC-CFG file",
-    )
-
-
 def _add_sc_args(parser):
     # Add sc specific arguments (Currently none)
     pass
@@ -474,29 +406,6 @@ def _parse_shard(shard):
             f"[ERROR] Invalid --shard expression {shard}. Required: 1 <= K <= N"
         )
     return shard_index, shard_count
-
-
-def _check_cli_args(cmd_args):
-    """
-    Validates and completes the parsed cmd_args for cli tests
-
-    :return: Validated object representing the command line arguments
-        + type: argparse.Namespace
-    """
-
-    # If no family provided, load all
-    if cmd_args.families is None or not cmd_args.families:
-        cmd_args.families = DEFAULT_CLI_FAMILIES
-
-    # Validate and normalize the shard option into an (index, count) tuple
-    cmd_args.shard = _parse_shard(cmd_args.shard)
-
-    # Add test numbering to cmd_args
-    cmd_args.test_numbers = _get_test_numbers(
-        TESTS_CLI_DIR, DEFAULT_CLI_FAMILIES, DEFAULT_IGNORED
-    )
-
-    return cmd_args
 
 
 def _get_test_numbers(tests_dir, families, ignored):

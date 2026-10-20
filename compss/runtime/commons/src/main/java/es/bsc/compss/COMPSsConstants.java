@@ -79,6 +79,7 @@ public class COMPSsConstants {
     public static final String RES_SCHEMA = "compss.resources.schema";
 
     public static final String LANG = "compss.lang";
+    public static final String SHUTDOWN_TIMEOUT = "compss.shutdown.timeout";
     public static final String TASK_SUMMARY = "compss.summary";
 
     public static final String CHECKPOINT_POLICY = "compss.checkpoint.policy";

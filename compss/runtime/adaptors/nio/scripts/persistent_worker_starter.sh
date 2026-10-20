@@ -40,6 +40,15 @@
 
   trap worker_cleanup EXIT
 
+  # Mark that the worker was asked to stop by a signal: the worker JVM gets
+  # the signal directly and ends on its own, and the deferred trap below runs
+  # once it is gone. clean_env then keeps the log dir: the master fetches the
+  # worker logs only while the worker runs, so a worker killed first leaves
+  # them for the launch_compss cleanup, which copies them when it can read the
+  # worker dir (shared disk or the master node).
+  worker_received_signal=false
+  trap 'worker_received_signal=true' TERM INT
+
   # Normal start -----------------------------------------------------
   # Setup
 

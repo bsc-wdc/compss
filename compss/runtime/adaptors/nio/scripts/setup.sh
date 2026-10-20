@@ -425,44 +425,54 @@ EOT
       unset AFTER_EXTRAE_LD_PRELOAD
     fi
     if [ "$eraseWD" = "true" ]; then
-      if [ "$debug" == "true" ]; then
-        echo "[persistent_worker.sh] Clean WD ${workingDir}"
-      fi
-      rm -rf "${workingDir}"
-      # Check if parent of workingDir (uuid) is empty. If empty remove it
-      local parentdir="$(dirname "${workingDir}")"
-      if [ -d "${parentdir}" ]; then
-        if [ "$(ls -A ${parentdir})" ]; then
-          if [ "$debug" == "true" ]; then
-            echo "[persistent_worker.sh] Not Cleaning parent WD because not empty"
+      if [ "${worker_received_signal:-false}" = "true" ]; then
+        # The worker was stopped by a signal: keep the log dir for the
+        # launch_compss cleanup to copy (the master can no longer fetch the
+        # logs from a stopped worker), remove everything else
+        if [ "$debug" == "true" ]; then
+          echo "[persistent_worker.sh] Signal received: keeping ${workingDir}/log"
+        fi
+        find "${workingDir}" -mindepth 1 -maxdepth 1 ! -name log -exec rm -rf {} +
+      else
+        if [ "$debug" == "true" ]; then
+          echo "[persistent_worker.sh] Clean WD ${workingDir}"
+        fi
+        rm -rf "${workingDir}"
+        # Check if parent of workingDir (uuid) is empty. If empty remove it
+        local parentdir="$(dirname "${workingDir}")"
+        if [ -d "${parentdir}" ]; then
+          if [ "$(ls -A ${parentdir})" ]; then
+            if [ "$debug" == "true" ]; then
+              echo "[persistent_worker.sh] Not Cleaning parent WD because not empty"
+            fi
+          else
+            if [ "$debug" == "true" ]; then
+              echo "[persistent_worker.sh] Cleaning parent WD"
+            fi
+            rm -rf ${parentdir}
           fi
         else
           if [ "$debug" == "true" ]; then
-            echo "[persistent_worker.sh] Cleaning parent WD"
+            echo "[persistent_worker.sh] Not Cleaning parent WD because doesn't exists"
           fi
-          rm -rf ${parentdir}
         fi
-      else
-        if [ "$debug" == "true" ]; then
-          echo "[persistent_worker.sh] Not Cleaning parent WD because doesn't exists"
-        fi
-      fi
-      # Check if tmp directory of worker workingdir is empty. If empty remove it
-      local tmpdir="$(dirname "${parentdir}")"
-      if [ -d "${tmpdir}" ]; then
-        if [ "$(ls -A ${tmpdir})" ]; then
-          if [ "$debug" == "true" ]; then
-            echo "[persistent_worker.sh] Not Cleaning tmp WD because not empty"
+        # Check if tmp directory of worker workingdir is empty. If empty remove it
+        local tmpdir="$(dirname "${parentdir}")"
+        if [ -d "${tmpdir}" ]; then
+          if [ "$(ls -A ${tmpdir})" ]; then
+            if [ "$debug" == "true" ]; then
+              echo "[persistent_worker.sh] Not Cleaning tmp WD because not empty"
+            fi
+          else
+            if [ "$debug" == "true" ]; then
+              echo "[persistent_worker.sh] Cleaning tmp WD"
+            fi
+            rm -rf ${tmpdir}
           fi
         else
           if [ "$debug" == "true" ]; then
-            echo "[persistent_worker.sh] Cleaning tmp WD"
+            echo "[persistent_worker.sh] Not Cleaning tmp WD because doesn't exists"
           fi
-          rm -rf ${tmpdir}
-        fi
-      else
-        if [ "$debug" == "true" ]; then
-          echo "[persistent_worker.sh] Not Cleaning tmp WD because doesn't exists"
         fi
       fi
     else

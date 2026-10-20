@@ -26,6 +26,7 @@ import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+import es.bsc.compss.util.ShutdownCoordinator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -490,6 +491,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
         @Override
         public void run() {
+            // Wait for the runtime stop (if any) before destroying the virtual machines
+            ShutdownCoordinator.awaitStop();
             for (VM vm : ip2vm.values()) {
                 try {
                     AbstractConnector.this.destroy(vm);

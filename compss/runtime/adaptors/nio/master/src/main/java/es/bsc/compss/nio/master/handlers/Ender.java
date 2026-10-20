@@ -17,6 +17,7 @@
 package es.bsc.compss.nio.master.handlers;
 
 import es.bsc.compss.nio.master.WorkerStarter;
+import es.bsc.compss.util.ShutdownCoordinator;
 
 public class Ender extends Thread {
 
@@ -37,6 +38,9 @@ public class Ender extends Thread {
 
     @Override
     public void run() {
+        // Wait for the runtime stop (if any) before cleaning the worker, so that worker logs are
+        // fetched and workers are stopped before their working dir is removed
+        ShutdownCoordinator.awaitStop();
         this.workerStarter.ender(pid);
     }
 

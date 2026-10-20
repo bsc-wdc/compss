@@ -42,6 +42,7 @@ import es.bsc.compss.types.tracing.APITracer;
 import es.bsc.compss.types.tracing.binding.EventType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
+import es.bsc.compss.util.ShutdownCoordinator;
 import es.bsc.wdc.tracing.ConfigManager;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.IOException;
@@ -79,7 +80,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
     private static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
     private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
+    // Grace period before closing the logger context at JVM shutdown, in milliseconds
+    private static final long LOG_SHUTDOWN_GRACE_MS = 250L;
+
+    // Runtime instance stopped by the master shutdown hook, set once the runtime is initialized
+    private static volatile COMPSsRuntimeImpl startedRuntime = null;
+
     static {
+        // Register the master shutdown hook first: the log4j2 shutdown hook is disabled in the master configurations,
+        // so this hook also flushes the logs on any exit, including the ones before the runtime is initialized
+        registerShutdownHook();
+
         // Load COMPSS version and buildNumber
         String version = null;
         String buildNum = null;
@@ -189,6 +200,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                     WorkflowImpl.setAP(ap);
                     Application.setGH(runtimeMonitor.getGraphHandler());
 
+                    // From now on, the master shutdown hook stops the runtime and the worker hooks wait for it
+                    startedRuntime = this;
+                    ShutdownCoordinator.markRuntimeStarted();
+
                     // Log initialization
                     initialized = true;
                     LOGGER.debug("Ready to process tasks");
@@ -203,10 +218,96 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
         });
     }
 
+    /**
+     * Registers a JVM shutdown hook that stops the runtime if it has not stopped yet when the JVM shuts down (e.g. on
+     * SIGTERM or on a System.exit), so that worker logs are fetched and workers are stopped. The hook closes the logger
+     * context at its end.
+     */
+    private static void registerShutdownHook() {
+        Thread hook = new Thread("COMPSs Master Shutdown Hook") {
+
+            @Override
+            public void run() {
+                final COMPSsRuntimeImpl runtime = startedRuntime;
+                if (runtime == null) {
+                    // The runtime was never initialized: only flush the logs
+                    LogManager.shutdown();
+                    return;
+                }
+                try {
+                    if (ShutdownCoordinator.isStopFinished()) {
+                        // The runtime already stopped through the normal path
+                        return;
+                    }
+                    String msg = "Termination requested before the runtime stopped: stopping the runtime";
+                    LOGGER.info(msg);
+                    System.err.println(msg);
+                    if (ShutdownCoordinator.isStopStarted()) {
+                        // A stop is already in progress (normal end, error path or binding stop): wait for it
+                        if (!ShutdownCoordinator.awaitStop()) {
+                            LOGGER.warn("Timeout waiting for the runtime stop already in progress");
+                        }
+                        return;
+                    }
+                    // Mark the stop as started before launching the thread to avoid waiting races
+                    ShutdownCoordinator.markStopStarted();
+                    Thread stopper = new Thread("COMPSs Shutdown Stopper") {
+
+                        @Override
+                        public void run() {
+                            try {
+                                // The worker stop actions of stopIT fetch the worker logs and analysis files
+                                runtime.stopIT(true);
+                            } catch (RuntimeException e) {
+                                // A concurrent normal stop won the race: nothing else to do
+                                LOGGER.debug("Duplicated stop on shutdown hook: " + e.getMessage());
+                            } catch (Throwable e) {
+                                // The stop failed: the hook can finish, markStopFinished ran in stopIT's finally
+                                LOGGER.warn("Error stopping the runtime on shutdown hook", e);
+                            }
+                        }
+                    };
+                    stopper.start();
+                    if (!ShutdownCoordinator.awaitStop()) {
+                        LOGGER.warn("Timeout waiting for the runtime stop on termination request");
+                    }
+                } finally {
+                    waitFinalLogLines();
+                    // The log4j2 shutdown hook is disabled in the master configurations: close the logger
+                    // context here, at the end of the hook, once the runtime stop and its last log lines
+                    // are done, so they all reach runtime.log
+                    LogManager.shutdown();
+                }
+            }
+        };
+        try {
+            Runtime.getRuntime().addShutdownHook(hook);
+        } catch (IllegalStateException e) {
+            LOGGER.warn("Tried to shutdown vm while it was already being shutdown", e);
+        }
+    }
+
+    /**
+     * Waits a short grace period before closing the logger context, so that the communication threads that outlive the
+     * runtime stop (NIO listener, event manager) can log their last shutdown lines into runtime.log.
+     */
+    private static void waitFinalLogLines() {
+        try {
+            Thread.sleep(LOG_SHUTDOWN_GRACE_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     @Override
     public void stopIT(boolean terminate) {
+        ShutdownCoordinator.markStopStarted();
         synchronized (this) {
-            if (!stopped) {
+            if (stopped) {
+                LOGGER.debug("Duplicated Stop");
+                throw (new RuntimeException("Runtime already stopped"));
+            }
+            try {
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(APIEvent.STOP);
                 }
@@ -273,18 +374,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                 }
                 LOGGER.debug("Runtime stopped");
                 stopped = true;
-            } else {
-                LOGGER.debug("Duplicated Stop");
-                throw (new RuntimeException("Runtime already stopped"));
+                LOGGER.warn("Execution Finished");
+
+                if (DP_ENABLED) {
+                    DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
+                }
+            } finally {
+                // Marks the stop as finished even when the stop fails midway, so that the hooks waiting for this
+                // stop do not wait for the whole shutdown timeout
+                ShutdownCoordinator.markStopFinished();
             }
-
         }
-        LOGGER.warn("Execution Finished");
-
-        if (DP_ENABLED) {
-            DP_LOGGER.info(Instant.now().truncatedTo(ChronoUnit.MICROS).toString());
-        }
-
     }
 
     /*
@@ -542,6 +642,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                 ErrorManager.logError("Error detected. Shutting down COMPSs", null);
                 COMPSsRuntimeImpl.this.stopIT(true);
                 ErrorManager.logError("Shutting down the running process", null);
+                // halt skips the shutdown hooks, so flush the logs here
+                LogManager.shutdown();
                 Runtime.getRuntime().halt(1);
             }
         }.start();

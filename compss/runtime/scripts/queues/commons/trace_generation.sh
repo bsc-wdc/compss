@@ -316,7 +316,7 @@ create_trace_submit_script(){
 
   append_submission_headers_to_script "${submit_script}"
   cat >>${submit_script} << EOT
-  ${COMPSS_HOME}/Runtime/scripts/user/compss_gentrace${gen_trace_opts} ${in_dir}
+  ${COMPSS_HOME}/Runtime/scripts/utils/compss_gentrace${gen_trace_opts} ${in_dir}
 EOT
 }
 

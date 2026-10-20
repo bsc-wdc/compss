@@ -61,6 +61,32 @@ bus_handler() {
 }
 trap bus_handler SIGBUS
 
+###############################################
+# Handler for the early-stop signals: forward them to the application.
+# The application runs in the background (a bash shell defers a trap while it
+# waits for a foreground child), so the handler can reach it at once.
+###############################################
+app_signal_handler() {
+  if [ -n "${app_pid}" ]; then
+    kill -TERM "${app_pid}" 2>/dev/null || true
+  fi
+}
+
+###############################################
+# Wait for the application process started in the background by an exec_*
+# function. A plain wait would be interrupted each time a signal handler runs,
+# so loop until the application process is really gone and return its code.
+###############################################
+wait_for_app() {
+  local app_wait_pid=$1
+  local app_wait_ec=0
+  while kill -0 "${app_wait_pid}" 2>/dev/null; do
+    wait "${app_wait_pid}" || true
+  done
+  wait "${app_wait_pid}" || app_wait_ec=$?
+  return "${app_wait_ec}"
+}
+
 
 ###############################################
 ###############################################
@@ -312,6 +338,17 @@ check_compss_setup () {
 
   if [ -z "${wall_clock_limit}" ]; then
     wall_clock_limit="${DEFAULT_WALL_CLOCK_LIMIT}"
+  fi
+  # In a job whose wall clock was forwarded by enqueue_compss, the limit counts
+  # from the job start: subtract the time the job spent before this point
+  # (job setup, master and worker launch)
+  if [ -n "${COMPSS_JOB_START_TIME}" ] && [ "${wall_clock_limit}" -gt 0 ] 2>/dev/null; then
+    local job_elapsed=$(( $(date +%s) - COMPSS_JOB_START_TIME ))
+    if [ "${job_elapsed}" -ge "${wall_clock_limit}" ]; then
+      wall_clock_limit=1
+    elif [ "${job_elapsed}" -gt 0 ]; then
+      wall_clock_limit=$((wall_clock_limit - job_elapsed))
+    fi
   fi
 
   check_analysis_setup
@@ -626,7 +663,10 @@ exec_java() {
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
-  $JAVACMD "${RUNTIME_LOADER}" "total" "$fullAppPath" ${application_args}
+  $JAVACMD "${RUNTIME_LOADER}" "total" "$fullAppPath" ${application_args} <&0 &
+  app_pid=$!
+  trap app_signal_handler TERM INT USR1
+  wait_for_app "${app_pid}"
   endCode=$?
   stop_tracing
   export COMPSS_EXIT_CODE=${endCode}
@@ -650,7 +690,10 @@ exec_c() {
   # Launch application
   start_tracing
   # shellcheck disable=SC2086
-  $fullAppPath ${application_args}
+  $fullAppPath ${application_args} <&0 &
+  app_pid=$!
+  trap app_signal_handler TERM INT USR1
+  wait_for_app "${app_pid}"
   endCode=$?
   stop_tracing
   export COMPSS_EXIT_CODE=${endCode}
@@ -685,8 +728,10 @@ exec_python() {
   ${PyObject_serialize} ${storageConf} ${streaming} \
   ${streaming_master_name} ${streaming_master_port} \
   "${socket_mode}" "${socket_path}" \
-  "${fullAppPath}" ${application_args}
-
+  "${fullAppPath}" ${application_args} <&0 &
+  app_pid=$!
+  trap app_signal_handler TERM INT USR1
+  wait_for_app "${app_pid}"
   endCode=$?
   stop_tracing
   export COMPSS_EXIT_CODE=${endCode}
@@ -702,8 +747,10 @@ exec_r(){
 
   # shellcheck disable=SC2086
   unset LD_PRELOAD
-  Rscript "${fullAppPath}" ${application_args}
-
+  Rscript "${fullAppPath}" ${application_args} <&0 &
+  app_pid=$!
+  trap app_signal_handler TERM INT USR1
+  wait_for_app "${app_pid}"
   endCode=$?
   stop_tracing
   export COMPSS_EXIT_CODE=${endCode}

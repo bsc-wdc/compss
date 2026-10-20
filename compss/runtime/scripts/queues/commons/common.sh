@@ -18,6 +18,7 @@ DEFAULT_STORAGE_CONTAINER_IMAGE="false"
 DEFAULT_STORAGE_CPU_AFFINITY="disabled"
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
+DEFAULT_SHUTDOWN_SIGNAL_TIME=180
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
 #---------------------------------------------------
@@ -91,6 +92,13 @@ show_opts() {
   General submision arguments:
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
+    --shutdown_signal_time=<seconds>        Seconds before the walltime when COMPSs starts to stop the application.
+                                            With --forward_time_limit, the runtime wall clock is set to the walltime
+                                            minus this time, and the queue system (if it supports it, e.g. SLURM)
+                                            signals the job halfway through it as a backup. Without it, the signal
+                                            is sent this time before the walltime. 0 disables it (the forwarded
+                                            wall clock is then the walltime minus 60 s, with no signal).
+                                            Default: a tenth of the walltime, between 60 and ${DEFAULT_SHUTDOWN_SIGNAL_TIME} s
     --job_name=<name>                       Job name
                                             Default: ${DEFAULT_JOB_NAME:-Empty}
     --queue=<name>                          Queue/partition name to submit the job. Depends on the queue system.
@@ -169,7 +177,8 @@ EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
     --forward_time_limit=<true|false>       Forward the queue system time limit to the runtime.
-                                            It will stop the application in a controlled way.
+                                            It will stop the application in a controlled way,
+                                            --shutdown_signal_time seconds before the walltime.
                                             Default: ${DEFAULT_FORWARD_TIME_LIMIT}
     --storage_home=<string>                 Root installation dir of the storage implementation.
                                             Can be defined with the ${STORAGE_HOME_ENV_VAR} environment variable.
@@ -396,6 +405,9 @@ get_args() {
           exec_time=*)
             exec_time=${OPTARG//exec_time=/}
             ;;
+          shutdown_signal_time=*)
+            shutdown_signal_time=${OPTARG//shutdown_signal_time=/}
+            ;;
           num_nodes=*)
             num_nodes=${OPTARG//num_nodes=/}
             ;;
@@ -562,16 +574,50 @@ set_time() {
   if [ -z "${forward_wcl}" ]; then
     forward_wcl=${DEFAULT_FORWARD_TIME_LIMIT}
   fi
-  if [ -z "$wcl" ]; then
-    if [ "${forward_wcl}" == "true" ]; then
-       wcl=$(((exec_time - 1) * 60))
-       args_pass="--wall_clock_limit=${wcl} ${args_pass}"
-    fi
-  fi
   if [ -z "${WC_CONVERSION_FACTOR}" ]; then
     convert_to_wc "$exec_time"
   else
     wc_limit=$((exec_time * WC_CONVERSION_FACTOR))
+  fi
+
+  # Shutdown time: seconds before the walltime when COMPSs starts its stop
+  local walltime_s=$((exec_time * 60))
+  if [ -z "${shutdown_signal_time}" ]; then
+    # Default: a tenth of the walltime, between 60 s and the default maximum.
+    # Not used when that does not fit in the walltime
+    shutdown_signal_time=$((walltime_s / 10))
+    if [ "${shutdown_signal_time}" -gt "${DEFAULT_SHUTDOWN_SIGNAL_TIME}" ]; then
+      shutdown_signal_time=${DEFAULT_SHUTDOWN_SIGNAL_TIME}
+    fi
+    if [ "${shutdown_signal_time}" -lt 60 ]; then
+      shutdown_signal_time=60
+    fi
+    if [ "${shutdown_signal_time}" -ge "${walltime_s}" ]; then
+      shutdown_signal_time=0
+    fi
+  elif ! [[ "${shutdown_signal_time}" =~ ^[0-9]+$ ]]; then
+    display_error "Invalid shutdown_signal_time '${shutdown_signal_time}': it must be a number of seconds (0 disables it)"
+  elif [ "${shutdown_signal_time}" -gt 0 ] && [ "${shutdown_signal_time}" -ge "${walltime_s}" ]; then
+    echo "WARNING: shutdown_signal_time (${shutdown_signal_time}s) is greater than or equal to the walltime (${walltime_s}s). Not using it."
+    shutdown_signal_time=0
+  fi
+
+  # Forwarded wall clock: the runtime stops itself shutdown_signal_time
+  # seconds before the walltime (60 s when disabled). The queue system signal
+  # (shutdown_signal_at seconds before the walltime) is then only a backup,
+  # sent halfway through that margin in case the runtime did not stop
+  shutdown_signal_at=${shutdown_signal_time}
+  if [ -z "$wcl" ] && [ "${forward_wcl}" == "true" ]; then
+    if [ "${shutdown_signal_time}" -gt 0 ]; then
+      wcl=$((walltime_s - shutdown_signal_time))
+      shutdown_signal_at=$((shutdown_signal_time / 2))
+    else
+      wcl=$(((exec_time - 1) * 60))
+    fi
+    args_pass="--wall_clock_limit=${wcl} ${args_pass}"
+    # The job script exports the job start time, so that the runtime counts
+    # this wall clock from the job start and not from its own start
+    forwarded_wcl_from_job_start="true"
   fi
 }
 
@@ -926,6 +972,12 @@ EOT
 #${QUEUE_CMD} ${QARG_WALLCLOCK}${QUEUE_SEPARATOR}$wc_limit
 EOT
   fi
+  # Signal the job before the walltime so that COMPSs can stop cleanly
+  if [ -n "${QARG_SIGNAL_WARNING}" ] && [ "${shutdown_signal_at}" -gt 0 ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_SIGNAL_WARNING}${shutdown_signal_at}
+EOT
+  fi
   # Job execution dir
   if [ -n "${QARG_WD}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
@@ -1118,6 +1170,40 @@ add_launch(){
     AGENTS_HIERARCHY="--hierarchy=${agents_hierarchy} "
   fi
 
+  # Helper to run launch_compss in the background (so that the signal handlers
+  # below can run while it executes) and to forward the early-stop signals to it.
+  # A bash shell defers a trap while it waits for a foreground child, so the
+  # launch must be a background child waited on explicitly.
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+
+compss_signal() {
+  echo "[ENQUEUE_COMPSS] Received \$1: asking COMPSs to stop"
+  kill -USR1 "\${COMPSS_PID}" 2>/dev/null || true
+}
+
+compss_run() {
+EOT
+  if [ "${forwarded_wcl_from_job_start}" == "true" ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  # The forwarded wall clock counts from the job start
+  export COMPSS_JOB_START_TIME=\${COMPSS_JOB_START_TIME:-\${SLURM_JOB_START_TIME:-\$(date +%s)}}
+EOT
+  fi
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  "\$@" <&0 &
+  COMPSS_PID=\$!
+  trap 'compss_signal USR1' USR1
+  trap 'compss_signal TERM' TERM
+  trap 'compss_signal INT' INT
+  COMPSS_RC=0
+  while kill -0 "\${COMPSS_PID}" 2>/dev/null; do
+    wait "\${COMPSS_PID}" || true
+  done
+  wait "\${COMPSS_PID}" || COMPSS_RC=\$?
+  return "\${COMPSS_RC}"
+}
+EOT
+
   # Storage init
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
     # ADD STORAGE_INIT, STORAGE_FINISH AND NODES PARSING
@@ -1134,7 +1220,8 @@ fi
 variables_to_be_sourced=\$(mktemp -p \$PWD .storage_env_XXXXXXXX)
 
 ${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${storage_worker_nodes}" "${network}" "${storage_props}" "\${variables_to_be_sourced}" "${storage_container_image}" "${storage_cpu_affinity}"
-${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${COMPSS_MASTER_NODE}" --worker_nodes="\${COMPSS_WORKER_NODES}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} --env_script=\${variables_to_be_sourced} ${args_pass}
+compss_rc=0
+compss_run ${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${COMPSS_MASTER_NODE}" --worker_nodes="\${COMPSS_WORKER_NODES}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} --env_script=\${variables_to_be_sourced} ${args_pass} || compss_rc=\$?
 
 if [ -f "\${variables_to_be_sourced}" ]; then
      rm "\${variables_to_be_sourced}"
@@ -1142,12 +1229,14 @@ fi
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${storage_worker_nodes}" ${network} ${storage_props}
 
+exit \${compss_rc}
+
 EOT
   else
     # ONLY ADD EXECUTE COMMAND
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
-${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${COMPSS_MASTER_NODE}" --worker_nodes="\${COMPSS_WORKER_NODES}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} ${args_pass}
+compss_run ${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${COMPSS_MASTER_NODE}" --worker_nodes="\${COMPSS_WORKER_NODES}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} ${args_pass}
 EOT
   fi
 }

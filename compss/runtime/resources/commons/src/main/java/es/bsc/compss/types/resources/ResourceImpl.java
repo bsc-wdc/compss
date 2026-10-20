@@ -83,6 +83,11 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
     private boolean isLost = false;
+    // Whether the tracing and debug files of this resource were already retrieved. Set on the first retrieval so
+    // that a second retrieval (e.g. a StopWorkerAction and a connector destroying the same resource) does not fetch
+    // the worker files again.
+    private boolean tracingAndDebugDataRetrieved = false;
+    private final Object tracingAndDebugDataLock = new Object();
 
     private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
@@ -467,12 +472,21 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             LOGGER.debug("Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
             return;
         }
-        if (Tracer.isExtraeActivated() || CACHE_PROFILING_ENABLED) {
-            generateAndRetrieveWorkerAnalysis();
-        }
+        // A concurrent caller waits for the retrieval in progress, so the worker is not stopped before its files
+        // arrive, and then skips it
+        synchronized (this.tracingAndDebugDataLock) {
+            if (this.tracingAndDebugDataRetrieved) {
+                LOGGER.debug("Tracing and Debug Data of node " + this.getName() + " already retrieved: skipping");
+                return;
+            }
+            if (Tracer.isExtraeActivated() || CACHE_PROFILING_ENABLED) {
+                generateAndRetrieveWorkerAnalysis();
+            }
 
-        if (DEBUG || DP_ENABLED) {
-            generateAndRetrieveWorkerDebug();
+            if (DEBUG || DP_ENABLED) {
+                generateAndRetrieveWorkerDebug();
+            }
+            this.tracingAndDebugDataRetrieved = true;
         }
     }
 

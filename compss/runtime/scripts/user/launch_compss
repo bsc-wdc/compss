@@ -2270,6 +2270,19 @@ write_log_usage() {
 
 
 ###############################################
+# Signal handler: ask the master to stop
+###############################################
+master_signal_handler() {
+  echo "[LAUNCH_COMPSS] Received $1: stopping the master"
+  master_stop_requested=true
+  master_stop_signal=$1
+  if [ -n "${master_pid}" ]; then
+    kill -TERM ${master_pid} 2>/dev/null || true
+  fi
+}
+
+
+###############################################
 # Launches the application
 ###############################################
 launch() {
@@ -2488,9 +2501,26 @@ launch() {
       #   exit $ev
       # fi
 
-      $MCMD
-      ev=$?
+      # Run the master in the background (a bash shell defers a trap while it
+      # waits for a foreground child) and forward the early-stop signals to it.
+      # Only the master process is signaled: the workers are stopped by the
+      # master itself, which must still reach them to fetch their logs.
+      $MCMD <&0 &
+      master_pid=$!
+      if [ "${master_stop_requested}" = "true" ]; then
+        master_signal_handler USR1
+      fi
+      ev=0
+      while kill -0 ${master_pid} 2>/dev/null; do
+        wait ${master_pid} || true
+      done
+      wait ${master_pid} || ev=$?
       if [ $ev -ne 0 ]; then
+        if [ "${master_stop_requested}" = "true" ]; then
+          # The master was asked to stop before the walltime: report it as the wall clock limit code
+          echo "[LAUNCH_COMPSS] Master stopped on ${master_stop_signal} request before the walltime (master exit code ${ev})"
+          exit 122
+        fi
         echo "Master execution failed. Exiting job."
         exit $ev
       fi
@@ -2657,6 +2687,22 @@ cleanup() {
     if [ "${log_level}" != "off" ]; then
        echo "[LAUNCH_COMPSS] Cleanup Worker TMP files"
     fi
+    # Salvage the worker logs still present in the worker working dir before
+    # removing it (e.g. when a worker was killed by a signal and the master
+    # could not fetch them)
+    if [ -d "${worker_working_dir}" ]; then
+      for worker_log_dir in "${worker_working_dir}"/*/*/log; do
+        if [ -d "${worker_log_dir}" ]; then
+          worker_host="$(basename "$(dirname "${worker_log_dir}")")"
+          worker_log_target="${specific_log_dir}/workers/${worker_host}"
+          if [ ! -d "${worker_log_target}" ] || [ -z "$(ls -A "${worker_log_target}" 2>/dev/null)" ]; then
+            mkdir -p "${worker_log_target}"
+            cp -r "${worker_log_dir}" "${worker_log_target}/" 2>/dev/null || true
+          fi
+        fi
+      done
+    fi
+
     pids=""
     if [ -z "${worker_working_dir}" ] || [ "${worker_working_dir}" == "/" ]; then
       echo "[WARN] Worker WD is not set. Not cleaning Workers WD"
@@ -2678,9 +2724,24 @@ cleanup() {
       pids="$pids $!"
     done
 
+    remote_rm_ec=0
     for pid in $pids; do
-      wait "$pid" || exit $?
+      wait "$pid" || remote_rm_ec=$?
     done
+
+    # Remove the worker working dir on the local node: it is the dir created in
+    # set_variables, and this covers shared-disk WDs when the removal through
+    # the queue system launch command failed
+    if [ -n "${worker_working_dir}" ] && [ "${worker_working_dir}" != "/" ] && [ -d "${worker_working_dir}" ]; then
+      if [ "${log_level}" != "off" ]; then
+        echo "[LAUNCH_COMPSS] Removing ${worker_working_dir} on the local node"
+      fi
+      rm -rf "${worker_working_dir}"
+    fi
+
+    if [ ${remote_rm_ec} -ne 0 ]; then
+      exit ${remote_rm_ec}
+    fi
 
     if [ "${log_level}" != "off" ]; then
         echo "[LAUNCH_COMPSS] Cleanup TMP files"
@@ -2805,6 +2866,15 @@ cleanup() {
 
   # Add clean up for execution end
   trap cleanup EXIT
+
+  # Forward the early-stop signals (e.g. sent by the batch script before the
+  # walltime) to the master process, once it is running
+  master_pid=""
+  master_stop_requested=false
+  master_stop_signal=""
+  trap 'master_signal_handler USR1' USR1
+  trap 'master_signal_handler TERM' TERM
+  trap 'master_signal_handler INT' INT
 
   # Create XML files
   if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then

@@ -587,8 +587,8 @@ get_args() {
           # Added for elasticity
           qos=${OPTARG//qos=/}
           ;;
-        cpus_per_task)
-          cpus_per_task="true"
+        forward_cpus_per_node=*)
+          cpus_per_task=${OPTARG//forward_cpus_per_node=/}
           ;;
         constraints=*)
           # Added for elasticity
@@ -789,6 +789,10 @@ check_args() {
 
   if [ "${cpus_per_node}" -lt "${MINIMUM_CPUS_PER_NODE}" ]; then
     display_error "${ERROR_NUM_CPUS}"
+  fi
+
+  if [ -z "${cpus_per_task}" ]; then
+    cpus_per_task=${DEFAULT_FORWARD_CPUS_PER_NODE}
   fi
 
   if [ -z "${gpus_per_node}" ]; then
@@ -1201,17 +1205,20 @@ launch_agent () {
       node=$(${NODE_NAME_QUEUE} ${node})
   fi
 
+  # Base auxiliar params
+  AUXILIAR_LAUNCH_PARAMS_UPDATED="${AUXILIAR_LAUNCH_PARAMS}"
+
   if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
       if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
-          AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
+          AUXILIAR_LAUNCH_PARAMS_UPDATED="${QARG_CPUS_PER_TASK} ${cpus_per_node} ${AUXILIAR_LAUNCH_PARAMS}"
       fi
   fi
 
   if [ -n "${het_group}" ] && [[ ! "${AUXILIAR_LAUNCH_PARAMS}" == *"het-group"* ]]; then
-    AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
+    AUXILIAR_LAUNCH_PARAMS_UPDATED="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
   fi
 
-  ACMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_name} ${ACMD}"
+  ACMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS_UPDATED}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_name} ${ACMD}"
   echo "Method: launch_agent -----------> running: ${ACMD}"
   $ACMD&
 }

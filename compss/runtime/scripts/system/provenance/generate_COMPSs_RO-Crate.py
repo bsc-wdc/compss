@@ -402,13 +402,8 @@ def main():
         if failed_tasks:
                 workflow_status = "http://schema.org/FailedActionStatus"
         else:
-            if exit_code in [130, 137, 143]:  # 128 + SIGINT (2), 128 + SIGKILL (9), 128 + SIGTERM (15)
+            if exit_code in [130, 137, 143, 122]:  # 128 + SIGINT (2), 128 + SIGKILL (9), 128 + SIGTERM (15). 122 is COMPSs internal for wall clock time limit hit
                 workflow_status = "http://schema.org/PotentialActionStatus"
-            elif exit_code == 1:  # MN5 special case, wall_clock goes here. This case should not exist if exit_codes were correct at MN5
-                if len(steps) == executed_tasks:
-                    workflow_status = "http://schema.org/PotentialActionStatus"
-                else:
-                    workflow_status = "http://schema.org/FailedActionStatus"
             elif exit_code == 0:
                 if len(steps) == executed_tasks:
                     workflow_status = "http://schema.org/CompletedActionStatus"
@@ -422,7 +417,7 @@ def main():
     else:  # We can only trust exit_code
         if exit_code == 0:
             workflow_status = "http://schema.org/CompletedActionStatus"
-        elif exit_code in [130, 137, 143]:  # 128 + SIGINT (2), 128 + SIGKILL (9), 128 + SIGTERM (15)
+        elif exit_code in [130, 137, 143, 122]:  # 128 + SIGINT (2), 128 + SIGKILL (9), 128 + SIGTERM (15). 122 is COMPSs internal for wall clock time limit hit
             workflow_status = "http://schema.org/PotentialActionStatus"
         else:
             # exit_code == 1 used by default to detect failures, goes here, and the rest of codes

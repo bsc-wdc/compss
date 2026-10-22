@@ -23,10 +23,8 @@ import subprocess
 try:
     import pandas as pd
 except ImportError:
-    print(
-        "PROVENANCE | PROFILING | ERROR: pandas is not installed. Please install it using 'pip install pandas'."
-    )
-    sys.exit(1)
+    # Plots are optional: generate the RO-Crate without them
+    pd = None
 
 
 def get_tool_executable():
@@ -75,6 +73,13 @@ def generate_plots(stats_path) -> str:
     
     if not os.path.exists(stats_path):
         print("PROVENANCE | PROFILING | ERROR: stats folder does not exist")
+        return None
+
+    if pd is None:
+        print(
+            "PROVENANCE | PROFILING | WARNING: pandas is not installed. Profiling plots will not be generated. "
+            "Install it with 'pip install pandas' to enable plot generation."
+        )
         return None
 
     try:

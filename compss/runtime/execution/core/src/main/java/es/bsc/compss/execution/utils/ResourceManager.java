@@ -66,8 +66,7 @@ public class ResourceManager {
                     binderCPUsTmp = new Unbinded();
                     break;
                 case ThreadBinder.BINDER_AUTOMATIC:
-                    String resourceMap = BindToMap.getResourceCpuDescription();
-                    binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
+                    binderCPUsTmp = createAutomaticCPUBinder(cusCPU);
                     break;
                 default:
                     // Custom user map
@@ -78,8 +77,7 @@ public class ResourceManager {
             logger
                 .warn("Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
                     + ThreadBinder.BINDER_AUTOMATIC + ")");
-            String resourceMap = BindToMap.getResourceCpuDescription();
-            binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
+            binderCPUsTmp = createAutomaticCPUBinder(cusCPU);
         }
         binderCPUs = binderCPUsTmp;
 
@@ -131,6 +129,24 @@ public class ResourceManager {
         }
         binderFPGAs = binderFPGAsTmp;
         this.pendingRequests = new LinkedList<>();
+    }
+
+    /**
+     * Creates the automatic CPU binder from the node description provided by lscpu. If the description cannot be
+     * retrieved (e.g. lscpu is not available, as in macOS), the CPU affinity is disabled instead of failing.
+     *
+     * @param cusCPU CPU Computing units
+     * @return CPU binder
+     */
+    private static ThreadBinder createAutomaticCPUBinder(int cusCPU) {
+        try {
+            String resourceMap = BindToMap.getResourceCpuDescription();
+            return new BindToMap(cusCPU, resourceMap);
+        } catch (InvalidMapException ime) {
+            logger.warn("Could not retrieve the CPU description of the node. CPU affinity will be disabled ("
+                + ThreadBinder.BINDER_DISABLED + ")", ime);
+            return new Unbinded();
+        }
     }
 
     /**

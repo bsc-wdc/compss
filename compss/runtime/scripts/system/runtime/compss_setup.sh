@@ -230,10 +230,11 @@ create_exec_folder() {
 
 
         if [ -d "${overload_log_dir}" ]; then
-          if [[ "$OSTYPE" == "darwin"* ]]; then
-            overload_date=$(stat -f %Fm "${overload_log_dir}" )
-          else
+          # Detect the stat flavour instead of the OS: GNU coreutils may be first in the PATH on macOS
+          if stat -c %.9Y "${overload_log_dir}" >/dev/null 2>&1; then
             overload_date=$(stat -c %.9Y "${overload_log_dir}" )
+          else
+            overload_date=$(stat -f %Fm "${overload_log_dir}" )
           fi
           overload_date="${overload_date//./}"
           overload_date="${overload_date//,/}"
@@ -374,11 +375,8 @@ check_compss_setup () {
 # Write down current configuration to file
 #----------------------------------------------
 generate_jvm_opts_file() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    jvm_options_file=$(mktemp -t /tmp) || arguments_error "${TMP_FILE_JVM_ERROR}"
-  else
-    jvm_options_file=$(mktemp -p /tmp) || arguments_error "${TMP_FILE_JVM_ERROR}"
-  fi
+  # Explicit template: same syntax for GNU and BSD (macOS) mktemp
+  jvm_options_file=$(mktemp /tmp/tmp.XXXXXXXXXX) || arguments_error "${TMP_FILE_JVM_ERROR}"
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
   # PLEASE: Any new parameter added here may be also added into interactive.py config dict.

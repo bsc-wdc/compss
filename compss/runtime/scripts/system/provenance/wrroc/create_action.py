@@ -40,11 +40,9 @@ import pytz
 
 try:
     import pandas as pd
-except:
-    print(
-        "Error: pandas is not installed. Please install it using 'pip install pandas'."
-    )
-    exit(1)
+except ImportError:
+    # Resource usage and energy data are optional: generate the RO-Crate without them
+    pd = None
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
@@ -686,6 +684,11 @@ def wrroc_create_action(
         id_measure_list = []
         if len(profiling_files_list) == 0:
             print(f"PROVENANCE | WARNING: No profiling resource file found ")
+        elif pd is None:
+            print(
+                "PROVENANCE | WARNING: pandas is not installed. Resource usage of the nodes will not be added. "
+                "Install it with 'pip install pandas' to enable it."
+            )
         else:
             for profiling_file in profiling_files_list:
                 resource_name = profiling_file.split(".")[0].split("_")[-1]
@@ -714,7 +717,12 @@ def wrroc_create_action(
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
 
-    if os.path.isdir(energy_path):
+    if os.path.isdir(energy_path) and pd is None:
+        print(
+            "PROVENANCE | WARNING: pandas is not installed. Energy data will not be added. "
+            "Install it with 'pip install pandas' to enable it."
+        )
+    elif os.path.isdir(energy_path):
         try:
             entry_list = [
                 "AVG_CPUFREQ_KHZ",

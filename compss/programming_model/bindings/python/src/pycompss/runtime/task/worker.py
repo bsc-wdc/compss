@@ -93,7 +93,14 @@ DP_LOGGER = logging.getLogger("dp_logger")
 DP_ENABLED = False
 
 # Memory parameters before doing memory release
-_LIBC = ctypes.CDLL("libc.so.6")
+_LIBC = None  # type: typing.Optional[ctypes.CDLL]
+try:
+    _LIBC = ctypes.CDLL("libc.so.6")
+except OSError:
+    # libc.so.6 does not exist on macOS: skip the memory release
+    pass
+# malloc_trim is glibc-only
+_MALLOC_TRIM_AVAILABLE = hasattr(_LIBC, "malloc_trim")
 _PROCESS = psutil.Process()
 _TOTAL_MEMORY = psutil.virtual_memory().total
 _MEMORY_LIMIT_BYTES = 8 * 1024**3  # Release when process > 8 Gb
@@ -437,11 +444,12 @@ class TaskWorker:
             # although the objects are removed.
             gc.collect()
             # Then try to deallocate the empty memory.
-            try:
-                _LIBC.malloc_trim(0)
-            except OSError:  # pylint: disable=broad-except
-                if __debug__:
-                    LOGGER.warning("Could NOT deallocate memory.")
+            if _MALLOC_TRIM_AVAILABLE:
+                try:
+                    _LIBC.malloc_trim(0)  # type: ignore
+                except OSError:  # pylint: disable=broad-except
+                    if __debug__:
+                        LOGGER.warning("Could NOT deallocate memory.")
 
         # # NOTE: Cupy uses a memory pool in order to reuse it quickly.
         # # This code forces each task to do the memory allocation which

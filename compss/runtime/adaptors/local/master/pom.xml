@@ -56,13 +56,6 @@
 			<artifactId>compss-execution-all-plugins</artifactId>
 		</dependency>
 
-		<!-- Classes to execute tasks -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-execution-all-plugins</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<!-- COMPSs Loader Interface for Nested invocations -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>

@@ -139,6 +139,19 @@ Enables COMPSs to run as long-lived services that accept task submissions via RE
 ### Tests (`tests/sources/local/`)
 Tests are organized by family (directory). Each test `N_name/` contains: `deploy`, `execution`, `result` scripts, and optionally a `pom.xml` for Java tests. The number prefix indicates test importance/order.
 
+## Workflow Provenance
+
+Workflow Provenance (`runcompss -p` / `--provenance`, `-z` / `--zip_provenance`) records the metadata of an application run as an RO-Crate (Workflow RO-Crate + Workflow Run RO-Crate profiles). The generator lives in `compss/runtime/scripts/system/provenance/`, but the data it needs is captured all over the runtime, and the log formats are a contract between all these parts:
+
+- User scripts: `runcompss`, `launch_compss`, `enqueue_compss`; `system/runtime/compss_setup.sh`, `provenance.sh`, `profiler.sh`; `system/profiling/profiler.py`
+- Java master: `COMPSsRuntimeImpl`, `WorkflowImpl`, `Task`, `TaskScheduler`/`JSONStateManager` (`dataprovenance.log`, logger `Loggers.DATA_PROVENANCE`)
+- Java worker: `Executor`, `Invoker`, `NIOWorker`, `ResourceImpl`, `WorkerStarterCommand` (`worker_dp.out`)
+- PyCOMPSs worker: `pycompss/runtime/task/worker.py` (`binding_dp.out`)
+- Log configuration: `compss/runtime/config/log/COMPSsMaster-log4j*`, `COMPSsWorker-log4j*`, `pycompss/util/logger/cfg/logging_*.json`
+- Tests: `tests/sources/local/tools/3_provenance_*`
+
+**Before changing any of these, read `compss/runtime/scripts/system/provenance/AGENTS.md`**, which describes the end-to-end flow, the format of every log file and the rules to keep producers and parser in sync.
+
 ## Code Quality
 
 **Java:** Checkstyle is enforced via Maven (`maven-plugins/checkstyle/`). Run with:

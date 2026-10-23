@@ -256,7 +256,7 @@ process_pipe_commands() {
                     pids="${line}"
                     # shellcheck disable=SC2086
                     if [[ "$OSTYPE" == "darwin"* ]]; then
-                      alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}'| sed 1d)
+                      alive_processes=$(ps -o pid=,stat= -p "$(echo ${pids} | tr " " ",")" | awk '$2 != "Z" {print $1}')
                     else
                       alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')
                     fi

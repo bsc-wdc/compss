@@ -1214,8 +1214,8 @@ launch_agent () {
       fi
   fi
 
-  if [ -n "${het_group}" ] && [[ ! "${AUXILIAR_LAUNCH_PARAMS}" == *"het-group"* ]]; then
-    AUXILIAR_LAUNCH_PARAMS_UPDATED="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
+  if [ -n "${het_group}" ] && [[ ! "${AUXILIAR_LAUNCH_PARAMS_UPDATED}" == *"het-group"* ]]; then
+    AUXILIAR_LAUNCH_PARAMS_UPDATED="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS_UPDATED}"
   fi
 
   ACMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS_UPDATED}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_name} ${ACMD}"

@@ -1003,8 +1003,10 @@ EOT
   fi
 
   # Add num processes when defined in queue system
+  # In heterogeneous jobs each node type sets its own cpus_per_node, and
+  # DEFAULT_CPUS_PER_NODE comes from the master's sc_cfg
   req_cpus_per_node=${cpus_per_node}
-  if [ "${req_cpus_per_node}" -gt "${DEFAULT_CPUS_PER_NODE}" ]; then
+  if [ -z "${types_cfg_file}" ] && [ "${req_cpus_per_node}" -gt "${DEFAULT_CPUS_PER_NODE}" ]; then
     req_cpus_per_node=${DEFAULT_CPUS_PER_NODE}
   fi
 

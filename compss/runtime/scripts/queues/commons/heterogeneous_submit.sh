@@ -245,11 +245,13 @@ done
 add_master_port_generation
 original_args_pass="--master_port=\${master_port} ${original_args_pass}"
 if [ -z "${HETEROGENEOUS_MULTIJOB}" ] || [ "${HETEROGENEOUS_MULTIJOB}" = "false" ]; then
+  # Single job: the env scripts run once, before all the launches
+  add_env_source
   worker_num=1
   hostid=1
   workers=$(echo "${worker_types}" | tr ',' ' ')
   for worker in ${workers}; do
-    worker_desc=$(echo "${worker}" | tr ':' ' ')
+    worker_desc=($(echo "${worker}" | tr ':' ' '))
     eval ${worker_desc[0]}
     num_nodes=${worker_desc[1]}
     check_args
@@ -277,7 +279,10 @@ num_nodes=1
 check_args
 set_time
 update_args_to_pass "fini" "${suffix}" "${hostid}" "${uuid}"
-args_pass="--het_groups=${all_worker_groups} ${args_pass}"
+# Only launch_compss_agents takes the worker groups
+if [ "${agents_enabled}" = "enabled" ]; then
+  args_pass="--het_groups=${all_worker_groups} ${args_pass}"
+fi
 log_args
 if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
   create_tmp_submit

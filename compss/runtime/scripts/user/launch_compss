@@ -2682,6 +2682,12 @@ cleanup() {
   if [[ -n "$keep_wd" ]]; then
     echo "[WARN] Flag removeWD set to false. Not cleaning Workers WD"
     echo "[WARN] Flag removeWD set to false. Not cleaning XML files"
+  elif [ -n "${no_master}" ]; then
+    # Worker-only launch (heterogeneous jobs): this script returns while the
+    # workers it started keep running, so their WD is still in use
+    if [ "${log_level}" != "off" ]; then
+      echo "[LAUNCH_COMPSS] Worker-only launch: workers still running, not cleaning their WD"
+    fi
   else
     # Cleanup
     if [ "${log_level}" != "off" ]; then

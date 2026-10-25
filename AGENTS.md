@@ -169,6 +169,10 @@ Pipeline defined in `tests/.gitlab-ci.yml`.
 
 **GitLab interaction:** use the `glab` CLI for MRs, issues, pipelines, and other GitLab operations instead of raw REST calls. The API is served at `https://gitlab.bsc.es` (HTTPS); git remotes use `gitlab-internal.bsc.es` over SSH only.
 
+**Merge request descriptions:** follow `PULL_REQUEST_TEMPLATE.md` (repository root). GitLab does not fill it in automatically, so copy its sections: `# Pull Request`, `## Status`, `## Description`, `## Type of change`, `## Project impact`, `## Related PRs`, `## How Has This Been Tested?`, `## Checklist`. Keep only the checkboxes that apply and tick what was done; put the test details (local checks, supercomputer job ids) under "How Has This Been Tested?".
+
+**Documentation-only MRs:** when an MR changes only Markdown files (and the root `RELEASE_NOTES`, `changelog`, `ACKNOWLEDGMENTS`, `NOTICE`, `CITATION.cff`), `build` and `test` end at once with success (`.docs_only_skip` in `.gitlab-ci.yml`); `check` still runs. Any other changed file runs the full pipeline.
+
 Stages:
 1. `rebase_verify` — MR must be rebased on target branch; auto-rebases and pushes for same-repo MRs
 2. `header_setup` — Validates Apache 2.0 license headers and Maven project structure; auto-fixes and pushes for same-repo MRs

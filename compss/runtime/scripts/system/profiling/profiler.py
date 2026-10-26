@@ -29,6 +29,8 @@ profiling_data = []
 output_file = None
 log_dir = None
 hostname = None
+# Warnings already printed, so that the ones found at every sample are shown only once
+printed_warnings = set()
 
 # import psutil only on macOS
 machine_os = sys.platform
@@ -70,6 +72,17 @@ def setup_signal_handlers():
         signal.signal(sig, end_profiling)
 
 
+def print_warning_once(message: str):
+    """
+    Print a warning only the first time it is found, instead of at every profiling sample.
+
+    :param message: Warning message to print
+    """
+    if message not in printed_warnings:
+        printed_warnings.add(message)
+        print(message)
+
+
 def get_gpu_usage(architecture: str):
     """
     Execute the command to get the values of gpu usage for different architectures.
@@ -109,13 +122,13 @@ def get_gpu_usage(architecture: str):
                     gpu_util = f.read().strip()
                 return [gpu_util, "0"] # Sysfs rarely exposes VRAM util cleanly without extra tools
             else:
-                print("PROVENANCE | PROFILING | WARNING: Intel sysfs path not found.")
+                print_warning_once("PROVENANCE | PROFILING | WARNING: Intel sysfs path not found.")
                 return ["0", "0"]
                 
         elif architecture == "apple":
             # macOS Apple Silicon (M1/M2/M3)
             # powermetrics requires sudo, but it's the standard way to get Apple GPU stats
-            print("PROVENANCE | PROFILING | WARNING: Apple GPU profiling requires 'sudo powermetrics'")
+            print_warning_once("PROVENANCE | PROFILING | WARNING: Apple GPU profiling requires 'sudo powermetrics'")
             return ["0", "0"]
 
         else:

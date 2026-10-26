@@ -32,9 +32,11 @@ def get_description_plot(metric, node_name="unknown node"):
     description_plots = {
         "cpu_aggregated": f"Profiling plot showing the percentage of CPU used during workflow run, aggregating all nodes",
         "mem_aggregated": f"Profiling plot showing the amount of memory used during workflow run, aggregating all nodes",
+        "gpu_usage_aggregated": f"Profiling plot showing the percentage of GPU used during workflow run, aggregating all nodes",
+        "gpu_mem_aggregated": f"Profiling plot showing the amount of GPU memory used during workflow run, aggregating all nodes",
         "cpu": f"Profiling plot for node {node_name} showing the percentage of CPU used during workflow run",
         "mem": f"Profiling plot for node {node_name} showing the amount of memory used during workflow run",
-        "gpu": f"Profiling plot for node {node_name} showing the percentage of GPU used during workflow run",
+        "gpu_usage": f"Profiling plot for node {node_name} showing the percentage of GPU used during workflow run",
         "gpu_mem": f"Profiling plot for node {node_name} showing the amount of GPU memory used during workflow run",
         "disk_usage": f"Profiling plot for node {node_name} showing the cumulative amount of data read and written on the disk during workflow run",
         "network_usage": f"Profiling plot for node {node_name} showing the cumulative amount of data sent and received during workflow run",
@@ -694,20 +696,30 @@ def add_stats_and_plots(compss_crate, compss_wf_info, log_dir, create_action, ma
 
     stats_folder = log_dir / "stats/"
     if os.path.exists(stats_folder):
+        # Nodes with profiling data (resource_profiling_<node>.csv). On single-node runs, the profiling tool writes
+        # the plots of that node directly in plots/, so its name cannot be taken from the parent folder
+        profiled_nodes = [
+            f[len("resource_profiling_"):-len(".csv")]
+            for f in os.listdir(stats_folder)
+            if f.startswith("resource_profiling_") and f.endswith(".csv")
+        ]
         for root, _, files in os.walk(stats_folder):
             for file in files:
                 if file.endswith(".csv") or file.endswith(".svg"):
                     full_path = os.path.join(root, file)
                     if file.endswith(".svg"):
-                        # Add always, only aggregated plots are generated now
+                        # Add always: aggregated plots (multi-node runs) or the plots of the only node (single-node runs)
                         relative_file_path = full_path.split("plots/")[1]
                         relative_path = "profiling/" + relative_file_path
                         # Determine metric and node_name based on path depth
                         path_parts = relative_path.split("/")
-                        # path_parts example for plots: ["stats", "plots", "gs23r1b30-MASTER", "cpu.svg"]
-                        # path_parts example for flat:  ["stats", "static_resource_profiling_gs23r1b30-MASTER.csv"]
+                        # path_parts example for aggregated or single-node plots: ["profiling", "cpu.svg"]
+                        # path_parts example for per-node plots: ["profiling", "gs23r1b30-MASTER", "cpu.svg"]
                         metric = path_parts[-1].split(".")[0]   # filename without extension
-                        node_name = path_parts[-2]              # parent directory name
+                        if len(path_parts) == 2 and len(profiled_nodes) == 1:
+                            node_name = profiled_nodes[0]       # single-node run
+                        else:
+                            node_name = path_parts[-2]          # parent directory name
                         description = get_description_plot(metric, node_name)
                         file_properties = {}
                         file_properties["@id"] = relative_path

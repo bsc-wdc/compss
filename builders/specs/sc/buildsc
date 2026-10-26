@@ -226,11 +226,11 @@
 
   # REPRODUCIBILITY SERVICE
   echo "--- Copy Reproducibility Service"
-  cp -r "${trunk_rel_path}/compss/tools/reproducibility_service/" "${COMPSs_target}/Tools/"
+  cp -r "${trunk_rel_path}/compss/tools/reproducibility_service/." "${COMPSs_target}/Tools/reproducibility_service/"
 
   # RESOURCE ANALYSIS PLOTS
   echo "--- Copy Resource Analysis Plots"
-  cp -r "${trunk_rel_path}/compss/tools/resource_analysis_plots/" "${COMPSs_target}/Tools/"
+  cp -r "${trunk_rel_path}/compss/tools/resource_analysis_plots/." "${COMPSs_target}/Tools/resource_analysis_plots/"
 
   # BINDINGS DEPLOYMENT
   echo "--- Copy bindings-common files"

@@ -1081,11 +1081,11 @@ install_compss() {
 
   # REPRODUCIBILITY SERVICE
   log_info "--- Deploying Reproducibility Service"
-  cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/"
+  cp -r "${TMP_DIR}/compss/tools/reproducibility_service/." "${targetDir}/Tools/reproducibility_service/"
 
   # RESOURCE ANALYSIS PLOTS
   log_info "--- Deploying Resource Analysis Plots"
-  cp -r "${TMP_DIR}/compss/tools/resource_analysis_plots/" "${targetDir}/Tools/"
+  cp -r "${TMP_DIR}/compss/tools/resource_analysis_plots/." "${targetDir}/Tools/resource_analysis_plots/"
 
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ] || [ "${rcompss}" == "true" ]; then

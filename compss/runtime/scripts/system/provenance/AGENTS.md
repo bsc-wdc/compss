@@ -167,7 +167,7 @@ Other tools read the generated crates and depend on their layout and on the meta
 | `models/` | `Task` and `Parameter` dataclasses. |
 | `file_adding/source_code.py` | Adds the application source files. |
 | `file_adding/datasets.py` | Adds input/output files and directories, logs, traces, statistics and plots. |
-| `wrroc/create_action.py` | Main `CreateAction` of the run: status, agent, timings, resource usage, energy. |
+| `wrroc/create_action.py` | Main `CreateAction` of the run: status, agent, timings, resource usage. |
 | `wrroc/provenance_run/` | Provenance Run Crate entities: `prospective.py` (`HowToStep`, formal parameters, tools) and `retrospective.py` (`CreateAction`, `ControlAction`, `OrganizeAction` per task). |
 | `wrroc/profile.py` | `conformsTo` profiles for the chosen level. |
 | `wrroc/profiling_plots.py` | Runs `compss_genprofiling` to generate the plots. |
@@ -196,13 +196,13 @@ Other tools read the generated crates and depend on their layout and on the meta
 ## Rules for changes
 
 - **Producers and parsers must stay in sync.** The log lines are a contract between Java, Python binding and generator code. When changing a field, a separator or a file name on one side, update the parser (`processing/master_log.py`, `processing/worker_logs.py`, `wrroc/create_action.py`) in the same change, and update this file.
-- **Keep the copies in sync.** The help text of the provenance flags is duplicated in `builders/specs/cli/PyCOMPSsCLIResources/pycompss_cli/assets/runcompss_args.txt` and `enqueue_compss_args.txt`. User-visible changes (flags, YAML keys, crate layout, messages, dependencies) must also be reflected in the user documentation (see the link at the top of this file).
+- **Keep the copies in sync.** User-visible changes (flags, YAML keys, crate layout, messages, dependencies) must also be reflected in the user documentation (see the link at the top of this file).
 - **Never let provenance break the application.** Capture code must be guarded by the data provenance flag (`DP_ENABLED`) and must not raise. The generator runs after the application, so its failures must not change the application exit code.
 - **Prefer degrading to failing.** Missing worker logs, files that no longer exist or unparsable lines produce a `PROVENANCE | WARNING:` message and less detailed metadata, not an exception. Keep that behaviour.
 - **Mind the size of the crate and the generation time.** Large workflows can have many thousands of tasks and files. Avoid per-task work that is quadratic or that touches the file system repeatedly. Parameter values are truncated to `param_size_limit`.
 - **Output style.** Messages start with `PROVENANCE | ` (`PROVENANCE | PROFILING | ` for profiling). Debug-only messages go inside `if __debug__:`. The generator runs with `python3 -O` unless `COMPSS_PROV_DEBUG` is set, so those messages are hidden by default.
 - **Dependencies.** The generator uses `rocrate` (ro-crate-py 0.13.0 or later; the code handles versions before and after 0.15), `PyYAML`, `pytz`, `requests` (ORCID/ROR lookups), `pandas` (resource usage, energy data and profiling plots) and `matplotlib` (through the plotting tool). The profiler uses only the standard library on Linux and `psutil` on macOS. CI pins the ro-crate-py version with `ROCRATE_VERSION` in `tests/Dockerfile`. Do not add new dependencies without updating the user documentation (Software dependencies section).
-- **RO-Crate validity.** Generated crates must stay valid for the declared profiles. Check them with `rocrate-validator` (see Testing).
+- **RO-Crate validity.** Generated crates must stay valid for the declared profiles. Check them with `rocrate-validator` (see Checking a generated crate).
 
 ## Testing
 
@@ -217,3 +217,37 @@ python3 ${COMPSS_HOME}/Runtime/scripts/system/provenance/generate_COMPSs_RO-Crat
 ```
 
   `COMPSS_EXIT_CODE` can be exported beforehand to reproduce the status of a failed run. Run without `-O` to see the `PROVENANCE DEBUG` messages.
+
+### Checking a generated crate
+
+Use all three methods below: they check different things. The validator only checks the schema and `pycompss inspect` shows different summaries, so neither can tell whether the whole content is *true*. Only the third one does. These checks only read the crate, so run them from outside the application folder.
+
+1. **Schema validity** with `rocrate-validator`:
+
+   ```bash
+   rocrate-validator validate --no-paging -f text <crate>                 # REQUIRED level: must pass
+   rocrate-validator validate --no-paging -f json -l recommended <crate>  # group the failures
+   ```
+
+   Most RECOMMENDED failures are known and cosmetic: singleton arrays, `scp://` URLs that cannot be resolved, missing `encodingFormat`, and per-task actions without `agent` or `description`.
+
+2. **Summary** with `pycompss inspect <crate> [flags]`:
+
+   ```bash
+   pycompss inspect <crate> -v
+   pycompss inspect <crate> -v -d
+   pycompss inspect <crate> -f
+   pycompss inspect <crate> -t 1,2,8      # optionally -m <method>[,<method>...]
+   ```
+
+   The most essential information to check when not using any flags is the `Status` and `Scheduled Tasks`. The workflow's overall inputs and otputs can be checked in detail with the -d flag. Each task's details (i.e. -t flag) also shows as key information the `Inputs` and `Outputs` of the task, but also its `Status`, the `Method` it ran and the `Host` where the task ran. `Start Time` and `End Time` can be both used to calculate `Execution Time`, but also to compare it with other tasks, to understand which tasks ran in parallel at the same time, and what was their execution order. These times account only for user code execution time, and no COMPSs runtime overheads are included (i.e. creating and submitting the task, or its finalisation).
+
+3. **Content** with a script that parses `ro-crate-metadata.json`:
+   - diff the local `File`/`Dataset` entities against the directory contents, including sizes and modification dates (when available);
+   - check the overall (i.e. in the main `CreateAction`) and each task's `object`/`result` lists against the application's algorithm;
+   - check the YAML fields, the command line and the timestamps.
+
+Expected behaviour, not bugs:
+- The `./` entry in the `result` of the main `CreateAction` is intentional (`wrroc/create_action.py`, "The generated RO-Crate").
+- INOUT files show their final size even when listed as inputs (a known pending item).
+- The runtime profiling statistics (average/min/max per method) include runtime overheads. Each task's `startTime`/`endTime` covers only the code execution, so differences on those times can be normally appreciated (i.e. the difference accounts for runtime overhead). The smaller the task, the larger the overheads appreciated can be.

@@ -198,7 +198,8 @@ public abstract class Tracer {
      * @param name of the host
      * @param slots number of threads the host is expected to have (used in GOS, in NIO is 0, because they will be
      *            computed automatically
-     * @return the next ID to be used during the initialization of the tracing in the given host.
+     * @return the ID to be used during the initialization of the tracing in the given host; a host registered again
+     *         (e.g. a restarted worker) gets the ID it got the first time.
      */
     public static int registerHost(String name, int slots) {
         if (debug) {
@@ -206,14 +207,15 @@ public abstract class Tracer {
         }
         int id;
         synchronized (hostToSlots) {
-            if (hostToSlots.containsKey(name)) {
+            TraceHost host = hostToSlots.get(name);
+            if (host != null) {
                 if (debug) {
-                    logger.debug("Host " + name + " already in tracing system, skipping");
+                    logger.debug("Host " + name + " already in tracing system with ID " + host.id);
                 }
-                return -1;
+                return host.id;
             }
             id = nextHostID.getAndIncrement();
-            hostToSlots.put(name, new TraceHost(slots));
+            hostToSlots.put(name, new TraceHost(id, slots));
         }
         return id;
     }
@@ -629,12 +631,14 @@ public abstract class Tracer {
 
     private static class TraceHost {
 
+        private final int id;
         private boolean[] slots;
         private int numFreeSlots;
         private int nextSlot;
 
 
-        private TraceHost(int nslots) {
+        private TraceHost(int id, int nslots) {
+            this.id = id;
             this.slots = new boolean[nslots];
             this.numFreeSlots = nslots;
             this.nextSlot = 0;

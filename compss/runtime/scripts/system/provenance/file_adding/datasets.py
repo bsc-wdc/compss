@@ -70,7 +70,8 @@ def add_dataset_file_to_crate(
     :param in_url: File added as input or output
     :param persist: True to attach the file to the crate, False otherwise
     :param common_paths: List of identified common paths among all dataset files, all finish with '/'
-    :returns: The original url if persist is false, the crate_path if persist is true, 'None' if the file or dataset cannot be added
+
+    :returns: The original url if persist is false, the crate_path if persist is true
     """
 
     # method_time = time.time()
@@ -167,10 +168,20 @@ def add_dataset_file_to_crate(
             # add_file_time = time.time() - add_file_time
     except AttributeError:
         print(f"PROVENANCE | WARNING: Could not process URL: {in_url}.")
-        return None
+        return in_url
     except FileNotFoundError:
-        # print(f"PROVENANCE | WARNING: Could not add file {url_parts.path}. The file does not exist.")
-        return None
+        print(
+            f"PROVENANCE | WARNING: Could not add file {url_parts.path}. The file does not exist."
+        )
+        # Add an empty File (or Dataset) entity so references to the missing file point to an existing entity.
+        # Use the same external scp:// identifier as for existing files: file:// is only the runtime's internal URL
+        missing_id = write_external_url(fix_dir_url(in_url))
+        if compss_crate.get(missing_id) is None:
+            missing_type = "Dataset" if url_parts.scheme == "dir" else "File"
+            missing_file = compss_crate.add(ContextEntity(compss_crate, missing_id, properties={"@type": missing_type}))
+            compss_crate.root_dataset.append_to("hasPart", missing_file)
+        return missing_id
+    
 
     try:
         if url_parts.scheme == "dir":  # DIRECTORY parameter
@@ -406,8 +417,7 @@ def add_dataset_file_to_crate(
 
     # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
     except:
-        # print(f"PROVENANCE | WARNING: Could not add directory {url_parts.path}.")
-        return None
+        print(f"PROVENANCE | WARNING: Could not add directory {url_parts.path}.")
 
     #return fix_dir_url(in_url)
     return write_external_url(fix_dir_url(in_url)) if not persist else fix_dir_url(in_url)

@@ -105,23 +105,54 @@
   mvn -U clean
   cd "${SCRIPT_DIR}"
 
+  . "${TMP_DIR}/dependencies/dep_versions"
+
+  # Download Extrae
+  echo "- Downloading Extrae ${EXTRAE_VERSION}"
+  cd "${TMP_DIR}"
+  wget "https://ftp.tools.bsc.es/extrae/extrae-${EXTRAE_VERSION}-src.tar.bz2"
+  mv "extrae-${EXTRAE_VERSION}-src.tar.bz2" extrae.tar.bz2
+  cd "${SCRIPT_DIR}"
+
+  # Download DLB
+  echo "- Downloading DLB ${DLB_VERSION}"
+  cd "${TMP_DIR}"
+  wget "https://gitlab.pm.bsc.es/dlb/dlb/-/archive/v${DLB_VERSION}/dlb-v${DLB_VERSION}.tar.gz"
+  mv "dlb-v${DLB_VERSION}.tar.gz" dlb.tar.gz
+  cd "${SCRIPT_DIR}"
+
   # Download streaming backend (kafka) binary release
-  echo "- Downloading Streaming Backend (Kafka)"
+  echo "- Downloading Streaming Backend (Kafka ${KAFKA_VERSION})"
+  cd "${TMP_DIR}"
   if [ "$kafka" -ne 0 ]; then
-    # Drop any stale copy (e.g. leftover sources of the old kafka submodule)
-    rm -rf "${TMP_DIR}"/dependencies/kafka
-    "${TMP_DIR}"/dependencies/pre-install-deps --install-dir="${TMP_DIR}"/dependencies \
-      --no-extrae --no-dlb --no-tomcat --no-jacoco
+    local pkg="kafka_2.13-${KAFKA_VERSION}.tgz"
+    local url="http://compss.bsc.es/repo/apache-kafka/${pkg}"
+    local fallback_url="https://archive.apache.org/dist/apache/${KAFKA_VERSION}/${pkg}"
+    if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+      echo "[kafka] BSC mirror failed, trying official archive..."
+      timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+        echo "ERROR: Failed to download Kafka from any mirror."
+        exit 1
+      }
+    fi
+    mv "${pkg}" kafka.tgz
   fi
   cd "${SCRIPT_DIR}"
 
   # COMPSs Monitor APACHE
-  echo "- Downloading Apache for COMSPs Monitor"
+  echo "- Downloading Apache Tomcat ${TOMCAT_VERSION} for COMSPs Monitor"
   cd "${TMP_DIR}"
-  TOMCAT_VER="7.0.65"
-  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-${TOMCAT_VER}.tar.gz"
-  wget ${TOMCAT_URL}
-  mv apache-tomcat-${TOMCAT_VER}.tar.gz apache-tomcat.tar.gz
+  local pkg="apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+  local url="http://compss.bsc.es/repo/apache-tomcat/${pkg}"
+  local fallback_url="https://archive.apache.org/dist/tomcat/tomcat-8/v${TOMCAT_VERSION}/bin/${pkg}"
+  if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+    echo "[tomcat] BSC mirror failed, trying official archive..."
+    timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+      echo "ERROR: Failed to download Tomcat from any mirror."
+      exit 1
+    }
+  fi
+  mv "${pkg}" tomcat.tar.gz
   cd "${SCRIPT_DIR}"
 
   # DEPLOY ON TMP SC

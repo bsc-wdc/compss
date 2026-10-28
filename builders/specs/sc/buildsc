@@ -60,36 +60,6 @@
     mvn -U -DskipTests clean install
   )
 
-  # Compile streaming backend (kafka)
-  echo ""
-  echo "* Compiling Streaming Backend (Kafka)..."
-  kafka=1 # 0 to skip kafka compilation
-  if [ "$kafka" -ne 0 ]; then
-      (
-        cd "${trunk_rel_path}"/dependencies/kafka
-        if which gradle; then
-          gradle
-          ev=$?
-        elif [ -n "${GRADLE_HOME}" ]; then
-          "${GRADLE_HOME}"/bin/gradle
-          ev=$?
-        else
-           echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
-           exit 1
-        fi
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to compile Kafka dependency"
-          exit 1
-        fi
-        ./gradlew jar
-        ev=$?
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to build Kafka dependency"
-          exit 1
-        fi
-      )
-  fi
-
   echo ""
   echo "* Create deployment folders"
   COMPSs_target=tmp/COMPSs
@@ -207,16 +177,51 @@
   echo "--- Copy trace operations"
   cp -r "${trunk_rel_path}/compss/tools/tracing/target/compss-tracing.jar" "${COMPSs_target}/Tools/tracing"
 
+  # Get dependency versions
+  . "${trunk_rel_path}/dependencies/dep_versions"
+
+  # Compile streaming backend (kafka)
+  echo ""
+  echo "* Downloading Streaming Backend (Kafka)..."
+  kafka=1 # 0 to skip kafka compilation
+  if [ "$kafka" -ne 0 ]; then
+      (
+        cd tmp/
+        pkg="kafka_2.13-${KAFKA_VERSION}.tgz"
+        url="http://compss.bsc.es/repo/apache-kafka/${pkg}"
+        fallback_url="https://archive.apache.org/dist/apache/${KAFKA_VERSION}/${pkg}"
+        if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+          echo "[kafka] BSC mirror failed, trying official archive..."
+          timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+            echo "ERROR: Failed to download Kafka from any mirror."
+            exit 1
+          }
+        fi
+        mkdir -p kafka
+        tar xzf "${pkg}" --strip-components=1 -C kafka
+        rm "${pkg}"
+      )
+      mv tmp/kafka ${COMPSs_target}/Dependencies/kafka
+  fi
+
   # TOOLS DEPLOYMENT
   echo "--- Copy tools"
-  TOMCAT_VER="7.0.65"
-  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
   (
     cd tmp/
-    wget $TOMCAT_URL
-    tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
+    pkg="apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+    url="http://compss.bsc.es/repo/apache-tomcat/${pkg}"
+    fallback_url="https://archive.apache.org/dist/tomcat/tomcat-8/v${TOMCAT_VERSION}/bin/${pkg}"
+    if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+      echo "[tomcat] BSC mirror failed, trying official archive..."
+      timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+        echo "ERROR: Failed to download Tomcat from any mirror."
+        exit 1
+      }
+    fi
+    mkdir -p apache-tomcat
+    tar xzf "${pkg}" --strip-components=1 -C apache-tomcat
   )
-  mv tmp/apache-tomcat-$TOMCAT_VER ${COMPSs_target}/Tools/monitor/apache-tomcat/
+  mv tmp/apache-tomcat ${COMPSs_target}/Tools/monitor/apache-tomcat
   rm -rf ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/*
   rm -f ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/server.xml
   cp -r ${trunk_rel_path}/compss/tools/monitor/target/*.war ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/

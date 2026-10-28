@@ -42,7 +42,7 @@ EOF
 
   # Download the specified Redis Version, unzip it, compile the redis-server
   # utility, move it to the main folder and execute the main test
-  REDIS_VERSION=$(cat REDIS-VERSION)
+  REDIS_VERSION=$(cat REDIS_VERSION)
   REDIS_URL=http://download.redis.io/releases
   REDIS_FOLDER=redis-${REDIS_VERSION}
   REDIS_TAR_NAME=${REDIS_FOLDER}.tar.gz

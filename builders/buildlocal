@@ -593,21 +593,6 @@ command_exists () {
     type "$1" &> /dev/null ;
 }
 
-# Returns the version stamp for a dependency.
-# Uses the git submodule commit hash when available (precise, invalidates on
-# submodule updates), otherwise falls back to the given version string.
-get_dep_version() {
-  local submodule_path="$1"
-  local fallback_version="$2"
-  local commit
-  commit=$(git -C "${SOURCES_DIR}" ls-files --stage -- "${submodule_path}" 2>/dev/null | awk '{print $2}')
-  if [ -n "${commit}" ]; then
-    echo "${commit}"
-  else
-    echo "${fallback_version}"
-  fi
-}
-
 # Returns 0 (true) if the cache directory exists and its stamp matches the
 # expected version, meaning the dependency can be reused without rebuilding.
 dep_cache_valid() {
@@ -833,6 +818,7 @@ install_compss() {
   cp "${TMP_DIR}/RELEASE_NOTES" ${targetDir}
 
   # DEPENDENCIES
+  . "${TMP_DIR}/dependencies/dep_versions"
   log_info "--- Copy dependencies"
   # Paraver CFGs
   cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
@@ -843,17 +829,15 @@ install_compss() {
       log_info "--- Using pre-installed Extrae from ${EXTRAE_HOME}"
       [ -d "${extraeDir}" ] || cp -r "${EXTRAE_HOME}/." "${extraeDir}/"
     else
-      extrae_ver=${EXTRAE_VERSION:-5.1.0}
       extrae_cache="${deps_cache}/extrae"
-      if [ -n "${deps_cache}" ] && dep_cache_valid "${extrae_cache}" "${extrae_ver}"; then
-        log_info "--- Reusing cached Extrae (${extrae_ver})"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${extrae_cache}" "${EXTRAE_VERSION}"; then
+        log_info "--- Reusing cached Extrae (${EXTRAE_VERSION})"
         cp -r "${extrae_cache}/." "${extraeDir}/"
       else
         cd "${TMP_DIR}"/dependencies/
-        wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
-        tar xvf "extrae-${extrae_ver}-src.tar.bz2"
-        rm "extrae-${extrae_ver}-src.tar.bz2"
-        mv "extrae-${extrae_ver}" extrae
+        wget "https://ftp.tools.bsc.es/extrae/extrae-${EXTRAE_VERSION}-src.tar.bz2"
+        mkdir -p extrae
+        tar xvf "extrae-${EXTRAE_VERSION}-src.tar.bz2" --strip-components=1 -C extrae
         ./install_extrae.sh "${TMP_DIR}/dependencies/extrae" "${extraeDir}" true > "${bindingOut}" 2>&1
         ev=$?
         if [ $ev -ne 0 ]; then
@@ -864,7 +848,7 @@ install_compss() {
           log_info "--- Caching Extrae to ${extrae_cache}"
           mkdir -p "${extrae_cache}"
           cp -r "${extraeDir}/." "${extrae_cache}/"
-          write_dep_version "${extrae_cache}" "${extrae_ver}"
+          write_dep_version "${extrae_cache}" "${EXTRAE_VERSION}"
         fi
       fi
       cd "${SCRIPT_DIR}"
@@ -877,13 +861,15 @@ install_compss() {
       log_info "--- Using pre-installed DLB from ${DLB_HOME}"
       [ -d "${dlbDir}" ] || cp -r "${DLB_HOME}/." "${dlbDir}/"
     else
-      dlb_ver=$(get_dep_version "dependencies/dlb" "3.6.0")
       dlb_cache="${deps_cache}/dlb"
-      if [ -n "${deps_cache}" ] && dep_cache_valid "${dlb_cache}" "${dlb_ver}"; then
-        log_info "--- Reusing cached DLB (${dlb_ver})"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${dlb_cache}" "${DLB_VERSION}"; then
+        log_info "--- Reusing cached DLB (${DLB_VERSION})"
         cp -r "${dlb_cache}/." "${dlbDir}/"
       else
         cd "${TMP_DIR}"/dependencies/
+        wget "https://gitlab.pm.bsc.es/dlb/dlb/-/archive/v${DLB_VERSION}/dlb-v${DLB_VERSION}.tar.gz"
+        mkdir -p dlb
+        tar xvf "dlb-v${DLB_VERSION}.tar.gz" --strip-components=1 -C dlb
         ./install_dlb.sh "${TMP_DIR}/dependencies/dlb" ${dlbDir} > "${bindingOut}" 2>&1 # true
         ev=$?
         if [ $ev -ne 0 ]; then
@@ -894,12 +880,12 @@ install_compss() {
           log_info "--- Caching DLB to ${dlb_cache}"
           mkdir -p "${dlb_cache}"
           cp -r "${dlbDir}/." "${dlb_cache}/"
-          write_dep_version "${dlb_cache}" "${dlb_ver}"
+          write_dep_version "${dlb_cache}" "${DLB_VERSION}"
         fi
       fi
       cd "${SCRIPT_DIR}"
     fi
-    export DLB_HOME=${dlbDir}
+    export DLB_HOME="${dlbDir}"
   else
     unset DLB_HOME
   fi
@@ -910,18 +896,36 @@ install_compss() {
       log_info "--- Using pre-installed Kafka from ${KAFKA_HOME}"
       [ -d "${kafkaDir}" ] || cp -r "${KAFKA_HOME}/." "${kafkaDir}/"
     else
-      # Download the Kafka binary release (same source as the Docker build)
-      # Own subdirectory so stale caches of the old gradle-built Kafka are never reused
-      kafka_install_dir="${deps_cache:-${TMP_DIR}/dependencies}/kafka-release"
-      log_info "--- Installing Kafka binary release into ${kafka_install_dir}"
-      "${SOURCES_DIR}"/dependencies/pre-install-deps --install-dir="${kafka_install_dir}" \
-        --no-extrae --no-dlb --no-tomcat --no-jacoco > "${bindingOut}" 2>&1 || {
-        cat "${bindingOut}"
-        echo "ERROR: Failed to install Kafka dependency"
-        exit 1
-      }
-      cp -r "${kafka_install_dir}/kafka/." "${kafkaDir}/"
+      kafka_cache="${deps_cache}/kafka"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${kafka_cache}" "${KAFKA_VERSION}"; then
+        log_info "--- Reusing cached Kafka (${KAFKA_VERSION})"
+        cp -r "${kafka_cache}/." "${kafkaDir}/"
+      else
+        cd "${TMP_DIR}"/dependencies/
+        local pkg="kafka_2.13-${KAFKA_VERSION}.tgz"
+        local url="http://compss.bsc.es/repo/apache-kafka/${pkg}"
+        local fallback_url="https://archive.apache.org/dist/apache/${KAFKA_VERSION}/${pkg}"
+        if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+          echo "[kafka] BSC mirror failed, trying official archive..."
+          timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+            echo "ERROR: Failed to download Kafka from any mirror."
+            exit 1
+          }
+        fi
+        mkdir -p "${kafkaDir}"
+        tar xzf "${pkg}" --strip-components=1 -C "${kafkaDir}"
+        if [ -n "${deps_cache}" ]; then
+          log_info "--- Caching Kafka to ${kafka_cache}"
+          mkdir -p "${kafka_cache}"
+          cp -r "${kafkaDir}/." "${kafka_cache}/"
+          write_dep_version "${kafka_cache}" "${KAFKA_VERSION}"
+        fi
+      fi
+      cd "${SCRIPT_DIR}"
     fi
+    export KAFKA_HOME="${kafkaDir}"
+  else
+    unset KAFKA_HOME
   fi
 
   # CONFIG
@@ -1003,80 +1007,87 @@ install_compss() {
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then
     log_info "- Deploying Monitor at Tools"
-    TOMCAT_VER="8.5.23" #"7.0.65"
+    tomcatDir="${targetDir}/Tools/monitor/apache-tomcat"
     if [ -n "${TOMCAT_HOME}" ] && [ -d "${TOMCAT_HOME}" ]; then
       log_info "--- Using pre-installed Tomcat from ${TOMCAT_HOME}"
-      mkdir -p "${targetDir}/Tools/monitor/apache-tomcat"
-      cp -r "${TOMCAT_HOME}/." "${targetDir}/Tools/monitor/apache-tomcat/"
+      [ -d "${tomcatDir}" ] || cp -r "${TOMCAT_HOME}/." "${tomcatDir}/"
     else
       tomcat_cache="${deps_cache}/tomcat"
-      if [ -n "${deps_cache}" ] && dep_cache_valid "${tomcat_cache}" "${TOMCAT_VER}"; then
-        log_info "--- Reusing cached Tomcat (${TOMCAT_VER})"
-        mkdir -p "${targetDir}/Tools/monitor/apache-tomcat"
-        cp -r "${tomcat_cache}/." "${targetDir}/Tools/monitor/apache-tomcat/"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${tomcat_cache}" "${TOMCAT_VERSION}"; then
+        log_info "--- Reusing cached Tomcat (${TOMCAT_VERSION})"
+        cp -r "${tomcat_cache}/." "${tomcatDir}"
       else
         cd "${TMP_DIR}"
-        TOMCAT_PCK_NAME="apache-tomcat-${TOMCAT_VER}.tar.gz"
-        TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/${TOMCAT_PCK_NAME}"
-        wget "${TOMCAT_URL}" > "${bindingOut}" 2>&1
-        ev=$?
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to download Tomcat from ${TOMCAT_URL}"
-          exit 1
+        local pkg="apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+        local url="http://compss.bsc.es/repo/apache-tomcat/${pkg}"
+        local fallback_url="https://archive.apache.org/dist/tomcat/tomcat-8/v${TOMCAT_VERSION}/bin/${pkg}"
+        if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+          echo "[tomcat] BSC mirror failed, trying official archive..."
+          timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+            echo "ERROR: Failed to download Tomcat from any mirror."
+            exit 1
+          }
         fi
-        tar xzf "${TOMCAT_PCK_NAME}"
-        cd "${SCRIPT_DIR}"
-        mv "${TMP_DIR}/apache-tomcat-$TOMCAT_VER" "${targetDir}/Tools/monitor/apache-tomcat/"
+        mkdir -p "${tomcatDir}"
+        tar xzf "${pkg}" --strip-components=1 -C "${tomcatDir}"
         if [ -n "${deps_cache}" ]; then
           log_info "--- Caching Tomcat to ${tomcat_cache}"
           mkdir -p "${tomcat_cache}"
-          cp -r "${targetDir}/Tools/monitor/apache-tomcat/." "${tomcat_cache}/"
-          write_dep_version "${tomcat_cache}" "${TOMCAT_VER}"
+          cp -r "${tomcatDir}/." "${tomcat_cache}/"
+          write_dep_version "${tomcat_cache}" "${TOMCAT_VERSION}"
         fi
       fi
+      cd "${SCRIPT_DIR}"
     fi
+    export TOMCAT_HOME="${tomcatDir}"
     rm -rf "${targetDir}"/Tools/monitor/apache-tomcat/webapps/*
     rm -f "${targetDir}"/Tools/monitor/apache-tomcat/conf/server.xml
     cp -r "${TMP_DIR}"/compss/tools/monitor/target/*.war "${targetDir}/Tools/monitor/apache-tomcat/webapps/"
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/compss-monitor.conf "${targetDir}/Tools/monitor/apache-tomcat/conf/"
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/server.xml "${targetDir}/Tools/monitor/apache-tomcat/conf/"
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/*log4j* "${targetDir}/Tools/monitor/"
+  else
+    unset TOMCAT_HOME
   fi
 
   if [ "$jacoco" == "true" ]; then
     log_info "- Deploying Jacoco at Tools"
-    JACOCO_VER="0.8.5"
+    jacocoDir="${targetDir}/Tools/jacoco"
     if [ -n "${JACOCO_HOME}" ] && [ -d "${JACOCO_HOME}" ]; then
       log_info "--- Using pre-installed JaCoCo from ${JACOCO_HOME}"
-      mkdir -p "${targetDir}/Tools/jacoco"
-      cp -r "${JACOCO_HOME}/." "${targetDir}/Tools/jacoco/"
+      [ -d "${jacocoDir}" ] || cp -r "${JACOCO_HOME}/." "${jacocoDir}/"
     else
       jacoco_cache="${deps_cache}/jacoco"
-      if [ -n "${deps_cache}" ] && dep_cache_valid "${jacoco_cache}" "${JACOCO_VER}"; then
-        log_info "--- Reusing cached JaCoCo (${JACOCO_VER})"
-        mkdir -p "${targetDir}/Tools/jacoco"
-        cp -r "${jacoco_cache}/." "${targetDir}/Tools/jacoco/"
+      if [ -n "${deps_cache}" ] && dep_cache_valid "${jacoco_cache}" "${JACOCO_VERSION}"; then
+        log_info "--- Reusing cached JaCoCo (${JACOCO_VERSION})"
+        cp -r "${jacoco_cache}/." "${jacocoDir}"
       else
         cd "${TMP_DIR}"
-        JACOCO_PCK_NAME="jacoco-${JACOCO_VER}.zip"
-        JACOCO_URL="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VER}/${JACOCO_PCK_NAME}"
-        wget "${JACOCO_URL}" > "${bindingOut}" 2>&1
-        ev=$?
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Failed to download JaCoCo from ${JACOCO_URL}"
-          exit 1
+        local pkg="jacoco-${JACOCO_VERSION}.zip"
+        local url="http://compss.bsc.es/repo/jacoco/${pkg}"
+        local fallback_url="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VERSION}/${pkg}"
+        if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+          echo "[jacoco] BSC mirror failed, trying official archive..."
+          timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+            echo "ERROR: Failed to download JaCoCo from any mirror."
+            exit 1
+          }
         fi
-        unzip "${JACOCO_PCK_NAME}" -d jacoco
+        mkdir -p "${jacocoDir}"
+        unzip -q "${pkg}" -d "${jacocoDir}"
         cd "${SCRIPT_DIR}"
-        mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
         if [ -n "${deps_cache}" ]; then
           log_info "--- Caching JaCoCo to ${jacoco_cache}"
           mkdir -p "${jacoco_cache}"
-          cp -r "${targetDir}/Tools/jacoco/." "${jacoco_cache}/"
-          write_dep_version "${jacoco_cache}" "${JACOCO_VER}"
+          cp -r "${jacocoDir}/." "${jacoco_cache}/"
+          write_dep_version "${jacoco_cache}" "${JACOCO_VERSION}"
         fi
       fi
+      cd "${SCRIPT_DIR}"
     fi
+    export JACOCO_HOME="${jacocoDir}"
+  else
+    unset JACOCO_HOME
   fi
 
   # REPRODUCIBILITY SERVICE

@@ -2,44 +2,28 @@ FROM eclipse-temurin:21-jdk-noble AS build
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 
-ARG BUILD_ESSENTIAL_VERSION
-ARG CMAKE_VERSION
-ARG GFORTRAN_VERSION
-ARG GIT_VERSION
-ARG LIBBOOST_SERIALIZATION_DEV_VERSION
-ARG LIBBZ2_DEV_VERSION
-ARG LIBJPEG_DEV_VERSION
-ARG LIBLZMA_DEV_VERSION
-ARG LIBOPENMPI_DEV_VERSION
-ARG LIBPCRE2_DEV_VERSION
-ARG LIBTOOL_VERSION
-ARG LIBXML2_DEV_VERSION
-ARG PYTHON3_DEV_VERSION
-ARG PYTHON3_PIP_VERSION
-ARG R_BASE_VERSION
-ARG UNZIP_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			build-essential=${BUILD_ESSENTIAL_VERSION} \
-			cmake=${CMAKE_VERSION} \
-			gfortran=${GFORTRAN_VERSION} \
-			git=${GIT_VERSION} \
-			libboost-serialization-dev=${LIBBOOST_SERIALIZATION_DEV_VERSION} \
-			libbz2-dev=${LIBBZ2_DEV_VERSION} \
-			libjpeg-dev=${LIBJPEG_DEV_VERSION} \
-			liblzma-dev=${LIBLZMA_DEV_VERSION} \
-			libopenmpi-dev=${LIBOPENMPI_DEV_VERSION} \
-			libpcre2-dev=${LIBPCRE2_DEV_VERSION} \
-			libtool=${LIBTOOL_VERSION} \
-			libxml2-dev=${LIBXML2_DEV_VERSION} \
-			python3-dev=${PYTHON3_DEV_VERSION} \
-			python3-pip=${PYTHON3_PIP_VERSION} \
-			r-base=${R_BASE_VERSION} \
-			unzip=${UNZIP_VERSION}
+			build-essential \
+			cmake \
+			gfortran \
+			git \
+			libboost-serialization-dev \
+			libbz2-dev \
+			libjpeg-dev \
+			liblzma-dev \
+			libopenmpi-dev \
+			libpcre2-dev \
+			libtool \
+			libxml2-dev \
+			python3-dev \
+			python3-pip \
+			r-base \
+			unzip
 
 ARG GRADLE_HOME=/opt/gradle
 ARG GRADLE_VERSION
@@ -53,33 +37,23 @@ RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.
 	mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} && \
 	ln -s ${MAVEN_HOME}/bin/* /usr/bin
 
-ARG DILL_VERSION
-ARG GUPPY3_VERSION
-ARG MATPLOTLIB_VERSION
-ARG MEMORY_PROFILER_VERSION
-ARG MPI4PY_VERSION
 ARG MYPY_VERSION
-ARG PYTEST_VERSION
-ARG TYPES_TABULATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			dill==${DILL_VERSION} \
-			guppy3==${GUPPY3_VERSION} \
-			matplotlib==${MATPLOTLIB_VERSION} \
-			memory_profiler==${MEMORY_PROFILER_VERSION} \
-			mpi4py==${MPI4PY_VERSION} \
+			dill \
+			guppy3 \
+			matplotlib \
+			memory_profiler \
+			mpi4py \
 			mypy==${MYPY_VERSION} \
-			pytest==${PYTEST_VERSION} \
-			types-tabulate==${TYPES_TABULATE_VERSION}
+			pytest \
+			types-tabulate
 
 COPY dependencies /framework/dependencies
 
-ARG DLB_VERSION
-ARG EXTRAE_VERSION
-RUN cd /framework && \
-	git clone --depth 1 -b v${DLB_VERSION} https://gitlab.pm.bsc.es/dlb/dlb.git dependencies/dlb && \
-	git clone --depth 1 -b main https://github.com/stsds/RCOMPSs compss/programming_model/bindings/RCOMPSs && \
-	git clone --depth 1 -b master https://github.com/joblib/threadpoolctl.git dependencies/threadpoolctl && \
+# Git clones must match git submodules from submodules_get.sh
+RUN git clone --depth 1 -b next-compss-version https://github.com/stsds/RCOMPSs /framework/compss/programming_model/bindings/RCOMPSs && \
+	git clone --depth 1 -b master https://github.com/joblib/threadpoolctl.git /framework/dependencies/threadpoolctl && \
 	/framework/dependencies/pre-install-deps
 
 COPY --exclude=dependencies . /framework

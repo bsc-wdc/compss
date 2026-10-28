@@ -5,66 +5,40 @@ ARG TARGETARCH
 # Build + Tests
 
 # + Emacs + PAPI + Nano + VIM
-ARG AUTOMAKE_VERSION
-ARG BC_VERSION
-ARG BUILD_ESSENTIAL_VERSION
-ARG CMAKE_VERSION
-ARG FILE_VERSION
-ARG GFORTRAN_VERSION
-ARG GIT_VERSION
-ARG GPP_VERSION
-ARG GRAPHVIZ_VERSION
-ARG JQ_VERSION
-ARG LIBBOOST_SERIALIZATION_DEV_VERSION
-ARG LIBBOOST_SYSTEM_DEV_VERSION
-ARG LIBBZ2_DEV_VERSION
-ARG LIBJPEG_DEV_VERSION
-ARG LIBLZMA_DEV_VERSION
-ARG LIBOPENMPI_DEV_VERSION
-ARG LIBPCRE2_DEV_VERSION
-ARG LIBTOOL_VERSION
-ARG LIBXML2_DEV_VERSION
-ARG MAKE_VERSION
-ARG OPENSSH_SERVER_VERSION
-ARG PAPI_TOOLS_VERSION
-ARG PYTHON3_DEV_VERSION
-ARG PYTHON3_PIP_VERSION
-ARG R_BASE_VERSION
-ARG UNZIP_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			automake=${AUTOMAKE_VERSION} \
-			bc=${BC_VERSION} \
-			build-essential=${BUILD_ESSENTIAL_VERSION} \
-			cmake=${CMAKE_VERSION} \
+			automake \
+			bc \
+			build-essential \
+			cmake \
 			emacs \
-			file=${FILE_VERSION} \
-			gfortran=${GFORTRAN_VERSION} \
-			git=${GIT_VERSION} \
-			g++=${GPP_VERSION} \
-			graphviz=${GRAPHVIZ_VERSION} \
-			jq=${JQ_VERSION} \
-			libboost-serialization-dev=${LIBBOOST_SERIALIZATION_DEV_VERSION} \
-			libboost-system-dev=${LIBBOOST_SYSTEM_DEV_VERSION} \
-			libbz2-dev=${LIBBZ2_DEV_VERSION} \
-			libjpeg-dev=${LIBJPEG_DEV_VERSION} \
-			liblzma-dev=${LIBLZMA_DEV_VERSION} \
-			libopenmpi-dev=${LIBOPENMPI_DEV_VERSION} \
-			libpcre2-dev=${LIBPCRE2_DEV_VERSION} \
-			libtool=${LIBTOOL_VERSION} \
-			libxml2-dev=${LIBXML2_DEV_VERSION} \
-			make=${MAKE_VERSION} \
+			file \
+			gfortran \
+			git \
+			g++ \
+			graphviz \
+			jq \
+			libboost-serialization-dev \
+			libboost-system-dev \
+			libbz2-dev \
+			libjpeg-dev \
+			liblzma-dev \
+			libopenmpi-dev \
+			libpcre2-dev \
+			libtool \
+			libxml2-dev \
+			make \
 			nano \
-			openssh-server=${OPENSSH_SERVER_VERSION} \
-			papi-tools=${PAPI_TOOLS_VERSION} \
-			python3-dev=${PYTHON3_DEV_VERSION} \
-			python3-pip=${PYTHON3_PIP_VERSION} \
-			r-base=${R_BASE_VERSION} \
-			unzip=${UNZIP_VERSION} \
+			openssh-server \
+			papi-tools \
+			python3-dev \
+			python3-pip \
+			r-base \
+			unzip \
 			vim
 
 ARG DOCKER_CE_CLI_VERSION
@@ -86,53 +60,35 @@ RUN wget https://download.docker.com/linux/ubuntu/dists/noble/pool/stable/${TARG
 	ln -s ${MAVEN_HOME}/bin/* /usr/bin
 
 # + DataClay + Dislib + Notebook + PyCOMPSs-CLI + Qdislib
-ARG DATACLAY_VERSION
-ARG DECORATOR_VERSION
-ARG DILL_VERSION
-ARG GUPPY3_VERSION
-ARG IPYWIDGETS_VERSION
-ARG JUPYTERLAB_VERSION
-ARG KAFKA_PYTHON_VERSION
-ARG MATPLOTLIB_VERSION
-ARG MEMORY_PROFILER_VERSION
-ARG MPI4PY_VERSION
 ARG MYPY_VERSION
-ARG NOTEBOOK_VERSION
-ARG NUMBA_VERSION
-ARG PANDAS_VERSION
-ARG PYTEST_VERSION
-ARG PYTZ_VERSION
-ARG REDIS_VERSION
 ARG ROC_VALIDATOR_VERSION
 ARG ROCRATE_VERSION
-ARG TABULATE_VERSION
-ARG TYPES_TABULATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			dataclay==${DATACLAY_VERSION} \
-			decorator==${DECORATOR_VERSION} \
-			dill==${DILL_VERSION} \
+			dataclay \
+			decorator \
+			dill \
     		dislib \
-			guppy3==${GUPPY3_VERSION} \
-			ipywidgets==${IPYWIDGETS_VERSION} \
-			jupyterlab==${JUPYTERLAB_VERSION} \
-			kafka-python==${KAFKA_PYTHON_VERSION} \
-			matplotlib==${MATPLOTLIB_VERSION} \
-			memory_profiler==${MEMORY_PROFILER_VERSION} \
-			mpi4py==${MPI4PY_VERSION} \
+			guppy3 \
+			ipywidgets \
+			jupyterlab \
+			kafka-python \
+			matplotlib \
+			memory_profiler \
+			mpi4py \
 			mypy==${MYPY_VERSION} \
-			notebook==${NOTEBOOK_VERSION} \
-			numba==${NUMBA_VERSION} \
-			pandas==${PANDAS_VERSION} \
+			notebook \
+			numba \
+			pandas \
 			pycompss-cli \
-			pytest==${PYTEST_VERSION} \
-			pytz==${PYTZ_VERSION} \
+			pytest \
+			pytz \
     		qdislib \
-			redis==${REDIS_VERSION} \
+			redis \
 			roc-validator==${ROC_VALIDATOR_VERSION} \
 			rocrate==${ROCRATE_VERSION} \
-			tabulate==${TABULATE_VERSION} \
-			types-tabulate==${TYPES_TABULATE_VERSION}
+			tabulate \
+			types-tabulate
 
 COPY --from=build --link --parents \
 	/etc/profile.d/compss.sh \

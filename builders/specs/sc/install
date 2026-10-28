@@ -223,15 +223,18 @@ get_args() {
       echo "   Success"
     fi
   fi
+
+  # Get dependency versions
+  . "${SCRIPT_DIR}/Dependencies/dep_versions"
+
   if [ "${tracing}" == "true" ]; then
     # Install extrae
     echo "- Install extrae"
     cd "${SCRIPT_DIR}"/Dependencies
-    extrae_ver=${EXTRAE_VERSION:-5.1.0}
-    wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
-    tar xvf "extrae-${extrae_ver}-src.tar.bz2"
-    rm "extrae-${extrae_ver}-src.tar.bz2"
-    mv "extrae-${extrae_ver}" extrae
+    wget "https://ftp.tools.bsc.es/extrae/extrae-${EXTRAE_VERSION}-src.tar.bz2"
+    mkdir -p extrae
+    tar xvf "extrae-${EXTRAE_VERSION}-src.tar.bz2" --strip-components=1 -C extrae
+    rm "extrae-${EXTRAE_VERSION}-src.tar.bz2"
     ./install_extrae.sh "${SCRIPT_DIR}"/Dependencies/extrae "${targetDir}"/Dependencies/extrae true
     cd "${SCRIPT_DIR}"
     echo "   Success"

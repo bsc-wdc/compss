@@ -14,7 +14,7 @@
 
   # Now we download Redis source code from their official repo, compile it and use the redis-server executable
   cp "${source_base_dir}"/target/lib/jedis*.jar "${target_base_dir}"/jedis.jar
-  cp "${source_base_dir}"/REDIS-VERSION "${target_base_dir}"/REDIS-VERSION
+  cp "${source_base_dir}"/REDIS_VERSION "${target_base_dir}"/REDIS_VERSION
 
   # Copy files
   app_name="1_redis_java"

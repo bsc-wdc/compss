@@ -41,12 +41,11 @@ CMD compss_agent_start --hostname=$(hostname -i) \
 
 FROM compss AS compss-hpc
 
-ARG PAPI_TOOLS_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			papi-tools=${PAPI_TOOLS_VERSION}
+			papi-tools
 
 COPY --from=build --link --parents \
 	/opt/COMPSs/Dependencies/dlb \

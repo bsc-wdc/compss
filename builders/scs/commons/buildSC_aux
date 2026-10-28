@@ -165,11 +165,9 @@
 
   echo "---- Install extrae ----"
   cd "${TMP_DIR}"/dependencies || exit 1
-  extrae_ver=${EXTRAE_VERSION:-5.1.0}
-  wget "https://ftp.tools.bsc.es/extrae/extrae-${extrae_ver}-src.tar.bz2"
-  tar xvf "extrae-${extrae_ver}-src.tar.bz2"
-  rm "extrae-${extrae_ver}-src.tar.bz2"
-  mv "extrae-${extrae_ver}" extrae
+  mkdir -p extrae
+  tar xvf "extrae.tar.bz2" --strip-components=1 -C extrae
+  rm "extrae.tar.bz2"
   if [ "${extrae_no_mpi}" == "true" ]; then
     # Sequential installation
     ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae "${targetDir}"/Dependencies/extrae false
@@ -224,6 +222,9 @@
       echo "Installing DLB from source..."
       module unload dlb 2>/dev/null
       module load intel ${py3_modules}
+      mkdir -p "${TMP_DIR}/dependencies/dlb"
+      tar xvf "dlb.tar.gz" --strip-components=1 -C "${TMP_DIR}/dependencies/dlb"
+      rm "dlb.tar.gz"
       ./install_dlb.sh "${TMP_DIR}/dependencies/dlb" "${targetDir}/Dependencies/dlb"
       if [ $? -ne 0 ]; then
         echo "ERROR: Failed to install DLB dependency"
@@ -236,8 +237,11 @@
 
 
   # Streaming dependencies
-  if [ -d "${TMP_DIR}"/dependencies/kafka ]; then
-    cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/
+  if [ -f "${TMP_DIR}/kafka.tgz" ]; then
+    cd "${TMP_DIR}" || exit 1
+    tar xzf kafka.tgz
+    cd "${SCRIPT_DIR}" || exit 1
+    mv "${TMP_DIR}/kafka_2.13-*" "${targetDir}/Dependencies/kafka"
   fi
 
   # Restore original path
@@ -330,7 +334,7 @@
 
   echo "- Deploying COMPSs Tools"
   cd "${TMP_DIR}" || exit 1
-  tar xzf apache-tomcat.tar.gz
+  tar xzf tomcat.tar.gz
   cd "${SCRIPT_DIR}" || exit 1
   mv "${TMP_DIR}"/apache-tomcat-* "${targetDir}"/Tools/monitor/apache-tomcat/
   rm -rf "${targetDir}"/Tools/monitor/apache-tomcat/webapps/*

@@ -165,7 +165,10 @@ def show_tasks_info(log_path: str) -> None:
             __show_tasks_info(log_path)
 
         play = __get_play_widget(play_widget)
-        display(play)  # noqa
+        if display:
+            display(play)
+        else:
+            raise PyCOMPSsException("Function display is None.")
     else:
         __show_tasks_info(log_path)
 
@@ -232,9 +235,12 @@ def __show_tasks_info(log_path: str) -> None:
     plt.tight_layout()
     plt.show()
     # Display table with values
-    display(
-        HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels))
-    )  # noqa
+    if display and HTML:
+        display(
+            HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels))
+        )
+    else:
+        raise PyCOMPSsException("Function display or HTML is None.")
 
 
 def show_tasks_status(log_path: str) -> None:
@@ -250,7 +256,10 @@ def show_tasks_status(log_path: str) -> None:
             __show_tasks_status(log_path)
 
         play = __get_play_widget(play_widget)
-        display(play)  # noqa
+        if display:
+            display(play)
+        else:
+            raise PyCOMPSsException("Function display is None.")
     else:
         __show_tasks_info(log_path)
 
@@ -283,9 +292,12 @@ def __show_tasks_status(log_path: str) -> None:
     plt.show()
     # Display table with values
     labels, values = __plain_lists(tasks_info_dict)
-    display(
-        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
-    )  # noqa
+    if display and HTML:
+        display(
+            HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+        )
+    else:
+        raise PyCOMPSsException("Function display or HTML is None.")
 
 
 def show_statistics(log_path: str) -> None:
@@ -302,7 +314,10 @@ def show_statistics(log_path: str) -> None:
             __show_statistics(log_path)
 
         play = __get_play_widget(play_widget)
-        display(play)  # noqa
+        if display:
+            display(play)
+        else:
+            raise PyCOMPSsException("Function display is None.")
     else:
         __show_statistics(log_path)
 
@@ -320,9 +335,12 @@ def __show_statistics(log_path: str) -> None:
     # Display table with values
     labels = [statistics_dict["Key"]]
     values = [statistics_dict["Value"]]
-    display(
-        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
-    )  # noqa
+    if display and HTML:
+        display(
+            HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+        )
+    else:
+        raise PyCOMPSsException("Function display or HTML is None.")
 
 
 def show_resources_status(log_path: str) -> None:
@@ -339,7 +357,10 @@ def show_resources_status(log_path: str) -> None:
             __show_resources_status(log_path)
 
         play = __get_play_widget(play_widget)
-        display(play)  # noqa
+        if display:
+            display(play)
+        else:
+            raise PyCOMPSsException("Function display is None.")
     else:
         __show_resources_status(log_path)
 
@@ -356,9 +377,12 @@ def __show_resources_status(log_path: str) -> None:
         return
     # Display table with values
     labels, values = __plain_lists(resource_info_dict)
-    display(
-        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
-    )  # noqa
+    if display and HTML:
+        display(
+            HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+        )
+    else:
+        raise PyCOMPSsException("Function display or HTML is None.")
 
 
 def __plain_lists(dictionary: dict) -> typing.Tuple[list, list]:
@@ -388,16 +412,19 @@ def __get_play_widget(
     :param interval: Refresh interval.
     :return: Play widget.
     """
-    play = widgets.interactive(
-        function,
-        i=widgets.Play(
-            value=0,
-            min=0,
-            max=500,
-            step=1,
-            interval=interval,
-            description="Press play",
-            disabled=False,
-        ),
-    )
+    if widgets and widgets.interactive and widgets.Play:
+        play = widgets.interactive(
+            function,
+            i=widgets.Play(
+                value=0,
+                min=0,
+                max=500,
+                step=1,
+                interval=interval,
+                description="Press play",
+                disabled=False,
+            ),
+        )
+    else:
+        raise PyCOMPSsException("Object widgets or a method is None.")
     return play

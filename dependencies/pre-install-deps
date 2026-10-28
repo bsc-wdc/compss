@@ -15,35 +15,27 @@
 ######################################################################
 
 #---------------------------------------------------
+# SCRIPT VARIABLES
+#---------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+#---------------------------------------------------
 # VERSIONS (must match buildlocal expectations)
 #---------------------------------------------------
-KAFKA_VERSION="3.8.0"
-# Official SHA512 of kafka_2.13-${KAFKA_VERSION}.tgz, from archive.apache.org.
-# Update it together with KAFKA_VERSION.
-KAFKA_SHA512="0a33b7be7b6fa53249ba80f9d02cda71ed81927c160aa6ee9be1e3d3c1c4b50466ffc905293143fd88ceac7f5e7d8f5bec28ef972addd3c459cc8b1291e738aa"
-# Tried in order. archive.apache.org keeps every release but is slow (~70 KB/s),
-# so a fast mirror goes first. Every download is checked against KAFKA_SHA512.
-KAFKA_MIRRORS="https://mirrors.huaweicloud.com/apache/kafka https://archive.apache.org/dist/kafka"
-TOMCAT_VERSION="8.5.23"
-JACOCO_VERSION="0.8.5"
+. "${SCRIPT_DIR}/dep_versions"
 
 #---------------------------------------------------
 # DEFAULTS
 #---------------------------------------------------
 DEFAULT_INSTALL_DIR="/opt/COMPSs/Dependencies"
 DEFAULT_MPI_HEADERS="/usr/include/$(uname -m)-linux-gnu/mpi"
+DEFAULT_MPI_LIBS="/usr/lib/$(uname -m)-linux-gnu"
 #DEFAULT_BINUTILS_PATH="/usr"
 DEFAULT_INSTALL_EXTRAE=true
 DEFAULT_INSTALL_DLB=true
 DEFAULT_INSTALL_KAFKA=true
 DEFAULT_INSTALL_TOMCAT=true
 DEFAULT_INSTALL_JACOCO=true
-
-#---------------------------------------------------
-# SCRIPT VARIABLES
-#---------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCES_DIR="${SCRIPT_DIR}/.."
 
 #---------------------------------------------------
 # USAGE
@@ -63,6 +55,9 @@ Options:
 
     --mpi-headers=<path>        Path to MPI headers for Extrae build (EXTRAE_MPI_HEADERS)
                                 Default: ${DEFAULT_MPI_HEADERS}
+
+    --mpi-libs=<path>           Path to MPI libraries for Extrae build (EXTRAE_MPI_LIBS)
+                                Default: ${DEFAULT_MPI_LIBS}
 
     --binutils-path=<path>      Root path of binutils/BFD installation, enables address
                                 translation in the Extrae merger (EXTRAE_BINUTILS_PATH)
@@ -113,6 +108,9 @@ get_args() {
       --mpi-headers=*)
         mpi_headers="${arg#--mpi-headers=}"
         ;;
+      --mpi-libs=*)
+        mpi_libs="${arg#--mpi-libs=}"
+        ;;
       --binutils-path=*)
         binutils_path="${arg#--binutils-path=}"
         ;;
@@ -160,6 +158,7 @@ get_args() {
 check_args() {
   install_dir="${install_dir:-${DEFAULT_INSTALL_DIR}}"
   mpi_headers="${mpi_headers:-${DEFAULT_MPI_HEADERS}}"
+  mpi_libs="${mpi_libs:-${DEFAULT_MPI_LIBS}}"
   binutils_path="${binutils_path:-${DEFAULT_BINUTILS_PATH}}"
   install_extrae="${install_extrae:-${DEFAULT_INSTALL_EXTRAE}}"
   install_dlb="${install_dlb:-${DEFAULT_INSTALL_DLB}}"
@@ -197,23 +196,31 @@ check_submodule() {
 install_extrae() {
   local target="${install_dir}/extrae"
   local marker="${target}/lib/libSEQtrace.so"
-  local src="${SOURCES_DIR}/dependencies/extrae"
 
   if already_installed "${marker}"; then
     echo "[extrae] Already installed at ${target}, skipping."
     return
   fi
 
-  wget "https://ftp.tools.bsc.es/extrae/extrae-${EXTRAE_VERSION}-src.tar.bz2"
-  tar xvf "extrae-${EXTRAE_VERSION}-src.tar.bz2"
-  rm "extrae-${EXTRAE_VERSION}-src.tar.bz2"
-  mv "extrae-${EXTRAE_VERSION}" "${src}"
+  echo "[extrae] Downloading Extrae ${EXTRAE_VERSION}..."
+  local pkg="extrae-${EXTRAE_VERSION}-src.tar.bz2"
+  local url="https://ftp.tools.bsc.es/extrae/${pkg}"
+  local source="${SCRIPT_DIR}/extrae"
 
-  echo "[extrae] Building Extrae ${EXTRAE_VERSION} from tarball..."
+  if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+    echo "[extrae] BSC official mirror failed."
+    exit 1
+  fi
+
+  echo "[extrae] Building Extrae from tarball..."
+  mkdir -p "${source}" "${target}"
+  tar xvf "${pkg}" --strip-components=1 -C "${source}"
+  rm "${pkg}"
+
   export EXTRAE_MPI_HEADERS="${mpi_headers}"
+  export EXTRAE_MPI_LIBS="${mpi_libs}"
   export EXTRAE_BINUTILS_PATH="${binutils_path}"
-  cd "${SOURCES_DIR}/dependencies"
-  ./install_extrae.sh "${src}" "${target}" false || {
+  "${SCRIPT_DIR}/install_extrae.sh" "${source}" "${target}" || {
     echo "ERROR: Extrae build failed."
     exit 1
   }
@@ -225,20 +232,27 @@ install_extrae() {
 install_dlb() {
   local target="${install_dir}/dlb"
   local marker="${target}/lib/libdlb.so"
-  local src="${SOURCES_DIR}/dependencies/dlb"
 
   if already_installed "${marker}"; then
     echo "[dlb] Already installed at ${target}, skipping."
     return
   fi
 
-  check_submodule "${src}" "dependencies/dlb"
+  echo "[dlb] Downloading DLB ${DLB_VERSION}..."
+  local pkg="dlb-v${DLB_VERSION}.tar.gz"
+  local url="https://gitlab.pm.bsc.es/dlb/dlb/-/archive/v${DLB_VERSION}/${pkg}"
+  local source="${SCRIPT_DIR}/dlb"
 
-  echo "[dlb] Building DLB ${DLB_VERSION} from submodule sources..."
-  mkdir -p "${target}"
+  if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+    echo "[dlb] BSC official mirror failed."
+    exit 1
+  fi
 
-  cd "${SOURCES_DIR}/dependencies"
-  ./install_dlb.sh "${src}" "${target}" || {
+  echo "[dlb] Building DLB from tarball..."
+  mkdir -p "${source}" "${target}"
+  tar xvf "${pkg}" --strip-components=1 -C "${source}"
+  rm "${pkg}"
+  "${SCRIPT_DIR}/install_dlb.sh" "${source}" "${target}" || {
     echo "ERROR: DLB build failed."
     exit 1
   }
@@ -256,42 +270,25 @@ install_kafka() {
     return
   fi
 
-  echo "[kafka] Downloading Apache Kafka ${KAFKA_VERSION} binary release..."
+  echo "[kafka] Downloading Apache Kafka ${KAFKA_VERSION}..."
   local pkg="kafka_2.13-${KAFKA_VERSION}.tgz"
+  local url="http://compss.bsc.es/repo/apache-kafka/${pkg}"
+  local fallback_url="https://archive.apache.org/dist/apache/${KAFKA_VERSION}/${pkg}"
   local tmpdir
   tmpdir=$(mktemp -d)
   trap "rm -rf '${tmpdir}'" EXIT
 
   cd "${tmpdir}"
-  local mirror
-  local downloaded=false
-  for mirror in ${KAFKA_MIRRORS}; do
-    echo "[kafka] Trying ${mirror}"
-    rm -f "${pkg}"
-    # --timeout=60: abort if the connection goes idle for >60 s (catches hung
-    #   servers that open TCP but stop sending data mid-transfer).
-    # timeout 1800: hard wall-clock cap so a server that trickles data at
-    #   byte-per-minute rates cannot stall the build indefinitely.
-    if ! timeout 1800 wget -q --timeout=60 --tries=3 "${mirror}/${KAFKA_VERSION}/${pkg}"; then
-      echo "[kafka] Download failed from ${mirror}"
-      continue
-    fi
-    if ! echo "${KAFKA_SHA512}  ${pkg}" | sha512sum -c --quiet -; then
-      echo "[kafka] Checksum mismatch for the file from ${mirror}"
-      rm -f "${pkg}"
+  if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+    echo "[kafka] BSC mirror failed, trying official archive..."
+    timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+      echo "ERROR: Failed to download Kafka from any mirror."
       exit 1
-    fi
-    downloaded=true
-    break
-  done
-  if [ "${downloaded}" != "true" ]; then
-    echo "ERROR: Failed to download Kafka ${KAFKA_VERSION} from any mirror."
-    exit 1
+    }
   fi
 
-  tar xzf "${pkg}"
-  mkdir -p "${install_dir}"
-  mv "kafka_2.13-${KAFKA_VERSION}" "${target}"
+  mkdir -p "${target}"
+  tar xzf "${pkg}" --strip-components=1 -C "${target}"
 
   cd "${SCRIPT_DIR}"
   rm -rf "${tmpdir}"
@@ -319,16 +316,15 @@ install_tomcat() {
 
   cd "${tmpdir}"
   if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
-    echo "[tomcat] BSC mirror failed, trying Apache archive..."
+    echo "[tomcat] BSC mirror failed, trying official archive..."
     timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
-      echo "ERROR: Failed to download Tomcat from both mirrors."
+      echo "ERROR: Failed to download Tomcat from any mirror."
       exit 1
     }
   fi
 
-  tar xzf "${pkg}"
-  mkdir -p "${install_dir}"
-  mv "apache-tomcat-${TOMCAT_VERSION}" "${target}"
+  mkdir -p "${target}"
+  tar xzf "${pkg}" --strip-components=1 -C "${target}"
 
   cd "${SCRIPT_DIR}"
   rm -rf "${tmpdir}"
@@ -348,20 +344,24 @@ install_jacoco() {
 
   echo "[jacoco] Downloading JaCoCo ${JACOCO_VERSION}..."
   local pkg="jacoco-${JACOCO_VERSION}.zip"
-  local url="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VERSION}/${pkg}"
+  local url="http://compss.bsc.es/repo/jacoco/${pkg}"
+  local fallback_url="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VERSION}/${pkg}"
   local tmpdir
   tmpdir=$(mktemp -d)
   trap "rm -rf '${tmpdir}'" EXIT
 
   cd "${tmpdir}"
-  wget -q "${url}" || {
-    echo "ERROR: Failed to download JaCoCo ${JACOCO_VERSION} from Maven Central."
-    exit 1
-  }
+  if ! timeout 600 wget -q --timeout=60 --tries=3 "${url}"; then
+    echo "[jacoco] BSC mirror failed, trying official archive..."
+    timeout 600 wget -q --timeout=60 --tries=3 "${fallback_url}" || {
+      echo "ERROR: Failed to download JaCoCo from any mirror."
+      exit 1
+    }
+  fi
 
-  unzip -q "${pkg}" -d jacoco
-  mkdir -p "${install_dir}"
-  mv jacoco "${target}"
+
+  mkdir -p "${target}"
+  unzip -q "${pkg}" -d "${target}"
 
   cd "${SCRIPT_DIR}"
   rm -rf "${tmpdir}"
@@ -388,6 +388,7 @@ EOT
   if [ "${install_extrae}" == "true" ]; then
     echo "export EXTRAE_HOME=\"${install_dir}/extrae\"" >> "${env_file}"
     echo "export EXTRAE_MPI_HEADERS=\"${mpi_headers}\"" >> "${env_file}"
+    echo "export EXTRAE_MPI_LIBS=\"${mpi_libs}\"" >> "${env_file}"
     echo "export EXTRAE_BINUTILS_PATH=\"${binutils_path}\"" >> "${env_file}"
   fi
   if [ "${install_dlb}" == "true" ]; then

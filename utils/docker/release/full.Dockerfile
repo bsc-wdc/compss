@@ -5,28 +5,20 @@ ARG TARGETARCH
 # Bindings + HPC + Orchestrator
 
 # + OpenMPI
-ARG CMAKE_VERSION
-ARG GPP_VERSION
-ARG LIBOPENMPI_DEV_VERSION
-ARG MAKE_VERSION
-ARG PAPI_TOOLS_VERSION
-ARG PYTHON3_VERSION
-ARG PYTHON3_PIP_VERSION
-ARG R_BASE_VERSION
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH} \
 	--mount=type=cache,target=/var/lib/apt,sharing=locked,id=libapt-${TARGETARCH} \
 	rm -f /etc/apt/apt.conf.d/docker-clean && \
 	echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && \
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
-			cmake=${CMAKE_VERSION} \
-			g++=${GPP_VERSION} \
-			libopenmpi-dev=${LIBOPENMPI_DEV_VERSION} \
-			make=${MAKE_VERSION} \
-			papi-tools=${PAPI_TOOLS_VERSION} \
-			python3=${PYTHON3_VERSION} \
-			python3-pip=${PYTHON3_PIP_VERSION} \
-			r-base=${R_BASE_VERSION}
+			cmake \
+			g++ \
+			libopenmpi-dev \
+			make \
+			papi-tools \
+			python3 \
+			python3-pip \
+			r-base
 
 # + Julia
 ARG DOCKER_CE_CLI_VERSION
@@ -37,25 +29,17 @@ RUN wget https://download.docker.com/linux/ubuntu/dists/noble/pool/stable/${TARG
 	ln -s /root/.juliaup/bin/* /usr/bin
 
 # + DataClay + Guppy3 + Kafka + MPI4Py + Pytz + Redis
-ARG DATACLAY_VERSION
-ARG DILL_VERSION
-ARG GUPPY3_VERSION
-ARG KAFKA_PYTHON_VERSION
-ARG MPI4PY_VERSION
-ARG NUMBA_VERSION
-ARG PYTZ_VERSION
-ARG REDIS_VERSION
 ARG ROCRATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
-			dataclay==${DATACLAY_VERSION} \
-			dill==${DILL_VERSION} \
-			guppy3==${GUPPY3_VERSION} \
-			kafka-python==${KAFKA_PYTHON_VERSION} \
-			mpi4py==${MPI4PY_VERSION} \
-			numba==${NUMBA_VERSION} \
-			pytz==${PYTZ_VERSION} \
-			redis-py-cluster==${REDIS_VERSION} \
+			dataclay \
+			dill \
+			guppy3 \
+			kafka-python \
+			mpi4py \
+			numba \
+			pytz \
+			redis-py-cluster \
 			rocrate==${ROCRATE_VERSION}
 
 COPY --from=build --link --parents \

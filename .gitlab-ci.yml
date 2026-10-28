@@ -201,16 +201,6 @@ clean:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-night:
-  extends:
-    - .gitlab_registry
-    - .test
-  variables:
-    BRANCH_NAME: "${CI_DEFAULT_BRANCH}"
-    COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-
 deploy:
   stage: deploy
   interruptible: false
@@ -230,3 +220,39 @@ deploy:
       - job.log
   rules:
     - if: $CI_COMMIT_TAG
+
+super:
+  stage: build
+  interruptible: false
+  parallel:
+    matrix:
+      - SCRIPT: "mn5/buildMN5"
+        TARGET: "GPP/COMPSs"
+      - SCRIPT: "mn5_acc/buildMN5_acc"
+        TARGET: "ACC/COMPSs"
+      - SCRIPT: "nord4/buildNord4"
+        TARGET: "COMPSs"
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - exec &> >(tee job.log)
+    - ${CI_PROJECT_DIR}/builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_BRANCH}"
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - job.log
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+again:
+  needs: []
+  extends:
+    - .gitlab_registry
+    - .test
+  variables:
+    BRANCH_NAME: "${CI_DEFAULT_BRANCH}"
+    COMPSS_IMAGE: "${TESTS_IMAGE}:${BRANCH_NAME}"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"

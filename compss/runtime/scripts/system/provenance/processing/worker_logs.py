@@ -95,6 +95,12 @@ def update_tasks_from_worker_logs(log_files: list[str], tasks: dict[int, Task]) 
                             )
                         if "DESCRIPTION" in log_dict:
                             param.description = log_dict["DESCRIPTION"]
+                        # Size and date of a file written by the task, used to describe it if it is not found
+                        # at its location when the crate is generated (e.g. not copied back after a stop)
+                        if "SIZE" in log_dict:
+                            param.content_size = int(log_dict["SIZE"])
+                        if "MODIFIED" in log_dict:
+                            param.date_modified = log_dict["MODIFIED"]
 
                         # If it's a file, we have two options:
                         #   1. it's either a real file, in which case the type is already updated
@@ -124,3 +130,32 @@ def update_tasks_from_worker_logs(log_files: list[str], tasks: dict[int, Task]) 
                     print(
                         f"PROVENANCE | ERROR: Failed to process line in {log_file}. {e}"
                     )
+
+
+def get_missing_file_details(tasks: dict[int, Task]) -> dict:
+    """
+    Get the size and date of the last version of each file written by a finished task, as recorded in the worker
+    logs. Used to describe the files that are not found at their location when the crate is generated (e.g. INOUT
+    files not copied back because the run stopped early).
+
+    :param tasks: Dictionary of tasks, already updated with the worker logs.
+
+    :return: Dictionary {file URL: {"contentSize", "dateModified", "task"}} with the latest version of each file.
+    """
+    details = {}
+    end_times = {}
+    for task in tasks.values():
+        if task.status != "FINISHED" or not task.endtime:
+            continue
+        for param in task.out_params.values():
+            if param.content_size is None or not isinstance(param.value, str):
+                continue
+            # Keep the version of the task that finished last
+            if param.value not in end_times or task.endtime > end_times[param.value]:
+                end_times[param.value] = task.endtime
+                details[param.value] = {
+                    "contentSize": param.content_size,
+                    "dateModified": param.date_modified,
+                    "task": task.tid,
+                }
+    return details

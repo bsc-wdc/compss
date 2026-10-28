@@ -58,7 +58,7 @@ def get_description_plot(metric, node_name="unknown node"):
 
 
 def add_dataset_file_to_crate(
-    compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list
+    compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list, missing_details: dict = None
 ) -> str:
     """
     Add the file (or a reference to it) belonging to the dataset of the application (both input or output)
@@ -70,6 +70,8 @@ def add_dataset_file_to_crate(
     :param in_url: File added as input or output
     :param persist: True to attach the file to the crate, False otherwise
     :param common_paths: List of identified common paths among all dataset files, all finish with '/'
+    :param missing_details: Size, date and task of the last version written by a finished task, by URL, to describe
+        the files that are not found at their location (see get_missing_file_details)
 
     :returns: The original url if persist is false, the crate_path if persist is true
     """
@@ -176,10 +178,23 @@ def add_dataset_file_to_crate(
         # Add an empty File (or Dataset) entity so references to the missing file point to an existing entity.
         # Use the same external scp:// identifier as for existing files: file:// is only the runtime's internal URL
         missing_id = write_external_url(fix_dir_url(in_url))
-        if compss_crate.get(missing_id) is None:
+        missing_file = compss_crate.get(missing_id)
+        if missing_file is None:
             missing_type = "Dataset" if url_parts.scheme == "dir" else "File"
             missing_file = compss_crate.add(ContextEntity(compss_crate, missing_id, properties={"@type": missing_type}))
             compss_crate.root_dataset.append_to("hasPart", missing_file)
+        # If a finished task wrote the file, describe the last version it wrote (the workflow-level inputs and
+        # outputs are added before the worker logs are read, so the details may come in a later call)
+        details = (missing_details or {}).get(in_url)
+        if details and "contentSize" not in missing_file.properties():
+            missing_file["name"] = final_item_name
+            missing_file["contentSize"] = details["contentSize"]
+            missing_file["dateModified"] = details["dateModified"]
+            missing_file["description"] = (
+                f"Last version of the file, written by task {details['task']}. The file was not found at its "
+                f"location when the provenance was generated (deleted with compss_delete_file(), or not copied back "
+                f"because the run stopped early)"
+            )
         return missing_id
     
 

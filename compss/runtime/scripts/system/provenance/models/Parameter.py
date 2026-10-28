@@ -28,6 +28,8 @@ class Parameter:
     is_array: bool = False
     description: str = ""
     value: Any = None
+    content_size: Any = None  # Size of the file written by the task, from the worker logs
+    date_modified: Any = None  # Date of the file written by the task, from the worker logs
 
     formal_instance: Any = None  # FormalParameter in the crate
     actual_instance: Any = None  # PropertyValue in the crate

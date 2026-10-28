@@ -45,11 +45,17 @@ import es.bsc.compss.types.tracing.FunctionExecutionEvent;
 import es.bsc.compss.types.tracing.TaskExecutionType;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -61,6 +67,9 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type ";
+
+    // Same format as the Python worker: 2026-10-27T10:31:14+00:00
+    private static final DateTimeFormatter DP_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx");
 
     public static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
     public static final String COMPSS_NODES = "COMPSS_NODES";
@@ -544,8 +553,30 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
             String paramInfo = "TASK=" + this.invocation.getTaskId() + " JOB=" + this.invocation.getJobId() + " HOST="
                 + hostname + " METHOD=" + impl.getSignature().split("\\.")[1] + " PARAMETER=" + p.getName()
                 + " BASICTYPE=" + p.getValueClass() + " COMPSSTYPE=" + p.getType() + " CONTENT=" + p.getValue()
-                + " DIRECTION=" + direction;
+                + getWrittenFileDetails(p, direction) + " DIRECTION=" + direction;
             dpLogger.info(paramInfo);
         }
+    }
+
+    /**
+     * Returns the size and modification date of a file written by the task, to be recorded in the provenance log, since
+     * the file may not exist anymore when the provenance is generated.
+     *
+     * @param p Parameter of the task.
+     * @param direction Direction of the logged parameter (IN or OUT).
+     * @return The " SIZE=... MODIFIED=..." keys for a file written by the task, or an empty string otherwise.
+     */
+    private static String getWrittenFileDetails(InvocationParam p, String direction) {
+        // Only for the files that the task writes (W and RW accesses)
+        if ("OUT".equals(direction) && p.getType() == DataType.FILE_T && p.isWriteFinalValue()
+            && p.getValue() instanceof String) {
+            File file = new File((String) p.getValue());
+            if (file.isFile()) {
+                String modified = OffsetDateTime.ofInstant(Instant.ofEpochMilli(file.lastModified()), ZoneOffset.UTC)
+                    .truncatedTo(ChronoUnit.SECONDS).format(DP_DATE_FORMAT);
+                return " SIZE=" + file.length() + " MODIFIED=" + modified;
+            }
+        }
+        return "";
     }
 }

@@ -33,6 +33,8 @@ import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
+from datetime import datetime
+from datetime import timezone
 from shutil import copyfile
 
 from pycompss.api import parameter
@@ -91,6 +93,13 @@ if __debug__:
 DP_LOGGER = logging.getLogger("dp_logger")
 
 DP_ENABLED = False
+# Directions of the parameters that the task writes
+WRITTEN_DIRECTIONS = (
+    parameter.DIRECTION.OUT,
+    parameter.DIRECTION.INOUT,
+    parameter.DIRECTION.CONCURRENT,
+    parameter.DIRECTION.COMMUTATIVE,
+)
 
 # Memory parameters before doing memory release
 _LIBC = None  # type: typing.Optional[ctypes.CDLL]
@@ -342,6 +351,21 @@ class TaskWorker:
                             description = get_array_shape_string(
                                 argument.content
                             )
+                        # Record the size and date of the files written by
+                        # the task, since they may not exist when the
+                        # provenance is generated
+                        file_details = ""
+                        if self.is_written_file(arg):
+                            file_stat = os.stat(arg.content)
+                            modified = (
+                                datetime.fromtimestamp(
+                                    file_stat.st_mtime, timezone.utc
+                                )
+                                .replace(microsecond=0)
+                                .isoformat()
+                            )
+                            size = file_stat.st_size
+                            file_details = f"SIZE={size} MODIFIED={modified} "
                         DP_LOGGER.info(
                             f"TASK={self.task_id} "
                             f"HOST={socket.gethostname()} "
@@ -352,6 +376,7 @@ class TaskWorker:
                             f"IS_ARRAY={is_array} "
                             f"DESCRIPTION={description} "
                             f"CONTENT={content} "
+                            f"{file_details}"
                             f"DIRECTION=OUT"
                         )
 
@@ -1311,6 +1336,24 @@ class TaskWorker:
             # Provide defaults to the runtime
             default_values = self.defaults
         return user_returns, default_values
+
+    def is_written_file(self, argument: Parameter) -> bool:
+        """Check if the argument is a file that the task writes.
+
+        :param argument: Task argument.
+        :return: True if it is an existing file declared in the decorator
+                 with a direction that writes it (OUT, INOUT, CONCURRENT
+                 or COMMUTATIVE).
+        """
+        decorator_arg = self.decorator_arguments.get_parameter_or_none(
+            argument.name
+        )
+        return (
+            decorator_arg is not None
+            and decorator_arg.direction in WRITTEN_DIRECTIONS
+            and isinstance(argument.content, str)
+            and os.path.isfile(argument.content)
+        )
 
     def manage_defaults(self, args: tuple, default_values: dict) -> None:
         """Deal with default values.

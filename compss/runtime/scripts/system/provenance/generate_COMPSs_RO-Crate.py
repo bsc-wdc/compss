@@ -40,7 +40,7 @@ from provenance.file_adding.source_code import add_application_source_files
 from provenance.file_adding.datasets import add_master_out_and_err, add_trace_files, add_all_log_files, add_stats_and_plots
 from provenance.processing.entities import root_entity, get_main_entities
 from provenance.processing.master_log import process_master_log
-from provenance.processing.worker_logs import update_tasks_from_worker_logs
+from provenance.processing.worker_logs import update_tasks_from_worker_logs, get_missing_file_details
 from provenance.utils.common_paths import get_common_paths, has_files
 from provenance.utils.url_fixes import fix_in_files_at_out_dirs
 from provenance.utils.yaml_template import get_yaml_template
@@ -242,6 +242,8 @@ def main():
         pr_part_time1 = time.time()
 
         update_tasks_from_worker_logs(WORKER_LOGS, tasks_dict)
+        # Details of the files written by finished tasks, for the files not found at their location
+        missing_file_details = get_missing_file_details(tasks_dict)
 
         step_control_actions = []
         added_formal_params = {}
@@ -297,11 +299,11 @@ def main():
                         if not param.value.endswith("/"):
                             param.value += "/"
                         added_value = add_dataset_file_to_crate(
-                            compss_crate, param.value, persistence, list_common_paths
+                            compss_crate, param.value, persistence, list_common_paths, missing_file_details
                         )
                     elif "File" in param.dtype and not param.is_array:
                         added_value = add_dataset_file_to_crate(
-                            compss_crate, param.value, persistence, list_common_paths
+                            compss_crate, param.value, persistence, list_common_paths, missing_file_details
                         )
                     elif "File" in param.dtype and param.is_array:
                         # added_value will be a list for each added file
@@ -313,6 +315,7 @@ def main():
                                     collection_file,
                                     persistence,
                                     list_common_paths,
+                                    missing_file_details,
                                 )
                             )
                     else:

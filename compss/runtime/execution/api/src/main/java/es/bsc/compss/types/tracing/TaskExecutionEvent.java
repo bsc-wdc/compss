@@ -21,6 +21,10 @@ import es.bsc.wdc.tracing.EventType;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.Arrays;
 
+/**
+ * Tracing events emitted while a task runs on the worker: task running state, task sandbox creation and removal,
+ * original file name binding and unbinding, OUT parameter checks, nested class instrumentation and task timeouts.
+ */
 public enum TaskExecutionEvent implements Event {
 
     TASK_RUNNING(11, "Task Running"), //
@@ -52,16 +56,31 @@ public enum TaskExecutionEvent implements Event {
         this.signature = signature;
     }
 
+    /**
+     * Returns the identifier of the event.
+     *
+     * @return The event identifier.
+     */
     @Override
     public int getId() {
         return this.id;
     }
 
+    /**
+     * Returns the signature of the event.
+     *
+     * @return The event signature.
+     */
     @Override
     public String getSignature() {
         return this.signature;
     }
 
+    /**
+     * Returns the type of the event.
+     *
+     * @return The task execution event type.
+     */
     @Override
     public EventType getType() {
         return type;

@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
+/**
+ * Error occurred during the initialization of an execution component. Thrown when a component of the execution engine
+ * cannot be initialized with the provided configuration.
+ */
 public class InitializationException extends Exception {
 
     /**
@@ -24,14 +28,30 @@ public class InitializationException extends Exception {
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * Creates a new InitializationException with a message.
+     *
+     * @param message Description of the error.
+     */
     public InitializationException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new InitializationException with a nested exception.
+     *
+     * @param e Nested exception.
+     */
     public InitializationException(Exception e) {
         super(e);
     }
 
+    /**
+     * Creates a new InitializationException with a message and a nested exception.
+     *
+     * @param msg Description of the error.
+     * @param e Nested exception.
+     */
     public InitializationException(String msg, Exception e) {
         super(msg, e);
     }

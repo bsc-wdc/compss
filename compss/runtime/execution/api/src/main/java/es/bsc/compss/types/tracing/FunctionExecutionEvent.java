@@ -22,6 +22,10 @@ import es.bsc.wdc.tracing.ExtensibleEventType;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.LinkedList;
 
+/**
+ * Base type for the extensible tracing events describing the execution of a function. Concrete events refine this class
+ * and are emitted by the language instrumentation while a function runs.
+ */
 public abstract class FunctionExecutionEvent implements Event {
 
     private static final int TASK_FUNC_ID = 8_001_131;
@@ -30,6 +34,11 @@ public abstract class FunctionExecutionEvent implements Event {
         Tracer.defineNewExtensibleEventType(TASK_FUNC_ID, "Task", true, new LinkedList<>());
 
 
+    /**
+     * Returns the type of the event.
+     *
+     * @return The function execution event type.
+     */
     @Override
     public final EventType getType() {
         return TYPE;

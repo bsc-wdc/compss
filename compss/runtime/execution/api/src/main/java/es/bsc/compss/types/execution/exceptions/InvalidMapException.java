@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
+/**
+ * Error occurred when handling a resource map structure is invalid or cannot be processed.
+ */
 public class InvalidMapException extends Exception {
 
     /**
@@ -24,14 +27,30 @@ public class InvalidMapException extends Exception {
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * Creates a new InvalidMapException with a message.
+     *
+     * @param message Description of the error.
+     */
     public InvalidMapException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new InvalidMapException with a nested exception.
+     *
+     * @param e Nested exception.
+     */
     public InvalidMapException(Exception e) {
         super(e);
     }
 
+    /**
+     * Creates a new InvalidMapException with a message and a nested exception.
+     *
+     * @param msg Description of the error.
+     * @param e Nested exception.
+     */
     public InvalidMapException(String msg, Exception e) {
         super(msg, e);
     }

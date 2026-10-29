@@ -18,6 +18,10 @@ package es.bsc.compss.types.execution.exceptions;
 
 import java.util.List;
 
+/**
+ * Error occurred when several parameter values cannot be persisted. Aggregates the individual
+ * {@link UnwritableValueException} failures of each value.
+ */
 public class UnwritableValuesException extends UnwritableValueException {
 
     /**

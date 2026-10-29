@@ -26,6 +26,12 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 import java.io.PrintStream;
 
+/**
+ * Execution environment of an invocation. Provides the invocation with the configuration of the node hosting the
+ * execution (worker, execution, data management and streaming configuration), access to the data management operations
+ * on its parameters (loading and storing values), and the entry point to the runtime API for nested task execution.
+ * Implemented by the execution engine on the worker side.
+ */
 public interface InvocationContext {
 
     // WORKER CONFIGURATION

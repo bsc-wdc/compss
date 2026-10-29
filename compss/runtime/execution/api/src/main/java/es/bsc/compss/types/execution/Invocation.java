@@ -23,6 +23,13 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.List;
 
+/**
+ * Description of a task execution request. An invocation carries all the information that the execution engine needs to
+ * run a task on a worker: the job and task identifiers, the method implementation to execute, its parameters, target
+ * and results, the resource requirements, and the failure management policy. The execution engine and the language
+ * invokers provided by the plugins read the invocation description; the runtime reports execution progress through
+ * {@link #executionStarts()} and {@link #executionEnds()}.
+ */
 public interface Invocation {
 
     /**
@@ -67,14 +74,39 @@ public interface Invocation {
      */
     public boolean isDebugEnabled();
 
+    /**
+     * Returns the identifiers of the tasks that must finish before the invocation can be executed.
+     *
+     * @return The predecessors task identifiers.
+     */
     public List<Integer> getPredecessors();
 
+    /**
+     * Returns the number of tasks that depend on the completion of the invocation, or {@code null} when unknown.
+     *
+     * @return The number of successor tasks.
+     */
     public Integer getNumSuccessors();
 
+    /**
+     * Returns the parameters of the invocation, excluding the target object.
+     *
+     * @return The invocation parameters.
+     */
     public List<? extends InvocationParam> getParams();
 
+    /**
+     * Returns the target object of the invocation, or {@code null} when the method does not have a target.
+     *
+     * @return The invocation target parameter.
+     */
     public InvocationParam getTarget();
 
+    /**
+     * Returns the parameters where the invocation results are stored.
+     *
+     * @return The invocation result parameters.
+     */
     public List<? extends InvocationParam> getResults();
 
     /**
@@ -91,10 +123,25 @@ public interface Invocation {
      */
     public List<String> getSlaveNodesNames();
 
+    /**
+     * Returns the failure policy to apply when the invocation fails.
+     *
+     * @return The failure management policy.
+     */
     public FailurePolicy getOnFailure();
 
+    /**
+     * Returns whether the invocation must produce empty results when it fails.
+     *
+     * @return {@literal true} if the results are set to empty values on failure, {@literal false} otherwise.
+     */
     public boolean producesEmptyResultsOnFailure();
 
+    /**
+     * Returns the maximum time that the invocation is allowed to run, in seconds. A value of 0 means no timeout.
+     *
+     * @return The invocation timeout, in seconds.
+     */
     public long getTimeOut();
 
     /**

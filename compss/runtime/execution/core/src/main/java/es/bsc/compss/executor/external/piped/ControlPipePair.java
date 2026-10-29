@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.executor.external.piped;
 
-import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.CommandChannelException;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
@@ -164,7 +164,7 @@ public class ControlPipePair {
                         }
                     }
                 }
-            } catch (ExternalExecutorException eee) {
+            } catch (CommandChannelException eee) {
                 synchronized (ControlPipePair.this) {
                     for (PendingCommandStatus commandStatus : waitingCommands.values()) {
                         commandStatus.completed(true, null);

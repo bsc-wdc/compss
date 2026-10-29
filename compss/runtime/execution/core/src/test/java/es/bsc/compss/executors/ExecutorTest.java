@@ -22,6 +22,8 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutorContextMirror;
+import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.MirrorFactory;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;
@@ -111,6 +113,13 @@ public class ExecutorTest {
         @Override
         public void registerMirror(Class<?> invoker, ExecutorContextMirror<?> mirror) {
             this.mirrors.put(invoker, mirror);
+        }
+
+        @Override
+        public <E extends ExternalExecutor, M extends ExecutorContextMirror<E>> E getMirroredExecutor(Executor executor,
+            Class<M> mirrorClass, MirrorFactory<M> mirrorFactory) {
+            // No lazy handle lookup runs through this fake
+            throw new UnsupportedOperationException("Fake platform does not hand out handles");
         }
 
         @Override

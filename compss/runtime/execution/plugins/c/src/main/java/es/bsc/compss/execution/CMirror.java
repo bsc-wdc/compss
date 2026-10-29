@@ -19,6 +19,7 @@ package es.bsc.compss.execution;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.external.MirrorFactory;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipedExecutor;
 import es.bsc.compss.executor.external.piped.PipedMirror;
@@ -38,12 +39,18 @@ public class CMirror extends PipedMirror {
     private static final String C_LIB_RELATIVE_PATH =
         File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
 
-    // Piped Executor Cache
-    private static final ThreadLocal<PipedExecutor> executor = new ThreadLocal<>();
+    // Factory creating this mirror on first lazy registration
+    private static final MirrorFactory<CMirror> MIRROR_FACTORY = new MirrorFactory<CMirror>() {
+
+        @Override
+        public CMirror create(ExecutorContext platform) {
+            return new CMirror(platform);
+        }
+    };
 
 
     /**
-     * Creates a new CMirror instance with the given context and size.
+     * Creates a new CMirror instance with the given context.
      * 
      * @param platform Mirrored platform
      */
@@ -113,20 +120,6 @@ public class CMirror extends PipedMirror {
      * @return PipedExecutor corresponding to executor e
      */
     public static PipedExecutor getPipedExecutor(Executor e) {
-        PipedExecutor pExec = executor.get();
-        if (pExec == null || !pExec.canRun()) {
-            ExecutorContext platform = e.getPlatform();
-            CMirror mirror;
-            synchronized (platform) {
-                mirror = (CMirror) platform.getMirror(CMirror.class);
-                if (mirror == null) {
-                    mirror = new CMirror(platform);
-                    platform.registerMirror(CMirror.class, mirror);
-                }
-            }
-            pExec = mirror.registerExecutor(e);
-            executor.set(pExec);
-        }
-        return pExec;
+        return e.getPlatform().getMirroredExecutor(e, CMirror.class, MIRROR_FACTORY);
     }
 }

@@ -19,8 +19,9 @@ package es.bsc.compss.invokers.external.piped;
 import es.bsc.compss.api.Workflow;
 import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.types.InvocationResources;
-import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.CommandChannelException;
 import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.PipedExecutor;
 import es.bsc.compss.executor.external.piped.commands.AccessedFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.BarrierTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CancelTaskGroupPipeCommand;
@@ -42,23 +43,16 @@ import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
-import es.bsc.compss.executor.types.ParameterResult;
-import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
-import es.bsc.compss.executor.types.ParameterResult.SingleResult;
-import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.invokers.external.BindingInvoker;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import java.util.Iterator;
 
-public abstract class PipedInvoker extends ExternalInvoker {
+public abstract class PipedInvoker extends BindingInvoker {
 
+    private final PipedExecutor executor;
     private final PipePair pipes;
-    private Workflow wf;
 
 
     /**
@@ -68,21 +62,21 @@ public abstract class PipedInvoker extends ExternalInvoker {
      * @param invocation Task execution description
      * @param sandbox Task execution sandbox directory
      * @param assignedResources Assigned resources
-     * @param pipes In/Out pipe pair
+     * @param executor Handle to the piped executor that runs the invocations
      * @throws JobExecutionException Error creating the Piped invoker
      */
     public PipedInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
-        InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
+        InvocationResources assignedResources, PipedExecutor executor) throws JobExecutionException {
 
         super(context, invocation, sandbox, assignedResources);
-        super.appendOtherExecutionCommandArguments();
-        this.pipes = pipes;
+        this.executor = executor;
+        this.pipes = executor.getPipePair();
     }
 
     @Override
     public void invokeExternalMethod() throws JobExecutionException, WorkflowException {
+        Workflow wf = null;
         try {
-            this.wf = null;
             int jobId = this.invocation.getJobId();
             if (!this.pipes.sendCommand((PipeCommand) this.command)) {
                 logger.error("ERROR: Could not execute job {} because cannot write in pipe", jobId);
@@ -123,8 +117,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 int numReturns = entpc.getNumReturns();
                                 int parameterCount = entpc.getParameterCount();
                                 Object[] parameters = entpc.getParameters();
-                                if (this.wf == null) {
-                                    this.wf = becomesNestedApplication(null);
+                                if (wf == null) {
+                                    wf = becomesNestedApplication(null);
                                 }
                                 int numNodes = entpc.getNumNodes();
                                 boolean isReduce = entpc.isReduce();
@@ -133,7 +127,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 boolean isDistributed = entpc.isDistributed();
                                 String signature = entpc.getSignature();
 
-                                this.wf.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce,
+                                wf.executeTask(signature, onFailure, timeOut, isPrioritary, numNodes, isReduce,
                                     reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
                                     parameters);
                             }
@@ -141,10 +135,10 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case ACCESSED_FILE: {
                                 AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
                                 String file = afpc.getFile();
-                                if (this.wf == null) {
+                                if (wf == null) {
                                     this.pipes.sendCommand(new SynchPipeCommand("0"));
                                 } else {
-                                    boolean accessed = this.wf.isFileAccessed(file);
+                                    boolean accessed = wf.isFileAccessed(file);
                                     this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
                                 }
                             }
@@ -153,10 +147,10 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
                                 byte dir = ofpc.getAccessMode();
-                                if (this.wf == null) {
+                                if (wf == null) {
                                     this.pipes.sendCommand(new SynchPipeCommand(file));
                                 } else {
-                                    String finalLocation = this.wf.openFile(file, dir);
+                                    String finalLocation = wf.openFile(file, dir);
                                     this.pipes.sendCommand(new SynchPipeCommand(finalLocation));
                                 }
                             }
@@ -165,8 +159,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
                                 String file = ofpc.getFile();
                                 byte dir = ofpc.getAccessMode();
-                                if (this.wf != null) {
-                                    this.wf.closeFile(file, dir);
+                                if (wf != null) {
+                                    wf.closeFile(file, dir);
                                 }
                             }
                                 break;
@@ -180,8 +174,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case GET_FILE: {
                                 GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
                                 String file = gfpc.getFile();
-                                if (this.wf != null) {
-                                    this.wf.getFile(file);
+                                if (wf != null) {
+                                    wf.getFile(file);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -190,8 +184,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 GetAvailableFilesPipeCommand gafpc = (GetAvailableFilesPipeCommand) rcvdCommand;
                                 String[] files = gafpc.getFileNames();
                                 int[] available;
-                                if (this.wf != null) {
-                                    available = this.wf.waitForAvailableFiles(files);
+                                if (wf != null) {
+                                    available = wf.waitForAvailableFiles(files);
                                 } else {
                                     available = new int[0];
                                 }
@@ -208,8 +202,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case GET_DIRECTORY: {
                                 GetDirectoryPipeCommand gfpc = (GetDirectoryPipeCommand) rcvdCommand;
                                 String file = gfpc.getDirectory();
-                                if (this.wf != null) {
-                                    this.wf.getDirectory(file);
+                                if (wf != null) {
+                                    wf.getDirectory(file);
                                 }
                                 pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -217,8 +211,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case GET_OBJECT: {
                                 GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
                                 String id = gfpc.getObjectId();
-                                if (this.wf != null) {
-                                    this.wf.getBindingObject(id);
+                                if (wf != null) {
+                                    wf.getBindingObject(id);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -231,8 +225,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             }
                                 break;
                             case BARRIER: {
-                                if (this.wf != null) {
-                                    this.wf.barrier();
+                                if (wf != null) {
+                                    wf.barrier();
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -240,8 +234,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             case BARRIER_NEW: {
                                 NewBarrierPipeCommand nbpc = (NewBarrierPipeCommand) rcvdCommand;
                                 boolean noMoreTasks = nbpc.isNoMoreTasks();
-                                if (this.wf != null) {
-                                    this.wf.barrier(noMoreTasks);
+                                if (wf != null) {
+                                    wf.barrier(noMoreTasks);
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
@@ -250,9 +244,9 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 BarrierTaskGroupPipeCommand bgpc = (BarrierTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = bgpc.getGroupName();
                                 boolean synch = true;
-                                if (this.wf != null) {
+                                if (wf != null) {
                                     try {
-                                        this.wf.barrierGroup(groupName);
+                                        wf.barrierGroup(groupName);
                                     } catch (WorkflowException ce) {
                                         this.pipes.sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
                                         synch = false;
@@ -267,65 +261,42 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 OpenTaskGroupPipeCommand otgpc = (OpenTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = otgpc.getGroupName();
                                 boolean barrier = otgpc.isImplicitBarrier();
-                                if (this.wf == null) {
-                                    this.wf = becomesNestedApplication(null);
-                                    long appId = this.wf.getId();
+                                if (wf == null) {
+                                    wf = becomesNestedApplication(null);
+                                    long appId = wf.getId();
                                     logger.info("Job {} becomes app {}", this.invocation.getJobId(), appId);
                                 }
-                                this.wf.openTaskGroup(groupName, barrier);
+                                wf.openTaskGroup(groupName, barrier);
 
                             }
                                 break;
                             case CLOSE_TASK_GROUP: {
                                 CloseTaskGroupPipeCommand otgpc = (CloseTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = otgpc.getGroupName();
-                                if (this.wf != null) {
-                                    this.wf.closeTaskGroup(groupName);
+                                if (wf != null) {
+                                    wf.closeTaskGroup(groupName);
                                 }
                             }
                                 break;
                             case CANCEL_TASK_GROUP: {
                                 CancelTaskGroupPipeCommand otgpc = (CancelTaskGroupPipeCommand) rcvdCommand;
                                 String groupName = otgpc.getGroupName();
-                                if (this.wf != null) {
-                                    this.wf.cancelTaskGroup(groupName);
+                                if (wf != null) {
+                                    wf.cancelTaskGroup(groupName);
                                 }
                             }
                                 break;
                             case NO_MORE_TASKS: {
-                                if (this.wf != null) {
-                                    this.wf.noMoreTasks();
+                                if (wf != null) {
+                                    wf.noMoreTasks();
                                 }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
                                 break;
                             case END_TASK:
                                 taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
-                                Integer exitValue = taskStatus.getExitValue();
-                                if (exitValue != 0) {
-                                    throw new JobExecutionException("Job " + jobId + " exit with value " + exitValue);
-                                }
-                                // Update parameters
-                                logger.debug("Updating parameters for job {}", this.invocation.getJobId());
-                                Iterator<ParameterResult> taskResults = taskStatus.getResults().iterator();
-                                for (InvocationParam param : this.invocation.getParams()) {
-                                    if (taskResults.hasNext()) {
-                                        updateParam(param, taskResults.next());
-                                    }
-                                }
-
-                                InvocationParam target = this.invocation.getTarget();
-                                if (target != null) {
-                                    if (taskResults.hasNext()) {
-                                        updateParam(target, taskResults.next());
-                                    }
-                                }
-
-                                for (InvocationParam param : this.invocation.getResults()) {
-                                    if (taskResults.hasNext()) {
-                                        updateParam(param, taskResults.next());
-                                    }
-                                }
+                                checkExitValue(taskStatus.getExitValue());
+                                applyTaskResults(taskStatus);
                                 return;
                             case COMPSS_EXCEPTION:
                                 throw new WorkflowException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
@@ -334,50 +305,23 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 break;
                         }
                     }
-                } catch (ExternalExecutorException e) {
+                } catch (CommandChannelException e) {
                     throw new JobExecutionException("Job " + jobId + "Notification pipe closed", e);
                 }
             }
         } catch (WorkflowException | JobExecutionException | RuntimeException e) {
             throw e;
         } finally {
-            if (this.wf != null) {
-                completeNestedApplication(this.wf);
+            if (wf != null) {
+                completeNestedApplication(wf);
             }
         }
 
-    }
-
-    private void updateParam(InvocationParam param, ParameterResult result) {
-        if (param.isCollective()) {
-            InvocationParamCollection cip = (InvocationParamCollection) param;
-            Iterator<InvocationParam> cipItr = cip.getCollectionParameters().iterator();
-
-            if (result.isCollective()) {
-                CollectiveResult cr = (CollectiveResult) result;
-                Iterator<ParameterResult> crItr = cr.getElements().iterator();
-                while (cipItr.hasNext()) {
-                    if (crItr.hasNext()) {
-                        updateParam(cipItr.next(), crItr.next());
-                    }
-                }
-            }
-
-        } else {
-            DataType resultType = result.getType();
-            String value = ((SingleResult) result).getValue();
-            if (value != null) {
-                if (resultType == DataType.EXTERNAL_PSCO_T || resultType == DataType.FILE_T) {
-                    param.setType(resultType);
-                    param.setValue(value);
-                }
-            }
-        }
     }
 
     @Override
     public void cancelMethod() {
-        this.pipes.getMirror().cancelJob(this.pipes);
+        this.executor.getMirror().cancelJob(this.executor);
     }
 
 }

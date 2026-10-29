@@ -64,7 +64,7 @@ public class CInvokerFactory implements InvokerFactory {
                 return new CPersistentInvoker(context, inv, wDir, res);
             } else {
                 PipedExecutor cExec = CMirror.getPipedExecutor(executor);
-                return new CInvoker(context, inv, wDir, res, cExec.getPipePair());
+                return new CInvoker(context, inv, wDir, res, cExec);
             }
         }
         return null;

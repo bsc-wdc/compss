@@ -17,8 +17,11 @@ executions (`ExecutionPlatform`), the node resource accounting
 reserves resources, builds a task sandbox and delegates the user code
 execution to a language `Invoker` resolved through the `InvokerFactory` SPI
 (implemented by the `plugins` submodule). Language runtimes that cannot live
-in the same process are driven through `ExternalInvoker` variants that talk
-to out-of-process executors over a command protocol.
+in the same process are driven through `BindingInvoker` variants that
+delegate the task to a language binding outside the JVM: the piped family
+exchanges a command string with the external process over a
+`CommandChannel`, while the persistent family calls the persistent C
+binding through JNI.
 
 ## Component diagram
 
@@ -42,26 +45,31 @@ graph TB
     subgraph "Invoker framework (SPI)"
         IF["InvokerFactory.Registry"]
         INV["Invoker (per language,<br/>from plugins)"]
-        EINV["ExternalInvoker<br/>piped / persistent"]
+        EINV["BindingInvoker<br/>piped / persistent / python-mpi"]
     end
 
     subgraph "Out-of-process executors"
-        M["PipedMirror / PersistentMirror<br/>+ MirrorMonitor"]
-        PE["PipedExecutor / PersistentExecutor<br/>(command protocol)"]
+        MM["MirrorMonitor"]
+        M["Mirror<br/> PipedMirror / PersistentMirror"]
+        BE["BindingExecutor<br/> PipedExecutor / PersistentExecutor"]
+        CC["PipePair<br/>(CommandChannel)"]
     end
 
     EM -->|"enqueue(invocation)"| Q
     Q --> EX
     EX -->|"acquireResources / releaseResources"| RM
     RM --> TB
-    EX -->|"registerRunningJob(jobId, invoker)"| T
+    EX -->|"limitExecution"| T
     EX -->|"getInvoker"| IF
     IF --> INV
     INV --> EINV
-    EINV -->|"sendCommand / readCommand"| PE
-    M --- PE
+    EINV -->|"task command"| BE
+    BE -->|"sendCommand / readCommand"| CC
+    MM --> |"watches"| M
+    MM --> |"watches"| BE
+    M --- BE
     EM -->|"startMirror(methodType, lang)"| M
-    INV -->|"nested tasks: getRuntimeAPI()"| RT["COMPSsRuntime<br/>(compss-runtime-api)"]
+    INV -->|"nested tasks"| RT["COMPSsRuntime<br/>(compss-runtime-api)"]
 ```
 
 ## Interfaces and implementations
@@ -71,94 +79,123 @@ relate to their implementations.
 
 ```mermaid
 classDiagram
-    direction TB
+    direction LR
 
     class InvocationContext {
         <<interface>>
     }
+        
+    namespace EM["ExecutionManager"] {
 
-    class ExecutorContext {
-        <<interface>>
+        class ExecutionManager {
+
+        }
+
+        namespace EP["ExecutionPlatform"] {
+
+            class ExecutorContext {
+                <<interface>>
+            }
+
+            class InvocationRunner {
+                <<interface>>
+            }
+
+            class ExecutionPlatform
+
+            class Executor        
+            
+            class MirrorFactory~M~ {
+                <<interface>>
+            }
+
+
+            namespace M["Mirrors"] {
+                class ExecutorContextMirror~E~ {
+                    <<interface>>
+                }
+
+                class PipedMirror {
+                    <<abstract>>
+                }
+
+                class PersistentMirror
+
+                class ExternalExecutor {
+                    <<abstract>>
+                }
+
+                class PipedExecutor
+
+                class PersistentExecutor
+            }
+        }
+
+    }
+    namespace I["Invokers"] {
+        class InvokerFactory {
+            <<interface>>
+        }
+
+        class Invoker~W~ {
+            <<abstract>>
+        }
+
+        class BindingInvoker {
+            <<abstract>>
+        }
+
+        class PipedInvoker {
+            <<abstract>>
+        }
+
+        class PersistentInvoker {
+            <<abstract>>
+        }
+
     }
 
-    class ExecutionPlatform
 
-    class Executor
 
-    class InvocationRunner {
-        <<interface>>
-    }
-
-    class Invoker~W~ {
-        <<abstract>>
-    }
-
-    class InvokerFactory {
-        <<interface>>
-    }
-
-    class ExternalInvoker {
-        <<abstract>>
-    }
-
-    class PipedInvoker {
-        <<abstract>>
-    }
-
-    class PersistentInvoker {
-        <<abstract>>
-    }
-
-    class ExecutorContextMirror~E~ {
-        <<interface>>
-    }
-
-    class PipedMirror {
-        <<abstract>>
-    }
-
-    class PersistentMirror
-
-    class PipedExecutor
-
-    class PersistentExecutor
-
-    class ExternalExecutor~T~ {
+    class CommandChannel~T~ {
         <<interface>>
     }
 
     class PipePair
 
 
+
     %% Platform contract and its implementation
+    ExecutionManager o-- ExecutionPlatform : handles
+
+
     ExecutorContext <|.. ExecutionPlatform
     ExecutorContext ..> InvocationContext
     Executor --> ExecutorContext : belongs to
     ExecutionPlatform o-- Executor : gathers
     ExecutionPlatform o-- ExecutorContextMirror : mirrored as
+    ExecutionPlatform ..> MirrorFactory: uses
+    MirrorFactory ..> ExecutorContextMirror : creates
 
     %% Mirrors: the platform seen from an external process
     ExecutorContextMirror <|.. PipedMirror
     ExecutorContextMirror <|.. PersistentMirror
     PipedMirror --> ExecutorContext : mirrored context
-    PipedMirror ..> PipedExecutor : registerExecutor
-    PersistentMirror ..> PersistentExecutor : registerExecutor
-    PipedExecutor --> PipedMirror : mirror
+    ExecutorContextMirror ..> ExternalExecutor : getMirroredExecutor
+    PersistentMirror o-- PersistentExecutor
+    PipedMirror o-- PipedExecutor
     PipedExecutor --> PipePair : pipePair
-
+    
     %% Command protocol towards external processes
-    ExternalExecutor <|.. PipePair
-    PipedInvoker --> PipePair : pipes
+    CommandChannel <|.. PipePair
 
     %% Executor threads and invokers
     InvocationRunner <|.. Executor
     Invoker ..> InvocationRunner : runner
     Invoker ..> InvocationContext : context
-    Invoker <|-- ExternalInvoker
-    ExternalInvoker <|-- PipedInvoker
-    ExternalInvoker <|-- PersistentInvoker
-
-
+    Invoker <|-- BindingInvoker
+    BindingInvoker <|-- PipedInvoker
+    BindingInvoker <|-- PersistentInvoker
 
     %% Factory SPI
     Executor ..> InvokerFactory : Registry.getInvoker
@@ -174,10 +211,13 @@ classDiagram
 - **`ExecutorContext`** (core): the execution platform as seen by
   executors, invoker factories and mirrors: request dispatch
   (`newThread`/`getJob`), resource management, running-job registry
-  (deadline timer) and the mirror registry
-  (`getMirror`/`registerMirror`). `ExecutionPlatform` is its only
-  implementation in the core, hosting the thread pools, the
-  `JobQueue`, the `ResourceManager` and the deadline `Timer`.
+  (deadline timer), the mirror registry
+  (`getMirror`/`registerMirror`) and the mirrored-executor lookup
+  (`getMirroredExecutor`: the synchronized find-or-create of the mirror
+  through its `MirrorFactory`, then the mirror's thread-local executor).
+  `ExecutionPlatform` is its only implementation in the core, hosting the
+  thread pools, the `JobQueue`, the `ResourceManager` and the deadline
+  `Timer`.
 - **`Executor`**: a worker thread of the platform. It implements
   `InvocationRunner` so that invokers can stall it while a blocked
   nested workflow runs and wake it up afterwards.
@@ -185,22 +225,46 @@ classDiagram
   `WorkflowListener` (workflow API) to track nested task groups.
   In-process invokers extend it directly (`JavaInvoker` in the java
   plugin, plus the binary and opencl plugins), while out-of-process
-  execution goes through `ExternalInvoker` and its `PipedInvoker`
-  (C, Python, R) and `PersistentInvoker` (persistent C)
-  specializations.
+  execution goes through `BindingInvoker`, which delegates the task to a
+  language binding outside the JVM: its constructor builds the task
+  command in two steps (the subclass execution command through
+  `getTaskExecutionCommand`, then the generic external arguments —
+  affinities, hostlist, parameters — appended by the base class), and
+  its tail unifies the exit-value check and the result application
+  (`checkExitValue`/`applyTaskResults`). Its specializations are
+  `PipedInvoker` (C, Python, R — exchanges the command with the piped
+  process through its executor handle's `CommandChannel`),
+  `PersistentInvoker` (persistent C — synchronous calls into the JNI
+  binding) and `PythonMPIInvoker` (binary plugin).
 - **`InvokerFactory`**: SPI implemented by every language plugin and
   discovered through `ServiceLoader`. `preLoad` starts and registers
   the language mirror on the platform and `build` creates the
-  invoker, fetching the pipe pair of its executor from the mirror.
-  `CInvokerFactory` is shown as an example.
+  invoker, fetching its executor handle through the platform's
+  mirrored-executor lookup. `CInvokerFactory` is shown as an example.
 - **`ExecutorContextMirror`**: mirrors an execution platform into
-  external processes: `registerExecutor(Executor)` returns the handle
-  used to command the process of that executor. `PipedMirror`
-  (pipe-based, specialized per language by `CMirror`, `PythonMirror`
-  and `RMirror`) and `PersistentMirror` (persistent backends). The
-  command protocol is `ExternalExecutor` (`sendCommand`/
-  `readCommand`), implemented by `PipePair`, which is what
-  `PipedInvoker` and `PipedExecutor` exchange commands through.
+  external processes. `registerExecutor(Executor)` returns the handle
+  (`E`) used to command the process of that executor;
+  `getMirroredExecutor(Executor)` is the lazy thread-local lookup that
+  re-registers a handle when the previous one can no longer run, and
+  `cancelJob(E)` cancels through the same handle type, keeping the
+  contract transport-agnostic. Each mirror owns its executor registry
+  and its per-thread handle cache: `PipedMirror` (pipe-based, holding
+  the pipe pool and specialized per language by `CMirror`,
+  `PythonMirror` and `RMirror`) and `PersistentMirror` (persistent
+  backends, managing the thread-binding lifecycle). The command
+  protocol is `CommandChannel` (`sendCommand`/`readCommand`),
+  implemented by `PipePair`, which is what `PipedInvoker` and
+  `PipedExecutor` exchange commands through.
+- **`ExternalExecutor`**: abstract base of the runtime-side handles to
+  out-of-process executors. It owns the handle lifecycle as a state
+  machine (CREATING, RUNNING, STOPPING, DELETED with final transition
+  methods), so every handle follows the same enforced contract:
+  `PipedExecutor` adds its mirror and pipe pair, `PersistentExecutor`
+  adds its owning executor thread. The persistent JNI bridge
+  (`PersistentCBinding`) owns the native entry points of the persistent
+  C binding: the invoker calls `executeInBinding` with the task command
+  string, and the mirror initializes and finishes the thread binding on
+  executor registration and unregistration.
 
 ## Execution flow of an invocation
 
@@ -339,17 +403,28 @@ are executed in external processes:
 
 - **Piped** (`PipedInvoker` / `PipedExecutor`): the `PipedMirror` starts a
   piper process (the `bindings_piper.sh` script of the NIO adaptor) and
-  creates one `PipedExecutor` per task, connected through a `PipePair`. The
-  invoker serializes the execution request into an
-  `ExecuteTaskExternalCommand` and reads back task events over the same
-  protocol; all commands are the `ExternalCommand` implementations of the
-  `executor.external.commands` package (task execution and cancellation,
-  task groups, files, objects, barriers, channels, worker lifecycle).
+  creates one `PipedExecutor` per task, connected through a `PipePair`.
+  The invoker owns the executor handle, derives its command channel
+  from it and serializes the execution request into an
+  `ExecuteTaskExternalCommand` built by the `BindingInvoker` constructor;
+  it reads back task events over the same protocol; all commands are the
+  `ExternalCommand` implementations of the `executor.external.commands`
+  package (task execution and cancellation, task groups, files, objects,
+  barriers, channels, worker lifecycle).
   The `MirrorMonitor` watches the mirrored elements (files, objects, task
   groups) so the worker can react to their lifecycle.
-- **Persistent** (`PersistentInvoker` / `PersistentExecutor`): same command
-  protocol, but the external executor is a long-lived process whose state
-  survives across invocations, avoiding the per-task startup cost.
+- **Persistent** (`PersistentInvoker` / `PersistentExecutor`): the external
+  executor is a long-lived process whose state survives across
+  invocations, avoiding the per-task startup cost. It does not exchange
+  commands over a channel: the invoker hands the same command string to
+  the persistent C binding through JNI (`PersistentCBinding
+  .executeInBinding`), which executes it on the binding of the calling
+  executor thread and reports back an `ExternalTaskStatus` that drives
+  the shared result handling. The mirror manages the thread-binding
+  lifecycle, initializing the binding when an executor thread registers
+  and finishing it on unregistration; since jobs run as synchronous
+  native calls on the executor thread, there is nothing to cancel from
+  the outside.
 
 The platform starts a mirror per (method type, language) pair on demand:
 `ExecutionManager.startMirror` triggers `InvokerFactory.Registry.preLoad`,

@@ -16,9 +16,12 @@
  */
 package es.bsc.compss.executor.external.piped.exceptions;
 
-import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.CommandChannelException;
 
-public class UnknownCommandException extends ExternalExecutorException {
+/**
+ * Exception thrown when the command received through a command channel is unknown.
+ */
+public class UnknownCommandException extends CommandChannelException {
 
     /**
      * Exception Version UID are 2L in all Runtime.

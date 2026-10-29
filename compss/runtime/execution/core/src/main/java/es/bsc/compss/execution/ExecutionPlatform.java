@@ -24,6 +24,8 @@ import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutorContextMirror;
+import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.MirrorFactory;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.InvokerFactory;
 import es.bsc.compss.log.Loggers;
@@ -489,7 +491,9 @@ public class ExecutionPlatform implements ExecutorContext {
         logger.debug("Unregistering job {}", jobId);
         RunningJob job = this.executingJobs.remove(jobId);
         // Cancel timeout interruption, if enabled
-        job.cancel();
+        if (job != null) {
+            job.cancel();
+        }
         toCancel.remove(jobId);
     }
 
@@ -523,5 +527,21 @@ public class ExecutionPlatform implements ExecutorContext {
     @Override
     public void registerMirror(Class<?> invoker, ExecutorContextMirror<?> mirror) {
         this.mirrors.put(invoker, mirror);
+    }
+
+    @Override
+    public <E extends ExternalExecutor, M extends ExecutorContextMirror<E>> E getMirroredExecutor(Executor executor,
+        Class<M> mirrorClass, MirrorFactory<M> mirrorFactory) {
+
+        M mirror;
+        // The mirror registry is not synchronized, so the find-or-create of the mirror runs on the platform lock
+        synchronized (this) {
+            mirror = mirrorClass.cast(this.mirrors.get(mirrorClass));
+            if (mirror == null) {
+                mirror = mirrorFactory.create(this);
+                this.mirrors.put(mirrorClass, mirror);
+            }
+        }
+        return mirror.getMirroredExecutor(executor);
     }
 }

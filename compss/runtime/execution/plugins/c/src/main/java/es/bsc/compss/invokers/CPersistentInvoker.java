@@ -42,9 +42,4 @@ public class CPersistentInvoker extends PersistentInvoker {
             CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
         return command;
     }
-
-    @Override
-    public void cancelMethod() {
-        // TODO: Implement canceling running method
-    }
 }

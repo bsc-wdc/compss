@@ -21,7 +21,7 @@ import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.ExecutorContextMirror;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
-import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.PipedExecutor;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.invokers.external.piped.PipedInvoker;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
@@ -34,8 +34,8 @@ import java.util.ArrayList;
 public class CInvoker extends PipedInvoker {
 
     public CInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
-        InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
-        super(context, invocation, sandbox, assignedResources, pipes);
+        InvocationResources assignedResources, PipedExecutor executor) throws JobExecutionException {
+        super(context, invocation, sandbox, assignedResources, executor);
     }
 
     @Override

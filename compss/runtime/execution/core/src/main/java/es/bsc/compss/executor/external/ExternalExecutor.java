@@ -16,11 +16,72 @@
  */
 package es.bsc.compss.executor.external;
 
-import es.bsc.compss.executor.external.commands.ExternalCommand;
+/**
+ * Runtime-side representation of an out-of-process executor. It owns the lifecycle state of the represented executor
+ * and its registration with the mirror that created it; command traffic with the represented executor goes through the
+ * accessor exposed by the concrete type (a command channel for piped executors, an owning thread for persistent ones).
+ * Lifecycle: an executor starts at CREATING, becomes RUNNING once deployed, enters STOPPING when its shutdown starts
+ * and reaches DELETED once it is gone; terminated() can be called from any state and transitions simply overwrite the
+ * current state. An executor accepts tasks (canRun()) while it is CREATING or RUNNING. The state machine is part of the
+ * contract: the transition methods and canRun() are final, so every executor family honors exactly one lifecycle.
+ */
+public abstract class ExternalExecutor {
 
-public interface ExternalExecutor<T extends ExternalCommand> {
+    /**
+     * Lifecycle states of the represented executor.
+     */
+    private enum State {
+        CREATING, RUNNING, STOPPING, DELETED
+    }
 
-    public boolean sendCommand(T command);
 
-    public T readCommand() throws ExternalExecutorException;
+    private volatile State state;
+
+
+    /**
+     * Constructs a new executor handle at state CREATING.
+     */
+    protected ExternalExecutor() {
+        this.state = State.CREATING;
+    }
+
+    /**
+     * Registers that the out-of-process executor is fully deployed.
+     */
+    public final void deployed() {
+        this.state = State.RUNNING;
+    }
+
+    /**
+     * Registers that the out-of-process executor is being shut down. From this moment the executor no longer accepts
+     * tasks.
+     */
+    public final void stopping() {
+        this.state = State.STOPPING;
+    }
+
+    /**
+     * Registers that the out-of-process executor is gone.
+     */
+    public final void terminated() {
+        this.state = State.DELETED;
+    }
+
+    /**
+     * Returns whether the represented executor can run tasks or not. An executor accepts tasks while it is being
+     * created or fully deployed.
+     *
+     * @return {@literal true} if the executor accepts tasks; {@literal false} otherwise
+     */
+    public final boolean canRun() {
+        return this.state == State.CREATING || this.state == State.RUNNING;
+    }
+
+    /**
+     * Returns the mirror that registered this executor.
+     *
+     * @return mirror to whom the executor belongs
+     */
+    public abstract ExecutorContextMirror<?> getMirror();
+
 }

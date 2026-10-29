@@ -87,9 +87,9 @@ flow.
   through `java.util.ServiceLoader`, offers `preLoad` to prepare the
   infrastructure for a method type and language, and `getInvoker` to build
   the invoker for a specific invocation.
-- `external`: `ExternalInvoker`, base invoker that delegates execution to an
-  out-of-process executor through the `ExternalExecutor` protocol, with the
-  `piped` and `persistent` variants.
+- `external`: `BindingInvoker`, base invoker that delegates the task to a
+  language binding outside the JVM through the command-string +
+  `ExternalTaskStatus` protocol, with the `piped` and `persistent` variants.
 - `types`: language-specific parameter bundles `CParams`, `JavaParams`,
   `PythonParams` and `RParams`, plus the `StdIOStream` type.
 - `util`: `BinaryRunner` builds and runs binary commands (with optional

@@ -146,6 +146,8 @@ A folder `COMPSs_RO_Crate_<timestamp>/` (or `.zip`) in the working directory, wi
 
 The workflow diagram and the YAML file get a `sha256` checksum in the metadata (`file_adding/source_code.py`).
 
+The main `CreateAction` records the submission command (`description`) and a selection of environment variables (`environment`). Since crates are meant to be published, `wrroc/create_action.py` passes both through `utils/redaction.py` first: a variable whose name holds a sensitive word (`PASSWORD`, `PASS`, `SECRET`, `TOKEN`, `API_KEY`, `PRIVATE_KEY`, `ACCESS_KEY`, `CREDENTIAL`, `AUTH`, ...) keeps its entity with the value `***REDACTED***`, and inside other values and the command, the values of sensitive `NAME=VALUE` pairs and options (`--token VALUE`, `--password=VALUE`, `-Dx.password=VALUE`) and the passwords of URLs with credentials are masked. A single `PROVENANCE | WARNING:` lists the names redacted, never the values. Redaction is always on, with no YAML key to configure it.
+
 ### Consumers of the crate
 
 Other tools read the generated crates and depend on their layout and on the metadata terms used. Changing either may break them:
@@ -172,7 +174,7 @@ Other tools read the generated crates and depend on their layout and on the meta
 | `wrroc/profile.py` | `conformsTo` profiles for the chosen level. |
 | `wrroc/profiling_plots.py` | Runs `compss_genprofiling` to generate the plots. |
 | `wrroc/store_data.py` | Writes the execution and profiling statistics of the crate to `<log_dir>/stats/stats.json`. |
-| `utils/` | Common path detection, COMPSs to RO-Crate type mapping, URL fixes, YAML template. |
+| `utils/` | Common path detection, COMPSs to RO-Crate type mapping, URL fixes, redaction of secrets, YAML template. |
 
 ### Capture side (outside this folder)
 
@@ -202,11 +204,12 @@ Other tools read the generated crates and depend on their layout and on the meta
 - **Mind the size of the crate and the generation time.** Large workflows can have many thousands of tasks and files. Avoid per-task work that is quadratic or that touches the file system repeatedly. Parameter values are truncated to `param_size_limit`.
 - **Output style.** Messages start with `PROVENANCE | ` (`PROVENANCE | PROFILING | ` for profiling). Debug-only messages go inside `if __debug__:`. The generator runs with `python3 -O` unless `COMPSS_PROV_DEBUG` is set, so those messages are hidden by default.
 - **Dependencies.** The generator uses `rocrate` (ro-crate-py 0.13.0 or later; the code handles versions before and after 0.15), `PyYAML`, `pytz`, `requests` (ORCID/ROR lookups), `pandas` (resource usage, energy data and profiling plots) and `matplotlib` (through the plotting tool). The profiler uses only the standard library on Linux and `psutil` on macOS. CI pins the ro-crate-py version with `ROCRATE_VERSION` in `tests/Dockerfile`. Do not add new dependencies without updating the user documentation (Software dependencies section).
+- **No secrets in the crate.** Any new value taken from the environment or the command line must go through `utils/redaction.py` before being added to the metadata.
 - **RO-Crate validity.** Generated crates must stay valid for the declared profiles. Check them with `rocrate-validator` (see Checking a generated crate).
 
 ## Testing
 
-- Integration tests in the `tools` family: `tests/sources/local/tools/3_provenance_basic` (checks the generated metadata with `src/check_ro_crate_metadata.py`) and `tests/sources/local/tools/3_provenance_rocrate-validator` (validates the crate with `rocrate-validator`). Run them with `python3 tests.py -cfg ../configurations/NIO.cfg -t tools:3_provenance_basic` (see the root `AGENTS.md`).
+- Integration tests in the `tools` family: `tests/sources/local/tools/3_provenance_basic` (checks the generated metadata with `src/check_ro_crate_metadata.py`, including that the fake secrets set by its `execution` script are redacted) and `tests/sources/local/tools/3_provenance_rocrate-validator` (validates the crate with `rocrate-validator`). Run them with `python3 tests.py -cfg ../configurations/NIO.cfg -t tools:3_provenance_basic` (see the root `AGENTS.md`).
 - Manual run: execute any PyCOMPSs application with `runcompss -p` (add `-d` to keep the job logs), check the warnings printed with the `PROVENANCE |` prefix, and inspect `ro-crate-metadata.json` in the generated folder.
 - Re-running the generator without re-running the application (the commands are printed by `run_provenance`):
 

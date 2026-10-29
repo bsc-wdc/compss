@@ -49,6 +49,7 @@ from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
 
 from provenance.utils.url_fixes import fix_dir_url
+from provenance.utils.redaction import redact_text, redact_variable
 from provenance.processing.entities import add_person_definition
 
 
@@ -451,10 +452,13 @@ def wrroc_create_action(
     # uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
     description_property = ""
+    # Names of the environment variables and options whose values are redacted (the crate can be published)
+    redacted_names = []
 
     if os.path.exists(".compss_submission_command_line.txt"):
         with open(".compss_submission_command_line.txt", "r") as file:
-            description_property = file.read()[:-1].strip()
+            description_property, found = redact_text(file.read()[:-1].strip())
+            redacted_names.extend(found)
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
@@ -486,7 +490,9 @@ def wrroc_create_action(
             env_var = {}
             env_var["@type"] = "PropertyValue"
             env_var["name"] = name
-            env_var["value"] = value
+            env_var["value"], redacted = redact_variable(name, value)
+            if redacted:
+                redacted_names.append(name)
             # if "COMPSS_PROFILING_INTERVAL" == name:
             #     env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
             compss_crate.add(
@@ -497,6 +503,12 @@ def wrroc_create_action(
                 )
             )
             environment_property.append({"@id": "#" + name.lower()})
+
+    if redacted_names:
+        print(
+            "PROVENANCE | WARNING: Possible secrets have been redacted from the environment variables and the "
+            f"submission command recorded in the metadata: {', '.join(dict.fromkeys(redacted_names))}"
+        )
 
     resolved_main_entity = main_entity
     for entity in compss_crate.get_entities():

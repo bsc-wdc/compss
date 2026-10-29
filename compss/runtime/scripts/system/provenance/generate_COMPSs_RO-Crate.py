@@ -38,7 +38,7 @@ from provenance.file_adding.datasets import (
 )
 from provenance.file_adding.source_code import add_application_source_files
 from provenance.file_adding.datasets import add_master_out_and_err, add_trace_files, add_all_log_files, add_stats_and_plots
-from provenance.processing.entities import root_entity, get_main_entities
+from provenance.processing.entities import root_entity, get_main_entities, is_python_application
 from provenance.processing.master_log import process_master_log
 from provenance.processing.worker_logs import update_tasks_from_worker_logs, get_missing_file_details
 from provenance.utils.common_paths import get_common_paths, has_files
@@ -175,6 +175,13 @@ def main():
                 f"PROVENANCE | WARNING: 'provenance_run' in {INFO_YAML} wrongly defined. "
                 "Reverting to default: {PROVENANCE_RUN_ENABLED}"
             )
+
+    if PROVENANCE_RUN_ENABLED and not PYTHON_APP:
+        PROVENANCE_RUN_ENABLED = False
+        print(
+            "PROVENANCE | WARNING: The Provenance Run Crate Profile (Level 3) is not supported for Java applications. "
+            "Generating metadata with the Workflow Run Crate Profile (Level 2)."
+        )
 
     if PROVENANCE_RUN_ENABLED and not WORKER_LOGS:
         PROVENANCE_RUN_ENABLED = False
@@ -556,23 +563,27 @@ if __name__ == "__main__":
         ENERGY_PATH = PATH_LOG / "energy/"
         STATS_PATH = PATH_LOG / "stats/"
         PLOTS_PATH = PATH_LOG / "stats/plots/"
+        # The Provenance Run Crate (Level 3) is only supported for Python applications. Java applications do not
+        # produce static_binding_dp.out, so their worker logs are not even searched (avoids one warning per host)
+        PYTHON_APP = is_python_application(DP_LOG)
         # Find all static_binding_dp.out and static_worker_dp.out files in the workers folder recursively:
         # WORKER_LOGS = sorted((PATH_LOG / "workers").glob("*/Log/static_*_dp.out*"))
         workers_dir = PATH_LOG / "workers"
         WORKER_LOGS = []
-        for subdir in sorted(p for p in workers_dir.iterdir() if p.is_dir()):
-            log_dir = subdir / "Log"
-            binding = list(log_dir.glob("static_binding_dp.out"))
-            worker = list(log_dir.glob("static_worker_dp.out"))
-            WORKER_LOGS.extend(binding + worker)
-            if not binding:
-                print(
-                f"PROVENANCE | WARNING: static_binding_dp.out log file missing from host {subdir.name}. Task information may be limited"
-            )
-            if not worker:
-                print(
-                f"PROVENANCE | WARNING: static_worker_dp.out log file missing from host {subdir.name}. Task information may be limited"
-            )
+        if PYTHON_APP:
+            for subdir in sorted(p for p in workers_dir.iterdir() if p.is_dir()):
+                log_dir = subdir / "Log"
+                binding = list(log_dir.glob("static_binding_dp.out"))
+                worker = list(log_dir.glob("static_worker_dp.out"))
+                WORKER_LOGS.extend(binding + worker)
+                if not binding:
+                    print(
+                    f"PROVENANCE | WARNING: static_binding_dp.out log file missing from host {subdir.name}. Task information may be limited"
+                )
+                if not worker:
+                    print(
+                    f"PROVENANCE | WARNING: static_worker_dp.out log file missing from host {subdir.name}. Task information may be limited"
+                )
         WORKER_LOGS = sorted(WORKER_LOGS)
 
     main()

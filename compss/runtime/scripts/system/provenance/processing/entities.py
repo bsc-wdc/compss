@@ -277,6 +277,21 @@ def root_entity(
     return yaml_content, crate_author_list
 
 
+def is_python_application(dp_log: Path) -> bool:
+    """
+    Check if the application is a Python (PyCOMPSs) one, using the main entity in the second line of
+    dataprovenance.log: a Python script for Python applications, the main class (e.g. matmul.files.Matmul) for Java
+
+    :param dp_log: Path object to the dataprovenance.log file
+
+    :returns: True if the application is a Python application, False otherwise
+    """
+
+    with open(dp_log, "r", encoding="UTF-8") as dp_file:
+        next(dp_file)  # First line, COMPSs version number
+        return next(dp_file, "").rstrip().endswith(".py")
+
+
 def get_main_entities(
     wf_info: dict, info_yaml: str, dp_log: Path
 ) -> typing.Tuple[str, str, dict]:

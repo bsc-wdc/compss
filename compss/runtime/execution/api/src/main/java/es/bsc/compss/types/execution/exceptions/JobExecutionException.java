@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
+/**
+ * Error occurred during the execution of a job (task execution). Thrown by the execution engine and the invokers when a
+ * task cannot be prepared, executed or post-processed.
+ */
 public class JobExecutionException extends Exception {
 
     /**
@@ -24,14 +28,30 @@ public class JobExecutionException extends Exception {
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * Creates a new JobExecutionException with a message.
+     *
+     * @param message Description of the error.
+     */
     public JobExecutionException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new JobExecutionException with a nested exception.
+     *
+     * @param e Nested exception.
+     */
     public JobExecutionException(Throwable e) {
         super(e);
     }
 
+    /**
+     * Creates a new JobExecutionException with a message and a nested exception.
+     *
+     * @param message Description of the error.
+     * @param e Nested exception.
+     */
     public JobExecutionException(String message, Throwable e) {
         super(message, e);
     }

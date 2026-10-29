@@ -18,6 +18,10 @@ package es.bsc.compss.types.execution;
 
 import java.util.List;
 
+/**
+ * Description of a collective task parameter. A collective parameter groups a list of internal parameters that describe
+ * each of the elements of the collection, and behaves itself as a plain {@link InvocationParam}.
+ */
 public interface InvocationParamCollection<T extends InvocationParam> extends InvocationParam {
 
     /**

@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
+/**
+ * Error occurred when a parameter value cannot be loaded into memory.
+ */
 public class UnloadableValueException extends Exception {
 
     /**

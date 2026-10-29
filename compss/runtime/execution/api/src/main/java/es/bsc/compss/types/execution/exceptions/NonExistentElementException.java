@@ -19,6 +19,10 @@ package es.bsc.compss.types.execution.exceptions;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Error occurred when some subelements of a referenced compound data element do not exist. Aggregates the individual
+ * {@link NonExistentDataException} failures of its subelements.
+ */
 public class NonExistentElementException extends NonExistentDataException {
 
     /**
@@ -34,6 +38,11 @@ public class NonExistentElementException extends NonExistentDataException {
         this.subExceptions = subExceptions;
     }
 
+    /**
+     * Returns the list of names of all the data values missing in the subelements of the element.
+     *
+     * @return Names of the missing data values.
+     */
     @Override
     public List<String> getMissingData() {
         List<String> missingData = new LinkedList<>();
@@ -43,6 +52,11 @@ public class NonExistentElementException extends NonExistentDataException {
         return missingData;
     }
 
+    /**
+     * Returns the description of the error, including the names of the missing subelements.
+     *
+     * @return The error message.
+     */
     @Override
     public String getMessage() {
         StringBuilder sb = new StringBuilder("Data " + dataName + "'s subelements [");

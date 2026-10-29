@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
+/**
+ * Error occurred when a parameter value cannot be persisted. Refined by {@link UnwritableValuesException} to aggregate
+ * the individual failures of several values.
+ */
 public class UnwritableValueException extends Exception {
 
     /**

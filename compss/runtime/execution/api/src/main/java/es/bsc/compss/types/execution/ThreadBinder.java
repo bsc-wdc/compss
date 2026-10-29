@@ -18,6 +18,11 @@ package es.bsc.compss.types.execution;
 
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 
+/**
+ * Contract to bind and release the computing units assigned to a job. Implementations decide the affinity policy: no
+ * binding at all ({@link #BINDER_DISABLED}), a user-provided or lscpu-detected map, or an automatic resource binder
+ * such as DLB ({@link #BINDER_DLB}).
+ */
 public interface ThreadBinder {
 
     public static final String BINDER_DISABLED = "disabled";

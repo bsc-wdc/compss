@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
+/**
+ * Error occurred when a resource request cannot be satisfied with the resources available on the node. Refined by
+ * {@link UnsufficientAvailableComputingUnitsException} for the specific case of computing units.
+ */
 public class UnsufficientAvailableResourcesException extends Exception {
 
     /**
@@ -24,14 +28,30 @@ public class UnsufficientAvailableResourcesException extends Exception {
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * Creates a new UnsufficientAvailableResourcesException with a message.
+     *
+     * @param message Description of the error.
+     */
     public UnsufficientAvailableResourcesException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new UnsufficientAvailableResourcesException with a nested exception.
+     *
+     * @param e Nested exception.
+     */
     public UnsufficientAvailableResourcesException(Exception e) {
         super(e);
     }
 
+    /**
+     * Creates a new UnsufficientAvailableResourcesException with a message and a nested exception.
+     *
+     * @param msg Description of the error.
+     * @param e Nested exception.
+     */
     public UnsufficientAvailableResourcesException(String msg, Exception e) {
         super(msg, e);
     }

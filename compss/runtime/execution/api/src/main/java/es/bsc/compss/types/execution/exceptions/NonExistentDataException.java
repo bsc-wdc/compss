@@ -19,6 +19,11 @@ package es.bsc.compss.types.execution.exceptions;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Error occurred when referenced data does not exist. Refined by {@link NonExistentElementException} to report the
+ * missing subelements of a compound data element. Both expose the list of missing data names through
+ * {@link #getMissingData()}.
+ */
 public class NonExistentDataException extends Exception {
 
     /**
@@ -39,6 +44,11 @@ public class NonExistentDataException extends Exception {
         this.dataName = dataName;
     }
 
+    /**
+     * Returns the description of the error, including the name of the missing data.
+     *
+     * @return The error message.
+     */
     @Override
     public String getMessage() {
         return "Data " + dataName + " does not exists.";

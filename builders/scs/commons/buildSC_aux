@@ -161,10 +161,10 @@
 
   # Dependencies
   echo "--- Copy dependencies"
-  cp -r "${TMP_DIR}"/files/paraver "${targetDir}"/Dependencies/
+  cp -r "${TMP_DIR}/files/paraver" "${targetDir}/Dependencies/"
 
   echo "---- Install extrae ----"
-  cd "${TMP_DIR}"/dependencies || exit 1
+  cd "${TMP_DIR}/dependencies" || exit 1
   mkdir -p extrae
   tar xvf "extrae.tar.bz2" --strip-components=1 -C extrae
   rm "extrae.tar.bz2"
@@ -181,7 +181,7 @@
   # OpenMPI
   if [ "${extrae_with_openmpi}" == "true" ]; then
     module load openmpi"${openmpi_version}"
-    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae "${targetDir}"/Dependencies/extrae-openmpi true
+    ./install_extrae.sh "${TMP_DIR}/dependencies/extrae" "${targetDir}/Dependencies/extrae-openmpi" true
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae openmpi dependency"
@@ -193,7 +193,7 @@
   # IMPI
   if [ "${extrae_with_impi}" == "true" ]; then
     module load intel impi"${impi_version}"
-    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae "${targetDir}"/Dependencies/extrae-impi true
+    ./install_extrae.sh "${TMP_DIR}/dependencies/extrae" "${targetDir}/Dependencies/extrae-impi" true
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install extrae impi dependency"

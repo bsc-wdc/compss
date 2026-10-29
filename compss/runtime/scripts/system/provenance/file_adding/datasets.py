@@ -57,6 +57,35 @@ def get_description_plot(metric, node_name="unknown node"):
     return description_plots[metric]
 
 
+def get_crate_path(path: str, common_paths: list) -> str:
+    """
+    Get the path of a dataset file or directory in the crate (dataset/...): its path relative to the working
+    directory when it is inside it, so a reproducibility service can recreate it where the application expects it
+    (e.g. dataset/inputs/A/ for the DIRECTORY parameter inputs/A); otherwise, its path below the identified common
+    path that contains it, under the name of that common path.
+
+    :param path: Absolute path of the file, or of the directory (ending with '/')
+    :param common_paths: List of identified common paths among all dataset files, all finish with '/'
+
+    :returns: The path in the crate, starting with dataset/
+    """
+    # When this script runs, the user application has finished, so cwd is the folder where the application was started
+    cwd_endslash = os.getcwd() + "/"  # os.getcwd does not add the final slash
+    # BSC hack, inconsistent behaviour in MN5. /gpfs/home/ and /home/ are equivalent. Randomly, sometimes we get
+    # /home/ and others /gpfs/home at the dataprovenance.log and getting paths
+    if not path.startswith("/gpfs"):
+        cwd_endslash = cwd_endslash.removeprefix("/gpfs")
+    if path.startswith(cwd_endslash) and len(path) > len(cwd_endslash):
+        # Workingdir dataset file or folder, add it to the root keeping its relative path
+        return "dataset/" + path[len(cwd_endslash) :]
+    for item in common_paths:  # All files must have a match
+        if path.startswith(item):
+            # Base name of the identified common path. It does not avoid collisions if the user defines the same
+            # folder name in two different locations
+            return "dataset/" + Path(item).name + "/" + path[len(item) :]
+    return "dataset/" + Path(path).name + ("/" if path.endswith("/") else "")
+
+
 def add_dataset_file_to_crate(
     compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list, missing_details: dict = None
 ) -> str:
@@ -110,37 +139,7 @@ def add_dataset_file_to_crate(
 
         if url_parts.scheme == "file":  # Dealing with a local file
             file_properties["contentSize"] = os.path.getsize(url_parts.path)
-            crate_path = ""
-            for item in common_paths:  # All files must have a match
-                if url_parts.path.startswith(item):
-                    cwd_endslash = (
-                        os.getcwd() + "/"
-                    )  # os.getcwd does not add the final slash
-                    # BSC hack, inconsistent behaviour in MN5. /gpfs/home/ and /home/ are equivalent. Randomly, sometimes we get /home/ and others /gpfs/home at the dataprovenance.log and getting paths
-                    if not item.startswith("/gpfs"):
-                        # Remove /gpfs only if common paths did not include them
-                        cwd_endslash = cwd_endslash.removeprefix("/gpfs")
-                    # print(f"CWD_ENDSLASH: {cwd_endslash}")
-                    # print(f"ITEM: {item}")
-                    if cwd_endslash == item:
-                        # Check if it is the working directory. When this script runs, user application has finished,
-                        # so we can ensure cwd is the original folder where the application was started
-                        # Workingdir dataset folder, add it to the root
-                        # Slice out the common part of the path
-                        crate_path = "dataset/" + url_parts.path[len(item) :]
-                    else:  # Now includes len(common_paths) == 1
-                        # Looking for the name of the previous folder
-                        cp_path = Path(item)
-                        crate_path = (
-                            "dataset/"
-                            # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
-                            + cp_path.parts[-1]
-                            # Common part now always ends with '/'
-                            + "/"
-                            # Slice out the common part of the path
-                            + url_parts.path[len(item) :]
-                        )
-                    break 
+            crate_path = get_crate_path(url_parts.path, common_paths)
             # add_file_time = time.time()
             if persist:  # Remove scheme so it is added as a regular file
                 if __debug__:
@@ -211,6 +210,11 @@ def add_dataset_file_to_crate(
             #     # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
             #     return crate_path
 
+            # Path of the directory in the crate (persist) or relative to the working directory (localPath)
+            dir_crate_path = get_crate_path(url_parts.path, common_paths)  # url_parts.path ends with '/'
+            if not persist:
+                file_properties["localPath"] = dir_crate_path
+
             # For directories, describe all files inside the directory
             has_part_list = []
             for root, dirs, files in os.walk(
@@ -243,7 +247,7 @@ def add_dataset_file_to_crate(
                     ]  # Does not include an initial '/'
                     if persist:
                         dir_f_url = (
-                            "dataset/" + final_item_name + "/" + filtered_url
+                            dir_crate_path + filtered_url
                         )  # The 'name' property for Datasets does not include a final '/'
 
                         # print(f"LISTED FILE: {listed_file}")
@@ -266,9 +270,7 @@ def add_dataset_file_to_crate(
                         dir_f_url = "file://" + url_parts.netloc + listed_file
                         # print(f"URL:{dir_f_url}")
                         # print(f"URL MODIFIED:{write_external_url(dir_f_url)}")       
-                        dir_f_properties["localPath"] = (
-                            "dataset/" + final_item_name + "/" + filtered_url
-                        ) 
+                        dir_f_properties["localPath"] = dir_crate_path + filtered_url
                         modified_url = write_external_url(dir_f_url)               
                         compss_crate.add_file(
                             modified_url,
@@ -302,12 +304,7 @@ def add_dataset_file_to_crate(
                             dir_properties["name"] = ".gitkeep"
                             path_final_part = full_dir_name[len(url_parts.path) :]
                             dir_f_url = (
-                                "dataset/"
-                                + final_item_name
-                                + "/"
-                                + path_final_part
-                                + "/"
-                                + ".gitkeep"
+                                dir_crate_path + path_final_part + "/" + ".gitkeep"
                             )
                             # compss_crate.add_dataset(
                             #     source=full_dir_name,
@@ -325,6 +322,9 @@ def add_dataset_file_to_crate(
                             )
                         else:
                             dir_properties["name"] = dir_name
+                            dir_properties["localPath"] = (
+                                dir_crate_path + full_dir_name[len(url_parts.path) :] + "/"
+                            )
                             dir_f_url = (
                                 "file://" + url_parts.netloc + full_dir_name + "/"
                             )
@@ -357,9 +357,7 @@ def add_dataset_file_to_crate(
                         .replace(microsecond=0)
                         .isoformat(),  # Schema.org
                     }  # Register when the Data Entity was last accessible
-                    path_in_crate = (
-                        "dataset/" + final_item_name + "/" + ".gitkeep"
-                    )  # Remove resolved_source from full_dir_name, adding basename
+                    path_in_crate = dir_crate_path + ".gitkeep"
                     # compss_crate.add_dataset(
                     #     source=full_dir_name,
                     #     dest_path=path_in_crate,
@@ -375,7 +373,7 @@ def add_dataset_file_to_crate(
                         properties=dir_properties,
                     )
                     has_part_list.append({"@id": path_in_crate})
-                    path_in_crate = "dataset/" + final_item_name + "/"
+                    path_in_crate = dir_crate_path
                     # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
                     dir_properties["name"] = final_item_name
                     dir_properties["hasPart"] = has_part_list
@@ -397,7 +395,7 @@ def add_dataset_file_to_crate(
                 file_properties["hasPart"] = has_part_list
                 if persist:
                     dataset_path = url_parts.path
-                    path_in_crate = "dataset/" + final_item_name + "/"
+                    path_in_crate = dir_crate_path
 
                     if __debug__:
                         print(

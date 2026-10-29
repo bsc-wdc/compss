@@ -29,9 +29,9 @@ show_full_version() {
 ###############################################
 show_flower() {
   cat << EOF
-The poinsettia (Euphorbia pulcherrima) is a commercially important flowering plant species of the diverse spurge family Euphorbiaceae. Indigenous to Mexico and Central America and first described in 1834. It is particularly well known for its red and green foliage and is widely used in Christmas floral displays. Poinsettias are shrubs or small trees, with heights of 0.6 to 4 m (2.0 to 13.1 ft).
+Petrea volubilis, commonly known as purple wreath, queen's wreath or sandpaper vine, is an evergreen flowering vine in the family Verbenaceae, native to tropical America, that is valued especially for its display of violet flowers. 
 
-https://en.wikipedia.org/wiki/Poinsettia
+https://en.wikipedia.org/wiki/Petrea_volubilis
 
 EOF
 }
@@ -42,38 +42,43 @@ EOF
 show_recipe() {
   cat << EOF
 
-Poinsettia - Cocktail
+The Last Monsoon - Cocktail
 
-  Source: https://www.cocktailwave.com/recipes/poinsettia
+  Source: https://flyingapronstucson.com/2022/bedeviling-shrimp-fra-diavolo/
 
-  The Poinsettia cocktail is a classic holiday drink that has been
-  enjoyed for decades. It is believed to have been created in the
-  1950s, and its name is inspired by the vibrant red and green
-  colors of the poinsettia plant, which is a popular decoration
-  during the holiday season. This festive cocktail is perfect for
-  holiday parties and gatherings, and is often enjoyed by those
-  who appreciate a light, fruity, and bubbly drink.
+  Created by mixologist Alfredo "Fredo" Aguilar at Zio Peppe in Tucson, Arizona,
+  The Last Monsoon won the 2022 Tucson City of Gastronomy Cocktail of the Year Challenge.
+  This Southwestern-inspired cocktail showcases the distinctive flavours of the Sonoran
+  Desert, combining reposado tequila with a house-made pomegranate and autumn spice
+  cordial, vanilla and chiltepin syrup, red wine vinegar, fresh lemon juice, and an
+  aromatic creosote spritz.
+
+  Its flavour profile balances the tart, fruity notes of pomegranate and citrus with
+  warming autumn spices, subtle vanilla sweetness, and a gentle kick of chiltepin chile.
+  The creosote adds a distinctive desert aroma, evoking the earthy scent of the desert
+  after rainfall. Finished with a delicate lilac queen's wreath garnish, the cocktail
+  offers a striking visual connection to the region's desert flora.
 
   Ingredients:
 
-    Champagne: 4 oz(120ml)
-    Cranberry juice: 2 oz(60ml)
-    Orange liqueur: 1 oz(30ml)
-    Fresh cranberries: 3
-    Garnish: 1 sprig of mint
+    La Gritona Reposado Tequila
+    Housemade pomegranate & fall spice cordial
+    Vanilla & chiltepin simple syrup (chiltepin is a wild-harvested desert chili pepper)
+    Red wine vinegar
+    Fresh lemon juice
+    Creosote spritz / tincture
+    Orange blossom water
+    Queen's wreath
 
   How to make:
 
-  1 - Chill a champagne flute in the freezer for a few minutes to
-      ensure the cocktail stays cold.
-  2 - In a cocktail shaker filled with ice, combine the cranberry
-      juice and orange liqueur. Shake well to mix.
-  3 - Strain the mixture into the chilled champagne flute.
-  4 - Top with the champagne, pouring slowly to avoid overflowing.
-  5 - Gently drop a few fresh cranberries into the glass for added
-      color and flavor.
-  6 - Garnish with a sprig of mint, placing it on the rim of the
-      glass or floating it on top of the cocktail.
+    1 - Combine the reposado tequila, pomegranate and autumn spice cordial,
+        vanilla and chiltepin simple syrup, a dash of red wine vinegar, and
+        fresh lemon juice in a cocktail shaker filled with ice.
+    2 - Shake well until thoroughly chilled.
+    3 - Strain into a suitable glass.
+    4 - Finish with a spritz of creosote tincture and a drop of orange blossom water.
+    5 - Garnish with queen's wreath.
 
 EOF
 }

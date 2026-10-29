@@ -5,24 +5,34 @@
 # SCRIPT CONSTANTS
 #
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-INSPECTED_DIRS="compss performance_analysis utils/storage"
+INSPECTED_DIRS="compss performance_analysis observability utils/storage"
+IGNORE_DIRS="programming_model/bindings/RCOMPSs"
 
 #
 # HELPER METHODS
 #
 
 change_headers() {
+  local find_excludes=()
+
+  for ignore_dir in "${IGNORE_DIRS[@]}"; do
+    find_excludes+=(-path "./${ignore_dir}" -prune -o)
+  done
+
   # Add java headers
-  find . -name "*.java" -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
+  find . "${find_excludes[@]}" -name "*.java" -type f -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
 
   # Add c headers
-  find . -name "*.c" -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
-  find . -name "*.cc" -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
-  find . -name "*.h" -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
-  find . -name "Makefile*" -exec "${SCRIPT_DIR}/replace_header.sh" {} python \;
+  find . "${find_excludes[@]}" -name "*.c" -type f -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
+  find . "${find_excludes[@]}" -name "*.cc" -type f -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
+  find . "${find_excludes[@]}" -name "*.h" -type f -exec "${SCRIPT_DIR}/replace_header.sh" {} java_c \;
+  find . "${find_excludes[@]}" -name "Makefile*" -type f -exec "${SCRIPT_DIR}/replace_header.sh" {} python \;
 
   # Add python headers
-  find . -name "*.py" -exec "${SCRIPT_DIR}/replace_header.sh" {} python \;
+  find . "${find_excludes[@]}" -name "*.py" -type f -exec "${SCRIPT_DIR}/replace_header.sh" {} python \;
+
+  # Update placeholder
+  "${SCRIPT_DIR}/replace_header.sh" "${SCRIPT_DIR}/copyright_placeholder.txt" "python"
 }
 
 

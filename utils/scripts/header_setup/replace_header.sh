@@ -30,7 +30,8 @@
   cpyrghts=(`awk -f "$SCRIPT_DIR/extract_header_$lang.awk" "$file" |
     grep --no-filename --only-matching --ignore-case -e "${cpyrght_re}[[:blank:]]\{1,\}${date_re}[[:blank:]]\{1,\}.*"`)
 
-  placeholder='Copyright 2002-2025 Barcelona Supercomputing Center (www.bsc.es)'
+  # Get current copyright placeholder
+  placeholder=$(sed -n '3s/^# *//p' ${SCRIPT_DIR}/copyright_placeholder.txt)
 
   # If any copyright have been already added, copy it to be sure none is lost.
   # If no licence has been applied, consider it is a BSC file and add the BSC

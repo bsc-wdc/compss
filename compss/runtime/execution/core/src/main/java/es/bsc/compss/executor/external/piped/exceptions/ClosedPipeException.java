@@ -16,9 +16,12 @@
  */
 package es.bsc.compss.executor.external.piped.exceptions;
 
-import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.CommandChannelException;
 
-public class ClosedPipeException extends ExternalExecutorException {
+/**
+ * Exception thrown when the pipe of a piped command channel is already closed.
+ */
+public class ClosedPipeException extends CommandChannelException {
 
     /**
      * Exception Version UID are 2L in all Runtime.

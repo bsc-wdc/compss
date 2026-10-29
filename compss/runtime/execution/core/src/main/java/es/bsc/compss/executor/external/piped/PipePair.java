@@ -17,8 +17,8 @@
 
 package es.bsc.compss.executor.external.piped;
 
-import es.bsc.compss.executor.external.ExternalExecutor;
-import es.bsc.compss.executor.external.ExternalExecutorException;
+import es.bsc.compss.executor.external.CommandChannel;
+import es.bsc.compss.executor.external.CommandChannelException;
 import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
@@ -64,7 +64,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class PipePair implements ExternalExecutor<PipeCommand> {
+public class PipePair implements CommandChannel<PipeCommand> {
 
     // Logger messages
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
@@ -214,7 +214,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     }
 
     @Override
-    public PipeCommand readCommand() throws ExternalExecutorException {
+    public PipeCommand readCommand() throws CommandChannelException {
         PipeCommand readCommand = null;
         synchronized (this) {
             if (this.closed) {
@@ -228,7 +228,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 FileInputStream input = new FileInputStream(readPipe);// WARN: This call is blocking for NamedPipes
                 this.reader = new BufferedReader(new InputStreamReader(input));
             } catch (FileNotFoundException fnfe) {
-                throw new ExternalExecutorException(fnfe);
+                throw new CommandChannelException(fnfe);
             }
         }
         synchronized (this) {
@@ -254,7 +254,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             String[] parts = line.split(" (?=[^\\]}]*([\\[{]|$))");
             readCommand = readCommand(line, parts);
         } catch (IOException ioe) {
-            throw new ExternalExecutorException(ioe);
+            throw new CommandChannelException(ioe);
         }
 
         if (logger.isDebugEnabled()) {

@@ -19,6 +19,7 @@ package es.bsc.compss.execution;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.external.MirrorFactory;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipedExecutor;
 import es.bsc.compss.executor.external.piped.PipedMirror;
@@ -53,8 +54,14 @@ public class PythonMirror extends PipedMirror {
     // Logger
     private static final Logger logger = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
-    // Piped Executor Cache
-    private static final ThreadLocal<PipedExecutor> executor = new ThreadLocal<>();
+    // Factory creating this mirror on first lazy registration
+    private static final MirrorFactory<PythonMirror> MIRROR_FACTORY = new MirrorFactory<PythonMirror>() {
+
+        @Override
+        public PythonMirror create(ExecutorContext platform) {
+            return new PythonMirror(platform);
+        }
+    };
 
     // Attributes
     private final PythonParams pyParams;
@@ -62,7 +69,7 @@ public class PythonMirror extends PipedMirror {
 
 
     /**
-     * Creates a new PythonMirror instance with the given context and size.
+     * Creates a new PythonMirror instance with the given context.
      * 
      * @param platform Mirrored platform
      */
@@ -241,21 +248,7 @@ public class PythonMirror extends PipedMirror {
      * @return PipedExecutor corresponding to executor e
      */
     public static PipedExecutor getPipedExecutor(Executor e) {
-        PipedExecutor pExec = executor.get();
-        if (pExec == null || !pExec.canRun()) {
-            ExecutorContext platform = e.getPlatform();
-            PythonMirror mirror;
-            synchronized (platform) {
-                mirror = (PythonMirror) platform.getMirror(PythonMirror.class);
-                if (mirror == null) {
-                    mirror = new PythonMirror(platform);
-                    platform.registerMirror(PythonMirror.class, mirror);
-                }
-            }
-            pExec = mirror.registerExecutor(e);
-            executor.set(pExec);
-        }
-        return pExec;
+        return e.getPlatform().getMirroredExecutor(e, PythonMirror.class, MIRROR_FACTORY);
     }
 
     public static PythonMirror createMirror(ExecutorContext platform) {

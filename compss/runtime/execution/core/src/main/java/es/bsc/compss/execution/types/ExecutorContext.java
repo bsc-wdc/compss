@@ -20,6 +20,8 @@ package es.bsc.compss.execution.types;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutorContextMirror;
+import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.MirrorFactory;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
@@ -40,6 +42,22 @@ public interface ExecutorContext {
     ExecutorContextMirror<?> getMirror(Class<?> invoker);
 
     void registerMirror(Class<?> invoker, ExecutorContextMirror<?> mirror);
+
+    /**
+     * Returns the mirrored executor that mirrors of the given type associate to the executor running on the current
+     * thread. The mirror is looked up in the platform's registry and created and registered with the given factory on
+     * first use; the mirror caches the current thread's mirrored executor while it can run and re-registers a stale or
+     * absent one through itself.
+     *
+     * @param <E> mirrored executor type handed out by the mirror
+     * @param <M> mirror type associated to the mirrored executor type
+     * @param executor executor whose mirrored executor must be obtained
+     * @param mirrorClass mirror type managing the mirrored executors
+     * @param mirrorFactory factory creating the platform's mirror on first use
+     * @return mirrored executor associated to the executor on the current thread
+     */
+    <E extends ExternalExecutor, M extends ExecutorContextMirror<E>> E getMirroredExecutor(Executor executor,
+        Class<M> mirrorClass, MirrorFactory<M> mirrorFactory);
 
     int getSize();
 

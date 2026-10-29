@@ -53,7 +53,7 @@ public class RInvokerFactory implements InvokerFactory {
         COMPSsConstants.Lang lang = ((NativeDefinition) inv.getMethodImplementation().getDefinition()).getLang();
         if (lang == COMPSsConstants.Lang.R) {
             PipedExecutor rExec = RMirror.getPipedExecutor(executor);
-            return new RInvoker(context, inv, wDir, res, rExec.getPipePair());
+            return new RInvoker(context, inv, wDir, res, rExec);
         }
         return null;
     }

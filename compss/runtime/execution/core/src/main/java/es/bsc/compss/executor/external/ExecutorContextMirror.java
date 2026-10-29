@@ -17,8 +17,14 @@
 package es.bsc.compss.executor.external;
 
 import es.bsc.compss.executor.Executor;
-import es.bsc.compss.executor.external.piped.PipePair;
 
+/**
+ * Mirror of an executor context: keeps the executors registered with the platform and hands out the handles that
+ * represent them. The handle type {@literal <E>} is the mirror's executor representation; jobs are cancelled through
+ * that same handle.
+ *
+ * @param <E> executor handle type managed by the mirror
+ */
 public interface ExecutorContextMirror<E> {
 
     /**
@@ -28,6 +34,16 @@ public interface ExecutorContextMirror<E> {
      * @return object used to interact with the mirrored executor
      */
     E registerExecutor(Executor executor);
+
+    /**
+     * Returns the mirrored executor that this mirror associates to the executor on the current thread. The mirror
+     * caches the current thread's mirrored executor while it can run; a stale or absent one is re-registered through
+     * this mirror.
+     *
+     * @param executor executor whose mirrored executor must be obtained
+     * @return mirrored executor associated to the executor on the current thread
+     */
+    E getMirroredExecutor(Executor executor);
 
     /**
      * Removes an executor from the platform mirror.
@@ -44,8 +60,8 @@ public interface ExecutorContextMirror<E> {
     /**
      * Cancels a job.
      * 
-     * @param pipe pipe through which to cancel the job
+     * @param handle handle of the executor running the job to cancel
      */
-    void cancelJob(PipePair pipe);
+    void cancelJob(E handle);
 
 }

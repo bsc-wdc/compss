@@ -16,27 +16,23 @@
  */
 package es.bsc.compss.executor.external;
 
-public class ExternalExecutorException extends Exception {
+import es.bsc.compss.execution.types.ExecutorContext;
+
+/**
+ * Creates the mirror of an executor context. Every mirror exposes its factory as a constant so that the platform can
+ * create the mirror on the first lazy handle lookup; implementations are anonymous classes around the mirror
+ * constructor, since this codebase does not use functional interfaces.
+ *
+ * @param <M> mirror type created by this factory
+ */
+public interface MirrorFactory<M extends ExecutorContextMirror<?>> {
 
     /**
-     * Exception Version UID are 2L in all Runtime.
+     * Creates the mirror of the given platform.
+     *
+     * @param platform platform whose mirror must be created
+     * @return newly created mirror of the platform
      */
-    private static final long serialVersionUID = 2L;
+    M create(ExecutorContext platform);
 
-
-    public ExternalExecutorException() {
-        super();
-    }
-
-    public ExternalExecutorException(String msg) {
-        super(msg);
-    }
-
-    public ExternalExecutorException(Exception e) {
-        super(e);
-    }
-
-    public ExternalExecutorException(String msg, Exception e) {
-        super(msg, e);
-    }
 }

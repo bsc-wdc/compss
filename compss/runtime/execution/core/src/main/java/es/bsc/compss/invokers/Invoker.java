@@ -210,7 +210,16 @@ public abstract class Invoker<W extends Workflow> implements WorkflowListener {
         }
     }
 
-    private static String buildWorkersString(List<String> hostnames, int computingUnits) {
+    /**
+     * Builds the workers string describing the nodes that run an invocation: the comma-separated hostnames with the
+     * InfiniBand suffix removed, each hostname repeated as many times as computing units (one host per process to
+     * launch; with zero computing units only the first hostname is kept).
+     *
+     * @param hostnames Hostnames of the nodes running the invocation
+     * @param computingUnits Computing units described by the invocation
+     * @return The comma-separated workers string, empty when there is no hostname
+     */
+    protected static String buildWorkersString(List<String> hostnames, int computingUnits) {
         boolean firstElement = true;
         StringBuilder hostnamesSTR = new StringBuilder();
         for (String hostname : hostnames) {

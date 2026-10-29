@@ -19,8 +19,8 @@ package es.bsc.compss.executor.external.piped;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.external.CommandChannelException;
 import es.bsc.compss.executor.external.ExecutorContextMirror;
-import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.AddExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
@@ -75,7 +75,14 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
 
     protected final String mirrorId;
     protected final ExecutorContext mirroredContext;
+    // Authoritative registry of the mirror's executors: it owns the executor pipes (pre-populated at startup by
+    // constructPipeBuilderArgs with one entry per pre-created pipe), and it is the structure that unregisterExecutor
+    // and the stop path enumerate to shut the pipes down. All access is synchronized on it
     private final HashMap<String, PipedExecutor> mirroredExecutors;
+    // Cache of the current thread's executor, so the hot path does not pay a pipe-command round-trip per task. It is
+    // advisory: entries are validated through the canRun check and re-registered on the mirror when stale, and stop()
+    // only removes the stopping thread's entry (other threads' entries become inert garbage reclaimed lazily)
+    private final ThreadLocal<PipedExecutor> threadExecutor;
     protected final String basePipePath;
 
     private final MirrorMonitor monitor;
@@ -105,6 +112,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
         this.basePipePath = workingDir + PIPE_FILE_BASENAME + this.mirrorId + "_";
         this.mirroredContext = platform;
         this.mirroredExecutors = new HashMap<>();
+        this.threadExecutor = new ThreadLocal<>();
         this.monitor = new MirrorMonitor();
     }
 
@@ -299,6 +307,9 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
         stopPiper();
 
         this.monitor.stop();
+        // The thread handle cache goes away with the mirror: this thread's entry is removed, and the entries of
+        // other threads refer to handles shut down above, so they are re-created on their next lazy lookup
+        this.threadExecutor.remove();
     }
 
     private void stopExecutors() {
@@ -383,7 +394,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
 
                 logger.info("piper process finished");
                 if (exitCode != 0) {
-                    ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
+                    ErrorManager.error("CommandChannel piper ended with " + exitCode + " status");
                 }
             }
             this.pipeBuildeOutGobbler.join();
@@ -435,6 +446,16 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
         }
         registerReadyExecutor(pExecutor, executorPID);
 
+        return pExecutor;
+    }
+
+    @Override
+    public PipedExecutor getMirroredExecutor(Executor executor) {
+        PipedExecutor pExecutor = this.threadExecutor.get();
+        if (pExecutor == null || !pExecutor.canRun()) {
+            pExecutor = registerExecutor(executor);
+            this.threadExecutor.set(pExecutor);
+        }
         return pExecutor;
     }
 
@@ -528,7 +549,7 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
                         break;
                     }
                 }
-            } catch (ExternalExecutorException cpe) {
+            } catch (CommandChannelException cpe) {
                 // Executor is already dead -> Do nothing
             }
         }
@@ -558,8 +579,8 @@ public abstract class PipedMirror implements ExecutorContextMirror<PipedExecutor
     }
 
     @Override
-    public void cancelJob(PipePair pipe) {
+    public void cancelJob(PipedExecutor handle) {
         // Making sure that it is off through the Worker
-        this.pipeWorkerPipe.sendCommand(new CancelJobCommand(pipe));
+        this.pipeWorkerPipe.sendCommand(new CancelJobCommand(handle.getPipePair()));
     }
 }

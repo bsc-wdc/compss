@@ -22,7 +22,7 @@ import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
-import es.bsc.compss.invokers.external.ExternalInvoker;
+import es.bsc.compss.invokers.external.BindingInvoker;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-public class PythonMPIInvoker extends ExternalInvoker {
+public class PythonMPIInvoker extends BindingInvoker {
 
     private static final int NUM_BASE_PYTHON_MPI_ARGS = 8;
 
@@ -65,7 +65,6 @@ public class PythonMPIInvoker extends ExternalInvoker {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
-        super.appendOtherExecutionCommandArguments();
 
         // Internal binary runner
         this.br = null;
@@ -115,10 +114,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
                 this.invocation.getTaskId(), retObj.toString());
         }
 
-        if (retObj.toString().compareTo("0") != 0) {
-            throw new JobExecutionException("Received non-zero exit value: " + retObj.toString() + " for job "
-                + this.invocation.getJobId() + " of task " + this.invocation.getTaskId());
-        }
+        checkExitValue(Integer.parseInt(retObj.toString()));
     }
 
     private Object runPythonMPIInvocation() throws InvokeExecutionException {
@@ -254,7 +250,10 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     @Override
     protected int getNumThreads(InvocationContext context, Invocation invocation) {
-        int ppn = this.mpiDef.getPPN();
+        // Stateless on purpose: the base constructor completes the command construction, so this override can run
+        // before the subclass fields are assigned and must derive the definition from the invocation
+        PythonMPIDefinition mpiDef = (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
+        int ppn = mpiDef.getPPN();
         if (ppn > 1) {
             return this.computingUnits / ppn;
         } else {

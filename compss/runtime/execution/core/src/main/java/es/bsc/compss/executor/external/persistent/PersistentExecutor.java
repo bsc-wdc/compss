@@ -16,16 +16,43 @@
  */
 package es.bsc.compss.executor.external.persistent;
 
-public class PersistentExecutor {
+import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.external.ExternalExecutor;
 
-    private boolean isRegistered;
+/**
+ * Handle to the persistent binding of an executor thread. The represented executor is not an out-of-process executor
+ * but the persistent language binding attached to the owning executor thread; its lifecycle is driven by the
+ * PersistentMirror that registered it.
+ */
+public class PersistentExecutor extends ExternalExecutor {
+
+    private final PersistentMirror mirror;
+    private final Executor owner;
 
 
-    public PersistentExecutor() {
-        isRegistered = true;
+    /**
+     * Constructs a new PersistentExecutor.
+     * 
+     * @param mirror mirror to whom it belongs
+     * @param owner executor thread that owns the persistent binding
+     */
+    public PersistentExecutor(PersistentMirror mirror, Executor owner) {
+        this.mirror = mirror;
+        this.owner = owner;
     }
 
-    public boolean canRun() {
-        return this.isRegistered;
+    @Override
+    public PersistentMirror getMirror() {
+        return this.mirror;
     }
+
+    /**
+     * Returns the executor thread that owns the persistent binding represented by this handle.
+     * 
+     * @return the owning executor thread
+     */
+    public Executor getOwningExecutor() {
+        return this.owner;
+    }
+
 }

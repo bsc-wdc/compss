@@ -17,25 +17,20 @@
 package es.bsc.compss.invokers.external.persistent;
 
 import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.executor.external.persistent.PersistentCBinding;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
-import es.bsc.compss.executor.types.ParameterResult;
-import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.semantics.data.DataType;
+import es.bsc.compss.invokers.external.BindingInvoker;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import java.util.Collection;
-import java.util.Iterator;
 
-public abstract class PersistentInvoker extends ExternalInvoker {
-
-    static {
-        System.loadLibrary("bindings_common");
-    }
-
+/**
+ * Base class of the invokers that run tasks inside the persistent binding implemented in C: the task command is sent
+ * through {@link PersistentCBinding} to the binding of the calling executor thread, and the reported task status drives
+ * the shared result handling of the binding invokers.
+ */
+public abstract class PersistentInvoker extends BindingInvoker {
 
     /**
      * Class Constructor.
@@ -50,65 +45,37 @@ public abstract class PersistentInvoker extends ExternalInvoker {
         InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, sandbox, assignedResources);
-        super.appendOtherExecutionCommandArguments();
     }
 
     @Override
     protected void invokeExternalMethod() throws JobExecutionException {
-        int jobId = invocation.getJobId();
         String taskCMD = command.getAsString();
         if (logger.isDebugEnabled()) {
             logger.debug("Executing in binding: {}", taskCMD);
         }
 
-        String result = executeInBinding(taskCMD);
+        String result = PersistentCBinding.executeInBinding(taskCMD);
         if (logger.isDebugEnabled()) {
             logger.debug("Result: {}", result);
         }
         ExternalTaskStatus taskStatus = new ExternalTaskStatus(result.split(" "));
 
         // Check task exit value
-        Integer exitValue = taskStatus.getExitValue();
-        if (exitValue != 0) {
-            throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
-        }
+        checkExitValue(taskStatus.getExitValue());
 
         // Update parameters
-        logger.debug("Updating parameters for job {}", jobId);
-        Collection<ParameterResult> results = taskStatus.getResults();
+        applyTaskResults(taskStatus);
 
-        Iterator<? extends InvocationParam> cip = invocation.getParams().iterator();
-        Iterator<ParameterResult> cr = results.iterator();
-        while (cr.hasNext()) {
-            updateParam(cip.next(), cr.next());
-        }
-
-        logger.debug("Job {} has finished with exit value 0", jobId);
+        logger.debug("Job {} has finished with exit value 0", invocation.getJobId());
     }
 
-    private void updateParam(InvocationParam param, ParameterResult result) {
-        if (param.isCollective()) {
-            Iterator<InvocationParam> cip = ((InvocationParamCollection) param).getCollectionParameters().iterator();
-            Iterator<ParameterResult> cr = ((ParameterResult.CollectiveResult) param).getElements().iterator();
-            while (cip.hasNext()) {
-                updateParam(cip.next(), cr.next());
-            }
-        }
-
-        DataType resultType = result.getType();
-        if (resultType != null) {
-            if (resultType == DataType.EXTERNAL_PSCO_T) {
-                param.setType(resultType);
-                param.setValue(((ParameterResult.SingleResult) result).getValue());
-            }
-        }
-
+    /**
+     * Cancellation of the running method. Persistent jobs run as synchronous native calls on the executor thread, so
+     * there is nothing that can be canceled from the outside; the request is a no-op.
+     */
+    @Override
+    public void cancelMethod() {
+        // The job runs as a synchronous native call on the executor thread: can't be canceled from the outside
     }
-
-    public static native String executeInBinding(String args);
-
-    public static native void initThread();
-
-    public static native void finishThread();
 
 }

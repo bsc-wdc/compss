@@ -34,7 +34,7 @@ public class PythonInvoker extends PipedInvoker {
     public PythonInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources, PipedExecutor pExec) throws JobExecutionException {
 
-        super(context, invocation, sandbox, assignedResources, pExec.getPipePair());
+        super(context, invocation, sandbox, assignedResources, pExec);
     }
 
     @Override

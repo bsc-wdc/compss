@@ -19,6 +19,7 @@ package es.bsc.compss.execution;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.executor.Executor;
+import es.bsc.compss.executor.external.MirrorFactory;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipedExecutor;
 import es.bsc.compss.executor.external.piped.PipedMirror;
@@ -30,7 +31,7 @@ import java.util.Map;
 
 public class RMirror extends PipedMirror {
 
-    // C worker relative path
+    // R worker relative path
     private static final String BINDINGS_RELATIVE_PATH =
         File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
     private static final String R_PIPER = "r_piper.sh";
@@ -41,12 +42,18 @@ public class RMirror extends PipedMirror {
         File.separator + "Bindings" + File.separator + "RCOMPSs" + File.separator + "dummy_extrae";
     private static final String R_LIBS_PATH_ENV = "R_LIBS";
 
-    // Piped Executor Cache
-    private static final ThreadLocal<PipedExecutor> executor = new ThreadLocal<>();
+    // Factory creating this mirror on first lazy registration
+    private static final MirrorFactory<RMirror> MIRROR_FACTORY = new MirrorFactory<RMirror>() {
+
+        @Override
+        public RMirror create(ExecutorContext platform) {
+            return new RMirror(platform);
+        }
+    };
 
 
     /**
-     * Creates a new CMirror instance with the given context and size.
+     * Creates a new RMirror instance with the given context.
      *
      * @param platform Mirrored platform
      */
@@ -125,20 +132,6 @@ public class RMirror extends PipedMirror {
      * @return PipedExecutor corresponding to executor e
      */
     public static PipedExecutor getPipedExecutor(Executor e) {
-        PipedExecutor pExec = executor.get();
-        if (pExec == null || !pExec.canRun()) {
-            ExecutorContext platform = e.getPlatform();
-            RMirror mirror;
-            synchronized (platform) {
-                mirror = (RMirror) platform.getMirror(RMirror.class);
-                if (mirror == null) {
-                    mirror = new RMirror(platform);
-                    platform.registerMirror(RMirror.class, mirror);
-                }
-            }
-            pExec = mirror.registerExecutor(e);
-            executor.set(pExec);
-        }
-        return pExec;
+        return e.getPlatform().getMirroredExecutor(e, RMirror.class, MIRROR_FACTORY);
     }
 }

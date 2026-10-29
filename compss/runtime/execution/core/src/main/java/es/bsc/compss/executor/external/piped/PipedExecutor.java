@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.executor.external.piped;
 
-public class PipedExecutor {
+import es.bsc.compss.executor.external.ExternalExecutor;
 
-    private enum State {
-        CREATING, RUNNING, STOPPING, DELETED
-    }
+/**
+ * Handle to an out-of-process executor connected through a piped command channel. All command traffic with the
+ * represented executor goes through the pipe pair passed at construction.
+ */
+public class PipedExecutor extends ExternalExecutor {
 
-
-    private volatile State state;
     private final PipedMirror mirror;
     private final PipePair pipePair;
 
@@ -35,40 +35,22 @@ public class PipedExecutor {
      * @param pp PipePair to communicate with the PipedExecutor
      */
     public PipedExecutor(PipedMirror mirror, PipePair pp) {
-        this.state = State.CREATING;
-        this.pipePair = pp;
         this.mirror = mirror;
+        this.pipePair = pp;
     }
 
+    @Override
     public PipedMirror getMirror() {
-        return mirror;
-    }
-
-    public PipePair getPipePair() {
-        return pipePair;
+        return this.mirror;
     }
 
     /**
-     * Registers that the PipedExecutor is fully deployed.
-     */
-    public void deployed() {
-        this.state = State.RUNNING;
-    }
-
-    public void stopping() {
-    }
-
-    public void terminated() {
-        this.state = State.DELETED;
-    }
-
-    /**
-     * Returns whether the PipedExecutor can run tasks or not.
+     * Returns the pipe pair to communicate with the represented out-of-process executor.
      * 
-     * @return {@literal true}, if the pipedExecutor is valid; {@literal false} otherwise.
+     * @return command channel of the represented executor
      */
-    public boolean canRun() {
-        return state == State.CREATING || state == State.RUNNING;
+    public PipePair getPipePair() {
+        return this.pipePair;
     }
 
 }

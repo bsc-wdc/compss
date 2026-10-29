@@ -539,13 +539,14 @@ def main():
 
 if __name__ == "__main__":
 
-    # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log /dest/folder/ zip_bool
+    # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/log_dir/ /dest/folder/ zip_bool
+    # Errors must exit with a non-zero code: provenance.sh relies on it to keep the files needed to regenerate by hand
     if len(sys.argv) != 5:
         print(
             "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py "
-            "/path_to/your_info.yaml /path_to/log_dir/dataprovenance.log /path_to/result_folder/ zip_bool"
+            "/path_to/your_info.yaml /path_to/log_dir/ /path_to/result_folder/ zip_bool"
         )
-        sys.exit()
+        sys.exit(1)
     else:
         INFO_YAML = sys.argv[1]
         PATH_LOG = Path(sys.argv[2])
@@ -553,11 +554,16 @@ if __name__ == "__main__":
         ZIP_PROVENANCE = True if sys.argv[4] == "true" else False
 
         DP_LOG = PATH_LOG / "dataprovenance.log"
-        if not DP_LOG.exists() or DP_LOG.stat().st_size == 0:
+        if not DP_LOG.exists():
+            print(
+                f"PROVENANCE | ERROR: the dataprovenance.log file has not been found in {PATH_LOG}. Provenance information has not been correctly generated from the COMPSs runtime"
+            )
+            sys.exit(1)
+        if DP_LOG.stat().st_size == 0:
             print(
                 f"PROVENANCE | ERROR: the dataprovenance.log file is empty. Provenance information has not been correctly generated from the COMPSs runtime"
             )
-            sys.exit()
+            sys.exit(1)
 
         COMPLETE_GRAPH = PATH_LOG / "monitor/complete_graph.svg"
         ENERGY_PATH = PATH_LOG / "energy/"

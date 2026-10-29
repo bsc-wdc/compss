@@ -7,11 +7,11 @@ This file gives AI coding agents guidance on the **Workflow Provenance generatio
 Workflow Provenance records metadata about the execution of a COMPSs application and packages it as an [RO-Crate](https://www.researchobject.org/ro-crate/). The crate follows the [Workflow RO-Crate](https://w3id.org/workflowhub/workflow-ro-crate/1.0) profile and the [Workflow Run RO-Crate (WRROC)](https://w3id.org/ro/wfrun) profiles, at one of two levels:
 
 - **Provenance Run Crate** (WRROC level 3, the default): includes details of every task executed (method, parameters and their values, host, start and end times, status, job logs).
-- **Workflow Run Crate** (WRROC level 2, the fallback): only overall information about the workflow run (inputs, outputs, status, agent, timings, resource usage), without task details. Used when the worker logs are missing or when `provenance_run: False` is set in the YAML.
+- **Workflow Run Crate** (WRROC level 2, the fallback): only overall information about the workflow run (inputs, outputs, status, agent, timings, resource usage), without task details. Used for Java applications, when the worker logs are missing, or when `provenance_run: False` is set in the YAML.
 
 The level is set in `wrroc/profile.py` (`set_profile_details`), which adds the matching `conformsTo` profiles.
 
-Python (PyCOMPSs) and Java applications are supported, although Java applications still do not support generation of WRROC Provenance Run Crate level of detail.
+Python (PyCOMPSs) and Java applications are supported. Java applications do not support the Provenance Run Crate level yet: the generator detects them from the main entity in `dataprovenance.log` (`is_python_application` in `processing/entities.py`: a `.py` script for Python, the main class for Java) and always generates a Workflow Run Crate for them, whatever `provenance_run` says in the YAML, with a single warning.
 
 **Design principle: capture is lightweight, processing is post-mortem.** During the run, the runtime only appends short lines to log files, so that recording provenance adds no noticeable overhead to the workflow. All the expensive work (parsing, file inspection, metadata building, plots) is done by the generator after the application ends. See [Automatic, Efficient and Scalable Provenance Registration for FAIR HPC Workflows](http://dx.doi.org/10.1109/WORKS56498.2022.00006) (WORKS 2022). Keep new capture code within that principle.
 
@@ -77,7 +77,7 @@ Required only for the Provenance Run Crate level:
 
 Both are `KEY=VALUE` lines parsed by `processing/worker_logs.py` (`update_tasks_from_worker_logs`), which completes the `Task` objects built from the master log. `SIZE` and `MODIFIED` are read while the file still exists in the worker sandbox: when a file is not found at its location at the end of the run (deleted with `compss_delete_file()`, or not copied back because the run stopped early), `get_missing_file_details` takes them from the last finished task that wrote it, and `add_dataset_file_to_crate` adds them to the file's entity, with a `description` naming that task. Files never written by a finished task get a `File` (or `Dataset`) entity with only its `scp://` identifier. Older worker logs without these keys are still valid.
 
-If both files are missing from every worker, the generator falls back to the Workflow Run Crate level and prints a warning. If only one file is missing for a host, it warns that task information may be limited. Logs must survive the end of the run, whether the application ends correctly or with an error, for task details to be recorded.
+For Java applications these logs are not searched (see [What it does](#what-it-does)). If both files are missing from every worker, the generator falls back to the Workflow Run Crate level and prints a warning. If only one file is missing for a host, it warns that task information may be limited. Logs must survive the end of the run, whether the application ends correctly or with an error, for task details to be recorded.
 
 ### Other inputs
 

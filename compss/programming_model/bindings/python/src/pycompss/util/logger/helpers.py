@@ -35,6 +35,7 @@ from typing import Dict, Iterator, Optional
 from pycompss import PYCOMPSS_HOME
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.level import check_log_level
+from pycompss.util.logger.level import get_log_level
 from pycompss.util.logger.remittent import LOG_REMITTENT
 
 LOG_CFG_PATH = os.path.join(PYCOMPSS_HOME, "util", "logger", "cfg")
@@ -81,6 +82,8 @@ def __read_log_config_file(remittent: str, log_level: str) -> dict:
 
     conf = CONFIGS[cfg_file]
 
+    # Translate the user level (e.g. api, trace) to the real log level tag
+    log_level = get_log_level(log_level)
     check_log_level(log_level)
 
     log_level = log_level.upper()

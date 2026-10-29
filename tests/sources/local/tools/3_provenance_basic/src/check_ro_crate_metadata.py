@@ -118,7 +118,30 @@ def main():
 
     if validation_errors:
         sys.exit(1)
-        
+
+    # 8. Validate that the fake secrets set by the 'execution' script have been redacted
+    with open(file_path, 'r') as f:
+        raw_metadata = f.read()
+    leaked = [s for s in ("prov-test-secret-1", "prov-test-secret-2", "prov-test-secret-3") if s in raw_metadata]
+    if leaked:
+        print(f"ERROR: Secrets not redacted from the metadata: {leaked}")
+        sys.exit(1)
+    expected_values = {
+        "#compss_prov_test_token": "***REDACTED***",
+        "#compss_prov_test_opts": "-Dprov.test.password=***REDACTED*** -Xmx1g",
+    }
+    for env_id, expected_value in expected_values.items():
+        if env_id not in graph_ids:
+            print(f"ERROR: Environment variable '{env_id}' missing from the @graph.")
+            sys.exit(1)
+        if graph_ids[env_id].get("value") != expected_value:
+            print(f"ERROR: Environment variable '{env_id}' has value '{graph_ids[env_id].get('value')}', expected '{expected_value}'.")
+            sys.exit(1)
+    if "--token ***REDACTED***" not in run_action.get("description", ""):
+        print(f"ERROR: Submission command not redacted: '{run_action.get('description')}'")
+        sys.exit(1)
+    print("All secrets REDACTED")
+
     sys.exit(0)
 
 if __name__ == '__main__':

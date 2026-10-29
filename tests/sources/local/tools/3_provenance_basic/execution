@@ -42,6 +42,10 @@
         python_mpi_worker="--python_mpi_worker=true"
     fi
 
+    # Fake secrets that must be redacted from the crate (checked by check_ro_crate_metadata.py)
+    export COMPSS_PROV_TEST_TOKEN="prov-test-secret-1"
+    export COMPSS_PROV_TEST_OPTS="-Dprov.test.password=prov-test-secret-2 -Xmx1g"
+
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -60,7 +64,7 @@
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
       \
-      "${base_app_dir}/src/${app_name}" 2 2 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+      "${base_app_dir}/src/${app_name}" 2 2 --token prov-test-secret-3 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
     # Copy LOG files
     cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"

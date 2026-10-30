@@ -4,7 +4,7 @@ usage() {
   exitValue=$1
 
   echo " "
-  echo "Usage ./update_trunk_version <previousVersion> <newVersion> <commitChanges>"
+  echo "Usage ./update_trunk_version <previousVersion> <newVersion>"
   echo " "
 
   exit "$exitValue"
@@ -13,7 +13,7 @@ usage() {
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   # Check parameters
-  if [ $# -ne 3 ]; then
+  if [ $# -ne 2 ]; then
     echo "ERROR: Incorrect number of parameters"
     usage 1
   fi
@@ -21,7 +21,6 @@ usage() {
   # Get version parameters
   previousVersion=$1
   newVersion=$2
-  commitChanges=$3
   echo "Updating COMPSs from ${previousVersion} to ${newVersion}..."
 
   # Define script variables
@@ -101,16 +100,6 @@ usage() {
   specsPipResources=${base_trunk_dir}/builders/specs/pip/pyCOMPSsResources/VERSION.txt
   echo "    $specsPipResources"
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$specsPipResources"
-  
-  #---------------------------------------------------------------------
-  # COMMIT MODIFICATIONS IF NEEDED
-  if [ "$commitChanges" == "true" ]; then
-    echo "- Committing modifications to trunk"
-    cd "${base_trunk_dir}"
-    if git commit -am "Update to version ${newVersion}"; then
-        git push http://${credentials}@gitlab.bsc.es/wdc/compss/framework.git trunk
-    fi
-  fi
 
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

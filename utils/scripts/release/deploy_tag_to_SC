@@ -1,0 +1,105 @@
+#!/bin/bash -e
+
+usage() {
+  exitValue=$1
+
+  echo " "
+  echo "Usage $0 <version> <buildFolder> <buildScript> <SCuser> <SCendpoint> <modules_folder> <install_folder>"
+  echo " "
+
+  exit "$exitValue"
+}
+
+getParams() {
+  # Check parameters
+  if [ $# -ne 7 ]; then
+    echo "ERROR: Incorrect number of parameters ($#)"
+    echo "Params: $@"
+    usage 1
+  fi
+
+  # Get version parameters
+  version=$1
+  buildFolder=$2
+  buildScript=$3
+  SCuser=$4
+  SCendpoint=$5
+  modules_folder=$6
+  install_folder=$7
+}
+
+install() {
+  echo "- Install to SC"
+  cd "${trunk_dir}"
+
+  cd "${buildersDir}"
+  ./"${buildScript}" "${SCuser}" "/home/genu/${SCuser}/tmpCOMPSs/" "${install_folder}/$version"
+  cd "${SCRIPT_DIR}"
+}
+
+addModule() {
+  echo "- Add module file"
+  auxScriptName=module_script.aux
+  auxScriptFile=${SCRIPT_DIR}/${auxScriptName}
+  cat > "${auxScriptFile}" << EOT
+#!/bin/bash -e
+    
+  cp ${modules_folder}/Trunk ${modules_folder}/$version
+  sed -i '/set PROG_VERSION/c\set PROG_VERSION\t\t'$version'' ${modules_folder}/$version
+  chmod 775 ${modules_folder}/$version
+  cd ${modules_folder}
+  ln -f -s $version  latest
+  if [[ $version != *"rc"* ]]; then
+    ln -f -s $version  release
+  fi
+EOT
+
+  trap clean EXIT
+
+  scp -o StrictHostKeyChecking=no "${auxScriptFile}" "${SCuser}@${SCendpoint}":.
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}@${SCendpoint}" "chmod 775 ${auxScriptName}"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}@${SCendpoint}" "./${auxScriptName}"
+}
+
+clean() {
+  echo "- Clean remote TMP files"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}@${SCendpoint}" "rm -f ${auxScriptName}"
+  
+  echo "- Clean TMP files"
+  rm -f "${auxScriptFile}"
+}
+
+ 
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# MAIN 
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+# Get parameters
+getParams "$@"
+
+# Define script variables
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+trunk_dir=${SCRIPT_DIR}/../../../
+buildersDir=${trunk_dir}/builders/scs/${buildFolder}
+
+# LOG
+echo "Deploying COMPSs Tag version ${version} to ${buildersDir}"
+echo "  - Builder Script: ${buildScript}"
+echo "  - Credentials:    ${SCuser}@${SCendpoint}"
+echo " "
+
+# Install tag to SC
+install
+
+# Add module
+addModule
+
+#---------------------------------------------------------------------
+# NOTIFY SUCCESS
+echo " "
+echo "FINISHED! COMPSs Tag version ${version} deployed to ${buildersDir}"
+echo " "
+
+# END
+exit 0
+

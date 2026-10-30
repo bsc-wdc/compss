@@ -46,26 +46,18 @@ usage() {
   cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
-  # Modify version file
-  echo "- Modifying version file..."
+  # Modify runtime version file
+  echo "- Modifying runtime version file..."
   versionFile=${base_trunk_dir}/compss/runtime/scripts/system/commons/VERSION
   echo "    $versionFile"
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$versionFile"
 
   #---------------------------------------------------------------------
   # Modify python binding files
-  echo "- Modifying binding files..."
-  setupFile=${base_trunk_dir}/compss/programming_model/bindings/python/setup.py
-  echo "    $setupFile"
-  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$setupFile"
-
-  #---------------------------------------------------------------------
-  # Modify utils/docker/
-  #echo "- Modifying utils/docker files..."
-  #cd "${base_trunk_dir}/utils/docker/agent"
-  #file="build_image"
-  #echo "    $file"
-  #sed -i 's/COMPSs_VERSION="'${previousVersion}'"/COMPSs_VERSION="'${newVersion}'"/g' "$file"
+  echo "- Modifying python binding files..."
+  versionFile=${base_trunk_dir}/compss/programming_model/bindings/python/VERSION.txt
+  echo "    $versionFile"
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$versionFile"
   cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
@@ -92,16 +84,24 @@ usage() {
   # Modify builders version
   echo "- Modifying builders files..."
   buildpackages=${base_trunk_dir}/builders/buildpackages
-  buildlocal=${base_trunk_dir}/builders/buildlocal
-  scREADME=${base_trunk_dir}/builders/specs/sc/README
   echo "    $buildpackages"
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$buildpackages"
+  buildlocal=${base_trunk_dir}/builders/buildlocal
   echo "    $buildlocal"
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$buildlocal"
+  scREADME=${base_trunk_dir}/builders/specs/sc/README
   echo "    $scREADME"
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$scREADME"
-
-
+  scScript=${base_trunk_dir}/builders/specs/sc/compile_copy.sh
+  echo "    $scScript"
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$scScript"
+  specsPip=${base_trunk_dir}/builders/specs/pip/README
+  echo "    $specsPip"
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$specsPip"
+  specsPipResources=${base_trunk_dir}/builders/specs/pip/pyCOMPSsResources/VERSION.txt
+  echo "    $specsPipResources"
+  sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$specsPipResources"
+  
   #---------------------------------------------------------------------
   # COMMIT MODIFICATIONS IF NEEDED
   if [ "$commitChanges" == "true" ]; then
@@ -111,7 +111,6 @@ usage() {
         git push http://${credentials}@gitlab.bsc.es/wdc/compss/framework.git trunk
     fi
   fi
-
 
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

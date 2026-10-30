@@ -5,6 +5,7 @@ message: >-
   metadata from this file.
 type: software
 authors:
+  # Current team
   - given-names: Francesc
     family-names: Lordan
     email: francesc.lordan@bsc.es
@@ -45,18 +46,19 @@ authors:
     email: fernando.vazquez@bsc.es
     affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0000-0001-5634-509X'
-  - given-names: Nicolò
-    family-names: Giacomini
-    email: nicolo.giacomini@bsc.es
+  - given-names: Mar
+    family-names: Tejedor
+    email: mar.tejedor@bsc.es
     affiliation: Barcelona Supercomputing Center
-    orcid: 'https://orcid.org/0009-0005-2797-8177'
+    orcid: 'https://orcid.org/0009-0003-3636-1326'
+  - given-names: Debora
+    family-names: Pina
+    email: debora.pina@bsc.es
+    affiliation: Universidade Federal do Rio de Janeiro; Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0001-6616-0291'
   - given-names: Álvaro
     family-names: Ricón R.
     email: alvaro.ricon@bsc.es
-    affiliation: Barcelona Supercomputing Center
-  - given-names: Roc
-    family-names: Cutal Gendrau
-    email: roc.cutal@bsc.es
     affiliation: Barcelona Supercomputing Center
   - given-names: Phil
     family-names: Cummins
@@ -71,6 +73,12 @@ authors:
     family-names: García
     email: mauro.garcia@bsc.es
     affiliation: Barcelona Supercomputing Center
+  - given-names: Eudald
+    family-names: Pizarro Camí
+    email: eudald.pizarro@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0009-1871-4152'
+  # Former members
   - given-names: Jorge
     family-names: Ejarque
     orcid: 'https://orcid.org/0000-0003-4725-5097'
@@ -114,10 +122,15 @@ authors:
   - given-names: Javier
     family-names: Álvarez Cid-Fuentes
     orcid: 'https://orcid.org/0000-0001-7153-4649'
-  - given-names: Archit
-    family-names: Dabral
-    affiliation: Indian Institute of Technology BHU
-    orcid: 'https://orcid.org/0009-0009-6701-3547'
+  - given-names: Nicolò
+    family-names: Giacomini
+    email: nicolo.giacomini@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0005-2797-8177'
+  - given-names: Roc
+    family-names: Cutal Gendrau
+    email: roc.cutal@bsc.es
+    affiliation: Barcelona Supercomputing Center
   - given-names: Adrià
     family-names: Aguila Perez
   - given-names: Aldo
@@ -144,6 +157,11 @@ authors:
     family-names: Antón
   - given-names: Pau
     family-names: Recort
+  # External contributions
+  - given-names: Archit
+    family-names: Dabral
+    affiliation: Indian Institute of Technology BHU
+    orcid: 'https://orcid.org/0009-0009-6701-3547'
 identifiers:
   - type: url
     value: 'https://doi.org/10.5281/zenodo.15229826'

@@ -1,0 +1,55 @@
+#!/bin/bash -e
+
+usage() {
+  exitValue=$1
+
+  echo " "
+  echo "Usage ./generate_tag <version> <commitChanges>"
+  echo " "
+
+  exit "$exitValue"
+}
+ 
+ #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+ #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+ # Check parameters
+ if [ $# -ne 2 ]; then
+  echo "ERROR: Incorrect number of parameters"
+  usage 1
+ fi
+
+# Get version parameters
+version=$1
+commitChanges=$2
+
+echo "Creating new COMPSs Tag ${version}..."
+
+# Define script variables
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+trunk_dir=${SCRIPT_DIR}/../../../
+
+#---------------------------------------------------------------------
+# Clean trunk
+cd "${trunk_dir}"
+mvn -U clean
+cd "${SCRIPT_DIR}"
+
+#---------------------------------------------------------------------
+# Create tag
+echo "- Create tag"
+echo "   ScriptDir: ${SCRIPT_DIR}"
+echo "   TrunkDir:  ${trunk_dir}"
+tag="v${version}"
+git tag -f "${tag}"
+if [ "$commitChanges" == "true" ]; then
+  git push -f http://${credentials}@gitlab.bsc.es/wdc/compss/framework.git ${tag}
+fi
+
+#---------------------------------------------------------------------
+# NOTIFY SUCCESS
+echo " "
+echo "FINISHED! New COMPSs Tag ${tag} created"
+echo " "
+
+# END
+exit 0

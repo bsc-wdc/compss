@@ -33,7 +33,7 @@ class ExtraLaunchStatus:
         """Create a new state object."""
         self.log_path = "undefined"
         self.graphing = False
-        self.line_separator = 56 * "*"
+        self.line_separator = 54 * "*"
         self.disable_external = False
 
     def get_graphing(self) -> bool:

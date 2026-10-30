@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.tracing;
+package es.bsc.compss.execution.tracing;
 
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
@@ -30,15 +30,13 @@ public abstract class FunctionExecutionEvent implements Event {
 
     private static final int TASK_FUNC_ID = 8_001_131;
 
+    /**
+     * Tracing event type describing the execution of a function.
+     */
     public static final ExtensibleEventType TYPE =
         Tracer.defineNewExtensibleEventType(TASK_FUNC_ID, "Task", true, new LinkedList<>());
 
 
-    /**
-     * Returns the type of the event.
-     *
-     * @return The function execution event type.
-     */
     @Override
     public final EventType getType() {
         return TYPE;

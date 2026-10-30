@@ -17,6 +17,7 @@
 package es.bsc.compss.execution.platform.mirrors.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.execution.InvocationContext;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.binding.CommandChannelException;
@@ -42,7 +43,6 @@ import es.bsc.compss.execution.executor.binding.piped.commands.WorkerStartedPipe
 import es.bsc.compss.execution.executor.binding.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.execution.platform.mirrors.ExecutorContextMirror;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.wdc.tracing.Tracer;

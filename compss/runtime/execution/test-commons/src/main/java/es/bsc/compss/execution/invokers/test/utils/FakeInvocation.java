@@ -17,12 +17,12 @@
 package es.bsc.compss.execution.invokers.test.utils;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.semantics.task.FailurePolicy;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.LinkedList;

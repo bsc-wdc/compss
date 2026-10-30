@@ -144,9 +144,11 @@ flow.
   according to the thread.
 - `ThreadedProperties`: allows different properties per thread.
 
-The `es.bsc.compss.execution` root package hosts the node facade
-`ExecutionManager` and `InvocationExecutionListener`, the callback through
-which the runtime receives the results and the end of an invocation.
+The `es.bsc.compss.execution` root package — shared with the contracts of
+the [api](../api/README.md) module, split across the two jars — hosts the
+node facade `ExecutionManager` and `InvocationExecutionListener`, the
+callback through which the runtime receives the results and the end of an
+invocation.
 `ExecutionManager` manages the execution of invocations on a node by
 initializing the platform with a `ResourceManager` and the configured
 `ThreadBinder`, enqueuing invocations for execution, adjusting capabilities,

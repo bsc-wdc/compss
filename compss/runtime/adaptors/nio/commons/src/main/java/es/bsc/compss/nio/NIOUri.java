@@ -17,8 +17,8 @@
 package es.bsc.compss.nio;
 
 import es.bsc.comm.nio.NIONode;
+import es.bsc.compss.execution.InvocationParamURI;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.execution.InvocationParamURI;
 import java.io.Externalizable;
 import java.io.File;
 import java.io.IOException;

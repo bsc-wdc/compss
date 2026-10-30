@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.execution.invokers.types;
 
-import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.execution.LanguageParams;
 
 /**
  * Java related variables.

@@ -18,6 +18,8 @@ package es.bsc.compss.execution.invokers.test.utils;
 
 import static org.junit.Assert.assertEquals;
 
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationParam;
 import es.bsc.compss.execution.invokers.test.InvokerListener;
 import es.bsc.compss.execution.invokers.test.objects.StorageTestObject;
 import es.bsc.compss.execution.invokers.test.objects.TestObject;
@@ -25,8 +27,6 @@ import es.bsc.compss.execution.invokers.test.utils.FakeInvocationContext.Invocat
 import es.bsc.compss.execution.invokers.test.utils.types.Event;
 import es.bsc.compss.execution.invokers.test.utils.types.InvocationParameterAction;
 import es.bsc.compss.execution.invokers.test.utils.types.InvocationParameterAssertion;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;

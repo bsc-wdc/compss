@@ -18,15 +18,13 @@
 package es.bsc.compss.execution;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.execution.exceptions.InitializationException;
+import es.bsc.compss.execution.exceptions.InvalidMapException;
 import es.bsc.compss.execution.platform.ExecutionPlatform;
 import es.bsc.compss.execution.platform.ExecutionPlatformConfiguration;
 import es.bsc.compss.execution.platform.InvocationExecutionRequest;
 import es.bsc.compss.execution.platform.ResourceManager;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.InitializationException;
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.util.ErrorManager;
 import org.apache.logging.log4j.LogManager;

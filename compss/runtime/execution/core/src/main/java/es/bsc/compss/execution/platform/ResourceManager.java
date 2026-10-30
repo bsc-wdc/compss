@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.execution.platform;
 
+import es.bsc.compss.execution.ThreadBinder;
+import es.bsc.compss.execution.exceptions.InvalidMapException;
+import es.bsc.compss.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.execution.platform.binders.BindToMap;
 import es.bsc.compss.execution.platform.binders.BindToResource;
 import es.bsc.compss.execution.platform.binders.Unbinded;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.ThreadBinder;
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Iterator;

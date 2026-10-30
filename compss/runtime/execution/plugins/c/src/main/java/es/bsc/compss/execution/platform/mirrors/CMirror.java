@@ -17,13 +17,13 @@
 package es.bsc.compss.execution.platform.mirrors;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.execution.InvocationContext;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.binding.piped.ControlPipePair;
 import es.bsc.compss.execution.executor.binding.piped.PipedExecutor;
 import es.bsc.compss.execution.invokers.types.CParams;
 import es.bsc.compss.execution.platform.mirrors.piped.PipedMirror;
-import es.bsc.compss.types.execution.InvocationContext;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;

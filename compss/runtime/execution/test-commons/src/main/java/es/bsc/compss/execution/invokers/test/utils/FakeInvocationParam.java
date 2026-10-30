@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.execution.invokers.test.utils;
 
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.InvocationParamURI;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.parameter.StdIOStream;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.InvocationParamURI;
 import java.util.LinkedList;
 import java.util.List;
 

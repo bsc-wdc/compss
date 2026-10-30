@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution;
+package es.bsc.compss.execution;
 
 import es.bsc.compss.types.data.location.ProtocolType;
 

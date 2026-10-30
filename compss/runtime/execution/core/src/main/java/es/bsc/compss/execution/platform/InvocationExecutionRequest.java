@@ -17,10 +17,10 @@
 package es.bsc.compss.execution.platform;
 
 import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.execution.Invocation;
 import es.bsc.compss.execution.InvocationExecutionListener;
+import es.bsc.compss.execution.InvocationParam;
 import es.bsc.compss.execution.executor.Executor;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
 
 public class InvocationExecutionRequest extends ExecutorRequest {
 

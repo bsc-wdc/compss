@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.execution.invokers.binding.persistent;
 
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
+import es.bsc.compss.execution.exceptions.JobExecutionException;
 import es.bsc.compss.execution.executor.ExecutionSandbox;
 import es.bsc.compss.execution.executor.binding.persistent.PersistentCBinding;
 import es.bsc.compss.execution.invokers.binding.BindingInvoker;
 import es.bsc.compss.execution.invokers.binding.ExternalTaskStatus;
 import es.bsc.compss.execution.platform.InvocationResources;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
 /**
  * Base class of the invokers that run tasks inside the persistent binding implemented in C: the task command is sent

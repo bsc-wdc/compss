@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.execution.invokers.test;
 
-import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.execution.Invocation;
 import java.util.List;
 
 public interface InvokerListener {

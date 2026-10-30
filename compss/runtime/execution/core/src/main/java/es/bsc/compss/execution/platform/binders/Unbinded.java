@@ -17,8 +17,8 @@
 
 package es.bsc.compss.execution.platform.binders;
 
-import es.bsc.compss.types.execution.ThreadBinder;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.execution.ThreadBinder;
+import es.bsc.compss.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 
 /**
  * Class for unbinded thread affinity.

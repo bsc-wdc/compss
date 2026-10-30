@@ -17,6 +17,7 @@
 package es.bsc.compss.execution.platform.mirrors;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.execution.InvocationContext;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.binding.piped.ControlPipePair;
@@ -24,7 +25,6 @@ import es.bsc.compss.execution.executor.binding.piped.PipedExecutor;
 import es.bsc.compss.execution.invokers.types.PythonParams;
 import es.bsc.compss.execution.platform.mirrors.piped.PipedMirror;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.wdc.tracing.Tracer;
 import java.io.File;

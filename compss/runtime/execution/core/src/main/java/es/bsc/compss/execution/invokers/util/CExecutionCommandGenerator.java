@@ -17,10 +17,10 @@
 package es.bsc.compss.execution.invokers.util;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
 import es.bsc.compss.execution.invokers.types.CParams;
 import es.bsc.compss.execution.platform.InvocationResources;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.components.Processor.ProcessorType;

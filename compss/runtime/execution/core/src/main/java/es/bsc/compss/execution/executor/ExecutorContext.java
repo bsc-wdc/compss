@@ -17,15 +17,15 @@
 
 package es.bsc.compss.execution.executor;
 
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
+import es.bsc.compss.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.execution.executor.binding.ExternalExecutor;
 import es.bsc.compss.execution.invokers.Invoker;
 import es.bsc.compss.execution.platform.ExecutorRequest;
 import es.bsc.compss.execution.platform.InvocationResources;
 import es.bsc.compss.execution.platform.mirrors.ExecutorContextMirror;
 import es.bsc.compss.execution.platform.mirrors.MirrorFactory;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.concurrent.Semaphore;
 

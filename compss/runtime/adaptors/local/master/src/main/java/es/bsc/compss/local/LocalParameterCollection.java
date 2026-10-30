@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.local;
 
-import es.bsc.compss.types.execution.InvocationParamCollection;
+import es.bsc.compss.execution.InvocationParamCollection;
 import es.bsc.compss.types.parameter.Parameter;
 import java.util.LinkedList;
 import java.util.List;

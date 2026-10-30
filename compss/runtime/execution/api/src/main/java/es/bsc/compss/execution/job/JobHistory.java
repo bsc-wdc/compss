@@ -14,13 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution;
+package es.bsc.compss.execution.job;
 
 /**
- * Marker interface for language-specific parameter bundles. Each programming language declares its own refinement (for
- * example C, Java, Python and R parameters) carrying the configuration that its invokers need. Bundles are retrieved
- * from the invocation context through {@code InvocationContext.getLanguageParams(Lang)}.
+ * Job history.
  */
-public interface LanguageParams {
-
+public enum JobHistory {
+    NEW, // New job
+    RESUBMITTED_FILES, // Resubmit transfers
+    RESUBMITTED, // Resubmit job
+    FAILED, // Completely failed (can create new job for reschedule)
+    CANCELLED
 }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution.exceptions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,11 +44,6 @@ public class NonExistentDataException extends Exception {
         this.dataName = dataName;
     }
 
-    /**
-     * Returns the description of the error, including the name of the missing data.
-     *
-     * @return The error message.
-     */
     @Override
     public String getMessage() {
         return "Data " + dataName + " does not exists.";

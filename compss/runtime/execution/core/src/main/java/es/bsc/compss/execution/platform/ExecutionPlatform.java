@@ -17,6 +17,9 @@
 package es.bsc.compss.execution.platform;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
+import es.bsc.compss.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.InvocationRunner;
@@ -25,16 +28,13 @@ import es.bsc.compss.execution.invokers.Invoker;
 import es.bsc.compss.execution.invokers.InvokerFactory;
 import es.bsc.compss.execution.platform.mirrors.ExecutorContextMirror;
 import es.bsc.compss.execution.platform.mirrors.MirrorFactory;
+import es.bsc.compss.execution.tracing.TaskExecutionEvent;
 import es.bsc.compss.execution.utils.ThreadedProperties;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.ExecutorInfraEvent;
 import es.bsc.compss.types.tracing.ExecutorInfraType;
-import es.bsc.compss.types.tracing.TaskExecutionEvent;
 import es.bsc.wdc.tracing.Tracer;
 import java.util.Comparator;
 import java.util.HashMap;

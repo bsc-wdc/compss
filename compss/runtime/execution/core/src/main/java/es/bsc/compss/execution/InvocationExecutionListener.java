@@ -17,8 +17,6 @@
 package es.bsc.compss.execution;
 
 import es.bsc.compss.exceptions.WorkflowException;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
 
 public interface InvocationExecutionListener {
 

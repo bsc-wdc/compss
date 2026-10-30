@@ -14,13 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution.exceptions;
 
 /**
- * Error occurred when a computing units request cannot be satisfied with the computing units available on the node.
- * Thrown by the {@code ThreadBinder} contract when a job requests more computing units than the binder can assign.
+ * Error occurred when a resource request cannot be satisfied with the resources available on the node. Refined by
+ * {@link UnsufficientAvailableComputingUnitsException} for the specific case of computing units.
  */
-public class UnsufficientAvailableComputingUnitsException extends UnsufficientAvailableResourcesException {
+public class UnsufficientAvailableResourcesException extends Exception {
 
     /**
      * Exception Version UID are 2L in all Runtime.
@@ -29,30 +29,30 @@ public class UnsufficientAvailableComputingUnitsException extends UnsufficientAv
 
 
     /**
-     * Creates a new UnsufficientAvailableComputingUnitsException with a message.
+     * Creates a new UnsufficientAvailableResourcesException with a message.
      *
      * @param message Description of the error.
      */
-    public UnsufficientAvailableComputingUnitsException(String message) {
+    public UnsufficientAvailableResourcesException(String message) {
         super(message);
     }
 
     /**
-     * Creates a new UnsufficientAvailableComputingUnitsException with a nested exception.
+     * Creates a new UnsufficientAvailableResourcesException with a nested exception.
      *
      * @param e Nested exception.
      */
-    public UnsufficientAvailableComputingUnitsException(Exception e) {
+    public UnsufficientAvailableResourcesException(Exception e) {
         super(e);
     }
 
     /**
-     * Creates a new UnsufficientAvailableComputingUnitsException with a message and a nested exception.
+     * Creates a new UnsufficientAvailableResourcesException with a message and a nested exception.
      *
      * @param msg Description of the error.
      * @param e Nested exception.
      */
-    public UnsufficientAvailableComputingUnitsException(String msg, Exception e) {
+    public UnsufficientAvailableResourcesException(String msg, Exception e) {
         super(msg, e);
     }
 

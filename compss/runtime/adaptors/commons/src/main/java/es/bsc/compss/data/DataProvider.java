@@ -17,7 +17,7 @@
 
 package es.bsc.compss.data;
 
-import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.execution.InvocationParam;
 
 public interface DataProvider {
 

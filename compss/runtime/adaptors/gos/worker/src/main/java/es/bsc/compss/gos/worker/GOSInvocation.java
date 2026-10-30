@@ -16,17 +16,17 @@
  */
 package es.bsc.compss.gos.worker;
 
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.InvocationParamURI;
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;

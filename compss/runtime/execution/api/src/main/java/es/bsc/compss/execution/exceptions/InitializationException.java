@@ -14,13 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution.exceptions;
 
 /**
- * Error occurred when a resource request cannot be satisfied with the resources available on the node. Refined by
- * {@link UnsufficientAvailableComputingUnitsException} for the specific case of computing units.
+ * Error occurred during the initialization of an execution component. Thrown when a component of the execution engine
+ * cannot be initialized with the provided configuration.
  */
-public class UnsufficientAvailableResourcesException extends Exception {
+public class InitializationException extends Exception {
 
     /**
      * Exception Version UID are 2L in all Runtime.
@@ -29,30 +29,30 @@ public class UnsufficientAvailableResourcesException extends Exception {
 
 
     /**
-     * Creates a new UnsufficientAvailableResourcesException with a message.
+     * Creates a new InitializationException with a message.
      *
      * @param message Description of the error.
      */
-    public UnsufficientAvailableResourcesException(String message) {
+    public InitializationException(String message) {
         super(message);
     }
 
     /**
-     * Creates a new UnsufficientAvailableResourcesException with a nested exception.
+     * Creates a new InitializationException with a nested exception.
      *
      * @param e Nested exception.
      */
-    public UnsufficientAvailableResourcesException(Exception e) {
+    public InitializationException(Exception e) {
         super(e);
     }
 
     /**
-     * Creates a new UnsufficientAvailableResourcesException with a message and a nested exception.
+     * Creates a new InitializationException with a message and a nested exception.
      *
      * @param msg Description of the error.
      * @param e Nested exception.
      */
-    public UnsufficientAvailableResourcesException(String msg, Exception e) {
+    public InitializationException(String msg, Exception e) {
         super(msg, e);
     }
 

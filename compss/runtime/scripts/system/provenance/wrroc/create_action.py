@@ -21,7 +21,6 @@ import subprocess
 import socket
 from typing import Any
 
-import yaml
 import statistics as st
 from hashlib import sha256
 
@@ -50,7 +49,7 @@ from rocrate.model.entity import Entity
 
 from provenance.utils.url_fixes import fix_dir_url
 from provenance.utils.redaction import redact_text, redact_variable
-from provenance.processing.entities import add_person_definition
+from provenance.processing.entities import add_person_definition, write_generated_yaml
 
 
 unit_dict = {
@@ -518,6 +517,7 @@ def wrroc_create_action(
 
     # Register user submitting the workflow
     agent_added = False
+    agent_updated = False
     if "Agent" in yaml_content:
         if isinstance(yaml_content["Agent"], list):
             print(
@@ -527,7 +527,7 @@ def wrroc_create_action(
             agent_entity = yaml_content["Agent"][0]
         else:
             agent_entity = yaml_content["Agent"]
-        added_person, agent_entity = add_person_definition(
+        added_person, agent_entity, agent_updated = add_person_definition(
             compss_crate, "Agent", agent_entity, info_yaml
         )
         if added_person:
@@ -550,7 +550,7 @@ def wrroc_create_action(
         else:
             agent_entity = yaml_content["Submitter"]
 
-        added_person, agent_entity = add_person_definition(
+        added_person, agent_entity, _ = add_person_definition(
             compss_crate, "Agent", agent_entity, info_yaml
         )
         if added_person:
@@ -582,10 +582,9 @@ def wrroc_create_action(
                 compss_crate.publisher = {"@id": agent_entity["orcid"]}
             #  else the main author info stays
 
-    if "Agent" in yaml_content and "Updated" in agent_entity:
+    if agent_updated:
         # Write updated YAML to disk
-        with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
-            yaml.dump(yaml_content, f_y, default_flow_style=False)
+        write_generated_yaml(info_yaml, yaml_content)
 
     # instrument_list = []
     # instrument_list.append({"@id": resolved_main_entity})

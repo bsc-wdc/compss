@@ -38,7 +38,7 @@ from provenance.file_adding.datasets import (
 )
 from provenance.file_adding.source_code import add_application_source_files
 from provenance.file_adding.datasets import add_master_out_and_err, add_trace_files, add_all_log_files, add_stats_and_plots
-from provenance.processing.entities import root_entity, get_main_entities, is_python_application
+from provenance.processing.entities import root_entity, get_main_entities, is_python_application, write_generated_yaml
 from provenance.processing.master_log import process_master_log
 from provenance.processing.worker_logs import update_tasks_from_worker_logs, get_missing_file_details
 from provenance.utils.common_paths import get_common_paths, has_files
@@ -102,16 +102,36 @@ def main():
                 "COMPSs Workflow Information": {"name": "COMPSs experiment " + run_uuid}
             }
 
+    # Check the mandatory terms, so an incomplete YAML still generates a crate. Nothing is added to the YAML content,
+    # so the GENERATED_ YAML only gets what the user wrote plus the details found online
+    if yaml_content is None:
+        print(f"PROVENANCE | WARNING: YAML file {INFO_YAML} is empty")
+        yaml_content = {}
+    elif not isinstance(yaml_content, dict):
+        print(f"PROVENANCE | WARNING: YAML file {INFO_YAML} has a wrong format. Its content is ignored")
+        yaml_content = {}
+    compss_wf_info = yaml_content.get("COMPSs Workflow Information")
+    if not isinstance(compss_wf_info, dict):
+        print(
+            f"PROVENANCE | WARNING: section 'COMPSs Workflow Information' missing or empty in {INFO_YAML}"
+        )
+        compss_wf_info = {}
+    experiment_name = compss_wf_info.get("name")
+    if not experiment_name:
+        # 'name' is mandatory in WorkflowHub. Generated in each run, never stored in the GENERATED_ YAML
+        print(
+            f"PROVENANCE | WARNING: term 'name' missing in 'COMPSs Workflow Information' in {INFO_YAML}. "
+            "Your run will be recorded with a generated experiment name"
+        )
+        experiment_name = "COMPSs experiment " + run_uuid
+
     # Generate Root entity section in the RO-Crate
     # Can update author details from online search
-    yaml_content, author_list = root_entity(compss_crate, yaml_content, INFO_YAML)
+    yaml_content, author_list = root_entity(compss_crate, yaml_content, INFO_YAML, experiment_name)
     if "Updated" in yaml_content:
         # Write updated YAML to disk
-        with open("GENERATED_" + INFO_YAML, "w", encoding="utf-8") as f_y:
-            del yaml_content["Updated"]
-            yaml.dump(yaml_content, f_y, default_flow_style=False)
-
-    compss_wf_info = yaml_content["COMPSs Workflow Information"]
+        del yaml_content["Updated"]
+        write_generated_yaml(INFO_YAML, yaml_content)
 
     # Get mainEntity from COMPSs runtime log dataprovenance.log
     compss_ver, main_entity, compss_wf_info = get_main_entities(

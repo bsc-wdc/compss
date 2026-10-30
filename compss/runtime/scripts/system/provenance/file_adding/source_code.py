@@ -327,10 +327,9 @@ def add_file_to_crate(
                 )
             )
 
-            with open(info_yaml) as file, mmap(
-                file.fileno(), 0, access=ACCESS_READ
-            ) as file:
-                file_properties["sha256"] = sha256(file).hexdigest()
+            # Small file, read at once (mmap fails with an empty YAML)
+            with open(info_yaml, "rb") as file:
+                file_properties["sha256"] = sha256(file.read()).hexdigest()
 
             compss_crate.add_file(yaml_path, properties=file_properties)
         else:

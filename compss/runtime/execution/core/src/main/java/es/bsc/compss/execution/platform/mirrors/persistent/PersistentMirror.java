@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.execution.platform.mirrors.persistent;
 
+import es.bsc.compss.execution.InvocationContext;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.binding.persistent.PersistentCBinding;
@@ -23,7 +24,6 @@ import es.bsc.compss.execution.executor.binding.persistent.PersistentExecutor;
 import es.bsc.compss.execution.platform.mirrors.ExecutorContextMirror;
 import es.bsc.compss.execution.platform.mirrors.MirrorFactory;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.InvocationContext;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;

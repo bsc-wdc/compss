@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.execution.InvocationParam;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.parameter.StdIOStream;
-import es.bsc.compss.types.execution.InvocationParam;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.data;
 
-import es.bsc.compss.types.execution.InvocationParamURI;
+import es.bsc.compss.execution.InvocationParamURI;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;

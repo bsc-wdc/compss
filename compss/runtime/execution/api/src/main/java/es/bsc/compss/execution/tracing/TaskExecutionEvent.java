@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.tracing;
+package es.bsc.compss.execution.tracing;
 
 import es.bsc.wdc.tracing.Event;
 import es.bsc.wdc.tracing.EventType;
@@ -56,31 +56,16 @@ public enum TaskExecutionEvent implements Event {
         this.signature = signature;
     }
 
-    /**
-     * Returns the identifier of the event.
-     *
-     * @return The event identifier.
-     */
     @Override
     public int getId() {
         return this.id;
     }
 
-    /**
-     * Returns the signature of the event.
-     *
-     * @return The event signature.
-     */
     @Override
     public String getSignature() {
         return this.signature;
     }
 
-    /**
-     * Returns the type of the event.
-     *
-     * @return The task execution event type.
-     */
     @Override
     public EventType getType() {
         return type;

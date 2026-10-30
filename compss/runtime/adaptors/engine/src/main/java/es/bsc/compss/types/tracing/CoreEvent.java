@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.tracing;
 
+import es.bsc.compss.execution.tracing.FunctionExecutionEvent;
+
 public class CoreEvent extends FunctionExecutionEvent {
 
     private final int id;

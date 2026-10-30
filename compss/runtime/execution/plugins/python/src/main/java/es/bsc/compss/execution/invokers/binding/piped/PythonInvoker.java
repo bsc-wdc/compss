@@ -17,15 +17,15 @@
 
 package es.bsc.compss.execution.invokers.binding.piped;
 
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.exceptions.JobExecutionException;
 import es.bsc.compss.execution.executor.ExecutionSandbox;
 import es.bsc.compss.execution.executor.binding.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.execution.executor.binding.piped.PipedExecutor;
 import es.bsc.compss.execution.executor.binding.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.execution.platform.InvocationResources;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import java.util.List;
 
 public class PythonInvoker extends PipedInvoker {

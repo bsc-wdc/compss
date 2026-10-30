@@ -14,12 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution.exceptions;
 
 /**
- * Error occurred when handling a resource map structure is invalid or cannot be processed.
+ * Error occurred during the execution of a job (task execution). Thrown by the execution engine and the invokers when a
+ * task cannot be prepared, executed or post-processed.
  */
-public class InvalidMapException extends Exception {
+public class JobExecutionException extends Exception {
 
     /**
      * Exception Version UID are 2L in all Runtime.
@@ -28,31 +29,30 @@ public class InvalidMapException extends Exception {
 
 
     /**
-     * Creates a new InvalidMapException with a message.
+     * Creates a new JobExecutionException with a message.
      *
      * @param message Description of the error.
      */
-    public InvalidMapException(String message) {
+    public JobExecutionException(String message) {
         super(message);
     }
 
     /**
-     * Creates a new InvalidMapException with a nested exception.
+     * Creates a new JobExecutionException with a nested exception.
      *
      * @param e Nested exception.
      */
-    public InvalidMapException(Exception e) {
+    public JobExecutionException(Throwable e) {
         super(e);
     }
 
     /**
-     * Creates a new InvalidMapException with a message and a nested exception.
+     * Creates a new JobExecutionException with a message and a nested exception.
      *
-     * @param msg Description of the error.
+     * @param message Description of the error.
      * @param e Nested exception.
      */
-    public InvalidMapException(String msg, Exception e) {
-        super(msg, e);
+    public JobExecutionException(String message, Throwable e) {
+        super(message, e);
     }
-
 }

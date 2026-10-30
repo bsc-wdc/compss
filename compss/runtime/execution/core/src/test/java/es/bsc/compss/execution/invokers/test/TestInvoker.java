@@ -21,6 +21,10 @@ import static org.junit.Assert.fail;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.exceptions.InvalidMapException;
+import es.bsc.compss.execution.exceptions.JobExecutionException;
 import es.bsc.compss.execution.executor.ExecutionSandbox;
 import es.bsc.compss.execution.invokers.Invoker;
 import es.bsc.compss.execution.invokers.test.objects.StorageTestObject;
@@ -38,10 +42,6 @@ import es.bsc.compss.execution.invokers.test.utils.types.InvocationParameterAsse
 import es.bsc.compss.execution.invokers.test.utils.types.Role;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.parameter.StdIOStream;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;

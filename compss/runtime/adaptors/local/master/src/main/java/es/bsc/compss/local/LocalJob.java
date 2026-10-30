@@ -17,15 +17,15 @@
 package es.bsc.compss.local;
 
 import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobEndStatus;
-import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectiveParameter;

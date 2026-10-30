@@ -18,7 +18,7 @@ package es.bsc.compss.execution.platform.binders;
 
 import static org.junit.Assert.assertEquals;
 
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
+import es.bsc.compss.execution.exceptions.InvalidMapException;
 import org.junit.Test;
 
 public class MapTest {

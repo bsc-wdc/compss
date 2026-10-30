@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.execution.platform;
 
+import es.bsc.compss.execution.ThreadBinder;
+import es.bsc.compss.execution.exceptions.InvalidMapException;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.binding.ExternalExecutor;
 import es.bsc.compss.execution.invokers.test.utils.FakeInvocationContext;
 import es.bsc.compss.execution.platform.mirrors.ExecutorContextMirror;
 import es.bsc.compss.execution.platform.mirrors.MirrorFactory;
-import es.bsc.compss.types.execution.ThreadBinder;
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;

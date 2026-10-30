@@ -15,6 +15,11 @@ implementation: the execution engine (`core`), the language plugins
 (`plugins`) and the test utilities (`test-commons`) implement or mock these
 contracts.
 
+All the packages of this module live under the `es.bsc.compss.execution`
+root, which it shares with the engine module `core`: the api-owned contracts
+described here and core's engine classes are split across their respective
+jars under the same package root.
+
 ## Responsibilities
 
 - Describe a task execution request (`Invocation`) decoupled from any specific
@@ -32,7 +37,7 @@ contracts.
 
 ## Functionalities
 
-### Package `es.bsc.compss.types.execution`
+### Package `es.bsc.compss.execution`
 
 Core contracts of an invocation:
 
@@ -63,7 +68,7 @@ Core contracts of an invocation:
 - `ThreadBinder`: contract to bind and release computing units for a job,
   with the binder policy constants `disabled`, `automatic` and `dlb`.
 
-### Package `es.bsc.compss.types.execution.exceptions`
+### Package `es.bsc.compss.execution.exceptions`
 
 Exception hierarchy for job execution and data management:
 
@@ -81,12 +86,12 @@ Exception hierarchy for job execution and data management:
   parameter value cannot be persisted; the latter aggregates the individual
   per-value failures.
 
-### Package `es.bsc.compss.types.job`
+### Package `es.bsc.compss.execution.job`
 
 - `JobHistory`: state of a job in its lifecycle: `NEW`, `RESUBMITTED_FILES`,
   `RESUBMITTED`, `FAILED` and `CANCELLED`.
 
-### Package `es.bsc.compss.types.tracing`
+### Package `es.bsc.compss.execution.tracing`
 
 - `TaskExecutionEvent`: tracing events emitted while a task runs on the
   worker (task running, task sandbox creation/removal, original-name

@@ -17,12 +17,12 @@
 package es.bsc.compss.execution.invokers;
 
 import es.bsc.compss.data.StorageHandler;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.exceptions.JobExecutionException;
 import es.bsc.compss.execution.executor.ExecutionSandbox;
 import es.bsc.compss.execution.platform.InvocationResources;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import storage.CallbackEvent;

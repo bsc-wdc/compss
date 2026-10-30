@@ -17,14 +17,14 @@
 package es.bsc.compss.execution.invokers;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
+import es.bsc.compss.execution.exceptions.JobExecutionException;
 import es.bsc.compss.execution.executor.ExecutionSandbox;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.platform.InvocationResources;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodType;
 import java.util.ArrayList;
 import java.util.List;

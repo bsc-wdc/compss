@@ -17,6 +17,7 @@
 package es.bsc.compss.nio.master;
 
 import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
@@ -31,7 +32,6 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
-import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectiveParameter;

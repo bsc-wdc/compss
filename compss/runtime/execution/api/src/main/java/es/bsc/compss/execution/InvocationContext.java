@@ -14,14 +14,14 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution;
+package es.bsc.compss.execution;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
-import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
-import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
-import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
+import es.bsc.compss.execution.exceptions.NonExistentDataException;
+import es.bsc.compss.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 import java.io.PrintStream;

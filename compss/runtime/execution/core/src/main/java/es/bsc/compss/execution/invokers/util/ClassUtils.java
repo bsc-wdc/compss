@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.execution.invokers.util;
 
-import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.execution.InvocationParam;
 import java.lang.reflect.Method;
 import java.util.List;
 

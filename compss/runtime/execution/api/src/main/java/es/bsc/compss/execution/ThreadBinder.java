@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution;
+package es.bsc.compss.execution;
 
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 
 /**
  * Contract to bind and release the computing units assigned to a job. Implementations decide the affinity policy: no

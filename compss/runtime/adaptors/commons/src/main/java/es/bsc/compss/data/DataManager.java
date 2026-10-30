@@ -17,9 +17,9 @@
 
 package es.bsc.compss.data;
 
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.exceptions.InitializationException;
-import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.exceptions.InitializationException;
+import es.bsc.compss.execution.exceptions.UnloadableValueException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 import java.util.List;
 

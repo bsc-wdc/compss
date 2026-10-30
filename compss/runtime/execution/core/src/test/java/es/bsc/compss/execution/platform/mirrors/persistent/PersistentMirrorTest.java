@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.execution.platform.mirrors.persistent;
 
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationContext;
 import es.bsc.compss.execution.executor.Executor;
 import es.bsc.compss.execution.executor.ExecutorContext;
 import es.bsc.compss.execution.executor.InvocationRunner;
@@ -27,8 +29,6 @@ import es.bsc.compss.execution.platform.ExecutorRequest;
 import es.bsc.compss.execution.platform.InvocationResources;
 import es.bsc.compss.execution.platform.mirrors.ExecutorContextMirror;
 import es.bsc.compss.execution.platform.mirrors.MirrorFactory;
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;

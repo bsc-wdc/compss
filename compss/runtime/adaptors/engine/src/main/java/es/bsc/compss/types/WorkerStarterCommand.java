@@ -18,8 +18,8 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
+import es.bsc.compss.execution.ThreadBinder;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.conn.types.StarterCommand;
 import es.bsc.wdc.tracing.Tracer;
 import org.apache.logging.log4j.LogManager;

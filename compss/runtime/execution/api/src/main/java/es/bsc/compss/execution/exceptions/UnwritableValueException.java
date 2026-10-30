@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution.exceptions;
 
 /**
  * Error occurred when a parameter value cannot be persisted. Refined by {@link UnwritableValuesException} to aggregate

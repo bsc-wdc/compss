@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.types.execution.InvocationParamCollection;
+import es.bsc.compss.execution.InvocationParamCollection;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;

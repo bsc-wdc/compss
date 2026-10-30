@@ -19,6 +19,7 @@ package es.bsc.compss.types.job;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.FailurePolicy;

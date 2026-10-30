@@ -18,13 +18,13 @@ package es.bsc.compss.gos.master.monitoring.jobmonitor;
 
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.gos.master.GOSJob;
 import es.bsc.compss.gos.master.exceptions.GOSWarningException;
 import es.bsc.compss.gos.master.sshutils.SSHChannel;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
-import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.util.ErrorManager;
 import java.io.BufferedReader;
 import java.io.File;

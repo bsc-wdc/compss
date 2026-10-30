@@ -19,8 +19,8 @@ package es.bsc.compss.execution.invokers.test.utils.types;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.execution.Invocation;
+import es.bsc.compss.execution.InvocationParam;
 
 public class InvocationParameterAssertion {
 

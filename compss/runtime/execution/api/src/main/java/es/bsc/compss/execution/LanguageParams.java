@@ -14,26 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution;
 
 /**
- * Error occurred when a parameter value cannot be loaded into memory.
+ * Marker interface for language-specific parameter bundles. Each programming language declares its own refinement (for
+ * example C, Java, Python and R parameters) carrying the configuration that its invokers need. Bundles are retrieved
+ * from the invocation context through {@code InvocationContext.getLanguageParams(Lang)}.
  */
-public class UnloadableValueException extends Exception {
-
-    /**
-     * Exception Version UID are 2L in all Runtime.
-     */
-    private static final long serialVersionUID = 2L;
-
-
-    /**
-     * Creates a new UnloadableValueException with a nested exception {@code e}.
-     * 
-     * @param e Nested exception.
-     */
-    public UnloadableValueException(Exception e) {
-        super("Cannot load value due to nested exception", e);
-    }
+public interface LanguageParams {
 
 }

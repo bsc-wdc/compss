@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution.exceptions;
+package es.bsc.compss.execution.exceptions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -33,16 +33,17 @@ public class NonExistentElementException extends NonExistentDataException {
     private List<NonExistentDataException> subExceptions = new LinkedList<>();
 
 
+    /**
+     * Constructs a new exception for a compound element whose subelements are missing.
+     *
+     * @param dataName Name of the non-existing compound data element.
+     * @param subExceptions Exceptions describing each missing subelement.
+     */
     public NonExistentElementException(String dataName, List<NonExistentDataException> subExceptions) {
         super(dataName);
         this.subExceptions = subExceptions;
     }
 
-    /**
-     * Returns the list of names of all the data values missing in the subelements of the element.
-     *
-     * @return Names of the missing data values.
-     */
     @Override
     public List<String> getMissingData() {
         List<String> missingData = new LinkedList<>();
@@ -52,11 +53,6 @@ public class NonExistentElementException extends NonExistentDataException {
         return missingData;
     }
 
-    /**
-     * Returns the description of the error, including the names of the missing subelements.
-     *
-     * @return The error message.
-     */
     @Override
     public String getMessage() {
         StringBuilder sb = new StringBuilder("Data " + dataName + "'s subelements [");

@@ -17,11 +17,11 @@
 
 package es.bsc.compss.agent.comm.messages.types;
 
+import es.bsc.compss.execution.job.JobHistory;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.semantics.task.FailurePolicy;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.job.JobHistory;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;

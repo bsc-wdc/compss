@@ -17,13 +17,13 @@
 package es.bsc.compss.local;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.execution.InvocationParam;
+import es.bsc.compss.execution.InvocationParamURI;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.semantics.task.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
-import es.bsc.compss.types.execution.InvocationParam;
-import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;

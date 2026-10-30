@@ -79,21 +79,21 @@ echo " - Commit changes: ${commit_changes}"
 ########################################################
 
 echo "STEP 1: CHECK HEADERS"
-${SCRIPT_DIR}/header_setup/replace_all.sh
+#${SCRIPT_DIR}/header_setup/replace_all.sh
 
 ########################################################
 # Step 2: Update version
 ########################################################
 
 echo "STEP 2: UPDATE VERSION"
-${SCRIPT_DIR}/release/update_version.sh "${base_version}" "${new_version}" "${commit_changes}"
+#${SCRIPT_DIR}/release/update_version.sh "${base_version}" "${new_version}" "${commit_changes}"
 
 ########################################################
 # Step 3: Artifactory repository update
 ########################################################
 
 echo "STEP 3: Artifactory repository update"
-${SCRIPT_DIR}/release/mvn_deploy_tag.sh "${new_version}" "${commit_changes}"
+#${SCRIPT_DIR}/release/mvn_deploy_tag.sh "${new_version}" "${commit_changes}"
 
 ########################################################
 # Step 4: Install in Supercomputers

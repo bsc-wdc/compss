@@ -14,6 +14,8 @@ variables:
     - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
 
 .merge_request:
+  tags:
+    - fast-docker
   interruptible: true
   rules:
     - if: $CI_MERGE_REQUEST_DRAFT == "true"
@@ -204,15 +206,13 @@ clean:
 deploy:
   stage: deploy
   interruptible: false
-  tags:
-    - fast-docker
   timeout: 8h
   before_script:
     - docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
     - docker run --privileged --rm tonistiigi/binfmt --install all
   script:
     - exec &> >(tee job.log)
-    - ARCHS=amd,arm,riscv TAGS="${CI_COMMIT_TAG}",latest docker bake --no-cache --push release
+    - echo ARCHS=amd,arm,riscv TAGS="${CI_COMMIT_TAG}",latest docker bake --no-cache --push release
   artifacts:
     when: always
     expire_in: 1 week
@@ -249,21 +249,26 @@ deploy_supercomputer:
       when: manual
 
 create_release:
-  stage: build
+  stage: deploy
   interruptible: false
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
     - exec &> >(tee job.log)
     - ${CI_PROJECT_DIR}/utils/scripts/create_release.sh "${RELEASE_VERSION}" "${COMMIT_AND_PUSH}"
+    - exit 1
   artifacts:
     when: always
     expire_in: 1 hour
     paths:
       - job.log
+  release:
+    tag_name: '$CI_COMMIT_TAG'
+    name: TAG
+    description: '$CI_COMMIT_TAG'
   rules:
-    - if: $CI_PIPELINE_SOURCE == "web"
-      when: manual
+    - if: $CI_COMMIT_TAG
+      when: on_success
 
 again:
   needs: []

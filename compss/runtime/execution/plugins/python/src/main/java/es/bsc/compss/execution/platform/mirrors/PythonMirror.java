@@ -1,0 +1,256 @@
+/*
+ *  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package es.bsc.compss.execution.platform.mirrors;
+
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.execution.executor.Executor;
+import es.bsc.compss.execution.executor.ExecutorContext;
+import es.bsc.compss.execution.executor.binding.piped.ControlPipePair;
+import es.bsc.compss.execution.executor.binding.piped.PipedExecutor;
+import es.bsc.compss.execution.invokers.types.PythonParams;
+import es.bsc.compss.execution.platform.mirrors.piped.PipedMirror;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.wdc.tracing.Tracer;
+import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class PythonMirror extends PipedMirror {
+
+    // Worker paths
+    private static final String BINDINGS_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
+    public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
+    private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
+        + File.separator + "piper" + File.separator + "piper_worker.py";
+    private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
+        + File.separator + "piper" + File.separator + "mpi_piper_worker.py";
+
+    // Environment variable names
+    private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
+    private static final String ENV_PYTHONPATH = "PYTHONPATH";
+
+    // Logger
+    private static final Logger logger = LogManager.getLogger(Loggers.WORKER_INVOKER);
+
+    // Factory creating this mirror on first lazy registration
+    private static final MirrorFactory<PythonMirror> MIRROR_FACTORY = new MirrorFactory<PythonMirror>() {
+
+        @Override
+        public PythonMirror create(ExecutorContext platform) {
+            return new PythonMirror(platform);
+        }
+    };
+
+    // Attributes
+    private final PythonParams pyParams;
+    private final String pyCOMPSsHome;
+
+
+    /**
+     * Creates a new PythonMirror instance with the given context.
+     * 
+     * @param platform Mirrored platform
+     */
+    public PythonMirror(ExecutorContext platform) {
+        super(platform);
+        InvocationContext context = platform.getContext();
+        this.pyParams = (PythonParams) context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+        String installDir = context.getInstallDir();
+        this.pyCOMPSsHome = installDir + PYCOMPSS_RELATIVE_PATH + File.separator + pyParams.getPythonVersion();
+        init(context);
+    }
+
+    @Override
+    public String getMirrorName() {
+        return "python";
+    }
+
+    @Override
+    public String getPipeBuilderContext() {
+        StringBuilder cmd = new StringBuilder();
+
+        // Binding
+        cmd.append(COMPSsConstants.Lang.PYTHON).append(TOKEN_SEP);
+
+        // Specific parameters
+        cmd.append(this.pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.usePythonMpiWorker()).append(TOKEN_SEP);
+        int initialNumExecutors = this.mirroredContext.getSize();
+        cmd.append(initialNumExecutors + 1).append(TOKEN_SEP); // Number of MPI threads if using MPI worker.
+        cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonExtraeFile()).append(TOKEN_SEP);
+
+        return cmd.toString();
+    }
+
+    @Override
+    public String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe) {
+        // Specific launch command is of the form: binding bindingExecutor bindingArgs
+        // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads <cmdPipes>
+        // <resultPipes> controlPipeCMD controlPipeRESULT
+
+        StringBuilder cmd = new StringBuilder();
+        int initialNumExecutors = this.mirroredContext.getSize();
+
+        // Add specific MPI worker parameters (uses LATER_ variables defined in bindings_piper.sh)
+        if (this.pyParams.usePythonMpiWorker()) {
+            // Rank 0 acts as the Piper Worker. Other processes act as piped executors
+            cmd.append("mpirun").append(TOKEN_SEP);
+            cmd.append("-np").append(TOKEN_SEP).append(initialNumExecutors + 1).append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("LD_PRELOAD=$LATER_MPI_LD_PRELOAD").append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("EXTRAE_CONFIG_FILE=$LATER_MPI_EXTRAE_CONFIG_FILE")
+                .append(TOKEN_SEP);
+            cmd.append("-x").append(TOKEN_SEP).append("PYTHONPATH=$LATER_MPI_PYTHONPATH:$PYTHONPATH").append(TOKEN_SEP);
+        }
+
+        // Add Python interpreter call
+        cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
+        if (!logger.isDebugEnabled()) {
+            // If not logging, then use the optimized flag
+            cmd.append("-O").append(TOKEN_SEP);
+        }
+
+        String profilePath = System.getenv("COMPSS_WORKER_PROFILE_PATH");
+        if (profilePath != null) {
+            // Add profiling and its output path
+            cmd.append("-m").append(TOKEN_SEP).append("mprof").append(TOKEN_SEP).append("run").append(TOKEN_SEP);
+            cmd.append("--multiprocess").append(TOKEN_SEP).append("--include-children").append(TOKEN_SEP);
+            String profileFile = profilePath + "/";
+            try {
+                profileFile = profileFile + InetAddress.getLocalHost().getHostName() + ".dat";
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            cmd.append("--output").append(TOKEN_SEP).append(profileFile).append(TOKEN_SEP);
+        }
+
+        // Add PyCOMPSs worker main class
+        if (this.pyParams.usePythonMpiWorker()) {
+            cmd.append(this.pyCOMPSsHome).append(MPI_WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+        } else {
+            cmd.append(this.pyCOMPSsHome).append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
+        }
+
+        // Add Python worker arguments
+        cmd.append(context.getWorkingDir()).append(TOKEN_SEP);
+        cmd.append(context.getLogDir()).append(TOKEN_SEP);
+        cmd.append(context.getAnalysisDir()).append(TOKEN_SEP);
+        cmd.append(context.getRuntimeAPI() != null).append(TOKEN_SEP);
+        cmd.append(logger.isDebugEnabled()).append(TOKEN_SEP);
+        cmd.append(Tracer.isExtraeActivated()).append(TOKEN_SEP);
+        cmd.append(context.getStorageConf()).append(TOKEN_SEP);
+        cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
+        cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
+        cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonWorkerCache()).append(TOKEN_SEP);
+        cmd.append(this.pyParams.getPythonCacheProfiler()).append(TOKEN_SEP);
+
+        // Ear integration
+        cmd.append(context.getEar()).append(TOKEN_SEP);
+
+        // Provenance integration
+        cmd.append(context.getDataProvenance()).append(TOKEN_SEP);
+
+        cmd.append(initialNumExecutors).append(TOKEN_SEP);
+        for (int i = 0; i < initialNumExecutors; ++i) {
+            cmd.append(i).append(TOKEN_SEP);
+        }
+        String executorPipes = this.basePipePath + "executor";
+        for (int i = 0; i < initialNumExecutors; ++i) {
+            cmd.append(executorPipes).append(i).append(".outbound").append(TOKEN_SEP);
+        }
+        for (int i = 0; i < initialNumExecutors; ++i) {
+            cmd.append(executorPipes).append(i).append(".inbound").append(TOKEN_SEP);
+        }
+        cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
+        cmd.append(pipe.getInboundPipe());
+
+        return cmd.toString();
+    }
+
+    @Override
+    public Map<String, String> getEnvironment(InvocationContext context) {
+        // PyCOMPSs HOME
+        Map<String, String> env = new HashMap<>();
+        env.put("PYCOMPSS_HOME", this.pyCOMPSsHome);
+
+        // PYTHONPATH
+        String pythonPath = System.getenv(ENV_PYTHONPATH);
+        if (pythonPath == null) {
+            pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir();
+        } else {
+            pythonPath =
+                this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir() + pythonPath;
+        }
+        env.put(ENV_PYTHONPATH, pythonPath);
+
+        // LD_LIBRARY_PATH
+        String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
+        String bindingsHome = context.getInstallDir() + BINDINGS_RELATIVE_PATH;
+        if (ldLibraryPath != null) {
+            ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
+        } else {
+            ldLibraryPath = bindingsHome;
+        }
+        env.put(ENV_LD_LIBRARY_PATH, ldLibraryPath);
+
+        return env;
+    }
+
+    @Override
+    protected String getPBWorkingDir(InvocationContext context) {
+        String workingDir = super.getPBWorkingDir(context);
+        if (Tracer.isActivated()) {
+            workingDir += "python";
+            File wdpath = new File(workingDir);
+            if (!wdpath.exists()) {
+                if (!wdpath.mkdirs()) {
+                    ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
+                }
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Working directory for python trace files: {} already exists!.. Skipping!",
+                        workingDir);
+                }
+            }
+        }
+        return workingDir;
+    }
+
+    /**
+     * Returns the PipedExecutor associated to an executor.
+     * 
+     * @param e executor whose PipedExecutor we want to obtain
+     * @return PipedExecutor corresponding to executor e
+     */
+    public static PipedExecutor getPipedExecutor(Executor e) {
+        return e.getPlatform().getMirroredExecutor(e, PythonMirror.class, MIRROR_FACTORY);
+    }
+
+    public static PythonMirror createMirror(ExecutorContext platform) {
+        return new PythonMirror(platform);
+    }
+}

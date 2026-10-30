@@ -25,7 +25,7 @@ an invoker and its context.
 
 ## Functionalities
 
-### Package `es.bsc.compss.invokers.test.utils` — fakes and verifier
+### Package `es.bsc.compss.execution.invokers.test.utils` — fakes and verifier
 
 - `FakeInvocation`: a configurable `Invocation` implementation for tests
   (job/task identifiers, task type, method implementation, requirements,
@@ -46,7 +46,7 @@ an invoker and its context.
   (created objects, persistent objects, updated or persisted values).
   `testCompleted()` fails if any expected event is still pending.
 
-### Package `es.bsc.compss.invokers.test.utils.types` — verifier vocabulary
+### Package `es.bsc.compss.execution.invokers.test.utils.types` — verifier vocabulary
 
 - `Event`: an expected interaction, with a `Type`
   (`GET_OBJECT`, `GET_PERSISTENT_OBJECT`, `STORE_OBJECT`,
@@ -62,13 +62,13 @@ an invoker and its context.
   value, persist an object), bound to a parameter obtained through its
   `Role`.
 
-### Package `es.bsc.compss.invokers.test` — listener contract
+### Package `es.bsc.compss.execution.invokers.test` — listener contract
 
 - `InvokerListener`: `runningMethod(Invocation)`, called when the fake
   context would execute the user method (returns the method results), and
   `methodReturn(List<Object>)`, called when the method completes.
 
-### Package `es.bsc.compss.invokers.test.objects` — test data
+### Package `es.bsc.compss.execution.invokers.test.objects` — test data
 
 - `TestObject`: simple comparable object with an integer value and an
   `updateValue` method, used as a plain task parameter value.

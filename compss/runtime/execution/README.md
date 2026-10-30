@@ -60,7 +60,7 @@ concrete language and new languages can be added as separate plugins.
 | Module | Responsibility | Documentation |
 |--------|----------------|---------------|
 | api | Shared contracts and types with no implementation | [api/README.md](api/README.md) |
-| core | Execution engine: executor threads, resource management, invoker framework, external executor protocol | [core/README.md](core/README.md) |
+| core | Execution engine: executor threads, resource management, invoker framework, out-of-process executor protocol | [core/README.md](core/README.md) |
 | plugins | Language invoker plugins discovered via Java SPI | [plugins/README.md](plugins/README.md) |
 | test-commons | Shared test infrastructure: fake contracts and execution flow verifier | [test-commons/README.md](test-commons/README.md) |
 

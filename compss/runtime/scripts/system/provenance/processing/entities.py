@@ -18,6 +18,7 @@ import os
 import typing
 import requests
 import unicodedata
+import yaml
 
 from pathlib import Path
 
@@ -29,9 +30,29 @@ from utils.common_paths import find_subpath_in_cwd
 from utils.common_paths import is_canonical
 
 
+def write_generated_yaml(info_yaml: str, yaml_content: dict) -> None:
+    """
+    Write the YAML content completed with online searches to GENERATED_<file name> in the working directory. The
+    'Updated' marker of each person is kept, so users can see which persons were completed. If the user's YAML is
+    already a GENERATED_ file, the prefix is not added again
+
+    :param info_yaml: Path of the YAML file specified by the user
+    :param yaml_content: Content of the YAML file, updated
+
+    :returns: None
+    """
+    yaml_name = os.path.basename(info_yaml)
+    if not yaml_name.startswith("GENERATED_"):
+        yaml_name = "GENERATED_" + yaml_name
+    content = dict(yaml_content)
+    content.pop("Updated", None)
+    with open(yaml_name, "w", encoding="utf-8") as f_y:
+        yaml.dump(content, f_y, default_flow_style=False, allow_unicode=True)
+
+
 def add_person_definition(
     compss_crate: ROCrate, contact_type: str, yaml_author: dict, info_yaml: str
-) -> tuple[bool, dict]:
+) -> tuple[bool, dict, bool]:
     """
     Check if a specified person has enough defined terms to be added in the RO-Crate.
 
@@ -40,8 +61,11 @@ def add_person_definition(
     :param yaml_author: Content of the YAML file describing the user
     :param info_yaml: Name of the YAML file specified by the user
 
-    :returns: If the person is valid and added. Also returns updated details for the person
+    :returns: If the person is valid and added, the updated details for the person, and if this run has completed
+        them with new details from online searches (they are then marked with 'Updated')
     """
+    # Details as given by the user, to detect if online searches add anything new
+    initial_details = {k: v for k, v in yaml_author.items() if k != "Updated"}
 
     # Expected Person fields
     # orcid - Recommended in RO-Crate
@@ -92,7 +116,7 @@ def add_person_definition(
         print(
             f"PROVENANCE | \tWARNING in your {info_yaml} file. A 'Person' has no 'orcid' defined"
         )
-        return False, yaml_author
+        return False, yaml_author, False
 
     if not "e-mail" in yaml_author and remote_mail:
         yaml_author["e-mail"] = remote_mail
@@ -172,17 +196,19 @@ def add_person_definition(
     if "familyName" in yaml_author:
         person_dict["familyName"] = yaml_author["familyName"]
 
-    if searched_author or remote_org_name:
+    # A marker from a previous run (GENERATED_ YAML) is kept, but only new details mean a new update
+    updated_now = {k: v for k, v in yaml_author.items() if k != "Updated"} != initial_details
+    if updated_now:
         yaml_author["Updated"] = True
 
     if "orcid" in yaml_author:
         compss_crate.add(Person(compss_crate, yaml_author["orcid"], person_dict))
 
-    return True, yaml_author
+    return True, yaml_author, updated_now
 
 
 def root_entity(
-    compss_crate: ROCrate, yaml_content: dict, info_yaml: str
+    compss_crate: ROCrate, yaml_content: dict, info_yaml: str, experiment_name: str
 ) -> typing.Tuple[dict, list]:
     """
     Generate the Root Entity in the RO-Crate generated for the COMPSs application
@@ -190,13 +216,16 @@ def root_entity(
     :param compss_crate: The COMPSs RO-Crate being generated
     :param yaml_content: Content of the YAML file specified by the user
     :param info_yaml: Name of the YAML file specified by the user
+    :param experiment_name: Name of the experiment, from the YAML or generated if missing
 
     :returns: The updated yaml_content, and a list of author @id's
     """
 
     updated_authors = False
     # Get Sections
-    compss_wf_info = yaml_content["COMPSs Workflow Information"]
+    compss_wf_info = yaml_content.get("COMPSs Workflow Information")
+    if not isinstance(compss_wf_info, dict):
+        compss_wf_info = {}
     authors_info = []
     if "Authors" in yaml_content:
         authors_info_yaml = yaml_content["Authors"]  # Now a list of authors
@@ -209,7 +238,7 @@ def root_entity(
     # Root Entity
 
     # SHOULD in RO-Crate 1.1. MUST in WorkflowHub
-    compss_crate.name = compss_wf_info["name"]
+    compss_crate.name = experiment_name
 
     if "description" in compss_wf_info:
         # SHOULD in Workflow Profile and WorkflowHub
@@ -222,22 +251,64 @@ def root_entity(
     author_list = []
     org_list = []
 
+    final_authors = []  # Authors without repetitions, for the GENERATED_ YAML
+    persons_by_orcid = {}
+
+    def merge_repeated_author(first: dict, repeated: dict, readd: bool) -> bool:
+        """
+        Complete the first entry of an author with the fields only defined in a repeated entry, and update the
+        author in the crate
+
+        :param first: First entry of the author in the YAML
+        :param repeated: Repeated entry, with the same ORCID
+        :param readd: Add the first entry to the crate again even if nothing was merged (the repeated entry has
+            already replaced it in the crate)
+
+        :returns: If online searches have added new details to the author
+        """
+        merged = [k for k in repeated if k not in first and k != "Updated"]
+        for key in merged:
+            first[key] = repeated[key]
+        if merged and "Updated" in repeated:
+            # The merged details may come from an online search
+            first["Updated"] = True
+        print(
+            f"PROVENANCE | WARNING: author with ORCID {first['orcid']} is repeated in {info_yaml}. Only added once"
+            + (f", completed with the repeated entry's {', '.join(merged)}" if merged else "")
+        )
+        if not merged and not readd:
+            return False
+        _, first, merged_updated = add_person_definition(compss_crate, "Author", first, info_yaml)
+        if "ror" in first and first["ror"] not in org_list:
+            org_list.append(first["ror"])
+        return merged_updated
+
     for author in authors_info:
-        if "orcid" in author and author["orcid"] in author_list:
-            break
-        added_person, author = add_person_definition(
+        if isinstance(author, dict) and author.get("orcid") in persons_by_orcid:
+            # Repeated ORCID in the YAML, no online search needed
+            if merge_repeated_author(persons_by_orcid[author["orcid"]], author, False):
+                updated_authors = True
+            continue
+        added_person, author, updated_now = add_person_definition(
             compss_crate, "Author", author, info_yaml
         )
-        if "Updated" in author:
+        if updated_now:
             # Updated with online search
             updated_authors = True
         if added_person:
+            if author["orcid"] in persons_by_orcid:
+                # ORCID found with an online search, same as a previous author
+                if merge_repeated_author(persons_by_orcid[author["orcid"]], author, True):
+                    updated_authors = True
+                continue
+            persons_by_orcid[author["orcid"]] = author
             author_list.append(author["orcid"])
             if "ror" in author and author["ror"] not in org_list:
                 org_list.append(author["ror"])
         else:
             # Set the 'name' string as a string for an 'author' directly
             author_list.append(author["name"])
+        final_authors.append(author)
 
     # Generate 'author', 'creator' and 'publisher' terms
     crate_author_list = []
@@ -271,7 +342,7 @@ def root_entity(
         print(f"PROVENANCE | WARNING: No valid 'Authors' specified in {info_yaml}")
 
     if updated_authors:
-        yaml_content["Authors"] = authors_info
+        yaml_content["Authors"] = final_authors
         yaml_content["Updated"] = True
 
     return yaml_content, crate_author_list

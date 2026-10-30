@@ -601,6 +601,13 @@ def add_master_out_and_err(compss_crate, create_action):
         for f_suffix, f_msg in zip(suffix, msg):
             file_properties = {}
             file_properties["name"] = "compss-" + job_id + f_suffix
+            if not os.path.isfile(file_properties["name"]):
+                # E.g. regenerating the crate by hand inside a different job (salloc)
+                print(
+                    f"PROVENANCE | WARNING: SLURM job {f_msg} log {file_properties['name']} not found. "
+                    f"Not added to the crate"
+                )
+                continue
             file_properties["contentSize"] = os.path.getsize(file_properties["name"])
             file_properties["description"] = (
                 "COMPSs console standard " + f_msg + " log file"

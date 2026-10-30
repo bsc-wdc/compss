@@ -30,7 +30,7 @@ Flags of `runcompss` and `enqueue_compss`:
 
 Any of these flags enables provenance (`provenance=true` in the scripts) and also enables `--graph`, because the workflow diagram (`complete_graph.svg`) is added to the crate. The scripts pass `-Dcompss.data_provenance=true` to the JVM (`compss_setup.sh`), and the same value reaches the workers through `WorkerStarterCommand` and the PyCOMPSs binding (`GLOBALS.get_data_provenance()`).
 
-If the YAML file does not exist, the generator writes a template to `ro-crate-info_TEMPLATE.yaml` (content in `utils/yaml_template.py`) and records the run with a generated name. If author or organisation details are completed from online searches (ORCID, ROR), an updated copy is written to `GENERATED_<yaml>`.
+If the YAML file does not exist, the generator writes a template to `ro-crate-info_TEMPLATE.yaml` (content in `utils/yaml_template.py`) and records the run with a generated name. The same generated name is used, with a warning, when the YAML is empty or lacks `COMPSs Workflow Information` or its `name` (generated in each run, never stored in any YAML). If author or organisation details are completed from online searches (ORCID, ROR), an updated copy is written to `GENERATED_<yaml file name>` in the working directory (no second prefix if the YAML is already a `GENERATED_` file): persons completed are marked with `Updated: true`, repeated authors (same ORCID) are merged into their first entry, and it is only rewritten when a run finds new details. The user's YAML is never modified.
 
 ## End-to-end flow
 
@@ -138,7 +138,7 @@ A folder `COMPSs_RO_Crate_<timestamp>/` (or `.zip`) in the working directory, wi
 | `application_sources/` | Files from `sources`: directories keep their folder structure, single files go to the root of this folder. |
 | `complete_graph.svg` | Workflow diagram (if generated). |
 | `<yaml>` | The YAML file used. |
-| `compss-<job_id>.out`, `compss-<job_id>.err` | Standard output and error of the job, only on SLURM clusters. |
+| `compss-<job_id>.out`, `compss-<job_id>.err` | Standard output and error of the job, only on SLURM clusters. Skipped with a warning if not found (e.g. regenerating inside another job). |
 | `dataset/` | Inputs and outputs, only with `data_persistence: True` (otherwise they are referenced with `localPath`). |
 | `profiling/` | Aggregated resource usage plots. |
 | `trace/` | Paraver traces, only with `trace_persistence: True`. |

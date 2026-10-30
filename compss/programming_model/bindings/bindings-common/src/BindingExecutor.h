@@ -16,7 +16,7 @@
  */
 #include <jni.h>
 #include "AbstractExecutor.h"
-/* Header for class es_bsc_compss_executor_external_persistent_PersistentCBinding */
+/* Header for class es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding */
 
 #ifndef _BindingExecutor
 #define _BindingExecutor
@@ -27,28 +27,28 @@ void init_executor(AbstractExecutor *aExecutor);
 extern "C" {
 #endif
 /*
- * Class:     es_bsc_compss_executor_external_persistent_PersistentCBinding
+ * Class:     es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding
  * Method:    executeInBinding
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_es_bsc_compss_executor_external_persistent_PersistentCBinding_executeInBinding
+JNIEXPORT jstring JNICALL Java_es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding_executeInBinding
 (JNIEnv *, jclass, jstring);
 // (JNIEnv *, jclass, jint, jobjectArray);
 
 /*
- * Class:     es_bsc_compss_executor_external_persistent_PersistentCBinding
+ * Class:     es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding
  * Method:    finishThread
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_es_bsc_compss_executor_external_persistent_PersistentCBinding_finishThread
+JNIEXPORT void JNICALL Java_es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding_finishThread
 (JNIEnv *, jclass);
 
 /*
- * Class:     es_bsc_compss_executor_external_persistent_PersistentCBinding
+ * Class:     es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding
  * Method:    initThread
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_es_bsc_compss_executor_external_persistent_PersistentCBinding_initThread
+JNIEXPORT void JNICALL Java_es_bsc_compss_execution_executor_binding_persistent_PersistentCBinding_initThread
 (JNIEnv *, jclass);
 #ifdef __cplusplus
 }

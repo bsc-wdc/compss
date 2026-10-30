@@ -15,7 +15,7 @@ which keeps the engine (`core`) independent of the supported languages.
 ## Responsibilities
 
 - Implement the `InvokerFactory` SPI declared by `core`
-  (`es.bsc.compss.invokers.InvokerFactory`).
+  (`es.bsc.compss.execution.invokers.InvokerFactory`).
 - Provide one `Invoker` implementation per method type and language, on top
   of the base `Invoker<W>` class of `core`.
 - Ship the SPI registration files that make the factories discoverable.
@@ -23,7 +23,7 @@ which keeps the engine (`core`) independent of the supported languages.
 ## Plugin discovery
 
 Each plugin registers its factory class in
-`src/main/resources/META-INF/services/es.bsc.compss.invokers.InvokerFactory`.
+`src/main/resources/META-INF/services/es.bsc.compss.execution.invokers.InvokerFactory`.
 At runtime, `InvokerFactory.Registry` (in `core`) loads every registration
 through `java.util.ServiceLoader` and indexes the factories by the
 `MethodType`s they declare in `getSupportedTypes()`.
@@ -32,8 +32,8 @@ Two SPI rounds drive plugin usage:
 
 - `InvokerFactory.Registry.preLoad(platform, methodType, language)`:
   prepares the infrastructure needed to host executions of a method type in
-  a language (for example, starting the external executor process and its
-  mirror).
+  a language (for example, starting the out-of-process executor process and
+  its mirror).
 - `InvokerFactory.Registry.getInvoker(executor, context, invocation, sandbox,
   resources)`: builds the invoker for a concrete invocation. Factories
   whose language does not match the invocation return `null` and the
@@ -47,9 +47,9 @@ Two SPI rounds drive plugin usage:
 |--------|----------|------------------------|----------|
 | `c` | `compss-execution-c-plugin` | `METHOD`, `MULTI_NODE` (C language) | `CInvoker`, `CPersistentInvoker` |
 | `java` | `compss-execution-java-plugin` | `METHOD`, `MULTI_NODE` (Java language) | `JavaInvoker`, `JavaNestedInvoker`, `StorageInvoker` |
-| `python` | `compss-execution-python-plugin` | `METHOD`, `MULTI_NODE` (Python language) | `PythonInvoker` (via piped external executor) |
+| `python` | `compss-execution-python-plugin` | `METHOD`, `MULTI_NODE` (Python language) | `PythonInvoker` (via piped out-of-process executor) |
 | `r` | `compss-execution-r-plugin` | `METHOD`, `MULTI_NODE` (R language) | `RInvoker` |
-| `binary` | `compss-execution-binary-plugin` | `BINARY`, `CONTAINER`, `MPI`, `PYTHON_MPI`, `MPMDMPI`, `OMPSS`, `DECAF`, `JULIA`, `COMPSs` | `binary` package: `BinaryInvoker`, `ContainerInvoker`, `MPIInvoker`, `MpmdMPIInvoker`, `PythonMPIInvoker`, `OmpSsInvoker`, `DecafInvoker`, `JuliaInvoker`, `RunCOMPSsInvoker` |
+| `binary` | `compss-execution-binary-plugin` | `BINARY`, `CONTAINER`, `MPI`, `PYTHON_MPI`, `MPMDMPI`, `OMPSS`, `DECAF`, `JULIA`, `COMPSs` | `binary` package: `BinaryInvoker`, `ContainerInvoker`, `MPIInvoker`, `MpmdMPIInvoker`, `OmpSsInvoker`, `DecafInvoker`, `JuliaInvoker`, `RunCOMPSsInvoker`; `binding` package: `PythonMPIInvoker` |
 | `opencl` | `compss-execution-opencl-plugin` | `OPENCL` | `OpenCLInvoker` |
 | `all` | `compss-execution-all-plugins` | (aggregator, none of its own) | Shaded jar aggregating all the plugins above |
 
@@ -79,15 +79,16 @@ Notes:
 3. Implement `<Name>Invoker` extending `Invoker<W>`, providing
    `invokeMethod()` and `cancelMethod()`.
 4. Register the factory in
-   `src/main/resources/META-INF/services/es.bsc.compss.invokers.InvokerFactory`.
+   `src/main/resources/META-INF/services/es.bsc.compss.execution.invokers.InvokerFactory`.
 5. Add the module to the `plugins/pom.xml` modules list and, if it must ship
    in the aggregated jar, as a dependency of `all/pom.xml`.
 
 ## Dependencies
 
 - [compss-execution-core](../core/README.md): the `Invoker` base class,
-  `InvokerFactory` SPI, `BinaryRunner` and the external executor protocol.
+  `InvokerFactory` SPI, `BinaryRunner` and the out-of-process executor
+  protocol.
 - [compss-execution-api](../api/README.md): invocation contracts
   (through core).
 - The Python and C plugins additionally talk to their language bindings
-  through piped external executors started by the plugin mirrors.
+  through piped out-of-process executors started by the plugin mirrors.

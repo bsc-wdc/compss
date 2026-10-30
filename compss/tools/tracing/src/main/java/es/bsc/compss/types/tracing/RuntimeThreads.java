@@ -19,7 +19,7 @@ package es.bsc.compss.types.tracing;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.data.FileOpsManager;
-import es.bsc.compss.execution.ExecutionPlatform;
+import es.bsc.compss.execution.platform.ExecutionPlatform;
 
 public enum RuntimeThreads {
 

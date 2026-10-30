@@ -17,9 +17,9 @@
 package es.bsc.compss.nio.listeners;
 
 import es.bsc.compss.exceptions.WorkflowException;
+import es.bsc.compss.execution.InvocationExecutionListener;
 import es.bsc.compss.nio.worker.NIOWorker;
 import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationExecutionListener;
 import es.bsc.compss.types.execution.InvocationParam;
 
 public class TaskExecutionListener implements InvocationExecutionListener {

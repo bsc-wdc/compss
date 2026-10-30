@@ -408,7 +408,7 @@ are executed in external processes:
   from it and serializes the execution request into an
   `ExecuteTaskExternalCommand` built by the `BindingInvoker` constructor;
   it reads back task events over the same protocol; all commands are the
-  `ExternalCommand` implementations of the `executor.external.commands`
+  `ExternalCommand` implementations of the `execution.executor.binding.commands`
   package (task execution and cancellation, task groups, files, objects,
   barriers, channels, worker lifecycle).
   The `MirrorMonitor` watches the mirrored elements (files, objects, task

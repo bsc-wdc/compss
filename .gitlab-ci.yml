@@ -221,7 +221,7 @@ deploy:
   rules:
     - if: $CI_COMMIT_TAG
 
-super:
+deploy_supercomputer:
   stage: build
   interruptible: false
   parallel:
@@ -244,7 +244,26 @@ super:
       - job.log
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: on_success
     - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+
+create_release:
+  stage: build
+  interruptible: false
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - exec &> >(tee job.log)
+    - ${CI_PROJECT_DIR}/utils/scripts/create_release.sh "${RELEASE_VERSION}" "${COMMIT_AND_PUSH}"
+  artifacts:
+    when: always
+    expire_in: 1 hour
+    paths:
+      - job.log
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
 
 again:
   needs: []

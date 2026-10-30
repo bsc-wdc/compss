@@ -64,6 +64,17 @@ echo " - Commit changes: ${commit_changes}"
 
 
 ########################################################
+# Trigger: Generate tag
+########################################################
+
+#echo "Trigger: generate tag"
+#${SCRIPT_DIR}/release/generate_tag.sh "${new_version}" "${commit_changes}"
+
+#1->2->3--->4->5--->10
+#        |->6->7-|
+#        |->8->9-|
+
+########################################################
 # Step 1: Check headers (licenses)
 ########################################################
 
@@ -78,40 +89,41 @@ echo "STEP 2: UPDATE VERSION"
 ${SCRIPT_DIR}/release/update_version.sh "${base_version}" "${new_version}" "${commit_changes}"
 
 ########################################################
-# Step 3: Generate tag
+# Step 3: Artifactory repository update
 ########################################################
 
-echo "STEP 3: generate tag"
-${SCRIPT_DIR}/release/generate_tag.sh "${new_version}" "${commit_changes}"
-
-########################################################
-# Step 4: Artifactory repository update
-########################################################
-
-echo "STEP 4: Artifactory repository update"
+echo "STEP 3: Artifactory repository update"
 ${SCRIPT_DIR}/release/mvn_deploy_tag.sh "${new_version}" "${commit_changes}"
 
 ########################################################
-# Step 5: Install in Supercomputers
+# Step 4: Install in Supercomputers
 ########################################################
 # - Marenostrum GPP
 # - Marenostrum ACC
 # - Nord
 
 ########################################################
-# Step 6: Create module files in Supercomputers
+# Step 5: Create module files in Supercomputers
 ########################################################
 
 ########################################################
-# Step 7: Docker images creation
+# Step 6: Docker images creation
 ########################################################
 
 ########################################################
-# Step 8: Docker repository update
+# Step 7: Docker repository update
 ########################################################
 
 ########################################################
-# Step 9: Email notification
+# Step 8: Build specs
+########################################################
+
+########################################################
+# Step 9: Upload specs
+########################################################
+
+########################################################
+# Step 10: Email notification
 ########################################################
 
 echo "=================================="

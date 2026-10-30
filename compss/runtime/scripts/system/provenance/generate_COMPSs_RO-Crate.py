@@ -182,9 +182,9 @@ def main():
         persistence = True
     else:
         persistence = False
-        compss_crate.metadata.extra_contexts.append(
-        "https://w3id.org/ro/terms#localPath"
-    )
+        # Inline term definition, same IRI as the RO-Crate 1.2 context. Adding the URL as a context would load the whole
+        # https://w3id.org/ro/terms context, which redefines terms like 'Person'
+        compss_crate.metadata.extra_terms["localPath"] = "https://w3id.org/ro/terms#localPath"
 
 
     if "provenance_run" in compss_wf_info:

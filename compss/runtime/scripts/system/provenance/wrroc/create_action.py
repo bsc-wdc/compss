@@ -479,12 +479,11 @@ def wrroc_create_action(
                     "SRUN_",
                     "JAVA_",
                     "I_MPI_",
-                    "SRUN_",
                 )
             )
             and name != "SLURM_JOBID"
         ) or (any(x in name for x in ("THREADS", "MPI"))
-        ) or (name in ["PATH", "CLASSPATH", "PYTHONPATH", "LD_LIBRARY_PATH"]):
+        ) or (name in ["PATH", "CLASSPATH", "PYTHONPATH", "LD_LIBRARY_PATH", "BSC_MACHINE"]):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}
             env_var["@type"] = "PropertyValue"

@@ -16,62 +16,8 @@
 #
 from pathlib import Path
 
-# import pymongo
 import json
 from rocrate.rocrate import ROCrate
-
-
-def write_data_db(data, name_coll):
-    """
-    Store the data in the database
-
-    :param data: data to store in the database
-    :param name_coll: name of application which define the collection where to store in the database
-    :return:
-    """
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
-
-    db = client["compss-stats"]
-    collection = db[name_coll]
-
-    try:
-        collection.insert_one(data)
-        print(
-            "PROVENANCE | Data about the execution stored in database:'compss-stats', collection: '%s'"
-            % name_coll
-        )
-    except:
-        print(
-            "PROVENANCE | ERROR Could not store the data in the database. Connection with the database not established"
-        )
-
-
-def write_data_local_db(data, application_name):
-    """
-    Write the local data in the local file which store all the past execution data of the application
-
-    :param data: new data to store in the local file
-    :param application_name: name of the application (to use in the local file)
-    :return:
-    """
-    local_file = ""  # Pathname of local file
-
-    try:
-        with open(
-            local_file,
-            "r",
-        ) as json_object:
-            content = json.load(json_object)
-    except FileNotFoundError:
-        content = []
-
-    content.append(data)
-
-    with open(
-        local_file,
-        "w",
-    ) as json_object:
-        json.dump(content, json_object, indent=4)
 
 
 def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
@@ -118,21 +64,6 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
 
     final_dict["Command"] = command_launched
 
-    command_launched = "not found"
-    for e in crate.contextual_entities:
-        if "#COMPSs_Workflow_Run" in str(e):
-            command_launched = str(e.properties().get("description"))
-            break
-
-    final_dict["Command"] = command_launched
-
-    command_launched = 'not found'
-    for e in crate.contextual_entities:
-        if "#COMPSs_Workflow_Run" in str(e):
-            command_launched = str(e.properties().get('description'))
-            break
-
-    final_dict['Command'] = command_launched
 
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):
@@ -252,4 +183,3 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
     with open(stats_path / "stats.json", "w") as out_json:
         json.dump(final_dict, out_json, indent=4)
 
-    # write_data_local_db(final_dict, application_name)

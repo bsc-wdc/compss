@@ -28,6 +28,7 @@ from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
 from rocrate.model.computerlanguage import ComputerLanguage
 
+from provenance.file_adding.datasets import get_empty_file
 from provenance.processing.entities import get_manually_defined_software_requirements
 
 
@@ -44,6 +45,7 @@ def add_file_to_crate(
     complete_graph: Path,
     info_yaml: str,
     auxiliary_file_list: list,
+    source: str = None,
 ) -> str:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
@@ -58,14 +60,18 @@ def add_file_to_crate(
     :param complete_graph: Path object to the file containing the workflow diagram
     :param info_yaml: Name of the YAML file specified by the user
     :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
+    :param source: File to copy, if it is not file_name (e.g. the .gitkeep of an empty directory, which only exists in
+        the crate)
 
     :returns: Path where the file has been stored in the crate
     """
 
+    if source is None:
+        source = file_name
     file_path = Path(file_name)
     file_properties = {
         "name": file_path.name,
-        "contentSize": os.path.getsize(file_name),
+        "contentSize": os.path.getsize(source),
     }
 
     # main_entity has its absolute path, as well as file_name
@@ -189,7 +195,7 @@ def add_file_to_crate(
         if __debug__:
             print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
         compss_crate.add_file(
-            source=file_name, dest_path=path_in_crate, properties=file_properties
+            source=source, dest_path=path_in_crate, properties=file_properties
         )
     else:
         # Add software dependencies as softwareRequirements
@@ -466,19 +472,18 @@ def add_application_source_files(
                             print(
                                 f"PROVENANCE DEBUG | Adding an empty directory. root ({root}), full_dir_name ({full_dir_name}), resolved_source ({resolved_source})"
                             )
-                        # Workaround to add empty directories in a git repository
-                        git_keep = Path(full_dir_name + "/" + ".gitkeep")
-                        Path.touch(git_keep)
+                        # Workaround to add empty directories in a git repository. The .gitkeep only exists in the crate
                         add_file_to_crate(
                             compss_crate,
                             compss_wf_info,
-                            str(git_keep),
+                            full_dir_name + "/" + ".gitkeep",
                             compss_ver,
                             main_entity,
                             resolved_source,
                             complete_graph,
                             info_yaml,
                             auxiliary_file_list,
+                            source=get_empty_file(),
                         )
             if not os.listdir(resolved_source):
                 # The root directory itself is empty
@@ -486,19 +491,18 @@ def add_application_source_files(
                     print(
                         f"PROVENANCE DEBUG | Adding an empty directory. resolved_source ({resolved_source})"
                     )
-                # Workaround to add empty directories in a git repository
-                git_keep = Path(resolved_source + "/" + ".gitkeep")
-                Path.touch(git_keep)
+                # Workaround to add empty directories in a git repository. The .gitkeep only exists in the crate
                 add_file_to_crate(
                     compss_crate,
                     compss_wf_info,
-                    str(git_keep),
+                    resolved_source + "/" + ".gitkeep",
                     compss_ver,
                     main_entity,
                     resolved_source,
                     complete_graph,
                     info_yaml,
                     auxiliary_file_list,
+                    source=get_empty_file(),
                 )
         elif os.path.isfile(resolved_source):
             if resolved_source not in added_files:

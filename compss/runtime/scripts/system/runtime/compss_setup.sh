@@ -642,6 +642,9 @@ run_app_with_compss() {
   elif [ "${lang}" == "r" ]; then
     exec_r
   fi
+  # Remove the MPI checkpoints if the application finished successfully
+  clean_mpi_checkpoints "${COMPSS_EXIT_CODE}"
+
   # Handle application exit value to print in log
   handle_app_end "${COMPSS_EXIT_CODE}"
 

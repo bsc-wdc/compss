@@ -32,13 +32,17 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 8;
+    public static final int NUM_PARAMS = 11;
     public static final String SIGNATURE = "mpi.MPI";
 
     private static final String ERROR_MPI_BINARY = "ERROR: Empty binary annotation for MPI method";
 
     private String binary;
     private String params;
+
+    private boolean checkpoint;
+    private int interval;
+    private int ckptIter;
 
     private ContainerDescription container;
 
@@ -94,6 +98,9 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 5]);
         this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
+        this.checkpoint = Boolean.parseBoolean(implTypeArgs[offset + 8]);
+        this.interval = Integer.parseInt(implTypeArgs[offset + 9]);
+        this.ckptIter = Integer.parseInt(implTypeArgs[offset + 10]);
         this.container = container;
 
         checkArguments();
@@ -109,6 +116,9 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         lArgs.add(Boolean.toString(scaleByCU));
         lArgs.add(this.params);
         lArgs.add(Boolean.toString(failByEV));
+        lArgs.add(Boolean.toString(this.checkpoint));
+        lArgs.add(Integer.toString(this.interval));
+        lArgs.add(Integer.toString(this.ckptIter));
     }
 
     /**
@@ -127,6 +137,18 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
     @Override
     public MethodType getMethodType() {
         return MethodType.MPI;
+    }
+
+    public boolean isCheckpoint() {
+        return this.checkpoint;
+    }
+
+    public int getInterval() {
+        return this.interval;
+    }
+
+    public int getCkptIter() {
+        return this.ckptIter;
     }
 
     /**
@@ -166,6 +188,9 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.scaleByCU = in.readBoolean();
         this.params = (String) in.readObject();
         this.failByEV = in.readBoolean();
+        this.checkpoint = in.readBoolean();
+        this.interval = in.readInt();
+        this.ckptIter = in.readInt();
         this.container = (ContainerDescription) in.readObject();
     }
 
@@ -179,6 +204,9 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         out.writeBoolean(this.scaleByCU);
         out.writeObject(this.params);
         out.writeBoolean(this.failByEV);
+        out.writeBoolean(this.checkpoint);
+        out.writeInt(this.interval);
+        out.writeInt(this.ckptIter);
         out.writeObject(this.container);
     }
 

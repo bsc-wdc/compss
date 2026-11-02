@@ -24,6 +24,7 @@ This file contains the MPI class, needed for the mpi task definition through
 the decorator.
 """
 
+import sys
 from functools import wraps
 
 from pycompss.util.context import CONTEXT
@@ -58,6 +59,9 @@ SUPPORTED_ARGUMENTS = {
     LABELS.scale_by_cu,
     LABELS.args,
     LABELS.fail_by_exit_value,
+    LABELS.checkpoint,
+    LABELS.interval,
+    LABELS.ckpt_iter,
 }
 DEPRECATED_ARGUMENTS = {
     LEGACY_LABELS.computing_units,
@@ -299,6 +303,7 @@ class Mpi:  # pylint: disable=too-few-public-methods
             binary = INTERNAL_LABELS.unassigned
             impl_type = IMPLEMENTATION_TYPES.python_mpi
             self.task_type = impl_type
+            self.__warn_ignored_checkpoint__()
 
         runner = self.kwargs[LABELS.runner]
 
@@ -338,6 +343,19 @@ class Mpi:  # pylint: disable=too-few-public-methods
         else:
             impl_signature = ".".join((impl_type, str(proc), binary))
 
+        # interval=N overrides --ckptMPI_interval and, unless
+        # checkpoint=False is given, selects MANA.
+        _checkpoint = self.kwargs.get(LABELS.checkpoint, None)
+        _interval = 0
+        if LABELS.interval in self.kwargs:
+            _interval = int(self.kwargs[LABELS.interval])
+            if _checkpoint is None:
+                _checkpoint = True
+        _checkpoint = str(_checkpoint).lower() in ("true", "1")
+
+        # SCR only: also checkpoint every N iterations (0 = disabled).
+        _ckpt_iter = int(self.kwargs.get(LABELS.ckpt_iter, 0))
+
         impl_args = [
             binary,
             self.kwargs[LABELS.working_dir],
@@ -351,6 +369,12 @@ class Mpi:  # pylint: disable=too-few-public-methods
 
         if impl_type == IMPLEMENTATION_TYPES.python_mpi:
             impl_args = impl_args + collection_layout_params
+        else:
+            impl_args += [
+                str(_checkpoint).lower(),
+                str(_interval),
+                str(_ckpt_iter),
+            ]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -370,6 +394,26 @@ class Mpi:  # pylint: disable=too-few-public-methods
 
         # Set as configured
         self.core_element_configured = True
+
+    def __warn_ignored_checkpoint__(self) -> None:
+        """Warn when checkpointing is requested on an mpi4py task.
+
+        :return: None.
+        """
+        ignored = [
+            label
+            for label in (LABELS.checkpoint, LABELS.interval, LABELS.ckpt_iter)
+            if label in self.kwargs
+        ]
+        if not ignored:
+            return
+        message = (
+            f"WARNING: Ignored argument(s): {', '.join(ignored)} Found "
+            f"in {self.decorator_name}.\n"
+            "         MPI task checkpointing requires the binary argument. "
+            "mpi4py tasks are not checkpointed."
+        )
+        print(message, file=sys.stderr)
 
     def __resolve_scale_by_cu__(self) -> str:
         """Check if scale_by_cu is defined and process it.

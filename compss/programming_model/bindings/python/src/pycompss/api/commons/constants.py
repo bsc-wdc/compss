@@ -98,6 +98,9 @@ class _Labels:  # pylint: disable=R0903,R0902
         "execution",
         "type",
         "is_workflow",
+        "checkpoint",
+        "interval",
+        "ckpt_iter",
     )
 
     def __init__(self) -> None:  # pylint: disable=too-many-statements
@@ -175,6 +178,9 @@ class _Labels:  # pylint: disable=R0903,R0902
         self.properties = "properties"
         self.execution = "execution"
         self.type = "type"
+        self.checkpoint = "checkpoint"
+        self.interval = "interval"
+        self.ckpt_iter = "ckpt_iter"
 
 
 class _LegacyLabels:  # pylint: disable=R0903,R0902

@@ -157,6 +157,22 @@ show_opts() {
                                             Default: Empty
     --checkpoint_folder=<path>              Checkpoint folder.
                                             Default: Mandatory parameter
+    --checkpointMPI                         Enable checkpointing of MPI tasks. Master switch: if absent, no MPI
+                                            task is checkpointed regardless of @mpi(checkpoint=...).
+                                            The backend is chosen per task: @mpi(checkpoint=True) uses MANA
+                                            (transparent, no code changes) and @mpi(checkpoint=False) uses SCR
+                                            (the application must be instrumented with the SCR API).
+                                            Default: disabled
+    --ckptMPI_dir=<path>                    Base directory for MPI task checkpoints. Required when --checkpointMPI
+                                            is set. Per-task subdirectories are created automatically.
+                                            Default: Mandatory when --checkpointMPI is set
+    --ckptMPI_interval=<int>                Default checkpoint interval in seconds for MPI tasks. Used when
+                                            @mpi(interval=) is not explicitly set.
+                                            Default: 300
+    --ckptMPI_keep                          Keep the MANA checkpoints (mana_ckpt_* in --ckptMPI_dir) when the
+                                            application ends successfully. They are always kept when it fails,
+                                            so that a new execution can resume from them.
+                                            Default: removed on success
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                             Default: Working Directory
     --classpath=<path>                      Path for the application classes / modules
@@ -620,6 +636,22 @@ get_args() {
           checkpoint_folder=*)
             # Specify the folder for the checkpoint
             checkpoint_folder=${OPTARG//checkpoint_folder=/}
+            ;;
+          checkpointMPI)
+            # Enable MPI task checkpointing (master switch)
+            mpi_checkpoint_enabled=true
+            ;;
+          ckptMPI_dir=*)
+            # Base directory for MPI task checkpoints
+            mpi_checkpoint_dir=${OPTARG//ckptMPI_dir=/}
+            ;;
+          ckptMPI_interval=*)
+            # Default checkpoint interval for MPI tasks
+            mpi_checkpoint_interval=${OPTARG//ckptMPI_interval=/}
+            ;;
+          ckptMPI_keep)
+            # Keep the MANA checkpoints after a successful execution
+            mpi_checkpoint_keep=true
             ;;
           tracing_task_dependencies=*)
             # Specify if the tracing system registers task dependencies

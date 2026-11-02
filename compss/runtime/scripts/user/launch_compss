@@ -1518,6 +1518,18 @@ get_args() {
           keep_wd=true
           args_pass="$args_pass --$OPTARG"
           ;;
+        checkpointMPI)
+          mpi_checkpoint_enabled=true
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        ckptMPI_dir=*)
+          mpi_checkpoint_dir=${OPTARG//ckptMPI_dir=/}
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        ckptMPI_interval=*)
+          mpi_checkpoint_interval=${OPTARG//ckptMPI_interval=/}
+          args_pass="$args_pass --$OPTARG"
+          ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -1978,6 +1990,10 @@ check_args() {
   if [ -n "${gen_coredump}" ]; then
     prepare_coredump_generation
   fi
+
+  if [ "${mpi_checkpoint_enabled}" = "true" ]; then
+    prepare_mpi_checkpoint
+  fi
 }
 
 prepare_coredump_generation() {
@@ -2003,6 +2019,24 @@ prepare_keep_workingdir() {
         jvm_worker_in_master_opts="-Dcompss.worker.removeWD=false"
     else
         jvm_worker_in_master_opts+=",-Dcompss.worker.removeWD=false"
+    fi
+}
+
+# Pass the MPI checkpointing options to the worker JVMs (read by MPIInvoker)
+prepare_mpi_checkpoint() {
+    local mpi_ckpt_flags="-Dcompss.mpi.checkpoint.enabled=true,-Dcompss.mpi.checkpoint.dir=${mpi_checkpoint_dir}"
+    if [ -n "${mpi_checkpoint_interval}" ]; then
+        mpi_ckpt_flags="${mpi_ckpt_flags},-Dcompss.mpi.checkpoint.interval=${mpi_checkpoint_interval}"
+    fi
+    if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
+        jvm_workers_opts="${mpi_ckpt_flags}"
+    else
+        jvm_workers_opts+=",${mpi_ckpt_flags}"
+    fi
+    if [ -z "${jvm_worker_in_master_opts}" ] || [ "${jvm_worker_in_master_opts}" = \"\" ];then
+        jvm_worker_in_master_opts="${mpi_ckpt_flags}"
+    else
+        jvm_worker_in_master_opts+=",${mpi_ckpt_flags}"
     fi
 }
 

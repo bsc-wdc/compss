@@ -102,7 +102,10 @@ public class COMPSsRuntimeImplTest {
             "mpiFlags",
             "false",
             "[unassigned]",
-            "false" };
+            "false",
+            "false", // checkpoint
+            "0", // interval
+            "0" }; // ckpt_iter
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
             prolog, epilog, container, implTypeArgs);
 

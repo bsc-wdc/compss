@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-  COMPSs_version=3.4.post2610
+  COMPSs_version=4.0.0-alpha
 
   echo " "
   echo "# Building COMPSs packages..."

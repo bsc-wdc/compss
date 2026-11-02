@@ -23,7 +23,7 @@ usage() {
   exitValue=$1
   echo ""
   echo " * Usage  : ${0} <new_version>"
-  echo " * Example: ${0} 3.4.post2610"
+  echo " * Example: ${0} 4.0.0-alpha"
   echo ""
   exit "$exitValue"
 }

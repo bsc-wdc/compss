@@ -1,4 +1,4 @@
-./buildsc 3.4.post2610
+./buildsc 4.0.0-alpha
 cd ../../packages/sc/
-scp COMPSs_3.4.post2610.tar.gz ns54:.
+scp COMPSs_4.0.0-alpha.tar.gz ns54:.
 ssh ns54 ./build_compss.sh 

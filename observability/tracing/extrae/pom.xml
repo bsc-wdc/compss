@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>wdc-tracing</artifactId>
-        <version>3.4.post2610</version>
+        <version>4.0.0-alpha</version>
     </parent>
 
     <!-- PROJECT INFORMATION -->

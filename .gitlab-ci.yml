@@ -255,15 +255,26 @@ supercomputers:
     GIT_SUBMODULE_STRATEGY: recursive
   parallel:
     matrix:
-      - SCRIPT: "mn5/buildMN5"
+      - FOLDER: "mn5"
+        BUILD_SCRIPT: "buildMN5"
+        MODULE_TEMPLATE_FILE_NAME: "module_file.template"
         TARGET: "GPP/COMPSs"
-      - SCRIPT: "mn5_acc/buildMN5_acc"
+        MODULES_PATH: "/apps/GPP/modulefiles/applications/COMPSs"
+      - FOLDER: "mn5_acc"
+        BUILD_SCRIPT: "buildMN5_acc"
+        MODULE_TEMPLATE_FILE_NAME: "module_file.template"
         TARGET: "ACC/COMPSs"
-      - SCRIPT: "nord4/buildNord4"
+        MODULES_PATH: "/apps/ACC/modulefiles/applications/COMPSs"
+      - FOLDER: "nord4"
+        BUILD_SCRIPT: "buildNord4"
+        MODULE_TEMPLATE_FILE_NAME: "module_file.template"
         TARGET: "COMPSs"
+        MODULES_PATH: "/apps/modules/modulefiles/tools/COMPSs"
   script:
     - exec &> >(tee job.log)
-    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}"
+    - builders/scs/${FOLDER}/${BUILD_SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}"
+    - sed -i 's/BRANCH_NAME/${CI_COMMIT_REF_NAME}/g' builders/scs/${FOLDER}/${MODULE_TEMPLATE_FILE_NAME}
+    - scp builders/scs/${FOLDER}/${MODULE_TEMPLATE_FILE_NAME} compss@${LOGIN_NODE}:${MODULES_PATH}/${CI_COMMIT_REF_NAME}
   artifacts:
     when: always
     expire_in: 1 week
@@ -306,8 +317,12 @@ images:
 packages:
   stage: build
   script:
-    - builders/sc/buildsc "${CI_COMMIT_TAG#v}"
-    - scp "packages/sc/COMPSs_${CI_COMMIT_TAG#v}.tar.gz" ns54:.
+    - builders/buildpackages "${CI_COMMIT_TAG#v}"
+    - scp "builders/packages/sc/COMPSs_${CI_COMMIT_TAG#v}.tar.gz" bsccs1000.int.bsc.es:/srv/repo/sc/stable/.
+    - ssh bsccs1000.int.bsc.es chown wwwrun:www "/srv/repo/sc/stable/COMPSs_${CI_COMMIT_TAG#v}.tar.gz"
+    # CAUTION: Do not push to pypi until reviewed.
+    # - twine upload "builders/packages/pip/pyCOMPSs/dist/pycompss-${CI_COMMIT_TAG#v}.tar.gz"
+
   rules:
     - if: $CI_COMMIT_TAG
       allow_failure: true

@@ -1,21 +1,32 @@
 #!/bin/bash -e
 
+  # Define directories
+  CURRENT_DIR="$(realpath $(pwd))"
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
   COMPSs_version=4.0.0-alpha
 
   echo " "
   echo "# Building COMPSs packages..."
   echo " "
-  cd specs
+  cd "${SCRIPT_DIR}/specs"
 
   cd sc
   echo " "
-  echo " * Building SC packages..."
+  echo " * Building SC package..."
   echo " "
   ./buildsc ${COMPSs_version}
+  cd ..
+
+  cd pip
+  echo " "
+  echo " * Building PIP package..."
+  echo " "
+  ./buildpip ${COMPSs_version}
   cd ..
 
   echo " "
   echo " * Finished"
   echo " "
-  cd ..
+  cd "$CURRENT_DIR"
 

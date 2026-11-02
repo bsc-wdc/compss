@@ -2,12 +2,12 @@
 
 COMP Superscalar (COMPSs) is a programming model that aims to ease the development of applications for distributed infrastructures, such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime system that exploits the inherent parallelism of applications at execution time.
 
-## Release number: 4.0 (TBD)
+## Release number: 4.0 (Queen's wreath)
 
 Release date: Nov-2026
 
 New features:
-    - Upgraded support for Extrae 4.13.
+    - Upgraded support for Extrae 5.1.9.
     - Upgraded support for Python 3.14.
     - New Docker images with multi-architecture support (AMD64, ARM64 and RISCV64).
     - New monitor interface (Graphana based) with real time data, with support with interactive agent deployment.
@@ -23,6 +23,7 @@ Improvements:
     - Extended context sharing in agents with Python.
     - Unified runtime API methods: workflow vs runtime.
     - Tasks no longer carry a language.
+    - Enabled intra-task checkpointing for @MPI.
     - Event registration moved to the producers.
     - Maven plugins removed from the framework.
     - Improved NIO transfer resiliency.

@@ -4,7 +4,7 @@
   CURRENT_DIR="$(realpath $(pwd))"
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  COMPSs_version=4.0.0-alpha
+  COMPSs_version=4.0.0-alpha.1
 
   echo " "
   echo "# Building COMPSs packages..."

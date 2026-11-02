@@ -263,7 +263,7 @@ supercomputers:
         TARGET: "COMPSs"
   script:
     - exec &> >(tee job.log)
-    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_BRANCH}"
+    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}"
   artifacts:
     when: always
     expire_in: 1 week

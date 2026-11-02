@@ -1,0 +1,216 @@
+#%Module1.0
+########################################################
+#
+# Author: COMPSs Support (support-compss@bsc.es)
+#
+########################################################
+
+set PROG_NAME            COMPSs
+set PROG_VERSION         BRANCH_NAME
+set PROG_BASE            /apps/GPP/$PROG_NAME
+set PROG_HOME            /apps/$PROG_NAME/$PROG_VERSION
+set PYTHON_ENV_VAR_NAME  COMPSS_PYTHON_VERSION
+
+proc ModulesHelp { } {
+    # WARNING! puts stderr does not resolve environment variables.
+    #          If you put any, its following text will not be shown.
+    puts stderr "----------------------------"
+    puts stderr "| COMPSs Programming Model |"
+    puts stderr "----------------------------"
+    puts stderr ""
+    puts stderr "* The Python version to be loaded can be specified by exporting"
+    puts stderr "  the COMPSS_PYTHON_VERSION environment variable in your .bashrc"
+    puts stderr "  file before loading the COMPSs module."
+    puts stderr "      - Supported COMPSS_PYTHON_VERSION values and associated"
+    puts stderr "        Python versions:"
+    puts stderr "            3 .................. Python 3.7.4"
+    puts stderr "            3-ML ............... Python 3.6.4_ML"
+    puts stderr "            3-intel-2018.2 ..... Python 3.6.3 (Intel)"
+    puts stderr "            3-intel-2019.2 ..... Python 3.6.8 (Intel)"
+    puts stderr "            3-intel-2021.3 ..... Python 3.7.10 (Intel)"
+    puts stderr "            3.6.1 .............. Python 3.6.1"
+    puts stderr "            3.6.6_gdb .......... Python 3.6.6 (gdb)"
+    puts stderr "            3.7.4 .............. Python 3.7.4"
+    puts stderr "            3.7.4_ES ........... Python 3.7.4 (ES)"
+    puts stderr "            3.8.2 .............. Python 3.8.2"
+    puts stderr "            3.9.10 ............. Python 3.9.10"
+    puts stderr "            3.10.2 ............. Python 3.10.2"
+    puts stderr "            3-jupyter .......... Python ANACONDA/5.0.1_py3"
+    puts stderr "            ANACONDA/2019.10 ... Python ANACONDA/2019.10 - 3.7.4"
+    puts stderr "            ANACONDA/2020.11 ... Python ANACONDA/2020.11 - 3.8.5"
+    puts stderr "            ANACONDA/2022.10 ... Python ANACONDA/2022.10 - 3.9.13"
+    puts stderr "            none ............... Do not load Python"
+    puts stderr "      - If COMPSS_PYTHON_VERSION is not defined, Python 3.7.4"
+    puts stderr "      - will be automatically loaded."
+    puts stderr ""
+    puts stderr "The complete documentation can be found in compss.bsc.es"
+    puts stderr ""
+    puts stderr "Please, execute \"enqueue_compss -h\" to get further information."
+    puts stderr ""
+    puts stderr "COMPSs Support: support-compss@bsc.es"
+}
+
+module-whatis   "Loads the $PROG_NAME $PROG_VERSION"
+
+# Tests of consistency
+# --------------------
+# This application cannot be loaded if another $PROG_NAME modulefile was previously loaded
+
+conflict ${PROG_NAME}
+
+### Load the required modules
+module load openjdk/21.0.1.12
+module load papi/5.5.1
+# Load the appropriate Python depending on the COMPSS_PYTHON_VERSION environment variable.
+if { [info exists env(${PYTHON_ENV_VAR_NAME})] } {
+   # puts stderr "User defined explicitly the Python version to use with COMPSS_PYTHON_VERSION environment variable."
+   if { $env(${PYTHON_ENV_VAR_NAME}) == "3" } {
+       # puts stderr "Loading Python 3.7.4"
+       module load python/3.7.4
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/libp
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.7/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.7/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3-ML" } {
+       # puts stderr "Loading Python 3.6.4_ML"
+       module load gcc/8.1.0 impi/2018.1 mkl/2018.1 opencv/4.1.2
+       module load python/3.6.4_ML
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3-intel-2018.2" } {
+       # puts stderr "Loading Python 3-intel-2018.2 (3.6.3 Intel)"
+       module load python/3-intel-2018.2
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3-intel-2019.2" } {
+       # puts stderr "Loading Python 3-intel-2019.2 (3.6.8 Intel)"
+       module load python/3-intel-2019.2
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3-intel-2021.3" } {
+       # puts stderr "Loading Python 3-intel-2021.3 (3.7.10 Intel)"
+       module load python/3-intel-2021.3
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.7/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.7/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.6.1" } {
+       # puts stderr "Loading Python 3.6.1"
+       module load python/3.6.1
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.6.6_gdb" } {
+       # puts stderr "Loading Python 3.6.6 (gdb)"
+       module load python/3.6.6_gdb
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.7.4" } {
+       # puts stderr "Loading Python 3.7.4"
+       module load python/3.7.4
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.7/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.7/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.7.4_ES" } {
+       # puts stderr "Loading Python 3.7.4_ES"
+       module load gcc/5.4.0
+       module load python/3.7.4_ES
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.7/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.7/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.8.2" } {
+       # puts stderr "Loading Python 3.8.2"
+       module load intel mkl python/3.8.2
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.8/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.8/site-packages
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/qibo/python3.8/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/qibo/python3.8/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.9.10" } {
+       # puts stderr "Loading Python 3.9.10"
+       module load intel mkl python/3.9.10
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.9/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.9/site-packages
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/qibo/python3.9/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/qibo/python3.9/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.10.2" } {
+       # puts stderr "Loading Python 3.10.2"
+       module load intel mkl python/3.10.2
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.10/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.10/site-packages
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/qibo/python3.10/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/qibo/python3.10/site-packages
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3-jupyter" } {
+       # puts stderr "Loading Python 3 with Jupyter support"
+       module load ANACONDA/5.1.0_py3
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "ANACONDA/2019.10" } {
+       # puts stderr "Loading Python 3 with ANACONDA/2019.10 support"
+       module load ANACONDA/2019.10
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "ANACONDA/2020.11" } {
+       # puts stderr "Loading Python 3 with ANACONDA/2020.11 support"
+       module load ANACONDA/2020.11
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "ANACONDA/2022.10" } {
+       # puts stderr "Loading Python 3 with  support"
+       module load ANACONDA/2022.10
+       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+
+   } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "none" } {
+       puts stderr "NOT Loading any Python for COMPSs - the user must load its own."
+   } else {
+       puts stderr "WARNING: Unrecognized Python version. Please choose a supported value for COMPSS_PYTHON_VERSION environment variable (module help $PROG_NAME/$PROG_VERSION)."
+       puts stderr "         NOT Loading any Python for COMPSs - the user must load its own."
+   }
+} else {
+   # Check python version
+   if { [is-loaded python] } {
+       puts stderr "Using already loaded Python"
+   } else {
+      puts stderr "Python not found. Please load a Python module"
+   }
+}
+
+### This shows info about loaded/unloaded module
+if { [module-info mode] != "whatis" } {
+   puts stderr "[module-info mode] [module-info name] (PATH, CLASSPATH, MANPATH, GAT_LOCATION, COMPSS_HOME, JAVA_TOOL_OPTIONS, LDFLAGS, CPPFLAGS)"
+}
+
+
+# MONITOR
+prepend-path  PATH               $PROG_BASE/TOOLS/MONITOR/
+setenv        COMPSS_MONITOR     $PROG_BASE/TOOLS/MONITOR/
+# BINDING-COMMONS
+prepend-path  LD_LIBRARY_PATH    $PROG_HOME/Bindings/bindings-common/lib
+# RCOMPSS
+prepend-path  R_LIBS_USER        $PROG_HOME/Bindings/RCOMPSs/user_libs
+# PYTHON BINDING
+prepend-path  PYTHONPATH         $PROG_HOME/Bindings/python/3/
+# JAVA RUNTIME
+setenv	      JAVA_HOME          $JAVA_HOME/
+prepend-path  PATH               $JAVA_HOME/bin
+prepend-path  PATH               $PROG_HOME/Runtime/scripts/user
+prepend-path  PATH               $PROG_HOME/Runtime/scripts/utils
+prepend-path  CLASSPATH          $PROG_HOME/Runtime/compss-engine.jar
+prepend-path  MANPATH            $PROG_HOME/Doc
+setenv        COMPSS_HOME        $PROG_HOME
+setenv        JAVA_TOOL_OPTIONS  -Xss1280k
+setenv        SLURM_OVERLAP      1
+setenv        COMPSS_MPIRUN_TYPE impi
+setenv	      COMPSS_WORKER_INIT_TIMEOUT 360000
+
+# Alias
+# ---------------------------------
+
+set-alias     get_PATC_PROGRAMMING_MN4   "cp -r /apps/COMPSs/TUTORIALS/PATC_PROGRAMMING_MN4 ."

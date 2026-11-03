@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-adaptors</artifactId>
-        <version>4.0.0-alpha.1</version>
+        <version>4.0.0-alpha.2</version>
     </parent>
 
 	<!-- PROJECT INFORMATION -->
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-execution-api</artifactId>
-            <version>4.0.0-alpha.1</version>
+            <version>4.0.0-alpha.2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

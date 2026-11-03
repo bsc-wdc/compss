@@ -6,13 +6,14 @@
   # Parameters: <Nord_user> Nord 4 account. Preferable with ssh keys inserted
   #             <FullTmpPath> Tmp path on Nord 4 for deployment
   #             <FullTargetPath> Base Target Installation folder on Nord 4
+  #             [<version>] OPTIONAL: Version for module file
   #############################################################
 
   ####################
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildNord4 <Nord_user> <FullTmpPath> <FullTargetPath>"
+    echo " Usage: buildNord4 <Nord_user> <FullTmpPath> <FullTargetPath> [<version>]"
     echo " "
   }
 
@@ -27,7 +28,7 @@
       exit 0
     fi
   fi
-  if [ $# -ne 3 ]; then
+  if [ $# -lt 3 ] || [ $# -gt 4 ]; then
     echo "Incorrect number of parameters"
     usage
     exit 1
@@ -39,13 +40,21 @@
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
+  MNversion=$4 # Optional parameter
+  MNmoduleDir="/apps/modules/modulefiles/tools/COMPSs"
   MNloginNode=n4login0.bsc.es # Requires connectivity for downloading Extrae
   MNauxScript=${SCRIPT_DIR}/buildNord4_aux
   PRELOAD_ENV=""
+  MNmoduleParams=""
+
+  if [ -n "$MNversion" ] && [ -f "${SCRIPT_DIR}/module.tplt" ]; then
+    echo "Version detected and module.tplt found. Passing required parameters to buildSC..."
+    MNmoduleParams="${SCRIPT_DIR}/module.tplt ${MNmoduleDir}/${MNversion}"
+  fi
 
   # Perform installation
   cd "${SCRIPT_DIR}"/../commons/
-  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}"
+  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}" "${MNmoduleParams}"
   exitStatus=$?
   cd "${SCRIPT_DIR}"
 

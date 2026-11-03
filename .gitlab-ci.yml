@@ -255,26 +255,15 @@ supercomputers:
     GIT_SUBMODULE_STRATEGY: recursive
   parallel:
     matrix:
-      - FOLDER: "mn5"
-        BUILD_SCRIPT: "buildMN5"
-        MODULE_TEMPLATE_FILE_NAME: "module_file.template"
+      - SCRIPT: "mn5/buildMN5"
         TARGET: "GPP/COMPSs"
-        MODULES_PATH: "/apps/GPP/modulefiles/applications/COMPSs"
-      - FOLDER: "mn5_acc"
-        BUILD_SCRIPT: "buildMN5_acc"
-        MODULE_TEMPLATE_FILE_NAME: "module_file.template"
+      - SCRIPT: "mn5_acc/buildMN5_acc"
         TARGET: "ACC/COMPSs"
-        MODULES_PATH: "/apps/ACC/modulefiles/applications/COMPSs"
-      - FOLDER: "nord4"
-        BUILD_SCRIPT: "buildNord4"
-        MODULE_TEMPLATE_FILE_NAME: "module_file.template"
+      - SCRIPT: "nord4/buildNord4"
         TARGET: "COMPSs"
-        MODULES_PATH: "/apps/modules/modulefiles/tools/COMPSs"
   script:
     - exec &> >(tee job.log)
-    - builders/scs/${FOLDER}/${BUILD_SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}"
-    - sed -i 's/BRANCH_NAME/${CI_COMMIT_REF_NAME}/g' builders/scs/${FOLDER}/${MODULE_TEMPLATE_FILE_NAME}
-    - scp builders/scs/${FOLDER}/${MODULE_TEMPLATE_FILE_NAME} compss@${LOGIN_NODE}:${MODULES_PATH}/${CI_COMMIT_REF_NAME}
+    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}" ${CI_COMMIT_REF_NAME}
   artifacts:
     when: always
     expire_in: 1 week

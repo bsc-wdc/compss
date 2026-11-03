@@ -6,16 +6,16 @@
   # Parameters: <MN5_user> MareNostrum5 user account. Preferable with ssh keys inserted
   #             <FullTmpPath> Tmp path on MareNostrum5 for deployment
   #             <FullTargetPath> Base Target Installation folder on MareNostrum5
+  #             [<version>] OPTIONAL: Version for module file
   #############################################################
 
   ####################
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildMN5 <MN_user> <FullTmpPath> <FullTargetPath>"
+    echo " Usage: buildMN5 <MN_user> <FullTmpPath> <FullTargetPath> [<version>]"
     echo " "
   }
-
 
   ####################
   # MAIN
@@ -27,7 +27,7 @@
       exit 0
     fi
   fi
-  if [ $# -ne 3 ]; then
+  if [ $# -lt 3 ] || [ $# -gt 4 ]; then
     echo "Incorrect number of parameters"
     usage
     exit 1
@@ -35,17 +35,24 @@
 
   # SET SCRIPT VARIABLES
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
+  MNversion=$4 # Optional parameter
+  MNmoduleDir="/apps/GPP/modulefiles/applications/COMPSs"
   MNloginNode=glogin4.bsc.es   # Requires connectivity for R dependencies.
   MNauxScript=${SCRIPT_DIR}/buildMN5_aux
   PRELOAD_ENV=""
+  MNmoduleParams=""
+
+  if [ -n "$MNversion" ] && [ -f "${SCRIPT_DIR}/module.tplt" ]; then
+    echo "Version detected and module.tplt found. Passing required parameters to buildSC..."
+    MNmoduleParams="${SCRIPT_DIR}/module.tplt ${MNmoduleDir}/${MNversion}"
+  fi
 
   # Perform installation
   cd "${SCRIPT_DIR}"/../commons/
-  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}"
+  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}" "${MNmoduleParams}"
   exitStatus=$?
   cd "${SCRIPT_DIR}"
 

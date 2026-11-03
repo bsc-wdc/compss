@@ -3,22 +3,22 @@
   #############################################################
   # Name: buildSC
   # Description: SCRIPT FOR Supercomputers COMPSs BUILD
-  # Parameters: <SC_user>         Supercomputer user account. Preferable with ssh keys inserted
-  #             <SC_loginNode>    Node to login to the Supercomputer
-  #             <FullTmpPath>     Tmp path on the Supercomputer for deployment
-  #             <FullTargetPath>  Base Target Installation folder on Supercomputer
-  #             <AuxScript>       Script to execute inside the Supercomputer
-  #             <PRELOAD_ENV>     Pre-load environment on <AuxScript> execution
+  # Parameters: <SC_user>          Supercomputer user account. Preferable with ssh keys inserted
+  #             <SC_loginNode>     Node to login to the Supercomputer
+  #             <FullTmpPath>      Tmp path on the Supercomputer for deployment
+  #             <FullTargetPath>   Base Target Installation folder on Supercomputer
+  #             <AuxScript>        Script to execute inside the Supercomputer
+  #             <PRELOAD_ENV>      Pre-load environment on <AuxScript> execution
+  #             [<MNmoduleParams>] OPTIONAL: Local and remote module files
   #############################################################
 
   ####################
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildSC <SC_user> <SC_loginNode> <FullTmpPath> <FullTargetPath> <AuxScript> <PRELOAD_ENV>"
+    echo " Usage: buildSC <SC_user> <SC_loginNode> <FullTmpPath> <FullTargetPath> <AuxScript> <PRELOAD_ENV> [<MNmoduleParams>]"
     echo " "
   }
-
 
   ####################
   # MAIN
@@ -30,7 +30,8 @@
       exit 0
     fi
   fi
-  if [ $# -ne 6 ]; then
+  # Accepts 6 parameters or 8 (with version and MNmoduleDir)
+  if [ $# -lt 6 ] || [ $# -gt 7 ]; then
     echo "Incorrect number of parameters"
     usage
     exit 1
@@ -43,6 +44,8 @@
   SCtargetDir=$4
   SCauxScript=$5
   PRELOAD_ENV=$6
+  SCmoduleParams=$7
+
   if [ $(uname) == "Darwin" ]; then
     kafka=0 # Installation from macOS with kafka not available
   else
@@ -72,6 +75,9 @@
   echo "- Generic AuxScript = ${SCauxScript_generic}"
   echo "- Sources Dir       = ${SOURCES_DIR}"
   echo "- Local tmp Dir     = ${TMP_DIR}"
+  if [ -n "$SCmoduleParams" ]; then
+    echo "- SC module params  = ${SCmoduleParams}"
+  fi
   sleep 5
 
   # Compile sources
@@ -193,6 +199,25 @@
   # shellcheck disable=2029
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "rm -rf ${SCTMP_DIR}"
   rm -rf "${TMP_DIR}"
+
+  # Deploy module file
+  if [ -n "$SCmoduleParams" ]; then
+    echo "- Deploying module file..."
+    # 1. Split SCmoduleParams into local and remote variables
+    read -r local_module_file remote_module_file <<< "$SCmoduleParams"
+    # 2. Extract the file name from the remote file (e.g. /path/to/1.0 -> 1.0)
+    version=$(basename "${remote_module_file}")
+    # 3. Update template in a temporary file
+    tmp_module=$(mktemp)
+    cp "${local_module_file}" "${tmp_module}"
+    sed -i "s/BRANCH_NAME/${version}/g" "${tmp_module}"
+    # 4. Upload module file
+    scp "${tmp_module}" "${SCuser}@${SCloginNode}:${remote_module_file}"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" "chmod 775 ${remote_module_file}"
+    # 5. Clean local template
+    rm "${tmp_module}"
+    echo "- Module file deployed to ${remote_module_file} with version ${version}"
+  fi
 
   # END
   echo "Congratulations!"

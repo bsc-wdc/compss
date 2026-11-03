@@ -223,8 +223,8 @@ version:
   stage: .pre
   script:
     - | # CHECK FORMAT
-      [[ "${CI_COMMIT_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.-]+)?$ ]] ||
-        { echo "Error: tag ${CI_COMMIT_TAG} does not match the expected pattern 'vMAJOR.MINOR.PATCH[-LABEL]'." >&2 && exit 1; }
+      [[ "${CI_COMMIT_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)\.[0-9]+)?$ ]] ||
+        { echo "Error: tag ${CI_COMMIT_TAG} does not match the expected pattern 'v#.#.#[-alpha/beta.#]'." >&2 && exit 1; }
     - VERSION="${CI_COMMIT_TAG#v}"
     - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
       # HEADERS SETUP
@@ -263,7 +263,7 @@ supercomputers:
         TARGET: "COMPSs"
   script:
     - exec &> >(tee job.log)
-    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}" ${CI_COMMIT_REF_NAME}
+    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}" ${CI_COMMIT_REF_NAME#v}
   artifacts:
     when: always
     expire_in: 1 week

@@ -7,7 +7,7 @@ variables:
   TESTS_IMAGE: "${CI_REGISTRY_IMAGE}/tests"
   REGISTRY_API: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories"
   BUILDX_BUILDER: "container-builder"
-  BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
+#  BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
 
 .gitlab_registry:
   before_script:
@@ -200,24 +200,31 @@ again:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       allow_failure: true
 
+.commit_tag:
+  before_script:
+    - COMPSS_VERSION="${CI_COMMIT_TAG#v}"
+    - BRANCH_NAME="${COMPSS_VERSION%%-*}"
+  rules:
+    - if: $CI_COMMIT_TAG
+
 version:
   stage: .pre
+  extends:
+    - .commit_tag
   script:
-    - | # CHECK FORMAT
+    - | # CHECK TAG
       [[ "${CI_COMMIT_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)\.[0-9]+)?$ ]] ||
         { echo "Error: tag ${CI_COMMIT_TAG} does not match the expected pattern 'v#.#.#[-alpha/beta.#]'." >&2 && exit 1; }
-    - VERSION="${CI_COMMIT_TAG#v}"
     - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
       # HEADERS SETUP
     - utils/scripts/header_setup/replace_all.sh
     - git add -u
     - git commit -m "Headers added" || true
       # UPDATE VERSION
-    - utils/scripts/release/update_version.sh "${VERSION}"
+    - utils/scripts/release/update_version.sh "${COMPSS_VERSION}"
     - git add -u
     - git commit -m "Version updated" || true
     - | # GIT PUSH
-      BRANCH_NAME="${VERSION%%-*}"
       git fetch origin "${BRANCH_NAME}"
       if [ "$(git rev-parse HEAD)" != "$(git rev-parse "tags/${CI_COMMIT_TAG}^{commit}")" ]; then
         git push -f origin "HEAD:${BRANCH_NAME}" "HEAD:tags/${CI_COMMIT_TAG}"
@@ -226,24 +233,24 @@ version:
       fi
       # DEPLOY ARTIFACTORY
     - utils/scripts/release/mvn_deploy_tag.sh "${CI_COMMIT_TAG}" true
-  rules:
-    - if: $CI_COMMIT_TAG
 
 supercomputers:
   stage: build
   timeout: 2h
+  extends:
+    - .commit_tag
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   parallel:
     matrix:
       - SCRIPT: "mn5/buildMN5"
-        TARGET: "GPP/COMPSs"
+        TARGET: "GPP"
       - SCRIPT: "mn5_acc/buildMN5_acc"
-        TARGET: "ACC/COMPSs"
+        TARGET: "ACC"
       - SCRIPT: "nord4/buildNord4"
-        TARGET: "COMPSs"
+        TARGET: ""
   script:
-    - builders/scs/${SCRIPT} compss /home/genu/compss/tmpCOMPSs/ "/apps/${TARGET}/${CI_COMMIT_REF_NAME}" ${CI_COMMIT_REF_NAME#v}
+    - builders/scs/"${SCRIPT}" "${SC_USER}" "${SC_TMP_DIR}" "${SC_TARGET_DIR}" "${COMPSS_VERSION:-${CI_COMMIT_BRANCH}}"
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       allow_failure: true
@@ -255,45 +262,43 @@ supercomputers:
 images:
   stage: build
   timeout: 8h
-  before_script:
-    - docker run --privileged --rm tonistiigi/binfmt --install all
-    - |
-      if [[ "${CI_COMMIT_TAG}" == *-* ]]; then
-        echo "Login to GitLab registry to upload COMPSs "${CI_COMMIT_TAG}" pre-release images."
-        docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-      else
-        echo "Login to Docker Hub registry to upload COMPSs "${CI_COMMIT_TAG}" final images."
-        docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
-      fi
+  extends:
+    - .commit_tag
   script:
     - exec &> >(tee job.log)
-    - ARCHS=amd,arm,riscv TAGS="${CI_COMMIT_TAG}",latest docker bake --no-cache --push release
+    - docker run --privileged --rm tonistiigi/binfmt --install all
+    - |
+      if [[ "${COMPSS_VERSION}" == *-* ]]; then
+        echo "Login to GitLab registry to upload COMPSs "${COMPSS_VERSION}" pre-release images."
+        docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+      else
+        echo "Login to Docker Hub registry to upload COMPSs "${COMPSS_VERSION}" final images."
+        docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
+      fi
+    - ARCHS=amd,arm,riscv TAGS="${COMPSS_VERSION}",latest docker bake --no-cache --push release
   artifacts:
     when: always
     expire_in: 1 week
     paths:
       - job.log
-  rules:
-    - if: $CI_COMMIT_TAG
 
 packages:
   stage: build
+  extends:
+    - .commit_tag
   script:
-    - VERSION="${CI_COMMIT_TAG#v}"
-    - builders/buildpackages "${VERSION}"
-    - scp "builders/packages/sc/COMPSs_${VERSION}.tar.gz" bsccs1000.int.bsc.es:/srv/repo/sc/stable/
-    - ssh bsccs1000.int.bsc.es chown wwwrun:www "/srv/repo/sc/stable/COMPSs_${VERSION}.tar.gz"
+    - builders/buildpackages "${COMPSS_VERSION}"
+    - scp "builders/packages/sc/COMPSs_${COMPSS_VERSION}.tar.gz" "${CD_PACKAGE_SERVER}:${CD_PACKAGE_PATH}"
+    - ssh ${CD_PACKAGE_SERVER} chown wwwrun:www "${CD_PACKAGE_PATH}"
     - | # PIP UPDATE
-      [[ "${CI_COMMIT_TAG}" == *-* ]] || twine upload "builders/packages/pip/pyCOMPSs/dist/pycompss-${VERSION}.tar.gz"
-  rules:
-    - if: $CI_COMMIT_TAG
+      [[ "${COMPSS_VERSION}" == *-* ]] || twine upload "builders/packages/pip/pyCOMPSs/dist/pycompss-${COMPSS_VERSION}.tar.gz"
 
 deploy:
   stage: deploy
+  extends:
+    - .commit_tag
   script:
-    - echo "COMPSs ${CI_COMMIT_TAG#v} released!"
+    - echo "COMPSs ${COMPSS_VERSION} released!"
   release:
     tag_name: ${CI_COMMIT_TAG}
-    description: RELEASE_NOTES
-  rules:
-    - if: $CI_COMMIT_TAG
+    description: RELEASE_NOTES.md

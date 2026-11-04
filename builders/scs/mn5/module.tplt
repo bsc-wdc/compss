@@ -64,52 +64,37 @@ if { [info exists env(${PYTHON_ENV_VAR_NAME})] } {
    if { $env(${PYTHON_ENV_VAR_NAME}) == "3" } {
        # puts stderr "Loading Python 3.12.1"
        module load hdf5/1.14.1-2 python/3.12.1
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/CLI/python3.12/site-packages
+       prepend-path  PATH        $PROG_BASE/TOOLS/CLI/python3.12/bin
    } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.12.1" } {
        # puts stderr "Loading Python 3.12.1"
        module load hdf5/1.14.1-2 python/3.12.1
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/CLI/python3.12/site-packages
+       prepend-path  PATH        $PROG_BASE/TOOLS/CLI/python3.12/bin
    } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.12.1-quantum" } {
        # puts stderr "Loading Python 3.12.1-quantum"
        module load hdf5/1.14.1-2 python/3.12.1
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/CLI/python3.12/site-packages
+       prepend-path  PATH        $PROG_BASE/TOOLS/CLI/python3.12/bin
        prepend-path  PATH        /apps/ACC/COMPSs/LIBRARIES/python/python3.12/bin
        prepend-path  PYTHONPATH  /apps/ACC/COMPSs/LIBRARIES/python/python3.12/site-packages
        prepend-path  PYTHONPATH  /apps/GPP/PYTHON/3.12.1/INTEL/lib/python3.12/site-packages/networkx/classes/
    } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.12.1-rocrate" } {
        # puts stderr "Loading Python 3.12.1"
        module load hdf5/1.14.1-2 python/3.12.1
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
-       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.12/site-packages
-       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.12/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/CLI/python3.12/site-packages
+       prepend-path  PATH        $PROG_BASE/TOOLS/CLI/python3.12/bin
+       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/specific/rocrate/python3.12/site-packages
+       prepend-path  PATH        $PROG_BASE/LIBRARIES/specific/rocrate/python3.12/bin
    } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.10.15" } {
        # puts stderr "Loading Python 3.10.15"
        module load python/3.10.15
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
-       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.10/site-packages
-       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.10/bin
-       #prepend-path  PYTHONPATH  $PROG_HOME/cli/lib/python3.10/site-packages/
    } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.9.16" } {
        # puts stderr "Loading Python 3.9.16"
        module load python/3.9.16
-       module load python/3.10.15
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
-       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.9/site-packages
-       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.9/bin
    } elseif { $env(${PYTHON_ENV_VAR_NAME}) == "3.8.18" } {
        # puts stderr "Loading Python 3.8.18"
        module load python/3.8.18
-       module load python/3.10.15
-       prepend-path  PATH        $PROG_BASE/TOOLS/cli/bin
-       prepend-path  PYTHONPATH  $PROG_BASE/TOOLS/cli/lib
-       prepend-path  PYTHONPATH  $PROG_BASE/LIBRARIES/rocrate/python3.8/site-packages
-       prepend-path  PATH        $PROG_BASE/LIBRARIES/rocrate/python3.8/bin
    } else {
        puts stderr "WARNING: Unrecognized Python version. Please choose a supported value for COMPSS_PYTHON_VERSION environment variable (module help $PROG_NAME/$PROG_VERSION)."
        puts stderr "         NOT Loading any Python for COMPSs - the user must load its own."
@@ -125,7 +110,7 @@ if { [info exists env(${PYTHON_ENV_VAR_NAME})] } {
 
 ### This shows info about loaded/unloaded module
 if { [module-info mode] != "whatis" } {
-   puts stderr "[module-info mode] [module-info name] (PATH, CLASSPATH, MANPATH, GAT_LOCATION, COMPSS_HOME, JAVA_HOME, JAVA_TOOL_OPTIONS, LDFLAGS, CPPFLAGS)"
+  puts stderr "[module-info mode] [module-info name] (PATH, CLASSPATH, MANPATH, GAT_LOCATION, COMPSS_HOME, JAVA_HOME, JAVA_TOOL_OPTIONS, LDFLAGS, CPPFLAGS)"
 }
 
 # MONITOR

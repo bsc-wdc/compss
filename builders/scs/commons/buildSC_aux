@@ -153,11 +153,11 @@
 
   # Doc
   echo "--- Copy docs"
-  cp "${TMP_DIR}"/changelog "${targetDir}"
+  cp "${TMP_DIR}"/CHANGELOG.md "${targetDir}"
   cp "${TMP_DIR}"/LICENSE "${targetDir}"
   cp "${TMP_DIR}"/NOTICE "${targetDir}"
   cp "${TMP_DIR}"/README.md "${targetDir}"
-  cp "${TMP_DIR}"/RELEASE_NOTES "${targetDir}"
+  cp "${TMP_DIR}"/RELEASE_NOTES.md "${targetDir}"
 
   # Dependencies
   echo "--- Copy dependencies"

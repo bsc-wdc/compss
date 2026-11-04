@@ -61,7 +61,7 @@ build-backend = "setuptools.build_meta"
     Documentation = "https://pycompss.readthedocs.io/"
     Repository = "https://github.com/bsc-wdc/compss"
     Issues = "https://github.com/bsc-wdc/compss/issues"
-    Changelog = "https://github.com/bsc-wdc/compss/blob/stable/changelog"
+    Changelog = "https://github.com/bsc-wdc/compss/blob/stable/CHANGELOG.md"
 
 [tool.setuptools.dynamic]
     version = { file = ["VERSION.txt"] }

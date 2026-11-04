@@ -46,7 +46,7 @@
   PRELOAD_ENV=$6
   SCmoduleParams=$7
 
-  if [ $(uname) == "Darwin" ]; then
+  if [ "$(uname)" == "Darwin" ]; then
     kafka=0 # Installation from macOS with kafka not available
   else
     kafka=1 # Set to 0 to skip kafka download
@@ -92,7 +92,7 @@
   echo "- Copy trunk to tmpdir"
   rm -rf "${TMP_DIR}"
   mkdir -p "${TMP_DIR}"
-  cp "${SOURCES_DIR}"/changelog "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/CHANGELOG.md "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/compss "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/dependencies "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/files "${TMP_DIR}"
@@ -102,7 +102,7 @@
   cp "${SOURCES_DIR}"/NOTICE "${TMP_DIR}"
   cp "${SOURCES_DIR}"/pom.xml "${TMP_DIR}"
   cp "${SOURCES_DIR}"/README.md "${TMP_DIR}"
-  cp "${SOURCES_DIR}"/RELEASE_NOTES "${TMP_DIR}"
+  cp "${SOURCES_DIR}"/RELEASE_NOTES.md "${TMP_DIR}"
   find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; | cat # Clean git files
 
   # CLEAN TRUNK COMPILATION

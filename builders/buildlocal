@@ -765,7 +765,7 @@ install_compss() {
   log_info "- Copy trunk to tmpdir"
   rm -rf "${TMP_DIR}"
   mkdir -p "${TMP_DIR}"
-  cp "${SOURCES_DIR}/changelog" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/CHANGELOG.md" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/compss" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/dependencies" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
@@ -774,7 +774,7 @@ install_compss() {
   cp "${SOURCES_DIR}/NOTICE" "${TMP_DIR}"
   cp "${SOURCES_DIR}/pom.xml" "${TMP_DIR}"
   cp "${SOURCES_DIR}/README.md" "${TMP_DIR}"
-  cp "${SOURCES_DIR}/RELEASE_NOTES" "${TMP_DIR}"
+  cp "${SOURCES_DIR}/RELEASE_NOTES.md" "${TMP_DIR}"
   find "${TMP_DIR}" -name ".git*" -print0 -exec rm -rf {} \; 2>/dev/null | cat > /dev/null # Clean git files
 
   # CLEAN TRUNK COMPILATION
@@ -811,11 +811,11 @@ install_compss() {
   log_info "- Copy Runtime deployment files"
   # Doc
   log_info "--- Copy docs"
-  cp "${TMP_DIR}/changelog" ${targetDir}
+  cp "${TMP_DIR}/CHANGELOG.md" ${targetDir}
   cp "${TMP_DIR}/LICENSE" ${targetDir}
   cp "${TMP_DIR}/NOTICE" ${targetDir}
   cp "${TMP_DIR}/README.md" ${targetDir}
-  cp "${TMP_DIR}/RELEASE_NOTES" ${targetDir}
+  cp "${TMP_DIR}/RELEASE_NOTES.md" ${targetDir}
 
   # DEPENDENCIES
   . "${TMP_DIR}/dependencies/dep_versions"

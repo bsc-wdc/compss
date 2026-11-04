@@ -25,19 +25,19 @@ CREATING THE DISTRIBUTABLE
 The PyPI distributable can be created with the following command:
 	sudo -E ./buildpip $VERSION
 Where $VERSION contains the desired target version. For example, if
-you want to create a distributable for the 4.0.0-alpha.2 version then
+you want to create a distributable for the 4.0.0-alpha.3 version then
 the following command should be executed:
-	sudo -E ./buildpip 4.0.0-alpha.2
+	sudo -E ./buildpip 4.0.0-alpha.3
 
 This will create the following files and directories:
 	- A PyCOMPSs directory in /trunk/builders/packages/pip.
 	  This directory contains the scripts and files necessary to
 	  install PyCOMPSs and PyPyCOMPSs via distutils and/or PIP.
 
-	- A pycompss-4.0.0-alpha.2.tar.gz file in /trunk/builders/packages/pip/PyCOMPSs/dist
+	- A pycompss-4.0.0-alpha.3.tar.gz file in /trunk/builders/packages/pip/PyCOMPSs/dist
 	  This .tar.gz contains the whole PyCOMPSs directory (except for the dist
 		folder). This file is useful for testing. For example, if you type
-		 sudo -E python -m pip install pycompss-4.0.0-alpha.2.tar.gz -v
+		 sudo -E python -m pip install pycompss-4.0.0-alpha.3.tar.gz -v
 	  pip will try to install PyCOMPSs from this .tar.gz
 
 
@@ -156,7 +156,7 @@ buildpip:
 	- Main script. sudo -E ./buildpip VERSION will create a PIP distributable
 	  named PyCOMPSs-${PyCOMPSs_VERSION}.tar.gz in
 		framework/builders/packages/pip/PyCOMPSs/dist/
-	  Example: sudo -E ./buildpip 4.0.0-alpha.2 will create a PyCOMPSs-4.0.0-alpha.2.tar.gz
+	  Example: sudo -E ./buildpip 4.0.0-alpha.3 will create a PyCOMPSs-4.0.0-alpha.3.tar.gz
 
 PyCOMPSsResources/backend.py:
 	- Auxiliary script which downloads and installs PyCOMPSs in the site-packages

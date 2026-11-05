@@ -107,6 +107,7 @@ check:
 
 test:
   stage: test
+  needs: [build]
   extends:
     - .gitlab_registry
     - .merge_request

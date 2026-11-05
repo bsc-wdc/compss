@@ -251,7 +251,8 @@ supercomputers:
       - SCRIPT: "nord4/buildNord4"
         TARGET: ""
   script:
-    - builders/scs/"${SCRIPT}" "${SC_USER}" "${SC_TMP_DIR}" "${SC_TARGET_DIR}" "${COMPSS_VERSION:-${CI_COMMIT_BRANCH}}"
+    - ": ${COMPSS_VERSION:=${CI_COMMIT_REF_NAME}}"
+    - builders/scs/"${SCRIPT}" "${SC_USER}" "${SC_TMP_DIR}" "${SC_TARGET_DIR}/${COMPSS_VERSION}" "${COMPSS_VERSION}"
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       allow_failure: true

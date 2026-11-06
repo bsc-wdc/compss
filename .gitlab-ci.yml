@@ -22,7 +22,7 @@ variables:
   rules:
     - if: $CI_MERGE_REQUEST_DRAFT == "true"
       when: never
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED
 
 # Ends the job with success when the MR changes only documentation (Markdown
 # and the root text files). The pipeline still passes, so the MR can merge.

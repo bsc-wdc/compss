@@ -177,15 +177,15 @@ clean:
     - .gitlab_registry
   script:
     - MERGED_BRANCH="$(git log -1 --pretty=%B | grep "^Merge branch" | cut -f2 -d\')"
-    - docker buildx imagetools create --prefer-index=false -t "${CACHE_IMAGE}:${CI_DEFAULT_BRANCH}" "${CACHE_IMAGE}:${MERGED_BRANCH}"
-    - docker buildx imagetools create --prefer-index=false -t "${TESTS_IMAGE}:${CI_DEFAULT_BRANCH}" "${TESTS_IMAGE}:${MERGED_BRANCH}"
+    - docker buildx imagetools create --prefer-index=false -t "${CACHE_IMAGE}:${CI_COMMIT_BRANCH}" "${CACHE_IMAGE}:${MERGED_BRANCH}"
+    - docker buildx imagetools create --prefer-index=false -t "${TESTS_IMAGE}:${CI_COMMIT_BRANCH}" "${TESTS_IMAGE}:${MERGED_BRANCH}"
     - REPOSITORY_IDS="$(curl -sf --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}")"
     - CACHE_ID=$(jq --arg LOCATION "${CACHE_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
     - TESTS_ID=$(jq --arg LOCATION "${TESTS_IMAGE}" '.[] | select(.location == $LOCATION) | .id' <<< "${REPOSITORY_IDS}")
     - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${CACHE_ID}/tags/${MERGED_BRANCH}"
     - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${TESTS_ID}/tags/${MERGED_BRANCH}"
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_PROTECTED
 
 #######################
 # CONTINUOUS DELIVERY #

@@ -65,6 +65,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
     // Boolean for initialization
     private static boolean initialized = false;
     private boolean stopped = false;
+    // Whether stopIT must bring back the result files: set by the stops that skip noMoreTasks (fatal error and
+    // termination request), so that the files updated by completed tasks are not lost with the worker sandboxes
+    private volatile boolean retrieveResultFilesOnStop = false;
 
     // Components
     private static AccessProcessor ap;
@@ -257,6 +260,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                         public void run() {
                             try {
                                 // The worker stop actions of stopIT fetch the worker logs and analysis files
+                                runtime.retrieveResultFilesOnStop = true;
                                 runtime.stopIT(true);
                             } catch (RuntimeException e) {
                                 // A concurrent normal stop won the race: nothing else to do
@@ -318,6 +322,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
                 for (Application app : Application.getApplications()) {
                     LOGGER.debug("Cancelling all remaining tasks for workflow " + app.getId());
                     ap.cancelApplicationTasks(app);
+                }
+                if (retrieveResultFilesOnStop && ap != null) {
+                    // Bring back the last available version of the result files before the workers are stopped
+                    for (Application app : Application.getApplications()) {
+                        LOGGER.info("Getting result files for app " + app.getId() + " before stopping");
+                        ap.getResultFiles(app);
+                    }
                 }
                 // Add task summary
                 boolean taskSummaryEnabled = System.getProperty(COMPSsConstants.TASK_SUMMARY) != null
@@ -613,7 +624,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
         LOGGER.info("No more tasks for app " + app.getId());
         // Wait until all tasks have finished
         ap.noMoreTasks(app);
-        if (!stopped) {
+        if (!stopped && !retrieveResultFilesOnStop) {
+            // Not needed when a stop already in progress retrieves them
             // Retrieve result files
             LOGGER.debug("Getting Result Files for app" + app.getId());
             ap.getResultFiles(app);
@@ -640,6 +652,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, ErrorHandler {
 
             public void run() {
                 ErrorManager.logError("Error detected. Shutting down COMPSs", null);
+                COMPSsRuntimeImpl.this.retrieveResultFilesOnStop = true;
                 COMPSsRuntimeImpl.this.stopIT(true);
                 ErrorManager.logError("Shutting down the running process", null);
                 // halt skips the shutdown hooks, so flush the logs here

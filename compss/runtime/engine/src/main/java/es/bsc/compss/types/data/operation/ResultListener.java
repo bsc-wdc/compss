@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.operation;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
@@ -78,11 +79,15 @@ public class ResultListener extends EventListener {
     public synchronized void notifyFailure(DataOperation fOp, Exception e) {
         String fOpName = "N/A";
         if (fOp != null) {
-            fOp.getName();
+            fOpName = fOp.getName();
+            if (fOp instanceof Copy && ((Copy) fOp).getTargetLoc() != null) {
+                // Name the application file that could not be brought back
+                fOpName = fOpName + " (" + ((Copy) fOp).getTargetLoc().getPath() + ")";
+            }
         }
         LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOpName
             + ", file role is RESULT_FILE" + ", operation end state is FAILED", e);
-        ErrorManager.warn("Result file tranfer " + fOpName + " failed. Check runtime.log for more details.");
+        ErrorManager.warn("Result file transfer " + fOpName + " failed. Check runtime.log for more details.");
         this.operation--;
         this.errors++;
         if (this.enabled && this.operation == 0) {

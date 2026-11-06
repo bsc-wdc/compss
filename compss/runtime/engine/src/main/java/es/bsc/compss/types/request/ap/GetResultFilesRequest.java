@@ -32,6 +32,7 @@ import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.tracing.APRequestEvent;
+import es.bsc.compss.util.ErrorManager;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.Set;
@@ -147,8 +148,10 @@ public class GetResultFilesRequest implements APRequest {
                     renaming = EngineDataInstanceId.previousVersionRenaming(renaming);
                 }
                 if (renaming == null) {
-                    LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + lastVersion.getRenaming()
-                        + " nor any of its previous versions");
+                    String msg = RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + lastVersion.getRenaming()
+                        + " nor any of its previous versions (" + fInfo.getOriginalLocation().getPath() + ")";
+                    LOGGER.error(msg);
+                    ErrorManager.warn(msg);
                     return null;
                 }
                 LogicalData data = Comm.getData(renaming);

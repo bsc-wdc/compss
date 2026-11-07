@@ -292,8 +292,8 @@ packages:
   extends:
     - .commit_tag
   script:
-    - builders/specs/buildsc "${COMPSS_VERSION}"
-#    - builders/specs/buildpip "${COMPSS_VERSION}" "${CD_PACKAGE_SERVER}" "${CD_PACKAGE_PATH}" [[ "${COMPSS_VERSION}" != *-* ]]
+    - builders/specs/sc/buildsc "${COMPSS_VERSION}"
+#    - builders/specs/pip/buildpip "${COMPSS_VERSION}" "${CD_PACKAGE_SERVER}" "${CD_PACKAGE_PATH}" [[ "${COMPSS_VERSION}" != *-* ]]
 
 deploy:
   stage: deploy

@@ -205,6 +205,7 @@ again:
 
 .commit_tag:
   before_script:
+    - shopt -s extglob
     - COMPSS_VERSION="${CI_COMMIT_TAG#v}"
     - BRANCH_NAME="${COMPSS_VERSION%%.+([0-9])-*}"
   rules:

@@ -185,6 +185,8 @@ clean:
     - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${CACHE_ID}/tags/${MERGED_BRANCH}"
     - curl -X DELETE --header "JOB-TOKEN:${CI_JOB_TOKEN}" "${REGISTRY_API}/${TESTS_ID}/tags/${MERGED_BRANCH}"
   rules:
+    - if: $CI_COMMIT_TAG
+      when: never
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_PROTECTED
 
 #######################

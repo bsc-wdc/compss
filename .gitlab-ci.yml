@@ -218,6 +218,8 @@ version:
     - | # CHECK TAG
       [[ "${CI_COMMIT_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)\.[0-9]+)?$ ]] ||
         { echo "Error: tag ${CI_COMMIT_TAG} does not match the expected pattern 'v#.#.#[-alpha/beta.#]'." >&2 && exit 1; }
+      echo "${COMPSS_VERSION}" "${BRANCH_NAME}"
+      exit 1
     - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
       # HEADERS SETUP
     - utils/scripts/header_setup/replace_all.sh
@@ -235,7 +237,7 @@ version:
         exit 1
       fi
       # DEPLOY ARTIFACTORY
-    - utils/scripts/release/mvn_deploy_tag.sh "${CI_COMMIT_TAG}" true
+    - utils/scripts/release/mvn_deploy_tag.sh "${COMPSS_VERSION}" true
 
 supercomputers:
   stage: build

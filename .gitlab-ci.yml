@@ -289,11 +289,8 @@ packages:
   extends:
     - .commit_tag
   script:
-    - builders/buildpackages "${COMPSS_VERSION}"
-    - scp "builders/packages/sc/COMPSs_${COMPSS_VERSION}.tar.gz" "${CD_PACKAGE_SERVER}:${CD_PACKAGE_PATH}"
-    - ssh ${CD_PACKAGE_SERVER} chown wwwrun:www "${CD_PACKAGE_PATH}"
-    - | # PIP UPDATE
-      [[ "${COMPSS_VERSION}" == *-* ]] || twine upload "builders/packages/pip/pyCOMPSs/dist/pycompss-${COMPSS_VERSION}.tar.gz"
+    - builders/specs/buildsc "${COMPSS_VERSION}"
+#    - builders/specs/buildpip "${COMPSS_VERSION}" "${CD_PACKAGE_SERVER}" "${CD_PACKAGE_PATH}" [[ "${COMPSS_VERSION}" != *-* ]]
 
 deploy:
   stage: deploy

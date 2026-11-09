@@ -1,4 +1,42 @@
-This product includes software developed by
-the Workflows and Distributed Computing Group (WDC)
-from Department of Computer Science (CS)
-at the Barcelona Supercomputing Center (BSC).
+COMP SUPERSCALAR (COMPSs)
+=========================
+
+Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
+
+COMP Superscalar (COMPSs) is a task-based programming model and runtime system designed to simplify the development and execution of applications on distributed computing infrastructures, including clusters, grids and cloud environments.
+
+
+PROJECT OWNERSHIP AND DEVELOPMENT
+---------------------------------
+
+COMPSs is developed by the Workflows and Distributed Computing (WDC) Group, Department of Computer Science (CS), at the Barcelona Supercomputing Center (BSC).
+
+Website: https://compss.bsc.es/
+
+Source code: https://github.com/bsc-wdc/compss
+
+
+THIRD-PARTY SOFTWARE
+--------------------
+
+COMPSs incorporates and/or distributes third-party software components.
+
+Copyright and attribution notices associated with these components are maintained in accordance with their respective licenses.
+
+Please refer to the corresponding component source code, license files and copyright notices for additional information.
+
+
+LICENSE
+-------
+
+Unless otherwise indicated, COMPSs is distributed under the Apache License, Version 2.0.
+
+A copy of the license is available in the LICENSE file and at:
+
+https://www.apache.org/licenses/LICENSE-2.0
+
+
+ADDITIONAL ACKNOWLEDGMENTS
+--------------------------
+
+Information about research projects, funding institutions and other organizations supporting the development of COMPSs is provided in the ACKNOWLEDGMENTS file.

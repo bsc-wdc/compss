@@ -274,9 +274,10 @@ public class ContainerInvoker extends Invoker<Workflow> {
         String compssContainer = System.getenv(COMPSsConstants.COMPSS_CONTAINER);
         logger.info("COMPSs docker container: {}", compssContainer);
         boolean insideContainer = compssContainer != null && !compssContainer.isEmpty();
-        int numCmdArgs = numOptions + containerCallParams.size() + (insideContainer ? 2 : 4);
+        int numCmdArgs = numOptions + containerCallParams.size();
         switch (this.container.getEngine()) {
             case DOCKER:
+                numCmdArgs += insideContainer ? 2 : 4;
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         numCmdArgs += NUM_BASE_DOCKER_PYTHON_ARGS + (insideContainer ? 0 : 2);

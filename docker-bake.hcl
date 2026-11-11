@@ -11,6 +11,11 @@ variable "LABELS" {
   type = map(string)
 }
 
+variable "REPO" {
+  default = "compss"
+  type = string
+}
+
 variable "TAGS" {
   default = ["latest"]
   type = set(string)
@@ -84,7 +89,7 @@ target "bindings" {
   target = "${lan}compss${hpc}"
   dockerfile = "utils/docker/release/${lan}compss.Dockerfile"
   platforms = [for arch in setsubtract(ARCHS, hpc == "" ? [] : ["riscv"]): "linux/${arch}64"]
-  tags = [for tag in TAGS: "compss/${lan}compss${hpc}:${tag}"]
+  tags = [for tag in TAGS: "${REPO}/${lan}compss${hpc}:${tag}"]
 }
 
 target "cases" {
@@ -96,7 +101,7 @@ target "cases" {
   target = "compss-${var}"
   dockerfile = "utils/docker/release/${var}.Dockerfile"
   platforms = [for arch in setsubtract(ARCHS, ["riscv"]): "linux/${arch}64"]
-  tags = [for tag in TAGS: "compss/compss-${var}:${tag}"]
+  tags = [for tag in TAGS: "${REPO}/compss-${var}:${tag}"]
 }
 
 ####################

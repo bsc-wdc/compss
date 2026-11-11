@@ -276,11 +276,12 @@ images:
       if [[ "${COMPSS_VERSION}" == *-* ]]; then
         echo "Login to GitLab registry to upload COMPSs "${COMPSS_VERSION}" pre-release images."
         docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+        export REPO="${CI_REGISTRY_IMAGE}"
       else
         echo "Login to Docker Hub registry to upload COMPSs "${COMPSS_VERSION}" final images."
         docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
       fi
-    - ARCHS=amd,arm,riscv TAGS="${COMPSS_VERSION}",latest docker bake --no-cache --push release
+    - ARCHS=amd,arm,riscv TAGS="${COMPSS_VERSION},latest" docker bake --no-cache --push release
   artifacts:
     when: always
     expire_in: 1 week

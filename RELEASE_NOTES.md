@@ -9,7 +9,7 @@ Release date: Nov-2026
 
 ### New features
 
-- Upgraded support for Extrae 5.1.9.
+- Upgraded support for Extrae 5.1.10.
 - Upgraded support for Python 3.14.
 - New Docker images with multi-architecture support (AMD64, ARM64 and RISCV64).
 - New monitor interface (Graphana based) with real time data, with support with interactive agent deployment.

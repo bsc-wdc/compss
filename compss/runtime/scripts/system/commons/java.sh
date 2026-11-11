@@ -26,13 +26,13 @@ JAVA_HOME_ERROR="ERROR: Cannot find Java JRE installation. Please set JAVA_HOME.
 if [ -z "${JAVA_HOME}" ]; then
   JAVA=$(command -v java)
   JAVA_HOME=$(dirname "$(dirname "$(realpath "${JAVA}")")")
-  LD_LIBRARY_PATH="${JAVA_HOME}/lib/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  #LD_LIBRARY_PATH="${JAVA_HOME}/lib/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 elif [ -f "${JAVA_HOME}/jre/bin/java" ]; then
   JAVA="${JAVA_HOME}/jre/bin/java"
-  LD_LIBRARY_PATH="${JAVA_HOME}/jre/lib/amd64/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  #LD_LIBRARY_PATH="${JAVA_HOME}/jre/lib/amd64/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 elif [ -f "${JAVA_HOME}/bin/java" ]; then
   JAVA="${JAVA_HOME}/bin/java"
-  LD_LIBRARY_PATH="${JAVA_HOME}/lib/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  #LD_LIBRARY_PATH="${JAVA_HOME}/lib/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 else
   fatal_error "${JAVA_HOME_ERROR}" 1
 fi

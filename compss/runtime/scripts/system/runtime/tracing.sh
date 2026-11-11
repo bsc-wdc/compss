@@ -138,7 +138,7 @@ check_tracing_setup () {
     extraeFile="${extrae_xml_final_path}"
     extraeWDir=$(grep "final-directory" "${extraeFile}" | cut -d'>' -f2 | rev| cut -c18- |rev)
 
-    export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${EXTRAE_LIB}"
     export EXTRAE_HOME=${EXTRAE_HOME}
     export EXTRAE_CONFIG_FILE=${extraeFile}
   else

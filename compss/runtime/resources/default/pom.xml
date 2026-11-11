@@ -10,7 +10,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-resources</artifactId>
-        <version>4.0.0-alpha.3</version>
+        <version>4.0.0-beta.1</version>
     </parent>
 
     <!-- PROJECT INFORMATION -->

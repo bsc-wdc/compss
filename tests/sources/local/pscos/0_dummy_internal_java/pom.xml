@@ -8,7 +8,7 @@
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
         <artifactId>compss-tests-pscos</artifactId>
-        <version>4.0.0-alpha.3</version>
+        <version>4.0.0-beta.1</version>
     </parent>
 
     <!-- PROJECT INFORMATION -->

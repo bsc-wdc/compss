@@ -15,10 +15,10 @@ COMPSs documentation can be found at http://compss.bsc.es or at https://compss-d
 Installation
 ------------
 1.- Unzip the package
-    $ tar -xvf COMPSs_4.0.0-alpha.3.tar.gz
+    $ tar -xvf COMPSs_4.0.0-beta.1.tar.gz
 
 2.- Execute the installation script
-    $ cd COMPSs_4.0.0-alpha.3/; ./install <targetDir> [queues_cfg]
+    $ cd COMPSs_4.0.0-beta.1/; ./install <targetDir> [queues_cfg]
 
 
 Dependencies

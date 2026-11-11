@@ -630,6 +630,8 @@ handle_app_end() {
 }
 
 run_app_with_compss() {
+  LD_LIBRARY_PATH="${JAVA_HOME}/lib/server${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
  # Launch application execution

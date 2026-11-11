@@ -12,7 +12,7 @@
     extraeDir="${EXTRAE_HOME}"
   fi
 
-  export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$extraeDir/lib"
 
   #-------------------------------------
   # Get common parameters

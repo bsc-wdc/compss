@@ -649,7 +649,7 @@ install_compss() {
     ./make_bundle.sh > "${bindingOut}" 2>&1 && :
   else
     log_info "   (as user ${user_exec})"
-    sudo -E -u "${user_exec}" ./make_bundle.sh > "${bindingOut}" 2>&1 && :
+    sudo -E -u "${user_exec}" ./make_bundle.sh | sudo tee "${bindingOut}" 2>&1
   fi
   ev=$?
   if [ $ev -ne 0 ]; then
@@ -1200,8 +1200,7 @@ install_compss() {
     log_info "- c-binaries added to user profile"
     echo " "
     log_info "- Adding binding-common to profile..."   # Needed for jupyter notebook
-    # Java paths changed since Java 11, from $JAVA_HOME/lib/amd64/server:$JAVA_HOME/jre/lib/amd64/server
-    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/server" >> $envFile
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib" >> $envFile
     log_info "- binding-common library added to user profile"
     echo " "
     # Instead of importing it in the envFile, it is done with softlinks from site-packages in python3 (if available) on the installation

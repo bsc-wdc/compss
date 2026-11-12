@@ -1,0 +1,102 @@
+.commit_tag:
+  before_script:
+    - shopt -s extglob
+    - COMPSS_VERSION="${CI_COMMIT_TAG#v}"
+    - BRANCH_NAME="${COMPSS_VERSION%%.+([0-9])-*}"
+  rules:
+    - if: $CI_COMMIT_TAG
+
+version:
+  stage: .pre
+  extends:
+    - .commit_tag
+  script:
+    - | # CHECK TAG
+      [[ "${CI_COMMIT_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)\.[0-9]+)?$ ]] ||
+        { echo "Error: tag ${CI_COMMIT_TAG} does not match the expected pattern 'v#.#.#[-alpha/beta.#]'." >&2 && exit 1; }
+    - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
+      # HEADERS SETUP
+    - utils/scripts/header_setup/replace_all.sh
+    - git add -u
+    - git commit -m "Headers added" || true
+      # UPDATE VERSION
+    - utils/scripts/release/update_version.sh "${COMPSS_VERSION}"
+    - git add -u
+    - git commit -m "Version updated" || true
+    - | # GIT PUSH
+      git fetch origin "${BRANCH_NAME}"
+      if [ "$(git rev-parse HEAD)" != "$(git rev-parse "tags/${CI_COMMIT_TAG}^{commit}")" ]; then
+        git push -f origin "HEAD:${BRANCH_NAME}" "HEAD:tags/${CI_COMMIT_TAG}"
+        echo "Fixes commited and pushed. Triggering now another pipeline."
+        exit 1
+      fi
+      # DEPLOY ARTIFACTORY
+    - utils/scripts/release/mvn_deploy_tag.sh "${CI_COMMIT_TAG}" true
+
+supercomputers:
+  stage: build
+  timeout: 2h
+  extends:
+    - .commit_tag
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  parallel:
+    matrix:
+      - SCRIPT: "mn5/buildMN5"
+        TARGET: "GPP"
+      - SCRIPT: "mn5_acc/buildMN5_acc"
+        TARGET: "ACC"
+      - SCRIPT: "nord4/buildNord4"
+        TARGET: ""
+  script:
+    - ": ${COMPSS_VERSION:=${CI_COMMIT_REF_NAME}}"
+    - builders/scs/"${SCRIPT}" "${SC_USER}" "${SC_TMP_DIR}" "${SC_TARGET_DIR}/${COMPSS_VERSION}" "${COMPSS_VERSION}"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      allow_failure: true
+    - if: $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_TAG
+
+images:
+  stage: build
+  timeout: 8h
+  extends:
+    - .commit_tag
+  script:
+    - exec &> >(tee job.log)
+    - docker run --privileged --rm tonistiigi/binfmt --install all
+    - |
+      if [[ "${COMPSS_VERSION}" == *-* ]]; then
+        echo "Login to GitLab registry to upload COMPSs "${COMPSS_VERSION}" pre-release images."
+        docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+        export BUILDX_NO_DEFAULT_ATTESTATIONS="1" REPO="${CI_REGISTRY_IMAGE}"
+      else
+        echo "Login to Docker Hub registry to upload COMPSs "${COMPSS_VERSION}" final images."
+        docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"
+      fi
+    - ARCHS=amd,arm,riscv TAGS="${COMPSS_VERSION},latest" docker bake --no-cache --push release
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - job.log
+
+packages:
+  stage: build
+  extends:
+    - .commit_tag
+  script:
+    - builders/specs/sc/buildsc "${COMPSS_VERSION}"
+#    - builders/specs/pip/buildpip "${COMPSS_VERSION}" "${CD_PACKAGE_SERVER}" "${CD_PACKAGE_PATH}" [[ "${COMPSS_VERSION}" != *-* ]]
+
+deploy:
+  stage: deploy
+  extends:
+    - .commit_tag
+  script:
+    - echo "COMPSs ${COMPSS_VERSION} released!"
+  release:
+    tag_name: ${CI_COMMIT_TAG}
+    description: RELEASE_NOTES.md

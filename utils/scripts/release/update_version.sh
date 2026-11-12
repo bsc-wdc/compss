@@ -109,10 +109,10 @@ usage() {
 
   #---------------------------------------------------------------------
   # Warn for RELEASE NOTES and CHANGELOG modifications
-  echo "************************************************"
-  echo "* WARNING: RELEASE_NOTES.md and CHANGELOG.md must be *"
-  echo "*          manually edited                     *"
-  echo "************************************************"
+  echo "**********************************************"
+  echo "* WARNING: RELEASE_NOTES.md and CHANGELOG.md *"
+  echo "*          must be manually edited           *"
+  echo "**********************************************"
 
   # END
   exit 0

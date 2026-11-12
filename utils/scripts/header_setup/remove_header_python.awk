@@ -5,7 +5,7 @@ BEGIN { start = 0; incomment = 0;}
     if (start == 0)
     {
             # Python comment
-            if (/^\#/)
+            if (/^#/)
             {
                 # print "single line"
             }

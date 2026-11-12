@@ -2,8 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-<div align="center">
-
 | Release                                   | Date     | Codename        |
 |-------------------------------------------|----------|-----------------|
 | [4.0](#release-number-40-queens-wreath)   | Nov-2026 | Queen's wreath  |
@@ -28,9 +26,6 @@ All notable changes to this project will be documented in this file.
 | [1.2](#release-number-12)                 | Nov-2014 |                 |
 | [1.1.2](#release-number-112)              | Jun-2014 |                 |
 | [1.1.1](#release-number-111)              | Oct-2013 |                 |
-
-</div>
-
 
 ## Release number: 4.0 (Queen's wreath)
 

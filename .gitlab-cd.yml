@@ -37,8 +37,6 @@ version:
 supercomputers:
   stage: build
   timeout: 2h
-  extends:
-    - .commit_tag
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   parallel:
@@ -50,7 +48,7 @@ supercomputers:
       - SCRIPT: "nord4/buildNord4"
         TARGET: ""
   script:
-    - ": ${COMPSS_VERSION:=${CI_COMMIT_REF_NAME}}"
+    - COMPSS_VERSION=${CI_COMMIT_REF_NAME#${CI_COMMIT_TAG:+v}}
     - builders/scs/"${SCRIPT}" "${SC_USER}" "${SC_TMP_DIR}" "${SC_TARGET_DIR}/${COMPSS_VERSION}" "${COMPSS_VERSION}"
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"

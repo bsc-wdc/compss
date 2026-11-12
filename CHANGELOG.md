@@ -36,7 +36,7 @@ Release date: Nov-2026
 - Upgraded support for Extrae 5.1.10.
 - Upgraded support for Python 3.14.
 - New Docker images with multi-architecture support (AMD64, ARM64 and RISCV64).
-- New monitor interface (Graphana based) with real time data, with support with interactive agent deployment.
+- New monitor interface (Graphana based) with real time data and interactive agent deployment support.
 - New PyCOMPSs CLI: independent repository, graphical interface, COMPSs installation, environment management, and many more.
 - New synchronization API function: `compss_wait_on_any`.
 - New resource usage analytics tool from provenance: `compss_genprofiling`.

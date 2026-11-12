@@ -176,16 +176,6 @@ clean:
 # CONTINUOUS DELIVERY #
 #######################
 
-again:
-  needs: []
-  extends:
-    - test
-  variables:
-    BRANCH_NAME: "${CI_COMMIT_BRANCH}"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      allow_failure: true
-
 .commit_tag:
   before_script:
     - shopt -s extglob

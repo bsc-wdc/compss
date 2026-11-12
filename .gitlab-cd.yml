@@ -95,6 +95,7 @@ deploy:
   extends:
     - .commit_tag
   script:
+#    - ${RELEASE}
     - echo "COMPSs ${COMPSS_VERSION} released!"
   release:
     tag_name: ${CI_COMMIT_TAG}

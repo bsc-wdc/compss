@@ -160,12 +160,12 @@ public class FakeNode extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(ResourceDescription descripton) {
+    public void increaseComputingCapabilities(ResourceDescription descripton) throws UnstartedNodeException {
 
     }
 
     @Override
-    public void reduceComputingCapabilities(ResourceDescription descripton) {
+    public void reduceComputingCapabilities(ResourceDescription descripton) throws UnstartedNodeException {
 
     }
 

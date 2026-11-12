@@ -18,6 +18,7 @@ package es.bsc.compss.http.master;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
+import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
@@ -230,13 +231,13 @@ public class HTTPInstance extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(ResourceDescription description) {
+    public void increaseComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
         // Does not apply.
         // The computing capabilities of a http is not controlled by the http user
     }
 
     @Override
-    public void reduceComputingCapabilities(ResourceDescription description) {
+    public void reduceComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
         // Does not apply.
         // The computing capabilities of a http is not controlled by the http user
     }

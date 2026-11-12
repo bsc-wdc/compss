@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.updates.PendingReduction;
@@ -114,7 +115,12 @@ public class DynamicMethodWorker extends MethodWorker {
         final int FPGACount = increment.getTotalFPGAComputingUnits();
         final int otherCount = increment.getTotalOTHERComputingUnits();
 
-        this.getNode().increaseComputingCapabilities(increment);
+        try {
+            this.getNode().increaseComputingCapabilities(increment);
+        } catch (UnstartedNodeException une) {
+            LOGGER.warn("Cannot increase the computing capabilities of worker " + this.getName()
+                + " because its node has not started yet");
+        }
         synchronized (this.available) {
             this.available.increase(increment);
         }
@@ -185,7 +191,12 @@ public class DynamicMethodWorker extends MethodWorker {
         final int otherCount = reduction.getTotalOTHERComputingUnits();
 
         if (!this.isLost()) {
-            this.getNode().reduceComputingCapabilities(reduction);
+            try {
+                this.getNode().reduceComputingCapabilities(reduction);
+            } catch (UnstartedNodeException une) {
+                LOGGER.warn("Cannot reduce the computing capabilities of worker " + this.getName()
+                    + " because its node has not started yet");
+            }
         }
         synchronized (this.description) {
             this.getDescription().reduce(reduction);

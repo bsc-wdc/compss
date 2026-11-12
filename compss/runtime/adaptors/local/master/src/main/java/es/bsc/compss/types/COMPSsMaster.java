@@ -29,6 +29,7 @@ import es.bsc.compss.data.FileOpsManager.FileOpListener;
 import es.bsc.compss.data.StorageHandler;
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.exceptions.CannotLoadException;
+import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.exceptions.WorkflowException;
 import es.bsc.compss.execution.ExecutionManager;
 import es.bsc.compss.execution.Invocation;
@@ -1456,7 +1457,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public void increaseComputingCapabilities(ResourceDescription descr) {
+    public void increaseComputingCapabilities(ResourceDescription descr) throws UnstartedNodeException {
         final MethodResourceDescription description = (MethodResourceDescription) descr;
         final int cpuCount = description.getTotalCPUComputingUnits();
         final int gpuCount = description.getTotalGPUComputingUnits();
@@ -1466,7 +1467,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public void reduceComputingCapabilities(ResourceDescription descr) {
+    public void reduceComputingCapabilities(ResourceDescription descr) throws UnstartedNodeException {
         final MethodResourceDescription description = (MethodResourceDescription) descr;
         final int cpuCount = description.getTotalCPUComputingUnits();
         final int gpuCount = description.getTotalGPUComputingUnits();

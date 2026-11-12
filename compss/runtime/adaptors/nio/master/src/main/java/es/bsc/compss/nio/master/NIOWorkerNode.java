@@ -850,8 +850,17 @@ public class NIOWorkerNode extends COMPSsWorker {
         this.started = b;
     }
 
+    /**
+     * Increases the computing capabilities of the worker.
+     *
+     * @param description New resource description.
+     * @throws UnstartedNodeException If the node has not started yet.
+     */
     @Override
-    public void increaseComputingCapabilities(ResourceDescription description) {
+    public void increaseComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
+        if (node == null) {
+            throw new UnstartedNodeException();
+        }
         Semaphore sem = new Semaphore(0);
         MethodResourceDescription mrd = (MethodResourceDescription) description;
         CommandResourcesIncrease cmd = new CommandResourcesIncrease(mrd);
@@ -867,8 +876,17 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
+    /**
+     * Decreases the computing capabilities of the worker.
+     *
+     * @param description New resource description.
+     * @throws UnstartedNodeException If the node has not started yet.
+     */
     @Override
-    public void reduceComputingCapabilities(ResourceDescription description) {
+    public void reduceComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
+        if (node == null) {
+            throw new UnstartedNodeException();
+        }
         Semaphore sem = new Semaphore(0);
         MethodResourceDescription mrd = (MethodResourceDescription) description;
         CommandResourcesReduce cmd = new CommandResourcesReduce(mrd);

@@ -1264,7 +1264,6 @@ install_compss() {
   # SET TARGETDIR PERMISSIONS
   log_info "- Set COMPSs permissions"
   chmod -R 755 ${targetDir}
-  chmod -R 777 ${targetDir}/Runtime/configuration/
 }
 
 

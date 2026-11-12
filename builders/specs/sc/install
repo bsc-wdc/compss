@@ -253,7 +253,6 @@ get_args() {
   # Set permissions
   echo "- Set COMPSs permissions"
   chmod -R 755 "${targetDir}"
-  chmod -R 777 "${targetDir}"/Runtime/configuration/
 
   # Copy the queue.cfg as default.cfg if it is defined
   if [ -n "${queues_cfg}" ]; then

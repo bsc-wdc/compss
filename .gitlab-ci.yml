@@ -7,7 +7,6 @@ variables:
   TESTS_IMAGE: "${CI_REGISTRY_IMAGE}/tests"
   REGISTRY_API: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories"
   BUILDX_BUILDER: "container-builder"
-#  BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
 
 .gitlab_registry:
   before_script:
@@ -276,7 +275,7 @@ images:
       if [[ "${COMPSS_VERSION}" == *-* ]]; then
         echo "Login to GitLab registry to upload COMPSs "${COMPSS_VERSION}" pre-release images."
         docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-        export REPO="${CI_REGISTRY_IMAGE}"
+        export BUILDX_NO_DEFAULT_ATTESTATIONS="1" REPO="${CI_REGISTRY_IMAGE}"
       else
         echo "Login to Docker Hub registry to upload COMPSs "${COMPSS_VERSION}" final images."
         docker login -u "${CD_REGISTRY_USER}" -p "${CD_REGISTRY_PASSWORD}"

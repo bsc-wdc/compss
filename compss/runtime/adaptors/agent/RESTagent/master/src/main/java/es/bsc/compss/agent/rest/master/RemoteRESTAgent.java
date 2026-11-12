@@ -384,12 +384,12 @@ public class RemoteRESTAgent extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(ResourceDescription description) {
+    public void increaseComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
         // Do nothing its managed internally by the remote agent
     }
 
     @Override
-    public void reduceComputingCapabilities(ResourceDescription description) {
+    public void reduceComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
         // Do nothing its managed internally by the remote agent
     }
 

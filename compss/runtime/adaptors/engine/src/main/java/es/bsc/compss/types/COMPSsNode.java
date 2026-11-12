@@ -302,15 +302,17 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * Increases the computing capabilities of the node.
      *
      * @param description New resource description.
+     * @throws UnstartedNodeException If the node has not started yet.
      */
-    public abstract void increaseComputingCapabilities(ResourceDescription description);
+    public abstract void increaseComputingCapabilities(ResourceDescription description) throws UnstartedNodeException;
 
     /**
      * Decreases the computing capabilities of the node.
      *
      * @param description New resource description.
+     * @throws UnstartedNodeException If the node has not started yet.
      */
-    public abstract void reduceComputingCapabilities(ResourceDescription description);
+    public abstract void reduceComputingCapabilities(ResourceDescription description) throws UnstartedNodeException;
 
     public abstract void removeObsoletes(List<MultiURI> obsoletes);
 

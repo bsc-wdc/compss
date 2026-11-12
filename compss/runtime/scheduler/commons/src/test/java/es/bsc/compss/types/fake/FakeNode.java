@@ -17,6 +17,7 @@
 package es.bsc.compss.types.fake;
 
 import es.bsc.compss.exceptions.AnnounceException;
+import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.semantics.data.DataType;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
@@ -152,11 +153,11 @@ public class FakeNode extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(ResourceDescription description) {
+    public void increaseComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
     }
 
     @Override
-    public void reduceComputingCapabilities(ResourceDescription description) {
+    public void reduceComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
     }
 
     @Override

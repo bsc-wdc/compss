@@ -296,12 +296,12 @@ public class CommAgentWorker extends NIOWorkerNode {
     }
 
     @Override
-    public void increaseComputingCapabilities(ResourceDescription description) {
+    public void increaseComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
         // CommAgents are independent and they manage their own resources
     }
 
     @Override
-    public void reduceComputingCapabilities(ResourceDescription description) {
+    public void reduceComputingCapabilities(ResourceDescription description) throws UnstartedNodeException {
         // CommAgents are independent and they manage their own resources
     }
 

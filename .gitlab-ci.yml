@@ -31,7 +31,8 @@ build:
                   --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
                   --set tests.cache-to=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}",mode=max
                   --set tests.tags="${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
-                  --push tests
+                  --pull tests
+      	          --push
 
 check:
   stage: test

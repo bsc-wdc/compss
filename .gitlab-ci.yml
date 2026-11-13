@@ -27,12 +27,18 @@ build:
     - .gitlab_registry
     - .merge_request
   script:
-    - docker bake --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+    - docker buildx create --name "container-builder-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+                           --driver docker-container
+                           --bootstrap
+    - docker bake --builder "container-builder-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+                  --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
                   --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
                   --set tests.cache-to=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}",mode=max
                   --set tests.tags="${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
                   --pull tests
       	          --push
+  after_script:
+    - docker buildx rm "container-builder-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" || true
 
 check:
   stage: test
@@ -126,7 +132,7 @@ test:
       - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos -f concurrency"
         TEST_SHARDS: "2"
   script:
-    - docker pull "${COMPSS_IMAGE}"
+    - ( flock -x 9 && docker pull "${COMPSS_IMAGE}" ) 9> /tmp/docker-pull.lock
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do

@@ -75,7 +75,7 @@ images:
         docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
         export BUILDX_NO_DEFAULT_ATTESTATIONS="1" REPO="${CI_REGISTRY_IMAGE}"
       fi
-    - ARCHS=amd,arm,riscv TAGS="${COMPSS_VERSION},latest" docker bake --no-cache --pull release --push
+    - ARCHS=amd,arm,riscv TAGS="${COMPSS_VERSION},latest" docker bake --builder default --no-cache --pull release --push
   artifacts:
     when: always
     expire_in: 1 week

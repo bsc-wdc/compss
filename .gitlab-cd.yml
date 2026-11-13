@@ -87,7 +87,7 @@ packages:
   extends:
     - .commit_tag
   script:
-    - builders/specs/sc/buildsc "${COMPSS_VERSION}"
+    - builders/specs/sc/buildsc "${COMPSS_VERSION}" "${CD_PACKAGE_SERVER}:${CD_PACKAGE_PATH}"
 #    - builders/specs/pip/buildpip "${COMPSS_VERSION}" "${CD_PACKAGE_SERVER}" "${CD_PACKAGE_PATH}" ${RELEASE}
 
 deploy:

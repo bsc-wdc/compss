@@ -38,6 +38,7 @@
   #
 
   COMPSs_version=$1
+  COMPSs_repository=$2
   distribution=sc
 
   # Define script variables
@@ -271,8 +272,15 @@
   # Move to final location
   echo " "
   echo "* Moving package to final location..."
-  mkdir -p ${packages_target}/${distribution}
-  mv tmp/COMPSs_"${COMPSs_version}".tar.gz ${packages_target}/${distribution}
+  mkdir -p "${packages_target}/${distribution}"
+  mv "tmp/COMPSs_${COMPSs_version}.tar.gz" "${packages_target}/${distribution}"
+
+  # Upload to the repository
+  if [ -n "${COMPSs_repository}" ] ; then
+    echo " "
+    echo "* Moving package to repository..."
+    scp "${packages_target}/${distribution}/COMPSs_${COMPSs_version}.tar.gz" "${COMPSs_repository}"
+  fi
 
   # Clean COMPSs tmp files
   echo " "

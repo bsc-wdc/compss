@@ -12,6 +12,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 	apt-get update && \
 	apt-get install -y --no-install-recommends \
 			cmake \
+			file \
 			g++ \
 			libopenmpi-dev \
 			make \

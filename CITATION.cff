@@ -73,6 +73,7 @@ authors:
     family-names: García
     email: mauro.garcia@bsc.es
     affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0001-3506-9492'
   - given-names: Eudald
     family-names: Pizarro Camí
     email: eudald.pizarro@bsc.es
@@ -125,12 +126,10 @@ authors:
   - given-names: Nicolò
     family-names: Giacomini
     email: nicolo.giacomini@bsc.es
-    affiliation: Barcelona Supercomputing Center
     orcid: 'https://orcid.org/0009-0005-2797-8177'
   - given-names: Roc
     family-names: Cutal Gendrau
     email: roc.cutal@bsc.es
-    affiliation: Barcelona Supercomputing Center
   - given-names: Adrià
     family-names: Aguila Perez
   - given-names: Aldo
@@ -178,7 +177,7 @@ keywords:
   - workflows
   - distributed computing
 license: Apache-2.0
-version: '3.4'
+version: '4.0'
 preferred-citation:
   type: article
   authors:

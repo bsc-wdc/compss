@@ -80,6 +80,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			notebook \
 			numba \
 			pandas \
+			psutil \
 			pycompss-cli \
 			pytest \
 			pytz \

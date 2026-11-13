@@ -16,6 +16,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			libopenmpi-dev \
 			make \
 			papi-tools \
+			psutil \
 			python3 \
 			python3-pip \
 			r-base

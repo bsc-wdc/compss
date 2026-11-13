@@ -48,6 +48,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			mpi4py \
 			numba \
 			pandas \
+			psutil \
 			pytz \
 			redis \
 			roc-validator==${ROC_VALIDATOR_VERSION} \

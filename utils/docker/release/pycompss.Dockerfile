@@ -15,6 +15,7 @@ ARG ROCRATE_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 	python3 -m pip install --break-system-packages \
 			dill \
+			psutil \
 			rocrate==${ROCRATE_VERSION}
 
 COPY --from=build --link --parents \

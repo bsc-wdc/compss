@@ -17,7 +17,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			libopenmpi-dev \
 			make \
 			papi-tools \
-			psutil \
 			python3-dev \
 			python3-pip \
 			r-base
@@ -40,6 +39,7 @@ RUN --mount=type=cache,target=/root/.cache/pip,id=pip-${TARGETARCH} \
 			kafka-python \
 			mpi4py \
 			numba \
+			psutil \
 			pytz \
 			redis-py-cluster \
 			rocrate==${ROCRATE_VERSION}

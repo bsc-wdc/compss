@@ -27,12 +27,16 @@ build:
     - .gitlab_registry
     - .merge_request
   script:
+    - docker buildx create --name "container-builder-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+                           --driver docker-container --bootstrap --use
     - docker bake --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
                   --set tests.cache-from=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
                   --set tests.cache-to=type=registry,ref="${CACHE_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}",mode=max
                   --set tests.tags="${TESTS_IMAGE}:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
                   --pull tests
       	          --push
+  after_script:
+    - docker buildx rm "container-builder-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" || true
 
 check:
   stage: test

@@ -126,7 +126,7 @@ test:
       - TEST_FAMILIES: "-f c -f tools -f agents -f performance -f socket -f gos -f concurrency"
         TEST_SHARDS: "2"
   script:
-    - docker pull "${COMPSS_IMAGE}"
+    - ( flock -x 9 && docker pull "${COMPSS_IMAGE}" ) 9> /tmp/docker-pull.lock
     - |
       : "${TEST_SHARDS:=1}"
       for s in $(seq 1 "${TEST_SHARDS}"); do

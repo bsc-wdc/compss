@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt-${TARGETARCH}
 			make \
 			papi-tools \
 			psutil \
-			python3 \
+			python3-dev \
 			python3-pip \
 			r-base
 

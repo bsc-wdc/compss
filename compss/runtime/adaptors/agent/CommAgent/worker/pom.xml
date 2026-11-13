@@ -8,7 +8,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-adaptors-agent-comm</artifactId>
-        <version>4.0.0-beta.2</version>
+        <version>4.0.0</version>
     </parent>
    
     <!-- PROJECT INFORMATION -->

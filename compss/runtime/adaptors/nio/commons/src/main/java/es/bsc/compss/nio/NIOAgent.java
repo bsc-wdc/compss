@@ -1083,9 +1083,8 @@ public abstract class NIOAgent {
      * Release send slot.
      *
      * @param c Connection.
-     * @return {@literal true} if the connection held a send slot; {@literal false}, otherwise
      */
-    public boolean releaseSendSlot(Connection c) {
+    public void releaseSendSlot(Connection c) {
         synchronized (this) {
             for (int i = 0; i < this.maxSendTransfers; i++) {
                 if (this.trasmittingConnections[i] == c) {
@@ -1096,11 +1095,11 @@ public abstract class NIOAgent {
                             shutdown(this.closingConnection);
                         }
                     }
-                    return true;
+                    break;
                 }
             }
+
         }
-        return false;
     }
 
     /**

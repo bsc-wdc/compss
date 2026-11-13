@@ -74,11 +74,9 @@ public class NIOHandler implements ServerHandler, ConnectionListener {
         String errorText =
             "NIO Error: " + ce.getMessage() + " processing " + ((t == null) ? "null" : t.hashCode()) + "\n";
         LOGGER.error(errorText, ce);
-        if (this.agent.releaseSendSlot(c)) {
-            // A data send of this node failed. The requester learns it from the closed connection; releasing the
-            // send slot is all that is left to do (otherwise a later shutdown waits for it forever).
-            return;
-        }
+        // If a data send of this node failed, free its send slot; otherwise a later shutdown waits for it forever.
+        // Does nothing when the connection holds no send slot.
+        this.agent.releaseSendSlot(c);
         boolean managed = this.agent.checkAndHandleRequestedDataNotAvailableError(c);
         if (!managed) {
             managed = this.agent.checkAndHandleCommandError(c);

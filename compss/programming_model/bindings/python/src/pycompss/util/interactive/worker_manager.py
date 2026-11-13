@@ -175,7 +175,7 @@ class WorkerManager:
         """
         processes: list[subprocess.Popen[str]] = []
         for worker in self._workers:
-            print(worker.command)
+            # print(worker.command)
             proc = subprocess.Popen(
                 worker.command,
                 start_new_session=True,
@@ -184,7 +184,7 @@ class WorkerManager:
                 text=True,
             )
             time.sleep(1)
-            print("Return code:", proc.poll())
+            # print("Return code:", proc.poll())
             if proc.poll() is not None:
                 if proc.stdout is not None:
                     print(proc.stdout.read())

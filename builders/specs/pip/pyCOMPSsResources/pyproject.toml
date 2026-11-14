@@ -35,7 +35,7 @@ maintainers = [
 ]
 description = "Python Binding for COMP Superscalar Runtime"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = { file="LICENSE.txt" } 
 keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "HPC", "parallelization"]
 classifiers = [
@@ -51,17 +51,22 @@ classifiers = [
     "Programming Language :: C++",
     "Programming Language :: Java",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: R",
     "Topic :: System :: Distributed Computing",
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development",
     "Topic :: Utilities"
+]
+dependencies = [
+    "psutil",
 ]
 
 [project.optional-dependencies]

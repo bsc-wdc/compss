@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 #  Copyright 2002-2026 Barcelona Supercomputing Center (www.bsc.es)
 #
@@ -33,10 +33,11 @@ import os
 import site
 import subprocess
 import sys
+import sysconfig
 import tarfile
 import urllib.request as urllib
-import setuptools
 
+import setuptools
 
 # Used for .bashrc export if necessary
 EXPORT_LABEL = "##PyCOMPSs_EXPORTS___DO_NOT_REMOVE_THIS_LINE##"
@@ -57,6 +58,7 @@ class InstallationException(Exception):
     """Custom installation exception."""
 
     def __init__(self, message):
+        super().__init__(message)
         print(f"PyCOMPSs installation Exception: {message}")
 
 
@@ -64,9 +66,7 @@ def get_virtual_env_target_path():
     """Get the site pacakges and target path within a virtual environment
     :return: site packages path and target path
     """
-    from distutils.sysconfig import get_python_lib
-
-    site_packages = get_python_lib()
+    site_packages = sysconfig.get_paths()["purelib"]
     return site_packages, os.path.join(site_packages, "pycompss")
 
 
@@ -95,8 +95,8 @@ def check_system():
     # check Python version
     assert sys.version_info[:2] >= (
         3,
-        6,
-    ), f"COMPSs does not support Python version {sys.version}, only Python >= 3.6.x is supported."
+        8,
+    ), f"COMPSs does not support Python version {sys.version}, only Python >= 3.8.x is supported."
 
     # check os version not Windows
     assert sys.platform != "win32", "COMPSs does not support Windows"
@@ -107,13 +107,79 @@ def check_system():
     assert "JAVA_HOME" in os.environ, "JAVA_HOME is not defined"
 
 
+def get_subprocess_env():
+    """Build the environment for the subprocesses spawned by this script.
+
+    When pip builds this package with build isolation, this setup.py runs in a
+    subprocess whose environment is polluted with the temporary build
+    environment: PYTHONPATH points to a pip-owned site directory containing a
+    sitecustomize.py that strips the interpreter's own site-packages from
+    sys.path, PATH is prefixed with the build environment bin directories and
+    PYTHONNOUSERSITE is set. Any python interpreter launched by the COMPSs
+    install scripts inherits that pollution and becomes unable to import pip
+    (even if it is installed), which breaks the nested installation.
+
+    Build a clean environment for the children: remove the pip build
+    environment entries (keeping any user-provided PYTHONPATH entries) and
+    make the build requirements (e.g. setuptools) available to the children,
+    since the nested install scripts may rely on them.
+
+    :return: <dict> Environment for the child processes
+    """
+    env = os.environ.copy()
+
+    # Location of the build requirements (setuptools) available to this
+    # process: it is either the pip build environment (when installing with
+    # build isolation) or the current installation. The nested install scripts
+    # need it to build the python binding.
+    # setuptools.__path__[0] is <site-packages>/setuptools, so take its parent
+    build_requirements_path = os.path.dirname(list(setuptools.__path__)[0])
+
+    # Remove the pip build environment entries from PYTHONPATH (the pip site
+    # directory holds the sitecustomize.py that hides the real site-packages)
+    # while keeping the entries provided by the user, and add the location of
+    # the build requirements so that the children can import setuptools.
+    python_path = [
+        entry
+        for entry in env.get("PYTHONPATH", "").split(os.pathsep)
+        if entry and "pip-build-env" not in entry
+    ]
+    if os.path.isdir(build_requirements_path) and (
+        build_requirements_path not in python_path
+    ):
+        python_path.append(build_requirements_path)
+    if python_path:
+        env["PYTHONPATH"] = os.pathsep.join(python_path)
+    else:
+        env.pop("PYTHONPATH", None)
+
+    # Restore the default user site behaviour (pip disables it while building)
+    env.pop("PYTHONNOUSERSITE", None)
+
+    # Remove the pip build environment bin directories from PATH: they only
+    # contain build tooling, not the interpreters the children expect
+    if env.get("PATH"):
+        env["PATH"] = os.pathsep.join(
+            entry
+            for entry in env["PATH"].split(os.pathsep)
+            if "pip-build-env" not in entry
+        )
+
+    return env
+
+
 def command_runner(cmd):
     """Run the command defined in the cmd list.
 
     :param cmd: <list[str]> Command to execute as list.
     :returns: <int> Exit code
     """
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=get_subprocess_env(),
+    )
     stdout, stderr = proc.communicate()  # blocks until cmd is done
     stdout = stdout.decode(DECODING_FORMAT)
     stderr = stderr.decode(DECODING_FORMAT)
@@ -155,9 +221,12 @@ def backend_install(compss_target_path, site_packages_path, venv):
 
     urllib.urlretrieve(full_url, tgz_name)
 
-    tar = tarfile.open(tgz_name, "r:gz")
-    tar.extractall(".")
-    tar.close()
+    with tarfile.open(tgz_name, "r:gz") as tar:
+        try:
+            tar.extractall(".", filter="data")
+        except TypeError:
+            # Python < 3.12 does not support the filter argument
+            tar.extractall(".")
 
     os.remove(tgz_name)
 
@@ -232,7 +301,7 @@ def backend_install(compss_target_path, site_packages_path, venv):
             compss_sh.write(f"\n{SETUP_ENVIRONMENT_CALL}\n")
         # Include profile script in RECORD to be uninstalled
         all_files_to_record.append(profile_script)
-    except IOError:
+    except OSError:
         # Could not include system wide, then try to do it locally
 
         def update_export(
@@ -253,7 +322,9 @@ def backend_install(compss_target_path, site_packages_path, venv):
             # Set the source where the environment is defined
             exports = "source " + str(local_compss_sh) + " " + EXPORT_LABEL + "\n"
             messages.append(f"NOTE! ENVIRONMENT VARIABLES STORED IN {local_compss_sh}")
-            if EXPORT_LABEL in open(sources_file, "r").read():
+            with open(sources_file, "r") as sources_f:
+                sources_content = sources_f.read()
+            if EXPORT_LABEL in sources_content:
                 # Contains the source label, so update all
                 with open(sources_file, "r") as sources_f:
                     file_lines = sources_f.readlines()
@@ -325,7 +396,7 @@ def backend_install(compss_target_path, site_packages_path, venv):
     def create_symlink(original_file, symbolic_place):
         try:
             os.remove(symbolic_place)
-        except:
+        except OSError:
             pass
         os.symlink(original_file, symbolic_place)
 

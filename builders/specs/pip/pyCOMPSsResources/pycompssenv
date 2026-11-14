@@ -16,7 +16,7 @@ setup_COMPSs_environment () {
     export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/utils
     export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin
     export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:##COMPSS_PATH##/Bindings/bindings-common/lib:##JAVA_HOME##/jre/lib/amd64/server
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:##COMPSS_PATH##/Bindings/bindings-common/lib:##JAVA_HOME##/lib/server:##JAVA_HOME##/jre/lib/amd64/server
 }
 
 # Clean the environment variables and set the previous if pre_COMPSs_environment function has been called.
